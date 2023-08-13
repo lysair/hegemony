@@ -109,9 +109,10 @@ local befriendAttackingSkill = fk.CreateActiveSkill{
     local target = Fk:currentRoom():getPlayerById(to_select)
     return Fk:currentRoom():getPlayerById(user) ~= target and target.kingdom ~= "unknown"
   end,
-  target_filter = function(self, to_select, selected)
-    local target = Fk:currentRoom():getPlayerById(to_select)
-    return Self.kingdom ~= "unknown" and target.kingdom ~= "unknown" and Self.kingdom ~= target.kingdom
+  target_filter = function(self, to_select, selected, _, card)
+    if #selected == 0 then
+      return Self.kingdom ~= "unknown" and self:modTargetFilter(to_select, selected, Self.id, card, true)
+    end
   end,
   on_effect = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
@@ -143,9 +144,10 @@ local knownBothSkill = fk.CreateActiveSkill{
     local target = Fk:currentRoom():getPlayerById(to_select)
     return Fk:currentRoom():getPlayerById(user) ~= target and (not target:isKongcheng() or target.general == "anjiang" or target.deputyGeneral == "anjiang")
   end,
-  target_filter = function(self, to_select, selected)
-    local target = Fk:currentRoom():getPlayerById(to_select)
-    return to_select ~= Self.id and (not target:isKongcheng() or target.general == "anjiang" or target.deputyGeneral == "anjiang")
+  target_filter = function(self, to_select, selected, _, card)
+    if #selected == 0 then
+      return self:modTargetFilter(to_select, selected, Self.id, card, true)
+    end
   end,
   on_effect = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
@@ -164,14 +166,13 @@ local knownBothSkill = fk.CreateActiveSkill{
     end
     if #choices == 0 then return end
     local choice = room:askForChoice(player, choices, self.name, "#known_both-choice::"..target.id, false, all_choices)
-    if choice == "known_both_main" then
-      room:askForGeneral(player, {target:getMark("__heg_general"), target.deputyGeneral}, 1)
-    elseif choice == "known_both_deputy" then
-      room:askForGeneral(player, {target.general, target:getMark("__heg_deputy")}, 1)
-    elseif choice == "known_both_hand" then
+    if choice == "known_both_hand" then
       room:fillAG(player, target.player_cards[Player.Hand])
       room:delay(5000)
       room:closeAG(player)
+    else
+      local general = choice == "known_both_main" and {target:getMark("__heg_general"), target.deputyGeneral, target.seat} or {target.general, target:getMark("__heg_deputy"), target.seat}
+      room:askForCustomDialog(player, self.name, "packages/hegemony/qml/KnownBothBox.qml", general)
     end
   end,
 }
@@ -192,6 +193,7 @@ Fk:loadTranslationTable{
   ["known_both_main"] = "观看主将",
   ["known_both_deputy"] = "观看副将",
   ["known_both_hand"] = "观看手牌",
+  ["#KnownBothGeneral"] = "观看武将",
 }
 
 local awaitExhaustedSkill = fk.CreateActiveSkill{
