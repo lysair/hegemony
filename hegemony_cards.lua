@@ -6,7 +6,7 @@ Fk:loadTranslationTable{
 }
 
 extension.game_modes_whitelist = {"heg_mode"}
-extension.game_modes_blacklist = {"aaa_role_mode", "m_1v1_mode", "m_1v2_mode", "m_2v2_mode", "zombie_mode"}
+extension.game_modes_blacklist = {"aaa_role_mode", "m_1v1_mode", "m_1v2_mode", "m_2v2_mode", "zombie_mode", "chaos_mode"}
 
 extension:addCards{
   Fk:cloneCard("slash", Card.Spade, 5),
@@ -105,6 +105,10 @@ extension:addCards{
 local befriendAttackingSkill = fk.CreateActiveSkill{
   name = "befriend_attacking_skill",
   target_num = 1,
+  mod_target_filter = function(self, to_select, selected, user)
+    local target = Fk:currentRoom():getPlayerById(to_select)
+    return Fk:currentRoom():getPlayerById(user) ~= target and target.kingdom ~= "unknown"
+  end,
   target_filter = function(self, to_select, selected)
     local target = Fk:currentRoom():getPlayerById(to_select)
     return Self.kingdom ~= "unknown" and target.kingdom ~= "unknown" and Self.kingdom ~= target.kingdom
@@ -113,9 +117,9 @@ local befriendAttackingSkill = fk.CreateActiveSkill{
     local player = room:getPlayerById(effect.from)
     local target = room:getPlayerById(effect.to)
     if target.dead then return end
-    target:drawCards(1, self.name)
+    target:drawCards(1, "befriend_attacking")
     if player.dead then return end
-    player:drawCards(3, self.name)
+    player:drawCards(3, "befriend_attacking")
   end
 }
 local befriendAttacking = fk.CreateTrickCard{
@@ -135,6 +139,10 @@ Fk:loadTranslationTable{
 local knownBothSkill = fk.CreateActiveSkill{
   name = "known_both_skill",
   target_num = 1,
+  mod_target_filter = function(self, to_select, selected, user)
+    local target = Fk:currentRoom():getPlayerById(to_select)
+    return Fk:currentRoom():getPlayerById(user) ~= target and (not target:isKongcheng() or target.general == "anjiang" or target.deputyGeneral == "anjiang")
+  end,
   target_filter = function(self, to_select, selected)
     local target = Fk:currentRoom():getPlayerById(to_select)
     return to_select ~= Self.id and (not target:isKongcheng() or target.general == "anjiang" or target.deputyGeneral == "anjiang")
@@ -143,18 +151,19 @@ local knownBothSkill = fk.CreateActiveSkill{
     local player = room:getPlayerById(effect.from)
     local target = room:getPlayerById(effect.to)
     if target.dead or player.dead then return end
-    local choices = {}
-    if target.general == "anjiang" then
-      table.insert(choices, "known_both_main")
+    local all_choices = {"known_both_main", "known_both_deputy", "known_both_hand"}
+    local choices = table.clone(all_choices)
+    if target:isKongcheng() then
+      table.remove(choices)
     end
-    if target.deputyGeneral == "anjiang" then
-      table.insert(choices, "known_both_deputy")
+    if target.general ~= "anjiang" then
+      table.remove(choices, 1)
     end
-    if not target:isKongcheng() then
-      table.insert(choices, "known_both_hand")
+    if target.deputyGeneral ~= "anjiang" then
+      table.removeOne(choices, "known_both_deputy")
     end
     if #choices == 0 then return end
-    local choice = room:askForChoice(player, choices, self.name, "#known_both-choice::"..target.id)
+    local choice = room:askForChoice(player, choices, self.name, "#known_both-choice::"..target.id, false, all_choices)
     if choice == "known_both_main" then
       room:askForGeneral(player, {target:getMark("__heg_general"), target.deputyGeneral}, 1)
     elseif choice == "known_both_deputy" then
@@ -187,17 +196,9 @@ Fk:loadTranslationTable{
 
 local awaitExhaustedSkill = fk.CreateActiveSkill{
   name = "await_exhausted_skill",
+  mod_target_filter = Util.TrueFunc,
   can_use = function(self, player, card)
-    if player:isProhibited(player, card) then
-      if player.kingdom == "unknown" then
-        return false
-      else
-        return table.find(Fk:currentRoom().alive_players, function(p)
-          return p.kingdom == player.kingdom and p ~= player and not player:isProhibited(p, card) end)
-      end
-    else
-      return true
-    end
+    return not player:isProhibited(player, card)
   end,
   on_use = function(self, room, use)
     if not use.tos or #TargetGroup:getRealTargets(use.tos) == 0 then
@@ -218,12 +219,8 @@ local awaitExhaustedSkill = fk.CreateActiveSkill{
     local target = room:getPlayerById(effect.to)
     if target.dead then return end
     target:drawCards(2, "await_exhausted")
-    if target.dead or target:isNude() then return end
-    if #target:getCardIds("he") < 3 then
-      target:throwAllCards("he")
-    else
+    if target.dead then return end
       room:askForDiscard(target, 2, 2, true, self.name, false)
-    end
   end,
 }
 local awaitExhausted = fk.CreateTrickCard{
@@ -275,7 +272,7 @@ local sixSwords = fk.CreateWeapon{
 extension:addCard(sixSwords)
 Fk:loadTranslationTable{
   ["six_swords"] = "吴六剑",
-  [":six_swords"] = "装备牌·武器<br/><b>攻击范围</b>：2<br/><b>武器技能</b>：锁定技，与你势力相同的其他角色攻击范围+1。",
+  [":six_swords"] = "装备牌·武器<br/><b>攻击范围</b>：2 <br/><b>武器技能</b>：锁定技，与你势力相同的其他角色攻击范围+1。",
 }
 
 extension:addCards{
@@ -288,7 +285,7 @@ local tribladeSkill = fk.CreateTriggerSkill{
   attached_equip = "triblade",
   events = {fk.Damage},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and data.card and data.card.trueName == "slash" and not data.to.dead and
+    return target == player and player:hasSkill(self.name) and data.card and data.card.trueName == "slash" and not data.to.dead and not data.chain and
       not player:isKongcheng() and table.find(player.room.alive_players, function(p) return data.to:distanceTo(p) == 1 end)
   end,
   on_cost = function(self, event, target, player, data)
@@ -326,7 +323,7 @@ extension:addCard(triblade)
 Fk:loadTranslationTable{
   ["triblade"] = "三尖两刃刀",
   ["#triblade_skill"] = "三尖两刃刀",
-  [":triblade"] = "装备牌·武器<br/><b>攻击范围</b>：3<br/><b>武器技能</b>：当你使用【杀】对目标角色造成伤害后，你可以弃置一张手牌，"..
+  [":triblade"] = "装备牌·武器<br/><b>攻击范围</b>：3 <br/><b>武器技能</b>：当你使用【杀】对目标角色造成伤害后，你可以弃置一张手牌，"..
   "对其距离1的另一名角色造成1点伤害。",
   ["#triblade-invoke"] = "三尖两刃刀：你可以弃置一张手牌，对 %dest 距离1的一名角色造成1点伤害",
 }
