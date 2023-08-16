@@ -993,9 +993,6 @@ local qianxun = fk.CreateTriggerSkill{
     return target == player and player:hasSkill(self.name) and (data.card.name == "snatch" or data.card.name == "indulgence")
   end,
   on_use = function(self, event, target, player, data)
-    local room = player.room
-    room:broadcastSkillInvoke(self.name)
-    room:notifySkillInvoked(player, self.name, "defensive")
     AimGroup:cancelTarget(data, player.id)
   end
 }
