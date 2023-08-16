@@ -170,9 +170,18 @@ Fk:loadTranslationTable{
   ["hs__luoshen"] = "洛神",
   [":hs__luoshen"] = "准备阶段开始时，你可进行判定，你可重复此流程，直到判定结果为红色，然后你获得所有黑色的判定牌。",
 }
---xiahouyuan
 
---zhanghe
+local xiahouyuan = General(extension, "hs__xiahouyuan", "wei", 4)
+xiahouyuan:addSkill("shensu")
+Fk:loadTranslationTable{
+  ["hs__xiahouyuan"] = "夏侯渊",
+}
+
+local zhanghe = General(extension, "hs__zhanghe", "wei", 4)
+zhanghe:addSkill("qiaobian")
+Fk:loadTranslationTable{
+  ["hs__zhanghe"] = "张郃",
+}
 
 local xuhuang = General(extension, "hs__xuhuang", "wei", 4)
 local duanliang = fk.CreateViewAsSkill{
@@ -303,11 +312,25 @@ Fk:loadTranslationTable{
   ["#hs__jushou-select"] = "据守：选择使用手牌中的一张装备牌或弃置手牌中的一张非装备牌",
 }
 
---dianwei
+local dianwei = General(extension, "hs__dianwei", "wei", 4)
+dianwei:addSkill("qiangxi")
+Fk:loadTranslationTable{
+  ['hs__dianwei'] = '典韦',
+}
 
---xunyu
+local xunyu = General(extension, "hs__xunyu", "wei", 3)
+xunyu:addSkill("quhu")
+xunyu:addSkill("jieming")
+Fk:loadTranslationTable{
+  ['hs__xunyu'] = '荀彧',
+}
 
---caopi
+local caopi = General(extension, "hs__caopi", "wei", 3)
+caopi:addSkill("xingshang")
+caopi:addSkill("fangzhu")
+Fk:loadTranslationTable{
+  ['hs__caopi'] = '曹丕',
+}
 
 local yuejin = General(extension, "hs__yuejin", "wei", 4)
 
@@ -348,7 +371,11 @@ Fk:loadTranslationTable{
   ["#hs__xiaoguo-discard"] = "骁果：你需弃置一张装备牌，否则 %src 对你造成1点伤害",
 }
 
---liubei
+local liubei = General(extension, "hs__liubei", "shu", 4)
+liubei:addSkill("ex__rende")
+Fk:loadTranslationTable{
+  ["hs__liubei"] = "刘备",
+}
 
 local guanyu = General(extension, "hs__guanyu", "shu", 5)
 guanyu:addSkill("wusheng")
@@ -676,7 +703,11 @@ Fk:loadTranslationTable{
   [":hs__jizhi"] = "当你使用非转化的普通锦囊牌时，你可摸一张牌。",
 }
 
---huangzhong
+local huangzhong = General(extension, "hs__huangzhong", "shu", 4)
+huangzhong:addSkill("liegong")
+Fk:loadTranslationTable{
+  ["hs__huangzhong"] = "黄忠",
+}
 
 local weiyan = General(extension, "hs__weiyan", "shu", 4)
 local kuanggu = fk.CreateTriggerSkill{ --虽然已有
@@ -740,13 +771,29 @@ Fk:loadTranslationTable{
 
 --pangtong
 
---wolong
+local wolong = General(extension, "hs__wolong", "shu", 3)
+wolong:addSkill("bazhen")
+wolong:addSkill("huoji")
+wolong:addSkill("kanpo")
+Fk:loadTranslationTable{
+  ['hs__wolong'] = '卧龙诸葛亮',
+}
 
---liushan
+local liushan = General(extension, "hs__liushan", "shu", 3)
+liushan:addSkill("xiangle")
+liushan:addSkill("fangquan")
+Fk:loadTranslationTable{
+  ['hs__liushan'] = '刘禅',
+}
 
 --menghuo
 
---zhurong
+local zhurong = General(extension, "hs__zhurong", "shu", 4, 4, General.Female)
+zhurong:addSkill("juxiang")
+zhurong:addSkill("lieren")
+Fk:loadTranslationTable{
+  ['hs__zhurong'] = '祝融',
+}
 
 --ganfuren
 
@@ -1024,19 +1071,42 @@ Fk:loadTranslationTable{
 	[":hs__xiaoji"] = "当你失去装备区的装备牌后，你可以摸两张牌。",
 }
 
---sunjian
+local sunjian = General(extension, "hs__sunjian", "wu", 5)
+sunjian:addSkill("yinghun")
+Fk:loadTranslationTable{
+  ['hs__sunjian'] = '孙坚',
+}
 
 --xiaoqiao
 
---taishici
+local taishici = General(extension, "hs__taishici", "wu", 4)
+taishici:addSkill("tianyi")
+Fk:loadTranslationTable{
+  ['hs__taishici'] = '太史慈',
+}
 
 --zhoutai
 
---lusu
+local lusu = General(extension, "hs__lusu", "wu", 3)
+lusu:addSkill("haoshi")
+lusu:addSkill("dimeng")
+Fk:loadTranslationTable{
+  ['hs__lusu'] = '鲁肃',
+}
 
---zhangzhaozhanghong
+local erzhang = General(extension, "hs__zhangzhaozhanghong", "wu", 3)
+erzhang:addSkill("zhijian")
+erzhang:addSkill("guzheng")
+Fk:loadTranslationTable{
+  ['hs__zhangzhaozhanghong'] = '张昭张纮',
+}
 
---dingfeng
+local dingfeng = General(extension, "hs__dingfeng", "wu", 4)
+dingfeng:addSkill("duanbing")
+dingfeng:addSkill("fenxun")
+Fk:loadTranslationTable{
+  ["hs__dingfeng"] = "丁奉",
+}
 
 local huatuo = General(extension, "hs__huatuo", "qun", 3)
 
@@ -1204,9 +1274,33 @@ Fk:loadTranslationTable{
   ["#hs__luanji_draw"] = "乱击",
 }
 
---yanliangwenchou
+local sx = General(extension, 'hs__yanliangwenchou', 'qun', 4)
+sx:addSkill('shuangxiong')
+Fk:loadTranslationTable{
+  ['hs__yanliangwenchou'] = '颜良文丑',
+}
 
---jiaxu
+local jiaxu = General(extension, 'hs__jiaxu', 'qun', 3)
+jiaxu:addSkill('wansha')
+jiaxu:addSkill('luanwu')
+local weimu = fk.CreateTriggerSkill{
+  name = "hs__weimu",
+  anim_type = "defensive",
+  events = { fk.TargetConfirming },
+  frequency = Skill.Compulsory,
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) and data.card.color == Card.Black and data.card.type == Card.TypeTrick
+  end,
+  on_use = function(self, event, target, player, data)
+    AimGroup:cancelTarget(data, player.id)
+  end
+}
+jiaxu:addSkill(weimu)
+Fk:loadTranslationTable{
+  ['hs__jiaxu'] = '贾诩',
+  ['hs__weimu'] = '帷幕',
+  [':hs__weimu'] = '锁定技，当你成为黑色锦囊牌目标后，取消之。',
+}
 
 local pangde = General(extension, "hs__pangde", "qun", 4)
 
@@ -1247,7 +1341,12 @@ Fk:loadTranslationTable{
   [":jianchu"] = "当你使用【杀】指定目标后，你可以弃置该角色的一张牌，若此牌：为装备牌，其不能使用【闪】抵消此【杀】；不为装备牌，其获得此【杀】。",
 }
 
---zhangjiao
+local zhangjiao = General(extension, "hs__zhangjiao", 'qun', 3)
+zhangjiao:addSkill("leiji")
+zhangjiao:addSkill("guidao")
+Fk:loadTranslationTable{
+  ['hs__zhangjiao'] = '张角',
+}
 
 --caiwenji
 
