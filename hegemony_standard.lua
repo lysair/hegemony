@@ -1,5 +1,6 @@
 local extension = Package:new("hegemony_standard")
 extension.extensionName = "hegemony"
+extension.game_modes_whitelist = { 'nos_heg_mode', 'new_heg_mode' }
 
 local heg_mode = require "packages.hegemony.hegemony"
 extension:addGameMode(heg_mode)
