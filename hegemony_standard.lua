@@ -438,7 +438,7 @@ Fk:loadTranslationTable{
   ["#hs__paoxiaoTrigger"] = "咆哮",
 }
 
-local zhugeliang = General(extension, "hs__zhugeliang", "shu", 4)
+local zhugeliang = General(extension, "hs__zhugeliang", "shu", 3)
 
 local kongcheng = fk.CreateTriggerSkill{
   name = "hs__kongcheng",
@@ -462,10 +462,8 @@ local kongcheng = fk.CreateTriggerSkill{
       end
     end
   end,
-  on_cost = function(self, event, target, player, data)
+  on_use = function(self, event, target, player, data)
     local room = player.room
-    room:broadcastSkillInvoke(self.name)
-    room:notifySkillInvoked(player, self.name, "defensive")
     if event == fk.TargetConfirming then
       AimGroup:cancelTarget(data, player.id)
     elseif event == fk.BeforeCardsMove then
@@ -993,7 +991,7 @@ local qianxun = fk.CreateTriggerSkill{
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(self.name) and (data.card.name == "snatch" or data.card.name == "indulgence")
   end,
-  on_cost = function(self, event, target, player, data)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     room:broadcastSkillInvoke(self.name)
     room:notifySkillInvoked(player, self.name, "defensive")
