@@ -5,8 +5,17 @@ Fk:loadTranslationTable{
   ["hegemony_cards"] = "国战标准版",
 }
 
-extension.game_modes_whitelist = {"heg_mode"}
+extension.game_modes_whitelist = {"nos_heg_mode"}
 extension.game_modes_blacklist = {"aaa_role_mode", "m_1v1_mode", "m_1v2_mode", "m_2v2_mode", "zombie_mode", "chaos_mode"}
+
+local function noKingdom(player)
+  return player.general == "anjiang" and player.deputyGeneral == "anjiang"
+end
+
+local function sameKingdom(player, target) --isFriendWith
+  if player == target then return true end
+  return player.kingdom == target.kingdom and player.kingdom ~= "wild" and not noKingdom(player) --野心家拉拢……
+end
 
 extension:addCards{
   Fk:cloneCard("slash", Card.Spade, 5),
@@ -107,7 +116,8 @@ local befriendAttackingSkill = fk.CreateActiveSkill{
   target_num = 1,
   mod_target_filter = function(self, to_select, selected, user)
     local target = Fk:currentRoom():getPlayerById(to_select)
-    return Fk:currentRoom():getPlayerById(user) ~= target and target.kingdom ~= "unknown"
+    local player = Fk:currentRoom():getPlayerById(user)
+    return player ~= target and target.kingdom ~= "unknown" and not sameKingdom(target, player)
   end,
   target_filter = function(self, to_select, selected, _, card)
     if #selected == 0 then
@@ -142,7 +152,7 @@ local knownBothSkill = fk.CreateActiveSkill{
   target_num = 1,
   mod_target_filter = function(self, to_select, selected, user)
     local target = Fk:currentRoom():getPlayerById(to_select)
-    return Fk:currentRoom():getPlayerById(user) ~= target and (not target:isKongcheng() or target.general == "anjiang" or target.deputyGeneral == "anjiang")
+    return Fk:currentRoom():getPlayerById(user) ~= target and (not target:isKongcheng() or noKingdom(target))
   end,
   target_filter = function(self, to_select, selected, _, card)
     if #selected == 0 then
@@ -245,7 +255,46 @@ extension:addCards{
   Fk:cloneCard("crossbow", Card.Diamond, 1),
   Fk:cloneCard("qinggang_sword", Card.Spade, 6),
   Fk:cloneCard("ice_sword", Card.Spade, 2),
-  Fk:cloneCard("double_swords", Card.Spade, 2),
+  --Fk:cloneCard("double_swords", Card.Spade, 2),
+}
+
+local doubleSwordsSkill = fk.CreateTriggerSkill{
+  name = "#heg__double_swords_skill",
+  attached_equip = "heg__double_swords",
+  events = {fk.TargetSpecified},
+  can_trigger = function(self, event, target, player, data)
+    if target == player and player:hasSkill(self.name) and
+      data.card and data.card.trueName == "slash" then
+      local target = player.room:getPlayerById(data.to)
+      return target.gender ~= player.gender and not (noKingdom(player) or noKingdom(target))
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local to = player.room:getPlayerById(data.to)
+    if to:isKongcheng() then
+      player:drawCards(1, self.name)
+    else
+      local result = room:askForDiscard(to, 1, 1, false, self.name, true, ".", "#double_swords-invoke:"..player.id)
+      if #result == 0 then
+        player:drawCards(1, self.name)
+      end
+    end
+  end,
+}
+Fk:addSkill(doubleSwordsSkill)
+local doubleSwords = fk.CreateWeapon{
+  name = "heg__double_swords",
+  suit = Card.Spade,
+  number = 2,
+  attack_range = 2,
+  equip_skill = doubleSwordsSkill,
+}
+extension:addCard(doubleSwords)
+Fk:loadTranslationTable{
+  ["heg__double_swords"] = "雌雄双股剑",
+  [":heg__double_swords"] = "装备牌·武器<br /><b>攻击范围</b>：２<br /><b>武器技能</b>：每当你指定异性角色为【杀】的目标后，你可以令其选择一项：弃置一张手牌，或令你摸一张牌。",
+  ["#heg__double_swords_skill"] = "雌雄双股剑",
 }
 
 local sixSwordsSkill = fk.CreateAttackRangeSkill{
@@ -274,7 +323,7 @@ local sixSwords = fk.CreateWeapon{
 extension:addCard(sixSwords)
 Fk:loadTranslationTable{
   ["six_swords"] = "吴六剑",
-  [":six_swords"] = "装备牌·武器<br/><b>攻击范围</b>：2 <br/><b>武器技能</b>：锁定技，与你势力相同的其他角色攻击范围+1。",
+  [":six_swords"] = "装备牌·武器<br/><b>攻击范围</b>：２ <br/><b>武器技能</b>：锁定技，与你势力相同的其他角色攻击范围+1。",
 }
 
 extension:addCards{
@@ -325,7 +374,7 @@ extension:addCard(triblade)
 Fk:loadTranslationTable{
   ["triblade"] = "三尖两刃刀",
   ["#triblade_skill"] = "三尖两刃刀",
-  [":triblade"] = "装备牌·武器<br/><b>攻击范围</b>：3 <br/><b>武器技能</b>：当你使用【杀】对目标角色造成伤害后，你可以弃置一张手牌，"..
+  [":triblade"] = "装备牌·武器<br/><b>攻击范围</b>：３ <br/><b>武器技能</b>：当你使用【杀】对目标角色造成伤害后，你可以弃置一张手牌，"..
   "对其距离1的另一名角色造成1点伤害。",
   ["#triblade-invoke"] = "三尖两刃刀：你可以弃置一张手牌，对 %dest 距离1的一名角色造成1点伤害",
 }
