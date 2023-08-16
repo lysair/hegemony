@@ -1,6 +1,7 @@
 -- SPDX-License-Identifier: GPL-3.0-or-later
 
 local extension = Package:new("hegemony_cards", Package.CardPack)
+extension.game_modes_whitelist = { 'nos_heg_mode', 'new_heg_mode' }
 Fk:loadTranslationTable{
   ["hegemony_cards"] = "国战标准版",
 }
