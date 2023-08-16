@@ -357,7 +357,7 @@ heg = fk.CreateGameMode{
   rule = heg_rule,
   logic = heg_getlogic,
   is_counted = Util.FalseFunc,
-  whitelist = {"hegemony_cards", "hegemony_standard"},
+  whitelist = {"hegemony_cards", "hegemony_standard", "formation"},
 }
 
 Fk:loadTranslationTable{
