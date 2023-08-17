@@ -5,6 +5,9 @@ local H = {}
 ---@param diff bool
 ---@return boolean
 H.compareKingdomWith = function(from, to, diff)
+  if from == to then
+    return not diff
+  end
   if from.kingdom == "unknown" or to.kingdom == "unknown" then
     return false
   end

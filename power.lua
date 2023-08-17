@@ -30,18 +30,28 @@ local fudi = fk.CreateTriggerSkill{
     room:obtainCard(data.from, self.cost_data, false, fk.ReasonGive)
 
     local p = data.from
-    local max = p.hp
-    local k = p.kingdom
-    if k == "unknown" then return end
+    local x = player.hp
+    if not p or p.dead then return end
+    local targets = {}
     for _, _p in ipairs(room.alive_players) do
-      if H.compareKingdomWith(p, _p) then max = math.max(max, _p.hp) end
+      if H.compareKingdomWith(_p, p) then
+        if _p.hp >= x then
+          if _p.hp > x then
+            targets = {}
+            x = _p.hp
+          end
+          table.insert(targets, _p)
+        end
+      end
     end
-    if max < player.hp then return end
-    local targets = table.filter(room.alive_players, function(_p)
-      return _p.kingdom == k and _p.hp == max
-    end)
-    local to = room:askForChoosePlayers(player, table.map(targets, Util.IdMapper),
-      1, 1, '#ld__fudi-dmg', self.name, false)[1]
+    local to
+    if #targets == 0 then return
+    elseif #targets == 1 then
+      to = targets[1].id
+    else
+      to = room:askForChoosePlayers(player, table.map(targets, Util.IdMapper),
+        1, 1, '#ld__fudi-dmg', self.name, false)[1]
+    end
 
     room:damage {
       from = player,

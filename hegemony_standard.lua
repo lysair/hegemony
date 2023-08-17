@@ -712,8 +712,8 @@ Fk:loadTranslationTable{
   ["@hs__tieqi-turn"] = "铁骑",
   ["#hs__tieqi-ask"] = "铁骑：选择 %dest 一张明置的武将牌，本回合此武将牌上的非锁定技失效",
   ["#hs__tieqi-discard"] = "铁骑：你需弃置一张%arg牌，否则不能使用【闪】抵消此【杀】。",
-  ["$hs__tieqi1"] = "敌人阵型已乱，随我杀！",
-  ["$hs__tieqi2"] = "目标敌阵，全军突击！",
+  ["$hs__tieqi1"] = "目标敌阵，全军突击！",
+  ["$hs__tieqi2"] = "敌人阵型已乱，随我杀！",
   ["~hs__machao"] = "请将我，葬在西凉……",
 }
 
