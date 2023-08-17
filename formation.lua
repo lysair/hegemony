@@ -1,5 +1,6 @@
 local extension = Package:new("formation")
 extension.extensionName = "hegemony"
+extension.game_modes_whitelist = { 'nos_heg_mode', 'new_heg_mode' }
 
 Fk:loadTranslationTable{
   ["formation"] = "君临天下·阵",
