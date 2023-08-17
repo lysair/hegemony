@@ -5,19 +5,12 @@ extension.game_modes_whitelist = { 'nos_heg_mode', 'new_heg_mode' }
 local heg_mode = require "packages.hegemony.hegemony"
 extension:addGameMode(heg_mode)
 
+local H = require "packages/hegemony/util"
+
 Fk:loadTranslationTable{
   ["hegemony_standard"] = "国战标准版",
   ["hs"] = "国标",
 }
-
-local function noKingdom(player)
-  return player.general == "anjiang" and player.deputyGeneral == "anjiang"
-end
-
-local function sameKingdom(player, target) --isFriendWith
-  if player == target then return true end
-  return player.kingdom == target.kingdom and player.kingdom ~= "wild" and not (noKingdom(player) or noKingdom(target)) --野心家拉拢……
-end
 
 local function getKingdomMapper(room)
   local kingdomMapper = {}
@@ -1344,7 +1337,7 @@ local chuli = fk.CreateActiveSkill{
     local room = Fk:currentRoom()
     local target = room:getPlayerById(to_select)
     return to_select ~= Self.id and not target:isNude() and #selected < 3 and
-      table.every(selected, function(id) return not sameKingdom(target, room:getPlayerById(id)) end)
+      table.every(selected, function(id) return not H.compareKingdomWith(target, room:getPlayerById(id)) end)
   end,
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
@@ -1467,7 +1460,7 @@ local luanji_draw = fk.CreateTriggerSkill{
     if target ~= player or data.card.name ~= "jink" or player.dead then return false end
     if data.responseToEvent and table.contains(data.responseToEvent.card.skillNames, "hs__luanji") then
       local yuanshao = data.responseToEvent.from
-      if yuanshao and sameKingdom(player, player.room:getPlayerById(yuanshao)) then
+      if yuanshao and H.compareKingdomWith(player, player.room:getPlayerById(yuanshao)) then
         return true
       end
     end
@@ -1628,7 +1621,7 @@ local xiongyi = fk.CreateActiveSkill{
   card_filter = function() return false end,
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
-    local targets = table.map(table.filter(room.alive_players, function(p) return sameKingdom(p, player) end), Util.IdMapper)
+    local targets = table.map(table.filter(room.alive_players, function(p) return H.compareKingdomWith(p, player) end), Util.IdMapper)
     room:sortPlayersByAction(targets)
     for _, p in ipairs(targets) do
       p = room:getPlayerById(p)
@@ -1830,7 +1823,7 @@ local shuangren = fk.CreateTriggerSkill{
       if player:prohibitUse(slash) then return false end
       local availableTargets = table.map(
         table.filter(room:getOtherPlayers(player), function(p)
-          return sameKingdom(p, target) and not player:isProhibited(p, slash)
+          return H.compareKingdomWith(p, target) and not player:isProhibited(p, slash)
         end),
         function(p)
           return p.id
@@ -1910,12 +1903,13 @@ local suishi = fk.CreateTriggerSkill{
   frequency = Skill.Compulsory,
   events = {fk.EnterDying, fk.Death},
   mute = true,
+  frequency = Skill.Compulsory,
   can_trigger = function(self, event, target, player, data)
     if not player:hasSkill(self.name) or target == player then return false end
     if event == fk.EnterDying then
-      return data.damage and data.damage.from and sameKingdom(data.damage.from, player)
+      return data.damage and data.damage.from and H.compareKingdomWith(data.damage.from, player)
     else
-      return sameKingdom(target, player)
+      return H.compareKingdomWith(target, player)
     end
   end,
   on_use = function(self, event, target, player, data)

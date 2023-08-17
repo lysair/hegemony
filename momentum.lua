@@ -15,7 +15,7 @@ Fk:loadTranslationTable{
 
 local madai = General(extension, "ld__madai", "shu", 4)
 madai:addSkill("mashu")
-madai:addSkill("qianxi")
+madai:addSkill("re__qianxi")
 Fk:loadTranslationTable{
   ["ld__madai"] = "马岱",
 }

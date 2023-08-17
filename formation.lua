@@ -2,19 +2,12 @@ local extension = Package:new("formation")
 extension.extensionName = "hegemony"
 extension.game_modes_whitelist = { 'nos_heg_mode', 'new_heg_mode' }
 
+local H = require "packages/hegemony/util"
+
 Fk:loadTranslationTable{
   ["formation"] = "君临天下·阵",
   ["ld"] = "君临",
 }
-
-local function noKingdom(player)
-  return player.general == "anjiang" and player.deputyGeneral == "anjiang"
-end
-
-local function sameKingdom(player, target) --isFriendWith
-  if player == target then return true end
-  return player.kingdom == target.kingdom and player.kingdom ~= "wild" and not (noKingdom(player) or noKingdom(target)) --野心家拉拢……
-end
 
 local jiangfei = General(extension, "ld__jiangwanfeiyi", "shu", 3)
 local shengxi = fk.CreateTriggerSkill{
@@ -44,7 +37,7 @@ local shoucheng = fk.CreateTriggerSkill{
     for _, move in ipairs(data) do
       if move.from then
         local from = player.room:getPlayerById(move.from)
-        if from:isKongcheng() and sameKingdom(from, player) and from.phase == Player.NotActive then
+        if from:isKongcheng() and H.compareKingdomWith(from, player) and from.phase == Player.NotActive then
           for _, info in ipairs(move.moveInfo) do
             if info.fromArea == Card.PlayerHand then
               return true
@@ -60,7 +53,7 @@ local shoucheng = fk.CreateTriggerSkill{
     for _, move in ipairs(data) do
       if move.from then
         local from = room:getPlayerById(move.from)
-        if from:isKongcheng() and sameKingdom(from, player) and from.phase == Player.NotActive then
+        if from:isKongcheng() and H.compareKingdomWith(from, player) and from.phase == Player.NotActive then
           for _, info in ipairs(move.moveInfo) do
             if info.fromArea == Card.PlayerHand then
               table.insertIfNeed(targets, from.id)
