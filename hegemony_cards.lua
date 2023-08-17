@@ -386,7 +386,47 @@ extension:addCards{
 
   Fk:cloneCard("eight_diagram", Card.Spade, 2),
   Fk:cloneCard("nioh_shield", Card.Club, 2),
-  Fk:cloneCard("silver_lion", Card.Club, 1),
+}
+
+local silverLionSkill = fk.CreateTriggerSkill{
+  name = "#heg__silver_lion_skill",
+  attached_equip = "heg__silver_lion",
+  frequency = Skill.Compulsory,
+  events = {fk.DamageInflicted},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) and data.damage > 1
+  end,
+  on_use = function(_, _, _, _, data)
+    data.damage = 1
+  end,
+}
+Fk:addSkill(silverLionSkill)
+local silverLion = fk.CreateArmor{
+  name = "heg__silver_lion",
+  suit = Card.Club,
+  number = 1,
+  equip_skill = silverLionSkill,
+  on_uninstall = function(self, room, player)
+    Armor.onUninstall(self, room, player)
+    if player:isAlive() and player:isWounded() and self.equip_skill:isEffectable(player) then
+      room:broadcastPlaySound("./packages/maneuvering/audio/card/silver_lion")
+      room:setEmotion(player, "./packages/maneuvering/image/anim/silver_lion")
+      room:recover{
+        who = player,
+        num = 1,
+        skillName = self.name
+      }
+    end
+  end,
+}
+extension:addCard(silverLion)
+Fk:loadTranslationTable{
+  ["heg__silver_lion"] = "白银狮子",
+  [":heg__silver_lion"] = "装备牌·防具<br /><b>防具技能</b>：锁定技，当你受到伤害时，若此伤害大于1点，防止多余的伤害。当你失去装备区里的【白银狮子】后，你回复1点体力。",
+}
+
+extension:addCards{
+  --Fk:cloneCard("silver_lion", Card.Club, 1),
   Fk:cloneCard("vine", Card.Club, 2),
 
   Fk:cloneCard("dilu", Card.Club, 5),
