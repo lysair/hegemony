@@ -44,7 +44,7 @@ local shoucheng = fk.CreateTriggerSkill{
     for _, move in ipairs(data) do
       if move.from then
         local from = player.room:getPlayerById(move.from)
-        if from:isKongcheng() and sameKingdom(from, player) then
+        if from:isKongcheng() and sameKingdom(from, player) and from.phase == Player.NotActive then
           for _, info in ipairs(move.moveInfo) do
             if info.fromArea == Card.PlayerHand then
               return true
@@ -60,7 +60,7 @@ local shoucheng = fk.CreateTriggerSkill{
     for _, move in ipairs(data) do
       if move.from then
         local from = room:getPlayerById(move.from)
-        if from:isKongcheng() and sameKingdom(from, player) then
+        if from:isKongcheng() and sameKingdom(from, player) and from.phase == Player.NotActive then
           for _, info in ipairs(move.moveInfo) do
             if info.fromArea == Card.PlayerHand then
               table.insertIfNeed(targets, from.id)
