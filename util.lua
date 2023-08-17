@@ -10,9 +10,18 @@ H.compareKingdomWith = function(from, to, diff)
   end
   for _, p in ipairs({from, to}) do
     if p.kingdom == "unknown" and p.deputyGeneral ~= "anjiang" then
-      p.kingdom = Fk.generals[p.deputyGeneral].kingdom
-      if RoomInstance then
-        RoomInstance:broadcastProperty(p, "kingdom")
+      local oldKingdom = Fk.generals[p.deputyGeneral].kingdom
+      if #table.filter(Fk:currentRoom():getOtherPlayers(p),
+        function(p)
+          return p.kingdom == oldKingdom
+        end) >= #Fk:currentRoom().players // 2 then
+        if RoomInstance then
+          RoomInstance:setPlayerProperty(p, "kingdom", "wild")
+        end
+      else
+        if RoomInstance then
+          RoomInstance:setPlayerProperty(p, "kingdom", oldKingdom)
+        end
       end
     end
   end

@@ -6,6 +6,12 @@ Fk:loadTranslationTable{
   ["transformation"] = "君临天下·变",
 }
 
+local shamoke = General(extension, "ld__shamoke", "shu", 4)
+shamoke:addSkill("jilis")
+Fk:loadTranslationTable{
+  ['ld__shamoke'] = '沙摩柯',
+}
+
 local lingtong = General(extension, "ld__lingtong", "wu", 4)
 local xuanlve = fk.CreateTriggerSkill{
   name = "xuanlve",

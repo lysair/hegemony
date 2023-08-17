@@ -98,6 +98,43 @@ Fk:loadTranslationTable{
   ["~ld__jiangwanfeiyi"] = "墨守成规，终为其害啊……",
 }
 
+local xusheng = General(extension, "ld__xusheng", "wu", 4)
+
+local yicheng = fk.CreateTriggerSkill{
+  name = "yicheng",
+  anim_type = "defensive",
+  events = {fk.TargetConfirmed},
+  can_trigger = function(self, event, target, player, data)
+    return player:hasSkill(self.name) and target and H.compareKingdomWith(target, player) and data.card.trueName == "slash"
+  end,
+  on_cost = function(self, event, target, player, data)
+    return player.room:askForSkillInvoke(player, self.name, nil, "#yicheng-ask::" .. target.id)
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    room:doIndicate(player.id, {target.id})
+    target:drawCards(1, self.name)
+    if not target.dead then
+      room:askForDiscard(target, 1, 1, true, self.name, false)
+    end
+  end
+}
+
+xusheng:addSkill(yicheng)
+
+Fk:loadTranslationTable{
+  ["ld__xusheng"] = "徐盛",
+  ["yicheng"] = "疑城",
+  [":yicheng"] = "当一名与你势力相同的角色成为【杀】的目标后，你可令其摸一张牌，然后其弃置一张牌。",
+
+  ["#yicheng-ask"] = "疑城：你可令 %dest 摸一张牌，然后其弃置一张牌",
+
+  ["$yicheng1"] = "待末将布下疑城，以退曹贼。",
+  ["$yicheng2"] = "不怕死，就尽管放马过来！",
+  ["~ld__xusheng"] = "可怜一身胆略，尽随一抔黄土……",
+}
+
+
 local hetaihou = General(extension, "ld__hetaihou", "qun", 3, 3, General.Female)
 hetaihou:addSkill("zhendu")
 hetaihou:addSkill("qiluan")
