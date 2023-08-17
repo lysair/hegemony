@@ -203,8 +203,19 @@ function HegLogic:broadcastGeneral()
     assert(p.general ~= "")
     local general = Fk.generals[p:getMark("__heg_general")]
     local deputy = Fk.generals[p:getMark("__heg_deputy")]
-    p.maxHp = math.floor((deputy.maxHp + general.maxHp) / 2)
-    p.hp = math.floor((deputy.hp + general.hp) / 2)
+    local dmaxHp = deputy.maxHp
+    local gmaxHp = general.maxHp
+    -- FIXME: 藕！！！！！！！
+    do
+      local t1 = general:getSkillNameList()
+      if table.contains(t1, "ld__jixi") then gmaxHp = gmaxHp - 1 end
+      local t2 = deputy:getSkillNameList()
+      if table.contains(t2, "ld__hunshang") then dmaxHp = dmaxHp - 1 end
+      if table.contains(t2, "ld__tianfu") then dmaxHp = dmaxHp - 1 end
+    end
+    p.maxHp = math.floor((dmaxHp + gmaxHp) / 2)
+    -- p.hp = math.floor((deputy.hp + general.hp) / 2)
+    p.hp = p.maxHp
     -- p.shield = math.min(general.shield + deputy.shield, 5)
     p.shield = 0
     -- TODO: setup AI here
@@ -235,6 +246,7 @@ function HegLogic:attachSkillToPlayers()
   for _, p in ipairs(room.alive_players) do
     local general = Fk.generals[p:getMark("__heg_general")]
     local skills = general.skills
+    -- FIXME: TODO: 藕一下主将技副将技
     for _, s in ipairs(skills) do
       addHegSkills(p, s.name)
     end
