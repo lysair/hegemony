@@ -672,7 +672,9 @@ local tieqi = fk.CreateTriggerSkill{
       room:setPlayerMark(to, "@hs__tieqi-turn", record)
       local mark = type(to:getMark("_hs__tieqi-turn")) == "table" and to:getMark("_hs__tieqi-turn") or {}
       for _, skill_name in ipairs(Fk.generals[choice]:getSkillNameList()) do
-        table.insertIfNeed(mark, skill_name)
+        if Fk.skills[skill_name].frequency ~= Skill.Compulsory then
+          table.insertIfNeed(mark, skill_name)
+        end
       end
       room:setPlayerMark(to, "_hs__tieqi-turn", mark)
     end
@@ -1945,5 +1947,58 @@ Fk:loadTranslationTable{
   ["hs__panfeng"] = "潘凤",
 }
 -- zoushi
+
+--军令四
+local command4_prohibit = fk.CreateProhibitSkill{
+  name = "#command4_prohibit",
+  --global = true,
+  prohibit_use = function(self, player, card)
+    return player:getMark("_command4_effect-turn") > 0 and table.contains(player.player_cards[Player.Hand], card.id)
+  end,
+  prohibit_response = function(self, player, card)
+    return player:getMark("_command4_effect-turn") > 0 and table.contains(player.player_cards[Player.Hand], card.id)
+  end,
+}
+Fk:addSkill(command4_prohibit)
+
+--军令五 不准回血！
+local command5_cannotrecover = fk.CreateTriggerSkill{
+  name = "#command5_cannotrecover",
+  --global = true,
+  refresh_events = {fk.PreHpRecover},
+  can_refresh = function(self, event, target, player, data)
+    return target == player and player:getMark("_command5_effect-turn") > 0
+  end,
+  on_refresh = function(self, event, target, player, data)
+    data.num = 0
+    return true
+  end,
+}
+Fk:addSkill(command5_cannotrecover)
+
+--军令六
+local command6_select = fk.CreateActiveSkill{
+  name = "#command6_select",
+  can_use = function() return false end,
+  target_num = 0,
+  card_num = function()
+    local x = 0
+    if #Self.player_cards[Player.Hand] > 0 then x = x + 1 end
+    if #Self.player_cards[Player.Equip] > 0 then x = x + 1 end
+    return x
+  end,
+  card_filter = function(self, to_select, selected)
+    if #selected == 1 then
+      return (Fk:currentRoom():getCardArea(to_select) == Card.PlayerEquip) ~=
+      (Fk:currentRoom():getCardArea(selected[1]) == Card.PlayerEquip)
+    end
+    return #selected == 0
+  end,
+}
+Fk:addSkill(command6_select)
+Fk:loadTranslationTable{
+  ["#command6_select"] = "军令",
+}
+
 
 return extension

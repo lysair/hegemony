@@ -129,8 +129,8 @@ Fk:loadTranslationTable{
 
   ["#yicheng-ask"] = "疑城：你可令 %dest 摸一张牌，然后其弃置一张牌",
 
-  ["$yicheng1"] = "待末将布下疑城，以退曹贼。",
-  ["$yicheng2"] = "不怕死，就尽管放马过来！",
+  ["$yicheng1"] = "不怕死，就尽管放马过来！",
+  ["$yicheng2"] = "待末将布下疑城，以退曹贼。",
   ["~ld__xusheng"] = "可怜一身胆略，尽随一抔黄土……",
 }
 

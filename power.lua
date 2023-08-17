@@ -7,6 +7,63 @@ Fk:loadTranslationTable{
   ["power"] = "君临天下·权",
 }
 
+local yujin = General(extension, "ld__yujin", "wei", 4)
+local jieyue = fk.CreateTriggerSkill{
+  name = "ld__jieyue",
+  anim_type = "control",
+  events = {fk.EventPhaseStart},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) and player.phase == Player.Start and not player:isKongcheng() and table.find(player.room.alive_players, function(p) return
+      p.kingdom ~= "wei"
+    end)
+  end,
+  on_cost = function(self, event, target, player, data)
+    local plist, cid = player.room:askForChooseCardAndPlayers(player, table.map(table.filter(player.room.alive_players, function(p) return
+      p.kingdom ~= "wei"
+    end), Util.IdMapper), 1, 1, ".|.|.|hand", "#ld__jieyue-target", self.name, true)
+    if #plist > 0 then
+      self.cost_data = {plist[1], cid}
+      return true
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local to = self.cost_data[1]
+    --room:doIndicate(player.id, { to })
+    local target = room:getPlayerById(to)
+    room:moveCardTo(self.cost_data[2], Player.Hand, target, fk.ReasonGive, self.name, nil, false, player.id)
+    if H.askCommandTo(player, target, self.name) then
+      player:drawCards(1, self.name)
+    else
+      room:addPlayerMark(player, "_ld__jieyue-turn")
+    end
+  end
+}
+local jieyue_draw = fk.CreateTriggerSkill{
+  name = "#ld__jieyue_draw",
+  mute = true,
+  frequency = Skill.Compulsory,
+  events = {fk.DrawNCards},
+  can_use = function(self, event, target, player, data)
+    return target == player and target:getMark("_ld__jieyue-turn") > 0
+  end,
+  on_use = function(self, event, target, player, data)
+    data.n = data.n + 3 * target:getMark("_ld__jieyue-turn")
+  end,
+}
+jieyue:addRelatedSkill(jieyue_draw)
+
+yujin:addSkill(jieyue)
+
+Fk:loadTranslationTable{
+  ['ld__yujin'] = '于禁',
+  ['ld__jieyue'] = '节钺',
+  [':ld__jieyue'] = '准备阶段开始时，你可将一张手牌交给不是魏势力或没有势力的一名角色，对其发起军令。若其：执行，你摸一张牌；不执行，摸牌阶段，你令额定摸牌数+3。',
+
+  ["#ld__jieyue-target"] = "节钺：你可将一张手牌交给不是魏势力或没有势力的一名角色，对其发起军令",
+  ["#ld__jieyue_draw"] = "节钺",
+}
+
 local zhangxiu = General(extension, "ld__zhangxiu", "qun", 4)
 local fudi = fk.CreateTriggerSkill{
   name = 'ld__fudi',
