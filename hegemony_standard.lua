@@ -1170,7 +1170,7 @@ local tianxiang = fk.CreateTriggerSkill{
   end,
   on_cost = function(self, event, target, player, data)
     local tar, card =  player.room:askForChooseCardAndPlayers(player, table.map(player.room:getOtherPlayers(player), function (p)
-      return p.id end), 1, 1, ".|.|heart|.", "#hs__tianxiang-choose", self.name, true)
+      return p.id end), 1, 1, ".|.|heart|hand", "#hs__tianxiang-choose", self.name, true)
     if #tar > 0 and card then
       self.cost_data = {tar[1], card}
       return true
@@ -1215,7 +1215,7 @@ xiaoqiao:addSkill("hongyan")
 Fk:loadTranslationTable{
   ['hs__xiaoqiao'] = '小乔',
   ["hs__tianxiang"] = "天香",
-  [":hs__tianxiang"] = "当你受到伤害时，你可弃置一张<font color='red'>♥</font>牌并选择一名其他角色。你防止此伤害，选择：1.令来源对其造成1点伤害，其摸X张牌（X为其已损失的体力值且至多为5）；2.令其失去1点体力，其获得牌堆或弃牌堆中你以此法弃置的牌。",
+  [":hs__tianxiang"] = "当你受到伤害时，你可弃置一张<font color='red'>♥</font>手牌并选择一名其他角色。你防止此伤害，选择：1.令来源对其造成1点伤害，其摸X张牌（X为其已损失的体力值且至多为5）；2.令其失去1点体力，其获得牌堆或弃牌堆中你以此法弃置的牌。",
 
   ["#hs__tianxiang-choose"] = "天香：弃置一张<font color='red'>♥</font>手牌并选择一名其他角色",
   ["#hs__tianxiang-choice"] = "天香：选择一项令 %dest 执行",
