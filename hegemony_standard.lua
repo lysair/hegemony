@@ -1633,7 +1633,7 @@ local xiongyi = fk.CreateActiveSkill{
     end
     if player.dead then return false end
     local kingdomMapper = getKingdomMapper(room)
-    local num = #kingdomMapper[player.kingdom == "wild" and tostring(p.id) or player.kingdom]
+    local num = #kingdomMapper[player.kingdom == "wild" and tostring(player.id) or player.kingdom]
     for k, plist in pairs(kingdomMapper) do
       if #plist < num then return false end
     end
@@ -1784,6 +1784,7 @@ Fk:loadTranslationTable{
 	[":lirang"] = "当你的牌因弃置而移至弃牌堆后，你可将其中的至少一张牌交给其他角色。",
 
   ["#lirang-give"] = "礼让：你可以将这些牌分配给任意角色，点“取消”仍弃置",
+  ["#lirang_active"] = "礼让",
 }
 
 local jiling = General(extension, "hs__jiling", "qun", 4)
