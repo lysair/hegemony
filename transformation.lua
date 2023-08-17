@@ -7,9 +7,34 @@ Fk:loadTranslationTable{
 }
 
 local shamoke = General(extension, "ld__shamoke", "shu", 4)
-shamoke:addSkill("jilis")
+local jilis = fk.CreateTriggerSkill{
+  name = "ld__jilis",
+  anim_type = "drawcard",
+  events = {fk.CardUsing, fk.CardResponding},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) and player:getMark("_jilis-turn") == player:getAttackRange()
+  end,
+  on_use = function(self, event, target, player, data)
+    player:drawCards(player:getAttackRange())
+  end,
+
+  refresh_events = {fk.AfterCardUseDeclared, fk.CardResponding},
+  can_refresh = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name)
+  end,
+  on_refresh = function(self, event, target, player, data)
+    player.room:addPlayerMark(player, "_jilis-turn", 1)
+  end,
+}
+shamoke:addSkill(jilis)
 Fk:loadTranslationTable{
   ['ld__shamoke'] = '沙摩柯',
+  ["ld__jilis"] = "蒺藜",
+  [":ld__jilis"] = "当你于一回合内使用或打出第X张牌时，你可摸X张牌（X为你的攻击范围）。",
+
+  ["$ld__jilis1"] = "蒺藜骨朵，威震慑敌！",
+  ["$ld__jilis2"] = "看我一招，铁蒺藜骨朵！",
+  ["~shamoke"] = "五溪蛮夷，不可能输！",
 }
 
 local lingtong = General(extension, "ld__lingtong", "wu", 4)
