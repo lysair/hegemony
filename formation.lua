@@ -105,7 +105,7 @@ local yicheng = fk.CreateTriggerSkill{
   anim_type = "defensive",
   events = {fk.TargetConfirmed},
   can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self.name) and target and H.compareKingdomWith(target, player) and data.card.trueName == "slash"
+    return player:hasSkill(self.name) and H.compareKingdomWith(target, player) and data.card.trueName == "slash"
   end,
   on_cost = function(self, event, target, player, data)
     return player.room:askForSkillInvoke(player, self.name, nil, "#yicheng-ask::" .. target.id)
@@ -134,6 +134,64 @@ Fk:loadTranslationTable{
   ["~ld__xusheng"] = "可怜一身胆略，尽随一抔黄土……",
 }
 
+local yuji = General(extension, "ld__yuji", "qun", 3)
+local qianhuan = fk.CreateTriggerSkill{
+  name = "qianhuan",
+  events = {fk.Damaged, fk.TargetConfirming},
+  anim_type = "defensive",
+  mute = true,
+  can_trigger = function(self, event, target, player, data)
+    if not player:hasSkill(self.name) or not H.compareKingdomWith(target, player) then return false end
+    if event == fk.Damaged then
+      return not target.dead and not player:isNude() and #player:getPile("yuji_sorcery") < 4
+    else
+      return table.contains({Card.TypeBasic, Card.TypeTrick}, data.card.type) and #player:getPile("yuji_sorcery") > 0
+    end
+  end,
+  on_cost = function(self, event, target, player, data)
+    local card
+    if event == fk.Damaged then
+      local suits = {}
+      for _, id in ipairs(player:getPile("yuji_sorcery")) do
+        table.insert(suits, Fk:getCardById(id):getSuitString())
+      end
+      suits = table.concat(suits, ",")
+      card = player.room:askForCard(player, 1, 1, true, self.name, true, ".|.|^(" .. suits .. ")", "#qianhuan-dmg", "yuji_sorcery")
+    else
+      card = player.room:askForCard(player, 1, 1, false, self.name, true, ".|.|.|yuji_sorcery", "#qianhuan-def::" .. target.id .. ":" .. data.card:toLogString(), "yuji_sorcery")
+    end
+    if #card > 0 then
+      self.cost_data = card
+      return true
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    room:broadcastSkillInvoke("qianhuan")
+    if event == fk.Damaged then
+      room:notifySkillInvoked(player, "qianhuan", "masochism")
+      player:addToPile("yuji_sorcery", self.cost_data, true, self.name)
+    else
+      room:notifySkillInvoked(player, "qianhuan", "defensive")
+      room:moveCardTo(self.cost_data, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, self.name, "yuji_sorcery")
+      AimGroup:cancelTarget(data, player.id)
+    end
+  end,
+}
+yuji:addSkill(qianhuan)
+Fk:loadTranslationTable{
+  ["ld__yuji"] = "于吉",
+  ["qianhuan"] = "千幻",
+  [":qianhuan"] = "当一名与你势力相同的角色受到伤害后，你可将一张与你武将牌上花色均不同的牌置于你的武将牌上（称为“幻”）。当一名与你势力相同的角色成为基本牌或锦囊牌的唯一目标时，你可将一张“幻”置入弃牌堆，取消此目标。",
+
+  ["#qianhuan-dmg"] = "千幻：你可一张与“幻”花色均不同的牌置于你的武将牌上（称为“幻”）",
+  ["#qianhuan-def"] = "千幻：你可一张“幻”置入弃牌堆，取消%arg的目标 %dest",
+  ["yuji_sorcery"] = "幻",
+
+  ["$qianhuan1"] = "幻化于阴阳，藏匿于乾坤。",
+  ["$qianhuan2"] = "幻变迷踪，虽飞鸟亦难觅踪迹。",
+  ["~ld__yuji"] = "幻化之物，终是算不得真呐。",
+}
 
 local hetaihou = General(extension, "ld__hetaihou", "qun", 3, 3, General.Female)
 hetaihou:addSkill("zhendu")

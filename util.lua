@@ -11,7 +11,7 @@ H.compareKingdomWith = function(from, to, diff)
   if from == to then
     return not diff
   end
-  for _, p in ipairs({from, to}) do
+  for _, p in ipairs({from, to}) do --权宜
     if p.kingdom == "unknown" and p.deputyGeneral ~= "anjiang" then
       local oldKingdom = Fk.generals[p.deputyGeneral].kingdom
       if #table.filter(Fk:currentRoom():getOtherPlayers(p),
