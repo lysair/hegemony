@@ -29,7 +29,6 @@ local jieyue = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     local room = player.room
     local to = self.cost_data[1]
-    --room:doIndicate(player.id, { to })
     local target = room:getPlayerById(to)
     room:moveCardTo(self.cost_data[2], Player.Hand, target, fk.ReasonGive, self.name, nil, false, player.id)
     if H.askCommandTo(player, target, self.name) then
@@ -62,6 +61,41 @@ Fk:loadTranslationTable{
 
   ["#ld__jieyue-target"] = "节钺：你可将一张手牌交给不是魏势力或没有势力的一名角色，对其发起军令",
   ["#ld__jieyue_draw"] = "节钺",
+}
+
+local wuguotai = General(extension, "ld__wuguotai", "wu", 3, 3, General.Female)
+local buyi = fk.CreateTriggerSkill{
+  name = "ld__buyi",
+  anim_type = "support",
+  events = {fk.AfterDying},
+  can_trigger = function(self, event, target, player, data)
+    return player:hasSkill(self.name) and target and H.compareKingdomWith(target, player) and not target.dead 
+      and data.damage and data.damage.from and not data.damage.from.dead
+  end,
+  on_cost = function(self, event, target, player, data)
+    return player.room:askForSkillInvoke(player, self.name, nil, "#ld__buyi-ask:" .. target.id .. ":" .. data.damage.from.id)
+  end,
+  on_use = function(self, event, target, player, data)
+    if not H.askCommandTo(player, data.damage.from, self.name) then
+      player.room:recover({
+        who = target,
+        num = 1,
+        recoverBy = player,
+        skillName = self.name,
+      })
+    end
+  end,
+}
+
+wuguotai:addSkill(buyi)
+wuguotai:addSkill("ganlu")
+
+Fk:loadTranslationTable{
+  ['ld__wuguotai'] = '吴国太',
+  ['ld__buyi'] = '补益',
+  [':ld__buyi'] = '与你势力相同的角色的濒死结算结束后，若其存活，你可对伤害来源发起军令。若来源不执行，则你令该角色回复1点体力。',
+
+  ["#ld__buyi-ask"] = "补益：你可对 %dest 发起军令。若来源不执行，则 %src 回复1点体力",
 }
 
 local zhangxiu = General(extension, "ld__zhangxiu", "qun", 4)

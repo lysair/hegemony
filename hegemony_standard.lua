@@ -12,27 +12,6 @@ Fk:loadTranslationTable{
   ["hs"] = "国标",
 }
 
-local function getKingdomMapper(room)
-  local kingdomMapper = {}
-  --local kingdoms = {}
-  for _, p in ipairs(room.alive_players) do
-    if not noKingdom(p) then
-      local kingdom = p.kingdom
-      if kingdom == "wild" then
-        kingdom = tostring(p.id)
-      end
-      --[[
-      if allCardMapper[kingdom] == nil then
-        table.insert(kingdoms, kingdom)
-      end
-      ]]
-      kingdomMapper[kingdom] = kingdomMapper[kingdom] or {}
-      table.insert(kingdomMapper[kingdom], p.id)
-    end
-  end
-  return kingdomMapper
-end
-
 local caocao = General(extension, "hs__caocao", "wei", 4)
 caocao:addSkill("jianxiong")
 Fk:loadTranslationTable{
@@ -259,11 +238,10 @@ local jushou = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    local to_count = {}
-    for k, plist in pairs(getKingdomMapper(room)) do
-      table.insertIfNeed(to_count, k)
+    local num = 0
+    for k, v in pairs(H.getKingdomPlayersNum(room)) do
+      num = num + 1
     end
-    local num = #to_count
     room:drawCards(player, num, self.name)
     if player.dead then return false end
     local jushou_card
@@ -1137,10 +1115,7 @@ local xiaoji = fk.CreateTriggerSkill{
     end
   end,
   on_cost = function(self, event, target, player, data)
-    if player.room:askForSkillInvoke(player, self.name) then
-      return true
-    end
-    self.cancel_cost = true
+    return player.room:askForSkillInvoke(player, self.name)
   end,
   on_use = function(self, event, target, player, data)
     player:drawCards(2, self.name)
@@ -1632,10 +1607,10 @@ local xiongyi = fk.CreateActiveSkill{
       end
     end
     if player.dead then return false end
-    local kingdomMapper = getKingdomMapper(room)
-    local num = #kingdomMapper[player.kingdom == "wild" and tostring(player.id) or player.kingdom]
-    for k, plist in pairs(kingdomMapper) do
-      if #plist < num then return false end
+    local kingdomMapper = H.getKingdomPlayersNum(room)
+    local num = kingdomMapper[player.kingdom == "wild" and tostring(player.id) or player.kingdom]
+    for k, n in pairs(kingdomMapper) do
+      if n < num then return false end
     end
     if player:isWounded() then
       room:recover({

@@ -37,6 +37,45 @@ H.compareKingdomWith = function(from, to, diff)
   return ret
 end
 
+---@param room Room
+H.getKingdomPlayersNum = function(room)
+  local kingdomMapper = {}
+  for _, p in ipairs(room.alive_players) do
+    local kingdom = p.kingdom -- p.role
+    if kingdom ~= "unknown" then
+      if kingdom == "wild" then --权宜
+        kingdom = tostring(p.id)
+      end
+      kingdomMapper[kingdom] = kingdomMapper[kingdom] or 0 
+      kingdomMapper[kingdom] = kingdomMapper[kingdom] + 1
+    end
+  end
+  return kingdomMapper
+end
+
+--- 判断角色是否为大势力角色
+---@param player ServerPlayer
+---@return boolean
+H.isBigKingdomPlayer = function(player)
+  if player.kingdom == "unknown" then return false end
+  --if (hasShownOneGeneral() && hasTreasure("JadeSeal")) return true;
+  local room = Fk:currentRoom()
+  local num = H.getKingdomPlayersNum(room)[player.kingdom == "wild" and tostring(player.id) or player.kingdom]
+  if num < 2 then return false end
+  for k, n in pairs(H.getKingdomPlayersNum(room)) do
+    if n > num then return false end
+  end
+  return true
+end
+
+--- 判断角色是否为小势力角色
+---@param player ServerPlayer
+---@return boolean
+H.isSmallKingdomPlayer = function(player)
+  if H.isBigKingdomPlayer(player) then return false end
+  return table.find(Fk:currentRoom().alive_players, function(p) return H.isBigKingdomPlayer(p) end)
+end
+
 --- 对某角色发起军令（抽取、选择、询问）
 ---@param from ServerPlayer @ 军令发起者
 ---@param to ServerPlayer @ 军令执行者
