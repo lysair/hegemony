@@ -5,6 +5,7 @@ local transformation = require "packages/hegemony/transformation"
 local power = require "packages/hegemony/power"
 
 local hegemony_cards = require "packages/hegemony/hegemony_cards"
+-- local strategic_advantage = require "packages/hegemony/strategic_advantage"
 
 return {
   hegemony_standard,
@@ -13,4 +14,5 @@ return {
   transformation,
   power,
   hegemony_cards,
+  -- strategic_advantage,
 }

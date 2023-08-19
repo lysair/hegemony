@@ -1,6 +1,9 @@
 -- SPDX-License-Identifier: GPL-3.0-or-later
 
 local extension = Package:new("hegemony_cards", Package.CardPack)
+extension.extensionName = "hegemony"
+
+local H = require "packages/hegemony/util"
 
 Fk:loadTranslationTable{
   ["hegemony_cards"] = "国战标准版",
@@ -9,14 +12,6 @@ Fk:loadTranslationTable{
 extension.game_modes_whitelist = { 'nos_heg_mode', 'new_heg_mode' }
 extension.game_modes_blacklist = {"aaa_role_mode", "m_1v1_mode", "m_1v2_mode", "m_2v2_mode", "zombie_mode", "chaos_mode"}
 
-local function noKingdom(player)
-  return player.general == "anjiang" and player.deputyGeneral == "anjiang"
-end
-
-local function sameKingdom(player, target) --isFriendWith
-  if player == target then return true end
-  return player.kingdom == target.kingdom and player.kingdom ~= "wild" and not noKingdom(player) --野心家拉拢……
-end
 
 extension:addCards{
   Fk:cloneCard("slash", Card.Spade, 5),
@@ -118,7 +113,7 @@ local befriendAttackingSkill = fk.CreateActiveSkill{
   mod_target_filter = function(self, to_select, selected, user)
     local target = Fk:currentRoom():getPlayerById(to_select)
     local player = Fk:currentRoom():getPlayerById(user)
-    return player ~= target and target.kingdom ~= "unknown" and not sameKingdom(target, player)
+    return player ~= target and H.compareKingdomWith(target, player, true)
   end,
   target_filter = function(self, to_select, selected, _, card)
     if #selected == 0 then
@@ -153,7 +148,7 @@ local knownBothSkill = fk.CreateActiveSkill{
   target_num = 1,
   mod_target_filter = function(self, to_select, selected, user)
     local target = Fk:currentRoom():getPlayerById(to_select)
-    return Fk:currentRoom():getPlayerById(user) ~= target and (not target:isKongcheng() or noKingdom(target))
+    return Fk:currentRoom():getPlayerById(user) ~= target and (not target:isKongcheng() or target.general == "anjiang" or target.deputyGeneral == "anjiang")
   end,
   target_filter = function(self, to_select, selected, _, card)
     if #selected == 0 then
@@ -220,8 +215,8 @@ local awaitExhaustedSkill = fk.CreateActiveSkill{
         use.tos = {{use.from}}
       else
         use.tos = {}
-        for _, p in ipairs(room:getAlivePlayers()) do
-          if not player:isProhibited(p, use.card) and player.kingdom == p.kingdom then
+        for _, p in ipairs(room.alive_players) do
+          if not player:isProhibited(p, use.card) and H.compareKingdomWith(p, player) then --权宜
             TargetGroup:pushTargets(use.tos, p.id)
           end
         end
@@ -267,7 +262,7 @@ local doubleSwordsSkill = fk.CreateTriggerSkill{
     if target == player and player:hasSkill(self.name) and
       data.card and data.card.trueName == "slash" then
       local target = player.room:getPlayerById(data.to)
-      return target.gender ~= player.gender and not (noKingdom(player) or noKingdom(target))
+      return target.gender ~= player.gender and not (player.kingdom == "unknown" or target.kingdom == "unknown")
     end
   end,
   on_use = function(self, event, target, player, data)

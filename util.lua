@@ -46,23 +46,23 @@ H.getKingdomPlayersNum = function(room)
       if kingdom == "wild" then --权宜
         kingdom = tostring(p.id)
       end
-      kingdomMapper[kingdom] = kingdomMapper[kingdom] or 0 
-      kingdomMapper[kingdom] = kingdomMapper[kingdom] + 1
+      kingdomMapper[kingdom] = (kingdomMapper[kingdom] or 0) + 1
     end
   end
   return kingdomMapper
 end
 
---- 判断角色是否为大势力角色
+--- 判断角色是否为大势力角色（未考虑玉玺）
 ---@param player ServerPlayer
 ---@return boolean
 H.isBigKingdomPlayer = function(player)
   if player.kingdom == "unknown" then return false end
   --if (hasShownOneGeneral() && hasTreasure("JadeSeal")) return true;
   local room = Fk:currentRoom()
-  local num = H.getKingdomPlayersNum(room)[player.kingdom == "wild" and tostring(player.id) or player.kingdom]
+  local mapper = H.getKingdomPlayersNum(room)
+  local num = mapper[player.kingdom == "wild" and tostring(player.id) or player.kingdom]
   if num < 2 then return false end
-  for k, n in pairs(H.getKingdomPlayersNum(room)) do
+  for k, n in pairs(mapper) do
     if n > num then return false end
   end
   return true
@@ -74,6 +74,34 @@ end
 H.isSmallKingdomPlayer = function(player)
   if H.isBigKingdomPlayer(player) then return false end
   return table.find(Fk:currentRoom().alive_players, function(p) return H.isBigKingdomPlayer(p) end)
+end
+
+--- 获取与角色成队列的其余角色（未考虑不计入座次）
+---@param player ServerPlayer
+---@return players ServerPlayer[]|nil @ 队列中的角色
+H.getFormationRelation = function(player)
+  local players = Fk:currentRoom():getAlivePlayers()
+  local index = table.indexOf(players, player) -- ABCDEF, C
+  local targets = table.slice(players, index)
+  table.insertTable(targets, table.slice(players, 1, index)) --CDEFAB
+  players = {}
+  for i = 2, #targets do
+    local p = targets[i]
+    if H.compareKingdomWith(p, player) then
+      table.insert(players, p)
+    else
+      break
+    end
+  end
+  for i = #targets, 2, -1 do
+    local p = targets[i]
+    if H.compareKingdomWith(p, player) then
+      table.insert(players, p)
+    else
+      break
+    end
+  end
+  return players
 end
 
 --- 对某角色发起军令（抽取、选择、询问）

@@ -451,6 +451,7 @@ heg = fk.CreateGameMode{
     "momentum",
     "transformation",
     "power",
+    "strategic_advantage",
   },
 }
 
