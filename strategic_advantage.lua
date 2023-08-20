@@ -13,15 +13,106 @@ extension.game_modes_whitelist = { 'nos_heg_mode', 'new_heg_mode' }
 extension.game_modes_blacklist = {"aaa_role_mode", "m_1v1_mode", "m_1v2_mode", "m_2v2_mode", "zombie_mode", "chaos_mode"}
 
 extension:addCards{
+  Fk:cloneCard("slash", Card.Heart, 10),
+  Fk:cloneCard("slash", Card.Heart, 11),
+  Fk:cloneCard("slash", Card.Spade, 4),
+  Fk:cloneCard("slash", Card.Spade, 7),
+  Fk:cloneCard("slash", Card.Spade, 8),
+  Fk:cloneCard("slash", Card.Club, 4),
+  Fk:cloneCard("slash", Card.Club, 6),
+  Fk:cloneCard("slash", Card.Club, 7),
+  Fk:cloneCard("slash", Card.Club, 8),
+
+  Fk:cloneCard("thunder__slash", Card.Spade, 9),
+  Fk:cloneCard("thunder__slash", Card.Spade, 10),
+  Fk:cloneCard("thunder__slash", Card.Spade, 11),
+  Fk:cloneCard("thunder__slash", Card.Club, 5),
+
   Fk:cloneCard("fire__slash", Card.Diamond, 8),
   Fk:cloneCard("fire__slash", Card.Diamond, 9),
 
+  Fk:cloneCard("jink", Card.Heart, 4),
+  Fk:cloneCard("jink", Card.Heart, 5),
+  Fk:cloneCard("jink", Card.Heart, 6),
+  Fk:cloneCard("jink", Card.Heart, 7),
+  Fk:cloneCard("jink", Card.Diamond, 6),
+  Fk:cloneCard("jink", Card.Diamond, 7),
+  Fk:cloneCard("jink", Card.Diamond, 13),
+
+  Fk:cloneCard("peach", Card.Heart, 8),
+  Fk:cloneCard("peach", Card.Heart, 9),
+  Fk:cloneCard("peach", Card.Diamond, 2),
+  Fk:cloneCard("peach", Card.Diamond, 3),
+
   Fk:cloneCard("analeptic", Card.Spade, 6),
   Fk:cloneCard("analeptic", Card.Club, 9),
+
+  Fk:cloneCard("nullification", Card.Spade, 13),
+
+  Fk:cloneCard("nullification", Card.Diamond, 11), -- 国
+  Fk:cloneCard("nullification", Card.Club, 13),
 }
+
+local drowningSkill = fk.CreateActiveSkill{
+  name = "sa__drowning_skill",
+  target_num = 1,
+  mod_target_filter = function(self, to_select, selected, user, card, distance_limited)
+    return to_select ~= user and #Fk:currentRoom():getPlayerById(to_select):getCardIds(Player.Equip) > 0
+  end,
+  target_filter = function(self, to_select, selected, _, card)
+    if #selected == 0 then
+      return self:modTargetFilter(to_select, selected, Self.id, card, true)
+    end
+  end,
+  on_effect = function(self, room, effect)
+    local from = room:getPlayerById(effect.from)
+    local to = room:getPlayerById(effect.to)
+    local all_choices = {"sa__drowning_throw", "sa__drowning_damage:" .. from.id}
+    local choices = table.clone(all_choices)
+    --if not table.find(to:getCardIds(Player.Equip), function(id) return not to:prohibitDiscard(Fk:getCardById(id)) end) then
+    if #to:getCardIds(Player.Equip) == 0 then
+      table.remove(choices, 1)
+    end
+    local choice = room:askForChoice(to, choices, self.name, nil, false, all_choices)
+    if choice == "sa__drowning_throw" then
+      to:throwAllCards("e")
+    else
+      room:damage({
+        from = from,
+        to = to,
+        card = effect.card,
+        damage = 1,
+        damageType = fk.ThunderDamage,
+        skillName = self.name
+      })
+    end
+  end
+}
+local drowning = fk.CreateTrickCard{
+  name = "sa__drowning",
+  skill = drowningSkill,
+  is_damage_card = true,
+  suit = Card.Heart,
+  number = 13,
+}
+extension:addCards{
+  drowning,
+  drowning:clone(Card.Club, 12),
+}
+Fk:loadTranslationTable{
+  ["sa__drowning"] = "水淹七军",
+  [":sa__drowning"] = "锦囊牌<br/><b>时机</b>：出牌阶段<br/><b>目标</b>：一名装备区里有牌的其他角色<br/><b>效果</b>：目标角色选择：1.弃置装备区里的所有牌；2.受到你造成的1点雷电伤害。",
+  ["sa__drowning_skill"] = "水淹七军",
+  ["sa__drowning_throw"] = "弃置装备区里的所有牌",
+  ["sa__drowning_damage"] = "受到%src造成的1点雷电伤害",
+}
+
 local burningCampsSkill = fk.CreateActiveSkill{
   name = "burning_camps_skill",
-  mod_target_filter = Util.TrueFunc, -- Self->getNextAlive() != Self && Self->getNextAlive()->getFormation().contains(to_select);
+  mod_target_filter = function(self, to_select, selected, user, card, distance_limited)
+    local prev = Fk:currentRoom():getPlayerById(user):getNextAlive()
+    return prev.id ~= user and table.contains(H.getFormationRelation(prev), Fk:currentRoom():getPlayerById(to_select))
+  end,
   can_use = function(self, player, card)
     return not player:isProhibited(player:getNextAlive(), card) -- 不计入座次……
   end,
@@ -69,17 +160,46 @@ Fk:loadTranslationTable{
   [":burning_camps"] = "锦囊牌<br/><b>时机</b>：出牌阶段<br/><b>目标</b>：你的下家和除其外与其处于同一队列的所有角色<br/><b>效果</b>：目标角色受到你造成的1点火焰伤害。",
 }
 
+Fk:loadTranslationTable{
+  ["lure_tiger"] = "调虎离山",
+  [":lure_tiger"] = "锦囊牌<br/><b>时机</b>：出牌阶段<br/><b>目标</b>：一至两名其他角色<br/><b>效果</b>：目标角色于此回合内不计入距离和座次的计算，且不能使用牌，且不是牌的合法目标，且体力值不会改变。",
+  ["lure_tiger_effect"] = "调虎离山",
+  ["#lure_tiger-prohibit"] = "调虎离山",
+}
+
 local fightTogetherSkill = fk.CreateActiveSkill{
   name = "fight_together_skill",
   target_num = 1,
-  mod_target_filter = Util.TrueFunc,
+  mod_target_filter = function(self, to_select, selected, user, card, distance_limited) --return to_select->isBigKingdomPlayer() == target->isBigKingdomPlayer();
+    local kingdomMapper = {} -- 摘一部分
+    local has_bigkingdoms = false
+    for _, p in ipairs(Fk:currentRoom().alive_players) do
+      local kingdom = p.kingdom -- p.role
+      if kingdom ~= "unknown" then
+        if kingdom == "wild" then -- 权宜
+          kingdom = tostring(p.id)
+        end
+        if kingdomMapper[kingdom] then
+          has_bigkingdoms = true
+          break
+        end
+        kingdomMapper[kingdom] = true
+      end
+    end
+    if not has_bigkingdoms then return false end
+    if #selected == 0 then
+      return true
+    else
+      return H.isBigKingdomPlayer(Fk:currentRoom():getPlayerById(selected[1])) == H.isBigKingdomPlayer(Fk:currentRoom():getPlayerById(to_select))
+    end
+  end,
   target_filter = function(self, to_select, selected, _, card)
     if #selected == 0 then
       return self:modTargetFilter(to_select, selected, Self.id, card, true)
     end
   end,
   can_use = function(self, player, card)
-    if not player:prohibitUse(card) then --and table.find(Fk:currentRoom().alive_players, function(p) return H.isBigKingdomPlayer(p) end)
+    if not player:prohibitUse(card) then -- and table.find(Fk:currentRoom().alive_players, function(p) return H.isBigKingdomPlayer(p) end)
       local kingdomMapper = {} -- 摘一部分
       for _, p in ipairs(Fk:currentRoom().alive_players) do
         local kingdom = p.kingdom -- p.role
@@ -95,19 +215,20 @@ local fightTogetherSkill = fk.CreateActiveSkill{
     return false
   end,
   on_use = function(self, room, use)
-    if use.tos and #TargetGroup:getRealTargets(use.tos) > 0 then --先1个
+    if use.tos and #TargetGroup:getRealTargets(use.tos) > 0 then -- 如果一开始的目标被取消了就寄了，还是需要originalTarget
+      local player = room:getPlayerById(use.from)
       local target = room:getPlayerById(use.tos[1][1])
       local bigKindom, smallKingdom = H.isBigKingdomPlayer(target), H.isSmallKingdomPlayer(target)
       if bigKindom then
-        for _, p in ipairs(room.alive_players) do
-          if H.isBigKingdomPlayer(p) and p ~= target then
+        for _, p in ipairs(room:getAlivePlayers()) do
+          if H.isBigKingdomPlayer(p) and p ~= target and not player:isProhibited(p, use.card) then
             TargetGroup:pushTargets(use.tos, p.id)
           end
         end
       end
       if smallKingdom then
-        for _, p in ipairs(room.alive_players) do
-          if H.isSmallKingdomPlayer(p) and p ~= target then
+        for _, p in ipairs(room:getAlivePlayers()) do
+          if H.isSmallKingdomPlayer(p) and p ~= target and not player:isProhibited(p, use.card) then
             TargetGroup:pushTargets(use.tos, p.id)
           end
         end
@@ -138,7 +259,271 @@ extension:addCards{
 
 Fk:loadTranslationTable{
   ["fight_together"] = "勠力同心",
-	[":fight_together"] = "锦囊牌<br/><b>时机</b>：出牌阶段<br/><b>目标</b>：所有大势力角色或所有小势力角色<br/><b>效果</b>：若目标角色：不处于连环状态，其横置；处于连环状态，其摸一张牌。<br/><font color='grey'>操作提示：选择一名角色，若其为大势力角色，则目标为所有大势力角色；若其为小势力角色，则目标为所有小势力角色</font>",
+  [":fight_together"] = "锦囊牌<br/><b>时机</b>：出牌阶段<br/><b>目标</b>：所有大势力角色或所有小势力角色<br/><b>效果</b>：若目标角色：不处于连环状态，其横置；处于连环状态，其摸一张牌。<br/><font color='grey'>操作提示：选择一名角色，若其为大势力角色，则目标为所有大势力角色；若其为小势力角色，则目标为所有小势力角色</font>",
+}
+
+local allianceFeastSkill = fk.CreateActiveSkill{
+  name = "alliance_feast_skill",
+  target_num = 1,
+  mod_target_filter = function(self, to_select, selected, user, card, distance_limited)
+    if to_select == user then return true end
+    local to = Fk:currentRoom():getPlayerById(to_select)
+    if to.kingdom == "unknown" then return false end
+    local from = Fk:currentRoom():getPlayerById(user)
+    if #selected == 0 then
+      return H.compareKingdomWith(to, from, true)
+    end
+    local target = Fk:currentRoom():getPlayerById(selected[1])
+    return H.compareKingdomWith(to, target)
+  end,
+  target_filter = function(self, to_select, selected, _, card)
+    return #selected == 0 and self:modTargetFilter(to_select, selected, Self.id, card, true) and to_select ~= Self.id
+  end,
+  can_use = function(self, player, card)
+    return not player:prohibitUse(card) and player.kingdom ~= "unknown"
+  end,
+  on_use = function(self, room, use)
+    local card = use.card
+    local player = room:getPlayerById(use.from)
+    local num = 0
+    if use.tos and #TargetGroup:getRealTargets(use.tos) > 0 then
+      for _, pid in ipairs(TargetGroup:getRealTargets(use.tos)) do
+        if pid ~= use.from then
+          num = 1
+          local _p = room:getPlayerById(pid)
+          for _, p in ipairs(room:getAlivePlayers()) do
+            if H.compareKingdomWith(p, _p) and p ~= _p then
+              TargetGroup:pushTargets(use.tos, p.id)
+              num = num + 1
+            end
+          end
+          break
+        end
+      end
+      if not player:isProhibited(player, card) then
+        TargetGroup:pushTargets(use.tos, use.from)
+      end
+    elseif not player:isProhibited(player, card) then
+      use.tos = { {use.from} }
+    end
+    use.extra_data = use.extra_data or {}
+    use.extra_data.AFNum = num
+  end,
+  on_effect = function(self, room, cardEffectEvent)
+    local from = room:getPlayerById(cardEffectEvent.from)
+    local to = room:getPlayerById(cardEffectEvent.to)
+    if from == to then
+      local num = (cardEffectEvent.extra_data or {}).AFNum
+      local choices = {}
+      for i = 0, math.min(num, from:getLostHp()) do
+        table.insert(choices, "#AFrecover:::" .. i .. ":" .. num - i)
+      end
+      local number = table.indexOf(choices, room:askForChoice(from, choices, self.name)) - 1
+      if number > 0 then
+        room:recover{
+          who = from,
+          recoverBy = from,
+          card = cardEffectEvent.card,
+          num = number,
+          skillName = self.name
+        }
+      end
+      from:drawCards(num - number, "alliance_feast")
+    else
+      to:drawCards(1, "alliance_feast")
+      if to.chained then to:setChainState(false) end
+    end
+  end,
+}
+local allianceFeast = fk.CreateTrickCard{
+  name = "alliance_feast",
+  skill = allianceFeastSkill,
+  suit = Card.Heart,
+  number = 1,
+  multiple_targets = true,
+}
+extension:addCard(allianceFeast)
+
+Fk:loadTranslationTable{
+  ["alliance_feast"] = "联军盛宴",
+  [":alliance_feast"] = "锦囊牌<br/><b>时机</b>：出牌阶段<br/><b>目标</b>：有势力的你和除你的势力外的一个势力的所有角色<br/><b>效果</b>：若目标角色：为你，你摸X张牌，回复（Y-X）点体力（Y为该势力的角色数）（X为你选择的自然数且不大于Y）；不为你，其摸一张牌，重置。<br/><font color='grey'>操作提示：选择一名与你势力不同的角色，目标为你和该势力的所有角色</font>",
+  ["alliance_feast_skill"] = "联军盛宴",
+  ["#AFrecover"] = "回复%arg点体力，摸%arg2张牌",
+  --["AF-ask"] = "联军盛宴：请选择回复体力的点数，剩余点数将用于摸牌",
+}
+
+local threatenEmperorSkill = fk.CreateActiveSkill{
+  name = "threaten_emperor_skill",
+  mod_target_filter = function(self, to_select, selected, user, card, distance_limited)
+    return to_select == Self.id and H.isBigKingdomPlayer(Self)
+  end,
+  can_use = function(self, player, card)
+    return not player:isProhibited(player, card) and H.isBigKingdomPlayer(player)
+  end,
+  on_use = function(self, room, use)
+    if not use.tos or #TargetGroup:getRealTargets(use.tos) == 0 then
+      use.tos = { {use.from} }
+    end
+  end,
+  on_effect = function(self, room, effect)
+    local target = room:getPlayerById(effect.to)
+    room:setPlayerMark(target, "_TEeffect-turn", 1)
+    target:endPlayPhase()
+  end,
+}
+local threatenEmperorExtra = fk.CreateTriggerSkill{
+  name = "#threaten_emperor_extra",
+  global = true,
+  priority = 1,
+  events = {fk.EventPhaseEnd},
+  can_trigger = function(self, event, target, player, data)
+    return target.phase == Player.Discard and player:getMark("_TEeffect-turn") > 0
+  end,
+  on_cost = function(self, event, target, player, data)
+    local card = player.room:askForDiscard(player, 1, 1, false, self.name, true, nil, "#TE-ask", true)
+    if #card > 0 then
+      self.cost_data = card
+      return true
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    room:throwCard(self.cost_data, self.name, player, player)
+    player:gainAnExtraTurn()
+  end,
+}
+Fk:addSkill(threatenEmperorExtra)
+local threatenEmperor = fk.CreateTrickCard{
+  name = "threaten_emperor",
+  skill = threatenEmperorSkill,
+  suit = Card.Diamond,
+  number = 1,
+}
+extension:addCards{
+  threatenEmperor,
+  threatenEmperor:clone(Card.Diamond, 4),
+  threatenEmperor:clone(Card.Spade, 1),
+}
+
+Fk:loadTranslationTable{
+  ["threaten_emperor"] = "挟天子以令诸侯",
+  [":threaten_emperor"] = "锦囊牌<br/><b>时机</b>：出牌阶段<br/><b>目标</b>：为大势力角色的你<br/><b>效果</b>：目标角色结束出牌阶段，当前回合的弃牌阶段结束时，其可弃置一张手牌，然后其获得一个额外回合。",
+  ["#TE-ask"] = "受到【挟天子以令诸侯】影响，你可以弃置一张手牌，获得一个额外回合",
+  ["threaten_emperor_skill"] = "挟天子以令诸侯",
+  ["#threaten_emperor_extra"] = "挟天子以令诸侯",
+}
+
+Fk:loadTranslationTable{
+  ["imperial_order"] = "敕令",
+  [":imperial_order"] = "锦囊牌<br/><b>时机</b>：出牌阶段<br/><b>目标</b>：所有没有势力的角色<br/><b>效果</b>：目标角色选择：1.明置一张武将牌，其摸一张牌；2.弃置一张装备牌；3.失去1点体力。<br/><br/>※若此牌未因使用此效果而进入弃牌堆时，则改为将此牌移出游戏，然后于此回合结束时视为对所有未确定势力的角色使用此牌。",
+}
+
+Fk:loadTranslationTable{
+  ["sa__blade"] = "青龙偃月刀",
+  [":sa__blade"] = "装备牌·武器<br /><b>攻击范围</b>：３<br /><b>武器技能</b>：锁定技，当你使用【杀】时，此牌的使用结算结束之前，此【杀】的目标角色不能明置武将牌。",
+}
+
+local halberdTargets = fk.CreateActiveSkill{
+  name = "#sa__halberd_targets",
+  can_use = function() return false end,
+  min_target_num = 1,
+  card_num = 0,
+  card_filter = Util.FalseFunc,
+  target_filter = function(self, to_select, selected)
+    local orig = Self:getMark("_sa__halberd")
+    if table.contains(orig, to_select) or to_select == Self.id then return false end
+    local target = Fk:currentRoom():getPlayerById(to_select)
+    if target.kingdom == "unknown" then return true end
+    table.insertTable(orig, selected)
+    return table.every(orig, function(id) return not H.compareKingdomWith(target, Fk:currentRoom():getPlayerById(id)) end)
+  end,
+}
+local halberdDelay = fk.CreateTriggerSkill{
+  name = "#sa__halberd_delay",
+  mute = true,
+  events = {fk.CardEffectCancelledOut, fk.PreCardEffect},
+  frequency = Skill.Compulsory,
+  can_trigger = function(self, event, target, player, data)
+    if event == fk.CardEffectCancelledOut then
+      return target == player and data.card.trueName == "slash" and table.contains(data.card.skillNames, "sa__halberd")
+    else
+      return player.id == data.to and data.card.trueName == "slash" and (data.card.extra_data or {}).sa__halberd_nullified
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    if event == fk.CardEffectCancelledOut then
+      data.card.extra_data = data.card.extra_data or {}
+      data.card.extra_data.sa__halberd_nullified = true
+    else
+      local room = player.room
+      room:sendLog{
+        type = "#HalberdNullified",
+        from = target.id,
+        to = {player.id},
+        arg = "sa__halberd",
+        card = {data.card.id},
+      }
+      return true
+    end
+  end,
+}
+local halberdSkill = fk.CreateTriggerSkill{
+  name = "#sa__halberd_skill",
+  attached_equip = "sa__halberd",
+  events = {fk.AfterCardTargetDeclared},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) and data.card.trueName == "slash"
+  end,
+  on_cost = function(self, event, target, player, data)
+    local room = player.room
+    room:setPlayerMark(player, "_sa__halberd", TargetGroup:getRealTargets(data.tos))
+    local _, ret = room:askForUseActiveSkill(player, "#sa__halberd_targets", "#sa__halberd-ask", true)
+    room:setPlayerMark(player, "_sa__halberd", 0)
+    if ret then
+      self.cost_data = ret.targets
+      return true
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    room:broadcastPlaySound("./packages/standard_cards/audio/card/halberd")
+    room:setEmotion(player, "./packages/standard_cards/image/anim/halberd")
+    room:doIndicate(player.id, self.cost_data)
+    data.card.skillName = "sa__halberd"
+    table.forEach(self.cost_data, function (id)
+      table.insert(data.tos, {id})
+    end)
+  end
+}
+halberdSkill:addRelatedSkill(halberdTargets)
+halberdSkill:addRelatedSkill(halberdDelay)
+Fk:addSkill(halberdSkill)
+local halberd = fk.CreateWeapon{
+  name = "sa__halberd",
+  suit = Card.Diamond,
+  number = 12,
+  attack_range = 4,
+  equip_skill = halberdSkill,
+}
+
+extension:addCard(halberd)
+
+Fk:loadTranslationTable{
+  ["sa__halberd"] = "方天画戟",
+  [":sa__halberd"] = "装备牌·武器<br /><b>攻击范围</b>：４<br /><b>武器技能</b>：当你使用【杀】选择目标后，"..
+  "可以令任意名{势力各不相同且与已选择的目标势力均不相同的}角色和任意名没有势力的角色也成为目标，当此【杀】被【闪】抵消后，此【杀】对所有目标均无效。",
+  ["#sa__halberd_skill"] = "方天画戟",
+  ["#sa__halberd_targets"] = "方天画戟",
+  ["#sa__halberd-ask"] = "你可发动【方天画戟】，令任意名势力各不相同且与已选择的目标势力均不相同的角色和任意名没有势力的角色也成为目标",
+  ["#sa__halberd_delay"] = "方天画戟",
+  ["#HalberdNullified"] = "由于 “%arg” 的效果，%from 对 %to 使用的 %card 无效",
+}
+
+local damage_nature_table = {
+  [fk.NormalDamage] = "normal_damage",
+  [fk.FireDamage] = "fire_damage",
+  [fk.ThunderDamage] = "thunder_damage",
+  [fk.IceDamage] = "ice_damage",
 }
 
 local breastplateSkill = fk.CreateTriggerSkill{
@@ -149,23 +534,11 @@ local breastplateSkill = fk.CreateTriggerSkill{
     return target == player and player:hasSkill(self.name) and data.damage >= player.hp
   end,
   on_cost = function(self, event, target, player, data)
-    local damage_nature_table = {
-      [fk.NormalDamage] = "normal_damage",
-      [fk.FireDamage] = "fire_damage",
-      [fk.ThunderDamage] = "thunder_damage",
-      [fk.IceDamage] = "ice_damage",
-    }
     return player.room:askForSkillInvoke(player, self.name, data, "#sa__breastplate-ask:::" .. data.damage .. ":" .. damage_nature_table[data.damageType])
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
     room:notifySkillInvoked(player, self.name, "defensive")
-    local damage_nature_table = {
-      [fk.NormalDamage] = "normal_damage",
-      [fk.FireDamage] = "fire_damage",
-      [fk.ThunderDamage] = "thunder_damage",
-      [fk.IceDamage] = "ice_damage",
-    }
     room:sendLog{
       type = "#BreastplateSkill",
       from = player.id,
@@ -228,4 +601,40 @@ Fk:loadTranslationTable{
   [":iron_armor"] = "装备牌·防具<br/><b>防具技能</b>：锁定技，当你成为【火烧连营】、【火攻】或火【杀】的目标时，你取消此目标；当你横置前，若你是小势力角色，你防止此次横置。",
 }
 
+local jingfan = fk.CreateOffensiveRide{
+  name = "jingfan",
+  suit = Card.Heart,
+  number = 3,
+}
+extension:addCard(jingfan)
+Fk:loadTranslationTable{
+  ["jingfan"] = "惊帆",
+  [":jingfan"] = "装备牌·坐骑<br /><b>坐骑技能</b>：你与其他角色的距离-1。",
+}
+
+Fk:loadTranslationTable{
+  ["iron_armor"] = "明光铠",
+  ["#iron_armor_skill"] = "明光铠",
+  [":iron_armor"] = "装备牌·防具<br/><b>防具技能</b>：锁定技，当你成为【火烧连营】、【火攻】或火【杀】的目标时，你取消此目标；当你横置前，若你是小势力角色，你防止此次横置。",
+}
+
+Fk:loadTranslationTable{
+  ["wooden_ox"] = "木牛流马",
+  [":wooden_ox"] = "装备牌·宝物<br/><b>宝物技能</b>：<br/>" ..
+    "1. 出牌阶段限一次，你可将一张手牌置入仓廪（称为“辎”，“辎”数至多为5），然后你可将装备区里的【木牛流马】置入一名其他角色的装备区。<br/>" ..
+    "2. 你能如手牌般使用或打出“辎”。<br/>" ..
+    "3. 当你并非因交换而失去装备区里的【木牛流马】前，若目标区域不为其他角色的装备区，当你失去此牌后，你将所有“辎”置入弃牌堆。<br/>" ..
+    "◆“辎”对你可见。<br/>◆此延时类效果于你的死亡流程中能被执行。",
+  ["#wooden_ox-move"] = "你可以将【木牛流马】移动至一名其他角色的装备区",
+  ["carriage&"] = "辎",
+}
+
+Fk:loadTranslationTable{
+  ["jade_seal"] = "玉玺",
+  [":jade_seal"] = "装备牌·宝物<br/><b>宝物技能</b>：<br/>" ..
+    "1. 锁定技，若你有势力，你的势力为大势力，除你的势力外的所有势力均为小势力。<br/>" ..
+    "2. 锁定技，摸牌阶段，若你有处于明置状态的武将牌，你令额定摸牌数+1。<br/>" ..
+    "3. 锁定技，出牌阶段开始时，若你有处于明置状态的武将牌，你视为使用【知己知彼】。<br/>" ,
+  ["#JadeSeal-ask"] = "受到【玉玺】的效果，视为你使用一张【知己知彼】",
+}
 return extension

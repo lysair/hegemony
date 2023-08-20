@@ -1432,6 +1432,7 @@ local luanji = fk.CreateViewAsSkill{
 local luanji_draw = fk.CreateTriggerSkill{
   name = "#hs__luanji_draw",
   anim_type = "drawcard",
+  main_skill = luanji, -- 这样应该不出预亮框才对
   events = {fk.CardRespondFinished},
   can_trigger = function(self, event, target, player, data)
     if target ~= player or data.card.name ~= "jink" or player.dead then return false end

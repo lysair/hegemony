@@ -215,7 +215,7 @@ local awaitExhaustedSkill = fk.CreateActiveSkill{
         use.tos = {{use.from}}
       else
         use.tos = {}
-        for _, p in ipairs(room.alive_players) do
+        for _, p in ipairs(room:getAlivePlayers()) do
           if not player:isProhibited(p, use.card) and H.compareKingdomWith(p, player) then --权宜
             TargetGroup:pushTargets(use.tos, p.id)
           end
@@ -267,12 +267,14 @@ local doubleSwordsSkill = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
+    room:broadcastPlaySound("./packages/standard_cards/audio/card/double_swords")
+    room:setEmotion(player, "./packages/standard_cards/image/anim/double_swords")
     local to = player.room:getPlayerById(data.to)
     if to:isKongcheng() then
       player:drawCards(1, self.name)
     else
       local result = room:askForDiscard(to, 1, 1, false, self.name, true, ".", "#double_swords-invoke:"..player.id)
-      if #result == 0 then
+      if #result == 0 and not player.dead then
         player:drawCards(1, self.name)
       end
     end
@@ -348,6 +350,7 @@ local tribladeSkill = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     local room = player.room
     local to = self.cost_data[1]
+    room:notifySkillInvoked(player, self.name, "offensive")
     room:doIndicate(player.id, {to})
     room:throwCard(self.cost_data[2], self.name, player, player)
     room:damage{
