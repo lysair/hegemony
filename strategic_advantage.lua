@@ -160,11 +160,70 @@ Fk:loadTranslationTable{
   [":burning_camps"] = "锦囊牌<br/><b>时机</b>：出牌阶段<br/><b>目标</b>：你的下家和除其外与其处于同一队列的所有角色<br/><b>效果</b>：目标角色受到你造成的1点火焰伤害。",
 }
 
+local lureTigerSkill = fk.CreateActiveSkill{
+  name = "lure_tiger_skill",
+  min_target_num = 1,
+  max_target_num = 2,
+  mod_target_filter = function(self, to_select, selected, user)
+    return user ~= to_select
+  end,
+  target_filter = function(self, to_select, selected)
+    if #selected <= 1 then
+      return self:modTargetFilter(to_select, selected, Self.id)
+    end
+  end,
+  on_effect = function(self, room, effect)
+    local target = room:getPlayerById(effect.to)
+    room:setPlayerMark(target, "@@lure_tiger-turn", 1) -- MarkEnum.PlayerRemoved
+    room:handleAddLoseSkills(target, "#lure_tiger_hp|#lure_tiger_prohibit", nil, false, true) -- global...
+  end,
+}
+local lureTigerProhibit = fk.CreateProhibitSkill{
+  name = "#lure_tiger_prohibit",
+  -- global = true,
+  prohibit_use = function(self, player, card)
+    return player:getMark("@@lure_tiger-turn") ~= 0
+  end,
+  is_prohibited = function(self, from, to, card)
+    return to:getMark("@@lure_tiger-turn") ~= 0
+  end,
+}
+local lureTigerHp = fk.CreateTriggerSkill{
+  name = "#lure_tiger_hp",
+  -- global = true,
+  refresh_events = {fk.PreHpRecover, fk.PreHpLost, fk.DamageInflicted},
+  can_refresh = function(self, event, target, player, data)
+    return target == player and player:getMark("@@lure_tiger-turn") ~= 0
+  end,
+  on_refresh = function(self, event, target, player, data)
+    if event == fk.DamageInflicted then
+      data.damage = 0
+    else
+      data.num = 0
+    end
+    return true
+  end,
+}
+Fk:addSkill(lureTigerProhibit)
+Fk:addSkill(lureTigerHp)
+local lureTiger = fk.CreateTrickCard{
+  name = "lure_tiger",
+  skill = lureTigerSkill,
+  suit = Card.Heart,
+  number = 2,
+  multiple_targets = true,
+}
+extension:addCards{
+  lureTiger,
+  lureTiger:clone(Card.Diamond, 10),
+}
+
 Fk:loadTranslationTable{
-  ["lure_tiger"] = "调虎离山",
+  ["lure_tiger"] = "调虎离山", -- 缺不计入距离和座次
   [":lure_tiger"] = "锦囊牌<br/><b>时机</b>：出牌阶段<br/><b>目标</b>：一至两名其他角色<br/><b>效果</b>：目标角色于此回合内不计入距离和座次的计算，且不能使用牌，且不是牌的合法目标，且体力值不会改变。",
-  ["lure_tiger_effect"] = "调虎离山",
-  ["#lure_tiger-prohibit"] = "调虎离山",
+  ["#lure_tiger_prohibit"] = "调虎离山",
+
+  ["@@lure_tiger-turn"] = "调虎离山",
 }
 
 local fightTogetherSkill = fk.CreateActiveSkill{
@@ -368,12 +427,13 @@ local threatenEmperorSkill = fk.CreateActiveSkill{
   on_effect = function(self, room, effect)
     local target = room:getPlayerById(effect.to)
     room:setPlayerMark(target, "_TEeffect-turn", 1)
+    room:handleAddLoseSkills(target, "#threaten_emperor_extra", nil, false, true) -- global ...
     target:endPlayPhase()
   end,
 }
 local threatenEmperorExtra = fk.CreateTriggerSkill{
   name = "#threaten_emperor_extra",
-  global = true,
+  -- global = true,
   priority = 1,
   events = {fk.EventPhaseEnd},
   can_trigger = function(self, event, target, player, data)
@@ -413,9 +473,145 @@ Fk:loadTranslationTable{
   ["#threaten_emperor_extra"] = "挟天子以令诸侯",
 }
 
+local function doImperialOrder(room, target)
+  local all_choices = {"IO_reveal", "IO_discard", "IO_hplose"}
+  local choices = table.clone(all_choices)
+  if target.hp < 1 then table.remove(choices) end
+  if table.every(target:getCardIds{Player.Equip, Player.Hand}, function(id) return Fk:getCardById(id).type ~= Card.TypeEquip or target:prohibitDiscard(Fk:getCardById(id)) end) then
+    table.remove(choices, 2)
+  end
+  if target.general ~= "anjiang" and target.deputyGeneral ~= "anjiang" then
+    table.remove(choices, 1)
+  end
+  if #choices == 0 then return false end
+  local choice = room:askForChoice(target, choices, "imperial_order_skill", nil, false, all_choices)
+  if choice == "IO_reveal" then
+    choices = {}
+    if target.general == "anjiang" then
+      table.insert(choices, "revealMain")
+    end
+    if target.deputyGeneral == "anjiang" then
+      table.insert(choices, "revealDeputy")
+    end
+    choice = room:askForChoice(target, choices, "imperial_order_skill")
+    if choice == "revealMain" then target:revealGeneral(false)
+    elseif choice == "revealDeputy" then target:revealGeneral(true) end
+    target:drawCards(1, "imperial_order_skill")
+  elseif choice == "IO_discard" then
+    room:askForDiscard(target, 1, 1, true, "imperial_order_skill", false, ".|.|.|.|.|equip")
+  else
+    room:loseHp(target, 1, "imperial_order_skill")
+  end
+end
+local imperialOrderRemoved = fk.CreateTriggerSkill{
+  name = "imperial_order_removed",
+  global = true,
+  refresh_events = {fk.BeforeCardsMove, fk.EventPhaseChanging},
+  can_refresh = function(self, event, target, player, data)
+    if player.room:getTag("ImperialOrderHasRemoved") then return false end -- 先这样，只有一次！
+    if event == fk.BeforeCardsMove then
+      if player.room:getTag("ImperialOrderRemoved") then return false end
+      for _, move in ipairs(data) do
+        if move.toArea == Card.DiscardPile and move.moveReason ~= fk.ReasonUse then
+          for _, info in ipairs(move.moveInfo) do
+            if Fk:getCardById(info.cardId).name == "imperial_order" then
+              return true
+            end
+          end
+        end
+      end
+    else
+      return target == player and data.to == Player.NotActive and target.room:getTag("ImperialOrderRemoved")
+    end
+  end,
+  on_refresh = function(self, event, target, player, data)
+    if event == fk.BeforeCardsMove then
+      local ids = {}
+      local mirror_moves = {}
+      for _, move in ipairs(data) do
+        if move.toArea == Card.DiscardPile and move.moveReason ~= fk.ReasonUse then
+          local move_info = {}
+          local mirror_info = {}
+          for _, info in ipairs(move.moveInfo) do
+            local id = info.cardId
+            if Fk:getCardById(id).name == "imperial_order" then
+              table.insert(mirror_info, info)
+              table.insert(ids, id)
+            else
+              table.insert(move_info, info)
+            end
+          end
+          if #mirror_info > 0 then
+            move.moveInfo = move_info
+            local mirror_move = table.clone(move)
+            mirror_move.to = nil
+            mirror_move.toArea = Card.Void
+            mirror_move.moveInfo = mirror_info
+            table.insert(mirror_moves, mirror_move)
+          end
+        end
+      end
+      if #ids > 0 then
+        player.room:sendLog{
+          type = "#ImperialOrderRemoved",
+          card = ids,
+        }
+      end
+      table.insertTable(data, mirror_moves)
+      player.room:setTag("ImperialOrderRemoved", true)
+    else
+      local room = player.room
+      for _, p in ipairs(room:getAlivePlayers()) do
+        if p.kingdom == "unknown" then
+          doImperialOrder(room, p)
+        end
+      end
+      room:setTag("ImperialOrderRemoved", false)
+      room:setTag("ImperialOrderHasRemoved", true)
+    end
+  end,
+}
+Fk:addSkill(imperialOrderRemoved)
+local imperialOrderSkill = fk.CreateActiveSkill{
+  name = "imperial_order_skill",
+  mod_target_filter = function(self, to_select, selected, user, card, distance_limited)
+    return Fk:currentRoom():getPlayerById(to_select).kingdom == "unknown"
+  end,
+  can_use = function(self, player, card)
+    return not player:prohibitUse(card) and table.find(Fk:currentRoom().alive_players, function(p) return p.kingdom == "unknown" end)
+  end,
+  on_use = function(self, room, use)
+    if not use.tos or #TargetGroup:getRealTargets(use.tos) == 0 then
+      use.tos = {}
+      local user = room:getPlayerById(use.from)
+      for _, player in ipairs(room:getOtherPlayers(user)) do
+        if player.kingdom == "unknown" and not user:isProhibited(player, use.card) then
+          TargetGroup:pushTargets(use.tos, player.id)
+        end
+      end
+    end
+  end,
+  on_effect = function(self, room, effect)
+    local target = room:getPlayerById(effect.to)
+    doImperialOrder(room, target)
+  end,
+}
+local imperialOrder = fk.CreateTrickCard{
+  name = "imperial_order",
+  skill = imperialOrderSkill,
+  suit = Card.Club,
+  number = 3,
+}
+extension:addCard(imperialOrder)
+
 Fk:loadTranslationTable{
   ["imperial_order"] = "敕令",
-  [":imperial_order"] = "锦囊牌<br/><b>时机</b>：出牌阶段<br/><b>目标</b>：所有没有势力的角色<br/><b>效果</b>：目标角色选择：1.明置一张武将牌，其摸一张牌；2.弃置一张装备牌；3.失去1点体力。<br/><br/>※若此牌未因使用此效果而进入弃牌堆时，则改为将此牌移出游戏，然后于此回合结束时视为对所有未确定势力的角色使用此牌。",
+  [":imperial_order"] = "锦囊牌<br/><b>时机</b>：出牌阶段<br/><b>目标</b>：所有没有势力的角色<br/><b>效果</b>：目标角色选择：1.明置一张武将牌，其摸一张牌；2.弃置一张装备牌；3.失去1点体力。<br/><br/>※此牌不因使用而进入弃牌堆前，改为将此牌移出游戏，回合结束前，没有势力的角色依次执行此牌的效果。",
+  ["imperial_order_skill"] = "敕令",
+  ["IO_reveal"] = "明置一张武将牌，摸一张牌",
+  ["IO_discard"] = "弃置一张装备牌",
+  ["IO_hplose"] = "失去1点体力",
+  ["#ImperialOrderRemoved"] = "%card 被移出游戏",
 }
 
 Fk:loadTranslationTable{
@@ -613,12 +809,6 @@ Fk:loadTranslationTable{
 }
 
 Fk:loadTranslationTable{
-  ["iron_armor"] = "明光铠",
-  ["#iron_armor_skill"] = "明光铠",
-  [":iron_armor"] = "装备牌·防具<br/><b>防具技能</b>：锁定技，当你成为【火烧连营】、【火攻】或火【杀】的目标时，你取消此目标；当你横置前，若你是小势力角色，你防止此次横置。",
-}
-
-Fk:loadTranslationTable{
   ["wooden_ox"] = "木牛流马",
   [":wooden_ox"] = "装备牌·宝物<br/><b>宝物技能</b>：<br/>" ..
     "1. 出牌阶段限一次，你可将一张手牌置入仓廪（称为“辎”，“辎”数至多为5），然后你可将装备区里的【木牛流马】置入一名其他角色的装备区。<br/>" ..
@@ -628,13 +818,60 @@ Fk:loadTranslationTable{
   ["#wooden_ox-move"] = "你可以将【木牛流马】移动至一名其他角色的装备区",
   ["carriage&"] = "辎",
 }
-
+local jadeSealSkill = fk.CreateTriggerSkill{
+  name = "#jade_seal_skill",
+  attached_equip = "jade_seal",
+  events = {fk.EventPhaseStart, fk.DrawNCards},
+  frequency = Skill.Compulsory,
+  can_trigger = function(self, event, target, player, data)
+    if target ~= player or not player:hasSkill(self.name) or not H.isBigKingdomPlayer(player) then return false end
+    return event == fk.DrawNCards or player.phase == Player.Play
+  end,
+  on_cost = function(self, event, target, player, data)
+    local room = player.room
+    if event == fk.EventPhaseStart then
+      local card = Fk:cloneCard("known_both")
+      local max_num = card.skill:getMaxTargetNum(player, card)
+      local targets = {}
+      for _, p in ipairs(room:getOtherPlayers(player)) do
+        if not player:isProhibited(p, card) then
+          table.insert(targets, p.id)
+        end
+      end
+      if #targets == 0 or max_num == 0 then return end
+      local to = room:askForChoosePlayers(player, targets, 1, max_num, "#jade_seal-ask", self.name, false)
+      if #to > 0 then
+        self.cost_data = to
+        return true
+      end
+    else
+      return true
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    if event == fk.EventPhaseStart then
+      room:notifySkillInvoked(player, self.name, "control")
+      local targets = table.map(self.cost_data, Util.Id2PlayerMapper)
+      room:useVirtualCard("known_both", nil, player, targets, self.name)
+    else
+      room:notifySkillInvoked(player, self.name, "drawcard")
+      data.n = data.n + 1
+    end
+  end,
+}
+Fk:addSkill(jadeSealSkill)
+local jadeSeal = fk.CreateTreasure{
+  name = "jade_seal",
+  suit = Card.Club,
+  number = 1,
+  equip_skill = jadeSealSkill,
+}
+extension:addCard(jadeSeal)
 Fk:loadTranslationTable{
-  ["jade_seal"] = "玉玺",
-  [":jade_seal"] = "装备牌·宝物<br/><b>宝物技能</b>：<br/>" ..
-    "1. 锁定技，若你有势力，你的势力为大势力，除你的势力外的所有势力均为小势力。<br/>" ..
-    "2. 锁定技，摸牌阶段，若你有处于明置状态的武将牌，你令额定摸牌数+1。<br/>" ..
-    "3. 锁定技，出牌阶段开始时，若你有处于明置状态的武将牌，你视为使用【知己知彼】。<br/>" ,
-  ["#JadeSeal-ask"] = "受到【玉玺】的效果，视为你使用一张【知己知彼】",
+  ["jade_seal"] = "玉玺", -- 缺视为大势力
+  [":jade_seal"] = "装备牌·宝物<br/><b>宝物技能</b>：锁定技，若你有势力，你的势力为大势力，除你的势力外的所有势力均为小势力；摸牌阶段，若你有势力，你令额定摸牌数+1；出牌阶段开始时，若你有势力，你视为使用【知己知彼】。",
+  ["#jade_seal_skill"] = "玉玺",
+  ["#jade_seal-ask"] = "受到【玉玺】的效果，视为你使用一张【知己知彼】",
 }
 return extension

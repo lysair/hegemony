@@ -88,8 +88,65 @@ extension:addCards{
   Fk:cloneCard("ex_nihilo", Card.Heart, 7),
   Fk:cloneCard("ex_nihilo", Card.Heart, 8),
   Fk:cloneCard("nullification", Card.Spade, 11),
-  Fk:cloneCard("nullification", Card.Club, 13),--国
-  Fk:cloneCard("nullification", Card.Diamond, 12),--国
+  Fk:cloneCard("nullification", Card.Club, 13), -- 国
+  Fk:cloneCard("nullification", Card.Diamond, 12), -- 国
+}
+--[[
+local hegNullificationSkill = fk.CreateActiveSkill{
+  name = "heg__nullification_skill",
+  can_use = function()
+    return false
+  end,
+  on_use = function(self, room, use)
+    local room = RoomInstance
+    if use.responseToEvent.to then
+      local from = room:getPlayerById(use.from)
+      if room:askForChoice(from, {"hegN-single", "hegN-all"}, self.name, "#hegN-ask") == "hegN-all" then
+        use.extra_data = use.extra_data or {}
+        use.extra_data.hegN_all = true
+      end
+    else
+      room:delay(1200)
+    end
+  end,
+  on_effect = function(self, room, effect)
+    if effect.responseToEvent then
+      effect.responseToEvent.isCancellOut = true
+      if (effect.extra_data or {}).hegN_all then
+        local to = RoomInstance:getPlayerById(effect.responseToEvent.to)
+        effect.responseToEvent.disresponsiveList = effect.responseToEvent.disresponsiveList or {}
+        for _, p in ipairs(RoomInstance.alive_players) do
+          if H.compareKingdomWith(p, to) then
+            table.insertIfNeed(effect.responseToEvent.nullifiedTargets, p.id)
+            table.insertIfNeed(effect.responseToEvent.disresponsiveList, p.id)
+          end
+        end
+      end
+    end
+  end
+}
+local hegNullification = fk.CreateTrickCard{
+  name = "heg__nullification",
+  suit = Card.Spade,
+  number = 11,
+  skill = hegNullificationSkill,
+}
+
+extension:addCards{
+  hegNullification:clone(Card.Club, 13),
+  hegNullification:clone(Card.Diamond, 12),
+}
+Fk:loadTranslationTable{
+  ["heg__nullification"] = "无懈可击·国",
+  ["heg__nullification_skill"] = "无懈可击·国",
+  [":heg__nullification"] = "锦囊牌<br/><b>时机</b>：当锦囊牌对目标生效前<br/><b>目标</b>：此牌<br/><b>效果</b>：抵消此牌。你令对对应的角色为与其势力相同的角色的目标结算的此牌不是【无懈可击】的合法目标，当此牌对对应的角色为这些角色中的一名的目标生效前，抵消此牌。",
+  ["#hegN-ask"] = "无懈可击·国",
+  ["hegN-single"] = "对单个使用",
+  ["hegN-all"] = "对势力使用",
+}
+--]]
+
+extension:addCards{
   Fk:cloneCard("savage_assault", Card.Spade, 13),
   Fk:cloneCard("savage_assault", Card.Club, 7),
   Fk:cloneCard("archery_attack", Card.Heart, 1),
