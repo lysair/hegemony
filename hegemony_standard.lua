@@ -398,6 +398,7 @@ local paoxiaoTrigger = fk.CreateTriggerSkill{
   name = "#hs__paoxiaoTrigger",
   events = {fk.CardUsing},
   anim_type = "offensive",
+  visible = false,
   frequency = Skill.Compulsory,
   can_trigger = function(self, event, target, player, data)
     if target ~= player or not player:hasSkill(self.name) or data.card.trueName ~= "slash" then return false end
@@ -549,6 +550,7 @@ local longdan = fk.CreateViewAsSkill{
 local longdan_after = fk.CreateTriggerSkill{
   name = "#longdan_after",
   anim_type = "offensive",
+  visible = false,
   events = {fk.CardEffectCancelledOut},
   can_trigger = function(self, event, target, player, data)
     if data.card.trueName ~= "slash" then return false end
@@ -1432,7 +1434,7 @@ local luanji = fk.CreateViewAsSkill{
 local luanji_draw = fk.CreateTriggerSkill{
   name = "#hs__luanji_draw",
   anim_type = "drawcard",
-  main_skill = luanji, -- 这样应该不出预亮框才对
+  visible = false,
   events = {fk.CardRespondFinished},
   can_trigger = function(self, event, target, player, data)
     if target ~= player or data.card.name ~= "jink" or player.dead then return false end
@@ -1928,7 +1930,7 @@ Fk:loadTranslationTable{
 --军令四
 local command4_prohibit = fk.CreateProhibitSkill{
   name = "#command4_prohibit",
-  --global = true,
+  -- global = true,
   prohibit_use = function(self, player, card)
     return player:getMark("_command4_effect-turn") > 0 and table.contains(player.player_cards[Player.Hand], card.id)
   end,
@@ -1941,7 +1943,7 @@ Fk:addSkill(command4_prohibit)
 --军令五 不准回血！
 local command5_cannotrecover = fk.CreateTriggerSkill{
   name = "#command5_cannotrecover",
-  --global = true,
+  -- global = true,
   refresh_events = {fk.PreHpRecover},
   can_refresh = function(self, event, target, player, data)
     return target == player and player:getMark("_command5_effect-turn") > 0
