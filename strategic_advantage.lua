@@ -52,6 +52,12 @@ extension:addCards{
   Fk:cloneCard("nullification", Card.Diamond, 11), -- 国
   Fk:cloneCard("nullification", Card.Club, 13),
 }
+--[[
+extension:addCards{
+  H.hegNullification:clone(Card.Diamond, 11),
+  H.hegNullification:clone(Card.Club, 13),
+}
+--]]
 
 local drowningSkill = fk.CreateActiveSkill{
   name = "sa__drowning_skill",
@@ -614,9 +620,58 @@ Fk:loadTranslationTable{
   ["#ImperialOrderRemoved"] = "%card 被移出游戏",
 }
 
+local bladeSkill = fk.CreateTriggerSkill{
+  name = "#sa__blade_skill",
+  attached_equip = "sa__blade",
+  mute = true,
+  events = {fk.CardUsing},
+  frequency = Skill.Compulsory,
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) and data.card.trueName == "slash"
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    room:broadcastPlaySound("./packages/standard_cards/audio/card/blade")
+    room:setEmotion(player, "./packages/standard_cards/image/anim/blade")
+    for _, id in ipairs(TargetGroup:getRealTargets(data.tos)) do
+      room:addPlayerMark(room:getPlayerById(id), "@@sa__blade") -- MarkEnum.RevealForbidden
+      data.extra_data = data.extra_data or {}
+      data.extra_data.sa__bladeRevealForbidden = data.extra_data.sa__bladeRevealForbidden or {}
+      data.extra_data.sa__bladeRevealForbidden[tostring(id)] = (data.extra_data.sa__bladeRevealForbidden[tostring(id)] or 0) + 1
+    end
+  end,
+
+  refresh_events = { fk.CardUseFinished },
+  can_refresh = function(self, event, target, player, data)
+    return data.extra_data and data.extra_data.sa__bladeRevealForbidden
+  end,
+  on_refresh = function(self, event, target, player, data)
+    local room = player.room
+    for key, num in pairs(data.extra_data.sa__bladeRevealForbidden) do
+      local p = room:getPlayerById(tonumber(key))
+      if p:getMark("@@sa__blade") > 0 then
+        room:removePlayerMark(p, "@@sa__blade", num)
+      end
+    end
+
+    data.sa__bladeRevealForbidden = nil
+  end,
+}
+Fk:addSkill(bladeSkill)
+local blade = fk.CreateWeapon{
+  name = "sa__blade",
+  suit = Card.Spade,
+  number = 5,
+  attack_range = 3,
+  equip_skill = bladeSkill,
+}
+
+extension:addCard(blade)
 Fk:loadTranslationTable{
-  ["sa__blade"] = "青龙偃月刀",
+  ["sa__blade"] = "青龙偃月刀", -- 缺不能明置武将牌
   [":sa__blade"] = "装备牌·武器<br /><b>攻击范围</b>：３<br /><b>武器技能</b>：锁定技，当你使用【杀】时，此牌的使用结算结束之前，此【杀】的目标角色不能明置武将牌。",
+
+  ["@@sa__blade"] = "青龙偃月刀",
 }
 
 local halberdTargets = fk.CreateActiveSkill{
@@ -643,13 +698,13 @@ local halberdDelay = fk.CreateTriggerSkill{
     if event == fk.CardEffectCancelledOut then
       return target == player and data.card.trueName == "slash" and table.contains(data.card.skillNames, "sa__halberd")
     else
-      return player.id == data.to and data.card.trueName == "slash" and (data.card.extra_data or {}).sa__halberd_nullified
+      return player.id == data.to and data.card.trueName == "slash" and (data.card.extra_data or {}).sa__halberdNullified
     end
   end,
   on_use = function(self, event, target, player, data)
     if event == fk.CardEffectCancelledOut then
       data.card.extra_data = data.card.extra_data or {}
-      data.card.extra_data.sa__halberd_nullified = true
+      data.card.extra_data.sa__halberdNullified = true
     else
       local room = player.room
       room:sendLog{
@@ -667,6 +722,7 @@ local halberdSkill = fk.CreateTriggerSkill{
   name = "#sa__halberd_skill",
   attached_equip = "sa__halberd",
   events = {fk.AfterCardTargetDeclared},
+  mute = true,
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(self.name) and data.card.trueName == "slash"
   end,
@@ -807,7 +863,21 @@ Fk:loadTranslationTable{
   ["jingfan"] = "惊帆",
   [":jingfan"] = "装备牌·坐骑<br /><b>坐骑技能</b>：你与其他角色的距离-1。",
 }
-
+local woodenOxSkill = fk.CreateActiveSkill{
+  name = "wooden_ox_skill",
+  attached_equip = "wooden_ox",
+  can_use = function(self, player, card)
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
+  end,
+}
+Fk:addSkill(woodenOxSkill)
+local woodenOx = fk.CreateTreasure{
+  name = "wooden_ox",
+  suit = Card.Diamond,
+  number = 5,
+  equip_skill = woodenOxSkill,
+}
+extension:addCard(woodenOx)
 Fk:loadTranslationTable{
   ["wooden_ox"] = "木牛流马",
   [":wooden_ox"] = "装备牌·宝物<br/><b>宝物技能</b>：<br/>" ..
@@ -815,6 +885,7 @@ Fk:loadTranslationTable{
     "2. 你能如手牌般使用或打出“辎”。<br/>" ..
     "3. 当你并非因交换而失去装备区里的【木牛流马】前，若目标区域不为其他角色的装备区，当你失去此牌后，你将所有“辎”置入弃牌堆。<br/>" ..
     "◆“辎”对你可见。<br/>◆此延时类效果于你的死亡流程中能被执行。",
+  ["wooden_ox_skill"] = "木牛",
   ["#wooden_ox-move"] = "你可以将【木牛流马】移动至一名其他角色的装备区",
   ["carriage&"] = "辎",
 }
