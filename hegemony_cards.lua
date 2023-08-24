@@ -260,7 +260,7 @@ extension:addCards{
   Fk:cloneCard("crossbow", Card.Diamond, 1),
   Fk:cloneCard("qinggang_sword", Card.Spade, 6),
   Fk:cloneCard("ice_sword", Card.Spade, 2),
-  --Fk:cloneCard("double_swords", Card.Spade, 2),
+  -- Fk:cloneCard("double_swords", Card.Spade, 2),
 }
 
 local doubleSwordsSkill = fk.CreateTriggerSkill{

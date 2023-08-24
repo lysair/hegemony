@@ -2,8 +2,11 @@ local extension = Package:new("hegemony_standard")
 extension.extensionName = "hegemony"
 extension.game_modes_whitelist = { 'nos_heg_mode', 'new_heg_mode' }
 
-local heg_mode = require "packages.hegemony.hegemony"
-extension:addGameMode(heg_mode)
+-- local heg_mode = require "packages.hegemony.hegemony"
+-- extension:addGameMode(heg_mode)
+
+local nos_heg_mode = require "packages.hegemony.nos_hegemony"
+extension:addGameMode(nos_heg_mode)
 
 local H = require "packages/hegemony/util"
 
@@ -20,21 +23,19 @@ Fk:loadTranslationTable{
 
 local simayi = General(extension, "hs__simayi", "wei", 3)
 simayi:addSkill("fankui")
-simayi:addSkill("ex__guicai") --手杀
---simayi:addSkill("guicai")
+simayi:addSkill("ex__guicai") -- 手杀
 Fk:loadTranslationTable{
   ["hs__simayi"] = "司马懿",
 }
 
 local xiahoudun = General(extension, "hs__xiahoudun", "wei", 4)
-xiahoudun:addSkill("ex__ganglie") --手杀修改：界刚烈。22按次
+xiahoudun:addSkill("ex__ganglie") -- 手杀修改：界刚烈。22按次
 Fk:loadTranslationTable{
   ["hs__xiahoudun"] = "夏侯惇",
 }
 
 local zhangliao = General(extension, "hs__zhangliao", "wei", 4)
-zhangliao:addSkill("ex__tuxi") --手杀
---zhangliao:addSkill("tuxi")
+zhangliao:addSkill("ex__tuxi") -- 手杀
 Fk:loadTranslationTable{
   ["hs__zhangliao"] = "张辽",
 }
@@ -554,9 +555,9 @@ local longdan_after = fk.CreateTriggerSkill{
   events = {fk.CardEffectCancelledOut},
   can_trigger = function(self, event, target, player, data)
     if data.card.trueName ~= "slash" then return false end
-    if target == player then --龙胆杀
+    if target == player then -- 龙胆杀
       return table.contains(data.card.skillNames, "hs__longdan")
-    elseif data.to == player.id then --龙胆闪
+    elseif data.to == player.id then -- 龙胆闪
       for _, card in ipairs(data.cardsResponded) do
         if card.name == "jink" and table.contains(card.skillNames, "hs__longdan") then
           return true
@@ -722,7 +723,7 @@ Fk:loadTranslationTable{
 }
 
 local weiyan = General(extension, "hs__weiyan", "shu", 4)
-local kuanggu = fk.CreateTriggerSkill{ --虽然已有
+local kuanggu = fk.CreateTriggerSkill{ -- 虽然已有
   name = "hs__kuanggu",
   anim_type = "drawcard",
   events = {fk.Damage},
@@ -785,7 +786,7 @@ Fk:loadTranslationTable{
   ["~hs__weiyan"] = "奸贼……害我……",
 }
 
---pangtong
+-- pangtong
 
 local wolong = General(extension, "hs__wolong", "shu", 3)
 wolong:addSkill("bazhen")
@@ -802,7 +803,7 @@ Fk:loadTranslationTable{
   ['hs__liushan'] = '刘禅',
 }
 
---menghuo
+-- menghuo
 
 local zhurong = General(extension, "hs__zhurong", "shu", 4, 4, General.Female)
 zhurong:addSkill("juxiang")
@@ -1554,7 +1555,7 @@ local duanchang = fk.CreateTriggerSkill{
     local room = player.room
     local to = data.damage.from
     local skills = {}
-    local choices = {} --暗将
+    local choices = {} -- 暗将
     table.insert(choices, to.general ~= "anjiang" and to.general or "mainGeneral")
     table.insert(choices, to.deputyGeneral ~= "anjiang" and to.deputyGeneral or "deputyGeneral")
     local choice = room:askForChoice(player, choices, self.name, "#hs__duanchang-ask::" .. to.id)
@@ -1562,7 +1563,7 @@ local duanchang = fk.CreateTriggerSkill{
     table.insert(record, choice)
     room:setPlayerMark(to, "@hs__duanchang", record)
     if choice == "mainGeneral" then
-      choice = to:getMark("__heg_general") --没用
+      choice = to:getMark("__heg_general") -- 没用
     elseif choice == "deputyGeneral" then
       choice = to:getMark("__heg_deputy")
     end
@@ -1818,7 +1819,7 @@ local shuangren = fk.CreateTriggerSkill{
         room:useVirtualCard("slash", nil, player, {to}, self.name, true)
       end
     else
-      --player:endPlayPhase()
+      -- player:endPlayPhase()
       return true
     end
   end,
@@ -1927,7 +1928,7 @@ Fk:loadTranslationTable{
 }
 -- zoushi
 
---军令四
+-- 军令四
 local command4_prohibit = fk.CreateProhibitSkill{
   name = "#command4_prohibit",
   -- global = true,
@@ -1940,7 +1941,7 @@ local command4_prohibit = fk.CreateProhibitSkill{
 }
 Fk:addSkill(command4_prohibit)
 
---军令五 不准回血！
+-- 军令五 你不准回血！
 local command5_cannotrecover = fk.CreateTriggerSkill{
   name = "#command5_cannotrecover",
   -- global = true,
@@ -1955,7 +1956,7 @@ local command5_cannotrecover = fk.CreateTriggerSkill{
 }
 Fk:addSkill(command5_cannotrecover)
 
---军令六
+-- 军令六
 local command6_select = fk.CreateActiveSkill{
   name = "#command6_select",
   can_use = function() return false end,
@@ -1978,6 +1979,5 @@ Fk:addSkill(command6_select)
 Fk:loadTranslationTable{
   ["#command6_select"] = "军令",
 }
-
 
 return extension

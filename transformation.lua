@@ -20,7 +20,7 @@ local jilis = fk.CreateTriggerSkill{
 
   refresh_events = {fk.AfterCardUseDeclared, fk.CardResponding},
   can_refresh = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name)
+    return target == player -- and player:hasSkill(self.name)
   end,
   on_refresh = function(self, event, target, player, data)
     player.room:addPlayerMark(player, "_jilis-turn", 1)
@@ -119,7 +119,7 @@ Fk:loadTranslationTable{
   "<font color='grey'><br />注：可以多次移动同一张牌。",
   ["#yongjin-choose"] = "勇进：你可以移动场上的一张装备牌",
 
-  ["$yongjin1"] = "生死，只在电光火石之间。", --？
+  ["$yongjin1"] = "生死，只在电光火石之间。", -- ？
 	["$yongjin2"] = "大军攻城，我打头阵！",
 }
 
@@ -130,7 +130,7 @@ Fk:loadTranslationTable{
   ["xiongsuan"] = "凶算",
 	[":xiongsuan"] = "限定技，出牌阶段，你可弃置一张手牌并选择与你势力相同的一名角色，你对其造成1点伤害，摸三张牌，选择其一个已发动过的限定技，然后此回合结束前，你令此技能于此局游戏内的发动次数上限+1。",
 	["#xiongsuan-reset"] = "凶算：请重置%dest的一项技能",
-	--["#XiongsuanReset"] = "%from 重置了限定技“%arg”",
+	-- ["#XiongsuanReset"] = "%from 重置了限定技“%arg”",
 }
 ]]
 return extension

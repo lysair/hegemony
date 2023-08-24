@@ -235,23 +235,8 @@ Fk:loadTranslationTable{
 local fightTogetherSkill = fk.CreateActiveSkill{
   name = "fight_together_skill",
   target_num = 1,
-  mod_target_filter = function(self, to_select, selected, user, card, distance_limited) --return to_select->isBigKingdomPlayer() == target->isBigKingdomPlayer();
-    local kingdomMapper = {} -- 摘一部分
-    local has_bigkingdoms = false
-    for _, p in ipairs(Fk:currentRoom().alive_players) do
-      local kingdom = p.kingdom -- p.role
-      if kingdom ~= "unknown" then
-        if kingdom == "wild" then -- 权宜
-          kingdom = tostring(p.id)
-        end
-        if kingdomMapper[kingdom] then
-          has_bigkingdoms = true
-          break
-        end
-        kingdomMapper[kingdom] = true
-      end
-    end
-    if not has_bigkingdoms then return false end
+  mod_target_filter = function(self, to_select, selected, user, card, distance_limited)
+    if table.every(Fk:currentRoom().alive_players, function(p) return not H.isBigKingdomPlayer(p) end) then return false end
     if #selected == 0 then
       return true
     else
@@ -264,20 +249,7 @@ local fightTogetherSkill = fk.CreateActiveSkill{
     end
   end,
   can_use = function(self, player, card)
-    if not player:prohibitUse(card) then -- and table.find(Fk:currentRoom().alive_players, function(p) return H.isBigKingdomPlayer(p) end)
-      local kingdomMapper = {} -- 摘一部分
-      for _, p in ipairs(Fk:currentRoom().alive_players) do
-        local kingdom = p.kingdom -- p.role
-        if kingdom ~= "unknown" then
-          if kingdom == "wild" then -- 权宜
-            kingdom = tostring(p.id)
-          end
-          if kingdomMapper[kingdom] then return true end
-          kingdomMapper[kingdom] = true
-        end
-      end
-    end
-    return false
+    return not player:prohibitUse(card) and table.find(Fk:currentRoom().alive_players, function(p) return H.isBigKingdomPlayer(p) end)
   end,
   on_use = function(self, room, use)
     if use.tos and #TargetGroup:getRealTargets(use.tos) > 0 then -- 如果一开始的目标被取消了就寄了，还是需要originalTarget
@@ -541,6 +513,7 @@ local imperialOrderRemoved = fk.CreateTriggerSkill{
           for _, info in ipairs(move.moveInfo) do
             local id = info.cardId
             if Fk:getCardById(id).name == "imperial_order" then
+              info.moveVisible = true
               table.insert(mirror_info, info)
               table.insert(ids, id)
             else
@@ -889,6 +862,7 @@ Fk:loadTranslationTable{
   ["#wooden_ox-move"] = "你可以将【木牛流马】移动至一名其他角色的装备区",
   ["carriage&"] = "辎",
 }
+
 local jadeSealSkill = fk.CreateTriggerSkill{
   name = "#jade_seal_skill",
   attached_equip = "jade_seal",
@@ -931,6 +905,14 @@ local jadeSealSkill = fk.CreateTriggerSkill{
     end
   end,
 }
+local jadeSealBig = H.CreateBigKingdomSkill{
+  name = "#jade_seal_big",
+  attached_equip = "jade_seal",
+  fixed_func = function(self, player)
+    return player:hasSkill(self.name) and player.kingdom ~= "unknown"
+  end
+}
+jadeSealSkill:addRelatedSkill(jadeSealBig)
 Fk:addSkill(jadeSealSkill)
 local jadeSeal = fk.CreateTreasure{
   name = "jade_seal",
@@ -940,9 +922,10 @@ local jadeSeal = fk.CreateTreasure{
 }
 extension:addCard(jadeSeal)
 Fk:loadTranslationTable{
-  ["jade_seal"] = "玉玺", -- 缺视为大势力
+  ["jade_seal"] = "玉玺",
   [":jade_seal"] = "装备牌·宝物<br/><b>宝物技能</b>：锁定技，若你有势力，你的势力为大势力，除你的势力外的所有势力均为小势力；摸牌阶段，若你有势力，你令额定摸牌数+1；出牌阶段开始时，若你有势力，你视为使用【知己知彼】。",
   ["#jade_seal_skill"] = "玉玺",
   ["#jade_seal-ask"] = "受到【玉玺】的效果，视为你使用一张【知己知彼】",
 }
+
 return extension

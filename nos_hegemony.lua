@@ -197,8 +197,6 @@ local heg_description = [==[
 
 ]==]
 
-local H = require "packages/hegemony/util"
-
 local heg
 
 ---@class HegLogic: GameLogic
@@ -347,7 +345,7 @@ function HegLogic:attachSkillToPlayers()
 end
 
 local heg_getlogic = function()
-  local h = GameLogic:subclass("HegLogic")
+  local h = GameLogic:subclass("NosHegLogic")
   for k, v in pairs(HegLogic) do
     h[k] = v
   end
@@ -382,9 +380,9 @@ local function getWinnerHeg(victim)
 end
 
 local heg_rule = fk.CreateTriggerSkill{
-  name = "#heg_rule",
+  name = "#nos_heg_rule",
   priority = 0.001,
-  events = {fk.TurnStart, fk.GameOverJudge, fk.Deathed}, -- , fk.GeneralRevealed},
+  events = {fk.TurnStart, fk.GameOverJudge, fk.Deathed},
   can_trigger = function(self, event, target, player, data)
     return target == player
   end,
@@ -425,15 +423,13 @@ local heg_rule = fk.CreateTriggerSkill{
         if killer.kingdom == "unknown" then return end
 
         local victim = damage.to
-        if killer.kingdom == "wild" then
-          killer:drawCards(3, "kill")
-        elseif killer.kingdom == victim.kingdom then
+        if killer.kingdom ~= "wild" and killer.kingdom == victim.kingdom then
           killer:throwAllCards("he")
         else
           killer:drawCards(victim.kingdom == "wild" and 1 or
           #table.filter(room.alive_players, function(p)
             return p.kingdom == victim.kingdom
-          end) + 1, "kill")
+          end) + 1)
         end
       end
     end
@@ -442,7 +438,7 @@ local heg_rule = fk.CreateTriggerSkill{
 Fk:addSkill(heg_rule)
 
 heg = fk.CreateGameMode{
-  name = "new_heg_mode",
+  name = "nos_heg_mode",
   minPlayer = 2,
   maxPlayer = 8,
   rule = heg_rule,
@@ -460,10 +456,10 @@ heg = fk.CreateGameMode{
 }
 
 Fk:loadTranslationTable{
-  ["new_heg_mode"] = "新国战",
-  [":new_heg_mode"] = heg_description,
+  ["nos_heg_mode"] = "经典版国战",
+  [":nos_heg_mode"] = heg_description,
   ["wild"] = "野心家",
-  ["#heg_rule"] = "国战规则",
+  ["#nos_heg_rule"] = "国战规则",
   ["revealMain"] = "明置主将",
   ["revealDeputy"] = "明置副将",
   ["revealAll"] = "背水：全部明置",

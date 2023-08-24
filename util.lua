@@ -37,6 +37,13 @@ H.compareKingdomWith = function(from, to, diff)
   return ret
 end
 
+---@param general General
+---@param deputy General
+---@return boolean
+H.isCompanionWith = function(general, deputy) -- 缺君主
+  return table.contains(general.companions, deputy.trueName) or table.contains(deputy.companions, general.trueName)
+end
+
 ---@param room Room
 H.getKingdomPlayersNum = function(room)
   local kingdomMapper = {}
@@ -52,13 +59,22 @@ H.getKingdomPlayersNum = function(room)
   return kingdomMapper
 end
 
---- 判断角色是否为大势力角色（未考虑玉玺）
+--- 判断角色是否为大势力角色
 ---@param player ServerPlayer
 ---@return boolean
 H.isBigKingdomPlayer = function(player)
   if player.kingdom == "unknown" then return false end
-  --if (hasShownOneGeneral() && hasTreasure("JadeSeal")) return true;
   local room = Fk:currentRoom()
+
+  local status_skills = room.status_skills[H.BigKingdomSkill] or Util.DummyTable
+  for _, skill in ipairs(status_skills) do
+    for _, p in ipairs(room.alive_players) do
+      if skill:getFixed(p) then
+        return H.compareKingdomWith(p, player)
+      end
+    end
+  end
+
   local mapper = H.getKingdomPlayersNum(room)
   local num = mapper[player.kingdom == "wild" and tostring(player.id) or player.kingdom]
   if num < 2 then return false end
@@ -253,12 +269,36 @@ local hegNullificationSkill = fk.CreateActiveSkill{
     return false
   end,
   on_use = function(self, room, use)
-    local room = RoomInstance
-    if use.responseToEvent.to then
+    if use.responseToEvent.to then 
       local from = room:getPlayerById(use.from)
-      if room:askForChoice(from, {"hegN-single", "hegN-all"}, self.name, "#hegN-ask") == "hegN-all" then
-        use.extra_data = use.extra_data or {}
-        use.extra_data.hegN_all = true
+      local to = room:getPlayerById(use.responseToEvent.to)
+      if to.kingdom ~= "unknown" then
+        local choices = {"hegN-single::" .. to.id, "hegN-all:::" .. to.kingdom}
+        local choice = room:askForChoice(from, choices, self.name, "#hegN-ask")
+        local ret = Fk:translate(from.general) .. '/' .. Fk:translate(from.deputyGeneral) .. Fk:translate("chose") .. Fk:translate("hegN_toast")
+        local arg
+        if choice:startsWith("hegN-all") then
+          arg = Fk:translate(to.kingdom)
+          room:sendLog{
+            type = "#HegNullificationAll",
+            from = from.id,
+            arg = to.kingdom,
+            card = Card:getIdList(use.card),
+          }
+          use.extra_data = use.extra_data or {}
+          use.extra_data.hegN_all = true
+        else
+          arg = Fk:translate(to.general) .. '/' .. Fk:translate(to.deputyGeneral)
+          room:sendLog{
+            type = "#HegNullificationSingle",
+            from = from.id,
+            to = {to.id},
+            card = Card:getIdList(use.card),
+          }
+        end
+        room:doBroadcastNotify("ShowToast", ret .. arg)
+      else
+        room:delay(1200)
       end
     else
       room:delay(1200)
@@ -268,9 +308,9 @@ local hegNullificationSkill = fk.CreateActiveSkill{
     if effect.responseToEvent then
       effect.responseToEvent.isCancellOut = true
       if (effect.extra_data or {}).hegN_all then
-        local to = RoomInstance:getPlayerById(effect.responseToEvent.to)
+        local to = room:getPlayerById(effect.responseToEvent.to)
         effect.responseToEvent.disresponsiveList = effect.responseToEvent.disresponsiveList or {}
-        for _, p in ipairs(RoomInstance.alive_players) do
+        for _, p in ipairs(room.alive_players) do
           if H.compareKingdomWith(p, to) then
             table.insertIfNeed(effect.responseToEvent.nullifiedTargets, p.id)
             table.insertIfNeed(effect.responseToEvent.disresponsiveList, p.id)
@@ -292,8 +332,69 @@ Fk:loadTranslationTable{
   ["heg__nullification_skill"] = "无懈可击·国",
   [":heg__nullification"] = "锦囊牌<br/><b>时机</b>：当锦囊牌对目标生效前<br/><b>目标</b>：此牌<br/><b>效果</b>：抵消此牌。你令对对应的角色为与其势力相同的角色的目标结算的此牌不是【无懈可击】的合法目标，当此牌对对应的角色为这些角色中的一名的目标生效前，抵消此牌。",
   ["#hegN-ask"] = "无懈可击·国：请选择",
-  ["hegN-single"] = "对单个使用",
-  ["hegN-all"] = "对势力使用",
+  ["hegN-single"] = "对%dest使用",
+  ["hegN-all"] = "对%arg势力使用",
+  ["hegN_toast"] = " 【无懈可击·国】对 ",
+  ["#HegNullificationSingle"] = "%from 选择此 %card 对 %to 生效",
+  ["#HegNullificationAll"] = "%from 选择此 %card 对 %arg 势力生效",
 }
+
+--- 大势力技
+---@class BigKingdomSkill : StatusSkill
+H.BigKingdomSkill = StatusSkill:subclass("BigKingdomSkill")
+
+---@param player Player
+---@return bool
+function H.BigKingdomSkill:getFixed(player)
+  return false
+end
+
+local function readCommonSpecToSkill(skill, spec)
+  skill.mute = spec.mute
+  skill.anim_type = spec.anim_type
+
+  if spec.attached_equip then
+    assert(type(spec.attached_equip) == "string")
+    skill.attached_equip = spec.attached_equip
+  end
+
+  if spec.switch_skill_name then
+    assert(type(spec.switch_skill_name) == "string")
+    skill.switchSkillName = spec.switch_skill_name
+  end
+
+  if spec.relate_to_place then
+    assert(type(spec.relate_to_place) == "string")
+    skill.relate_to_place = spec.relate_to_place
+  end
+end
+
+local function readStatusSpecToSkill(skill, spec)
+  readCommonSpecToSkill(skill, spec)
+  if spec.global then
+    skill.global = spec.global
+  end
+end
+
+---@class StatusSkillSpec: StatusSkill
+
+---@class BigKingdomSkill: StatusSkillSpec
+---@field public fixed_func nil|fun(self: BigKingdomSkill, player: Player): bool
+
+---@param spec BigKingdomSkillSpec
+---@return BigKingdomSkill
+H.CreateBigKingdomSkill = function(spec)
+  assert(type(spec.name) == "string")
+  assert(type(spec.fixed_func) == "function")
+
+  local skill = H.BigKingdomSkill:new(spec.name)
+  readStatusSpecToSkill(skill, spec)
+
+  if spec.fixed_func then
+    skill.getFixed = spec.fixed_func
+  end
+
+  return skill
+end
 
 return H
