@@ -240,7 +240,7 @@ function HegLogic:chooseGenerals()
     end
 
     arg = arg:map(function(g) return g.name end)
-    p.request_data = json.encode({ arg, 2, true })
+    p.request_data = json.encode({ arg, 2, false, true })
   end
 
   room:notifyMoveFocus(nonlord, "AskForGeneral")

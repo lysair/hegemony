@@ -49,15 +49,10 @@ extension:addCards{
 
   Fk:cloneCard("nullification", Card.Spade, 13),
 
-  Fk:cloneCard("nullification", Card.Diamond, 11), -- 国
-  Fk:cloneCard("nullification", Card.Club, 13),
-}
---[[
-extension:addCards{
   H.hegNullification:clone(Card.Diamond, 11),
   H.hegNullification:clone(Card.Club, 13),
 }
---]]
+
 
 local drowningSkill = fk.CreateActiveSkill{
   name = "sa__drowning_skill",
@@ -120,7 +115,7 @@ local burningCampsSkill = fk.CreateActiveSkill{
     return prev.id ~= user and table.contains(H.getFormationRelation(prev), Fk:currentRoom():getPlayerById(to_select))
   end,
   can_use = function(self, player, card)
-    return not player:isProhibited(player:getNextAlive(), card) -- 不计入座次……
+    return not player:isProhibited(player:getNextAlive(), card) and player:getNextAlive() ~= player
   end,
   on_use = function(self, room, use)
     if not use.tos or #TargetGroup:getRealTargets(use.tos) == 0 then
@@ -180,7 +175,8 @@ local lureTigerSkill = fk.CreateActiveSkill{
   end,
   on_effect = function(self, room, effect)
     local target = room:getPlayerById(effect.to)
-    room:setPlayerMark(target, "@@lure_tiger-turn", 1) -- MarkEnum.PlayerRemoved
+    room:setPlayerMark(target, "@@lure_tiger-turn", 1)
+    room:setPlayerMark(target, MarkEnum.PlayerRemoved .. "-turn", 1)
     room:handleAddLoseSkills(target, "#lure_tiger_hp|#lure_tiger_prohibit", nil, false, true) -- global...
   end,
 }
@@ -225,7 +221,7 @@ extension:addCards{
 }
 
 Fk:loadTranslationTable{
-  ["lure_tiger"] = "调虎离山", -- 缺不计入距离和座次
+  ["lure_tiger"] = "调虎离山",
   [":lure_tiger"] = "锦囊牌<br/><b>时机</b>：出牌阶段<br/><b>目标</b>：一至两名其他角色<br/><b>效果</b>：目标角色于此回合内不计入距离和座次的计算，且不能使用牌，且不是牌的合法目标，且体力值不会改变。",
   ["#lure_tiger_prohibit"] = "调虎离山",
 
@@ -458,17 +454,17 @@ local function doImperialOrder(room, target)
   if table.every(target:getCardIds{Player.Equip, Player.Hand}, function(id) return Fk:getCardById(id).type ~= Card.TypeEquip or target:prohibitDiscard(Fk:getCardById(id)) end) then
     table.remove(choices, 2)
   end
-  if target.general ~= "anjiang" and target.deputyGeneral ~= "anjiang" then
+  if (target.general ~= "anjiang" or target:prohibitReveal()) and (target.deputyGeneral ~= "anjiang" or target:prohibitReveal(true)) then
     table.remove(choices, 1)
   end
   if #choices == 0 then return false end
   local choice = room:askForChoice(target, choices, "imperial_order_skill", nil, false, all_choices)
   if choice == "IO_reveal" then
     choices = {}
-    if target.general == "anjiang" then
+    if target.general == "anjiang" and not target:prohibitReveal() then
       table.insert(choices, "revealMain")
     end
-    if target.deputyGeneral == "anjiang" then
+    if target.deputyGeneral == "anjiang" and not target:prohibitReveal(true) then
       table.insert(choices, "revealDeputy")
     end
     choice = room:askForChoice(target, choices, "imperial_order_skill")
@@ -607,27 +603,35 @@ local bladeSkill = fk.CreateTriggerSkill{
     room:broadcastPlaySound("./packages/standard_cards/audio/card/blade")
     room:setEmotion(player, "./packages/standard_cards/image/anim/blade")
     for _, id in ipairs(TargetGroup:getRealTargets(data.tos)) do
-      room:addPlayerMark(room:getPlayerById(id), "@@sa__blade") -- MarkEnum.RevealForbidden
+      local p = room:getPlayerById(id)
+      room:addPlayerMark(p, "@@sa__blade")
+      local record = type(p:getMark(MarkEnum.RevealProhibited)) == "table" and p:getMark(MarkEnum.RevealProhibited) or {}
+      table.insertTable(record, {"m", "d"})
+      room:setPlayerMark(p, MarkEnum.RevealProhibited, record)
       data.extra_data = data.extra_data or {}
-      data.extra_data.sa__bladeRevealForbidden = data.extra_data.sa__bladeRevealForbidden or {}
-      data.extra_data.sa__bladeRevealForbidden[tostring(id)] = (data.extra_data.sa__bladeRevealForbidden[tostring(id)] or 0) + 1
+      data.extra_data.sa__bladeRevealProhibited = data.extra_data.sa__bladeRevealProhibited or {}
+      data.extra_data.sa__bladeRevealProhibited[tostring(id)] = (data.extra_data.sa__bladeRevealProhibited[tostring(id)] or 0) + 1
     end
   end,
 
   refresh_events = { fk.CardUseFinished },
   can_refresh = function(self, event, target, player, data)
-    return data.extra_data and data.extra_data.sa__bladeRevealForbidden
+    return data.extra_data and data.extra_data.sa__bladeRevealProhibited
   end,
   on_refresh = function(self, event, target, player, data)
     local room = player.room
-    for key, num in pairs(data.extra_data.sa__bladeRevealForbidden) do
+    for key, num in pairs(data.extra_data.sa__bladeRevealProhibited) do
       local p = room:getPlayerById(tonumber(key))
       if p:getMark("@@sa__blade") > 0 then
         room:removePlayerMark(p, "@@sa__blade", num)
+        local record = type(p:getMark(MarkEnum.RevealProhibited)) == "table" and p:getMark(MarkEnum.RevealProhibited) or {}
+        table.removeOne(record, "m")
+        table.removeOne(record, "d")
+        if #record == 0 then record = 0 end
+        room:setPlayerMark(p, MarkEnum.RevealProhibited, record)
       end
     end
-
-    data.sa__bladeRevealForbidden = nil
+    data.sa__bladeRevealProhibited = nil
   end,
 }
 Fk:addSkill(bladeSkill)
@@ -641,7 +645,7 @@ local blade = fk.CreateWeapon{
 
 extension:addCard(blade)
 Fk:loadTranslationTable{
-  ["sa__blade"] = "青龙偃月刀", -- 缺不能明置武将牌
+  ["sa__blade"] = "青龙偃月刀",
   [":sa__blade"] = "装备牌·武器<br /><b>攻击范围</b>：３<br /><b>武器技能</b>：锁定技，当你使用【杀】时，此牌的使用结算结束之前，此【杀】的目标角色不能明置武将牌。",
 
   ["@@sa__blade"] = "青龙偃月刀",
@@ -685,7 +689,7 @@ local halberdDelay = fk.CreateTriggerSkill{
         from = target.id,
         to = {player.id},
         arg = "sa__halberd",
-        card = {data.card.id},
+        card = Card:getIdList(data.card),
       }
       return true
     end
@@ -850,7 +854,7 @@ local woodenOx = fk.CreateTreasure{
   number = 5,
   equip_skill = woodenOxSkill,
 }
-extension:addCard(woodenOx)
+-- extension:addCard(woodenOx)
 Fk:loadTranslationTable{
   ["wooden_ox"] = "木牛流马",
   [":wooden_ox"] = "装备牌·宝物<br/><b>宝物技能</b>：<br/>" ..

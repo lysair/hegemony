@@ -242,7 +242,7 @@ function HegLogic:chooseGenerals()
     end
 
     arg = arg:map(function(g) return g.name end)
-    p.request_data = json.encode({ arg, 2, true })
+    p.request_data = json.encode({ arg, 2, false, true })
   end
 
   room:notifyMoveFocus(nonlord, "AskForGeneral")
@@ -280,17 +280,9 @@ function HegLogic:broadcastGeneral()
     assert(p.general ~= "")
     local general = Fk.generals[p:getMark("__heg_general")]
     local deputy = Fk.generals[p:getMark("__heg_deputy")]
-    local dmaxHp = deputy.maxHp
-    local gmaxHp = general.maxHp
-    -- FIXME: 藕！！！！！！！
-    do
-      local t1 = general:getSkillNameList()
-      if table.contains(t1, "ld__jixi") then gmaxHp = gmaxHp - 1 end
-      local t2 = deputy:getSkillNameList()
-      if table.contains(t2, "ld__hunshang") then dmaxHp = dmaxHp - 1 end
-      if table.contains(t2, "ld__tianfu") then dmaxHp = dmaxHp - 1 end
-    end
-    p.maxHp = math.floor((dmaxHp + gmaxHp) / 2)
+    local dmaxHp = deputy.maxHp + deputy.deputyMaxHpAdjustedValue
+    local gmaxHp = general.maxHp + general.mainMaxHpAdjustedValue
+    p.maxHp = (dmaxHp + gmaxHp) // 2
     -- p.hp = math.floor((deputy.hp + general.hp) / 2)
     p.hp = p.maxHp
     -- p.shield = math.min(general.shield + deputy.shield, 5)
@@ -301,7 +293,16 @@ function HegLogic:broadcastGeneral()
     room:broadcastProperty(p, "deputyGeneral")
     room:broadcastProperty(p, "maxHp")
     room:broadcastProperty(p, "hp")
-     room:broadcastProperty(p, "shield")
+    room:broadcastProperty(p, "shield")
+
+    if (dmaxHp + gmaxHp) % 2 == 1 then
+      p:setMark("HalfMaxHpLeft", 1)
+      p:doNotify("SetPlayerMark", json.encode{ p.id, "HalfMaxHpLeft", 1})
+    end
+    if H.isCompanionWith(general, deputy) then
+      p:setMark("CompanionEffect", 1)
+      p:doNotify("SetPlayerMark", json.encode{ p.id, "CompanionEffect", 1})
+    end
   end
 end
 
@@ -311,34 +312,46 @@ function HegLogic:attachSkillToPlayers()
 
   room:handleAddLoseSkills(players[1], "#_heg_invalid", nil, false, true)
 
-  local addHegSkills = function(player, skillName)
-    local skill = Fk.skills[skillName]
-    if skill.lordSkill and (player.role ~= "lord" or #room.players < 5) then
-      return
-    end
-
-    player:addFakeSkill(skill)
-  end
-
   for _, p in ipairs(room.alive_players) do
     local general = Fk.generals[p:getMark("__heg_general")]
     local skills = general.skills
-    -- FIXME: TODO: 藕一下主将技副将技
     for _, s in ipairs(skills) do
-      addHegSkills(p, s.name)
+      if s.relate_to_place ~= "d" then
+        if s.frequency == Skill.Compulsory then
+          p:addFakeSkill("reveal_skill")
+        end
+        p:addFakeSkill(s)
+      end
     end
     for _, sname in ipairs(general.other_skills) do
-      addHegSkills(p, sname)
+      local s = Fk.skills[sname]
+      if s.relate_to_place ~= "d" then
+        if s.frequency == Skill.Compulsory then
+          p:addFakeSkill("reveal_skill")
+        end
+        p:addFakeSkill(s)
+      end
     end
 
     local deputy = Fk.generals[p:getMark("__heg_deputy")]
     if deputy then
       skills = deputy.skills
       for _, s in ipairs(skills) do
-        addHegSkills(p, s.name)
+        if s.relate_to_place ~= "m" then
+          if s.frequency == Skill.Compulsory then
+            p:addFakeSkill("reveal_skill")
+          end
+          p:addFakeSkill(s)
+        end
       end
       for _, sname in ipairs(deputy.other_skills) do
-        addHegSkills(p, sname)
+        local s = Fk.skills[sname]
+        if s.relate_to_place ~= "m" then
+          if s.frequency == Skill.Compulsory then
+            p:addFakeSkill("reveal_skill")
+          end
+          p:addFakeSkill(s)
+        end
       end
     end
   end
@@ -384,7 +397,7 @@ end
 local heg_rule = fk.CreateTriggerSkill{
   name = "#heg_rule",
   priority = 0.001,
-  events = {fk.TurnStart, fk.GameOverJudge, fk.Deathed}, -- , fk.GeneralRevealed},
+  events = {fk.TurnStart, fk.GameOverJudge, fk.Deathed, fk.GeneralRevealed},
   can_trigger = function(self, event, target, player, data)
     return target == player
   end,
@@ -392,10 +405,10 @@ local heg_rule = fk.CreateTriggerSkill{
     local room = player.room
     if event == fk.TurnStart then
       local choices = {}
-      if player.general == "anjiang" then
+      if player.general == "anjiang" and not player:prohibitReveal() then
         table.insert(choices, "revealMain")
       end
-      if player.deputyGeneral == "anjiang" then
+      if player.deputyGeneral == "anjiang" and not player:prohibitReveal(true) then
         table.insert(choices, "revealDeputy")
       end
       if #choices == 0 then return end
@@ -435,6 +448,23 @@ local heg_rule = fk.CreateTriggerSkill{
             return p.kingdom == victim.kingdom
           end) + 1, "kill")
         end
+      end
+    elseif event == fk.GeneralRevealed then
+      if not room:getTag("TheFirstToShowRewarded") then
+        room:setTag("TheFirstToShowRewarded", player.id)
+        room:addPlayerMark(player, "@!vanguard", 1)
+        room:handleAddLoseSkills(player, "vanguard_skill&", nil, false, true)
+      end
+      if player.general == "anjiang" or player.deputyGeneral == "anjiang" then return false end
+      if player:getMark("HalfMaxHpLeft") > 0 then
+        room:setPlayerMark(player, "HalfMaxHpLeft", 0)
+        room:addPlayerMark(player, "@!yinyangfish", 1)
+        room:handleAddLoseSkills(player, "yinyangfish_skill&", nil, false, true)
+      end
+      if player:getMark("CompanionEffect") > 0 then
+        room:setPlayerMark(player, "CompanionEffect", 0)
+        room:addPlayerMark(player, "@!companion", 1)
+        room:handleAddLoseSkills(player, "companion_skill&|companion_peach&", nil, false, true)
       end
     end
   end,

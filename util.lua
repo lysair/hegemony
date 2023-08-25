@@ -11,23 +11,6 @@ H.compareKingdomWith = function(from, to, diff)
   if from == to then
     return not diff
   end
-  for _, p in ipairs({from, to}) do --权宜
-    if p.kingdom == "unknown" and p.deputyGeneral ~= "anjiang" then
-      local oldKingdom = Fk.generals[p.deputyGeneral].kingdom
-      if #table.filter(Fk:currentRoom():getOtherPlayers(p),
-        function(p)
-          return p.kingdom == oldKingdom
-        end) >= #Fk:currentRoom().players // 2 then
-        if RoomInstance then
-          RoomInstance:setPlayerProperty(p, "kingdom", "wild")
-        end
-      else
-        if RoomInstance then
-          RoomInstance:setPlayerProperty(p, "kingdom", oldKingdom)
-        end
-      end
-    end
-  end
   if from.kingdom == "unknown" or to.kingdom == "unknown" then
     return false
   end
@@ -46,6 +29,7 @@ end
 
 ---@param room Room
 H.getKingdomPlayersNum = function(room)
+  assert(room)
   local kingdomMapper = {}
   for _, p in ipairs(room.alive_players) do
     local kingdom = p.kingdom -- p.role
@@ -92,7 +76,7 @@ H.isSmallKingdomPlayer = function(player)
   return table.find(Fk:currentRoom().alive_players, function(p) return H.isBigKingdomPlayer(p) end)
 end
 
---- 获取与角色成队列的其余角色（未考虑不计入座次）
+--- 获取与角色成队列的其余角色
 ---@param player ServerPlayer
 ---@return players ServerPlayer[]|nil @ 队列中的角色
 H.getFormationRelation = function(player)
@@ -102,19 +86,23 @@ H.getFormationRelation = function(player)
   table.insertTable(targets, table.slice(players, 1, index)) --CDEFAB
   players = {}
   for i = 2, #targets do
-    local p = targets[i]
-    if H.compareKingdomWith(p, player) then
-      table.insert(players, p)
-    else
-      break
+    local p = targets[i] ---@type ServerPlayer
+    if not p:isRemoved() then
+      if H.compareKingdomWith(p, player) then
+        table.insert(players, p)
+      else
+        break
+      end
     end
   end
   for i = #targets, 2, -1 do
-    local p = targets[i]
-    if H.compareKingdomWith(p, player) then
-      table.insert(players, p)
-    else
-      break
+    local p = targets[i] ---@type ServerPlayer
+    if not p:isRemoved() then
+      if H.compareKingdomWith(p, player) then
+        table.insert(players, p)
+      else
+        break
+      end
     end
   end
   return players
@@ -338,6 +326,62 @@ Fk:loadTranslationTable{
   ["#HegNullificationSingle"] = "%from 选择此 %card 对 %to 生效",
   ["#HegNullificationAll"] = "%from 选择此 %card 对 %arg 势力生效",
 }
+
+-- 移除武将牌
+---@param room Room
+---@param player ServerPlayer
+---@param isDeputy bool @ 是否为副将，默认主将
+H.removeGeneral = function(room, player, isDeputy)
+  local orig = isDeputy and (player.deputyGeneral or "") or player.general
+
+  player:setMark("CompanionEffect", 0)
+  player:setMark("HalfMaxHpLeft", 0)
+  player:doNotify("SetPlayerMark", json.encode{ player.id, "CompanionEffect", 0})
+  player:doNotify("SetPlayerMark", json.encode{ player.id, "HalfMaxHpLeft", 0})
+
+  if player.kingdom == "unknown" then player:revealGeneral(isDeputy, true) end
+  if orig:startsWith("blank_") then return false end
+
+  orig = Fk.generals[orig]
+
+  local orig_skills = orig and orig:getSkillNameList() or Util.DummyTable
+
+  local new_general = orig.gender == General.Male and "blank_shibing" or "blank_nvshibing"
+
+  orig_skills = table.map(orig_skills, function(e)
+    return "-" .. e
+  end)
+
+  room:handleAddLoseSkills(player, table.concat(orig_skills, "|"), nil, false)
+
+  if isDeputy then
+    room:setPlayerProperty(player, "deputyGeneral", new_general)
+  else
+    room:setPlayerProperty(player, "general", new_general)
+  end
+
+  player:filterHandcards()
+  room.logic:trigger("fk.GeneralRemoved", player, orig.name)
+end
+
+--- 变更武将牌
+---@param room Room
+---@param player ServerPlayer
+---@param isMain bool @ 是否为主将，默认副将
+H.transformGeneral = function(room, player, isMain)
+  local orig = isMain and player.general or player.deputyGeneral 
+  if not orig then return false end
+  if orig == "anjiang" then player:revealGeneral(not isMain, true) end
+  local existingGenerals = {}
+  for _, p in ipairs(room.players) do
+    table.insert(existingGenerals, p.general == "anjiang" and p:getMark("__heg_general") or p.general)
+    table.insert(existingGenerals, p.deputyGeneral == "anjiang" and p:getMark("__heg_deputy") or p.deputyGeneral)
+  end
+  room.logic:trigger("fk.GeneralTransforming", player, orig)
+  local generals = table.map(Fk:getGeneralsRandomly(3, Fk:getAllGenerals(), existingGenerals, (function(p) return (p.kingdom ~= player.kingdom) end)), Util.NameMapper)
+  local general = room:askForGeneral(player, generals, 1, true)
+  room:changeHero(player, general, false, not isMain, true, false)
+end
 
 --- 大势力技
 ---@class BigKingdomSkill : StatusSkill
