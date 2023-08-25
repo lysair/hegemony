@@ -85,7 +85,6 @@ jiangfei:addCompanions("hs__zhugeliang")
 
 Fk:loadTranslationTable{
   ["ld__jiangwanfeiyi"] = "蒋琬费祎",
-  ["jiangwanfeiyi"] = "蒋琬费祎", -- 珠联璧合……
   ["ld__shengxi"] = "生息",
   [":ld__shengxi"] = "结束阶段开始时，若你未于此回合内造成过伤害，你可摸两张牌。",
   ["shoucheng"] = "守成",
