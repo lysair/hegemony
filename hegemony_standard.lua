@@ -17,8 +17,10 @@ Fk:loadTranslationTable{
 
 local caocao = General(extension, "hs__caocao", "wei", 4)
 caocao:addSkill("jianxiong")
+caocao:addCompanions({"hs__dianwei", "hs__xuchu"})
 Fk:loadTranslationTable{
   ["hs__caocao"] = "曹操",
+  ["~hs__caocao"] = "霸业未成，未成啊……",
 }
 
 local simayi = General(extension, "hs__simayi", "wei", 3)
@@ -26,24 +28,29 @@ simayi:addSkill("fankui")
 simayi:addSkill("ex__guicai") -- 手杀
 Fk:loadTranslationTable{
   ["hs__simayi"] = "司马懿",
+  ["~hs__simayi"] = "我的气数就到这里了吗？",
 }
 
 local xiahoudun = General(extension, "hs__xiahoudun", "wei", 4)
 xiahoudun:addSkill("ex__ganglie") -- 手杀修改：界刚烈。22按次
+xiahoudun:addCompanions("hs__xiahouyuan")
 Fk:loadTranslationTable{
   ["hs__xiahoudun"] = "夏侯惇",
+  ["~hs__xiahoudun"] = "诸多败绩，有负丞相重托……",
 }
 
 local zhangliao = General(extension, "hs__zhangliao", "wei", 4)
 zhangliao:addSkill("ex__tuxi") -- 手杀
 Fk:loadTranslationTable{
   ["hs__zhangliao"] = "张辽",
+  ["~hs__zhangliao"] = "被敌人占了先机……呃……",
 }
 
 local xuchu = General(extension, "hs__xuchu", "wei", 4)
 xuchu:addSkill("luoyi")
 Fk:loadTranslationTable{
   ["hs__xuchu"] = "许褚",
+  ["~hs__xuchu"] = "冷，好冷啊……",
 }
 
 local guojia = General(extension, "hs__guojia", "wei", 3)
@@ -95,8 +102,12 @@ Fk:loadTranslationTable{
   ["hs__guojia"] = "郭嘉",
   ["hs__yiji"] = "遗计",
   [":hs__yiji"] = "当你受到伤害后，你可观看牌堆顶的两张牌并分配。",
-
+  
   ["#hs__yiji-give"] = "遗计：你可以将这些牌分配给任意角色，点“取消”自己保留",
+
+  ["$hs__yiji1"] = "也好。",
+  ["$hs__yiji2"] = "罢了。",
+  ["~hs__guojia"] = "咳，咳……",
 }
 
 local zhenji = General(extension, "hs__zhenji", "wei", 3, 3, General.Female)
@@ -138,23 +149,30 @@ local luoshen = fk.CreateTriggerSkill{
 }
 zhenji:addSkill(luoshen)
 zhenji:addSkill("qingguo")
+zhenji:addCompanions("hs__caopi")
 
 Fk:loadTranslationTable{
   ["hs__zhenji"] = "甄姬",
   ["hs__luoshen"] = "洛神",
   [":hs__luoshen"] = "准备阶段开始时，你可进行判定，你可重复此流程，直到判定结果为红色，然后你获得所有黑色的判定牌。",
+
+  ["$hs__luoshen1"] = "髣髴兮若轻云之蔽月。",
+  ["$hs__luoshen2"] = "飘飖兮若流风之回雪。",
+  ["~hs__zhenji"] = "悼良会之永绝兮，哀一逝而异乡。",
 }
 
 local xiahouyuan = General(extension, "hs__xiahouyuan", "wei", 4)
 xiahouyuan:addSkill("shensu")
 Fk:loadTranslationTable{
   ["hs__xiahouyuan"] = "夏侯渊",
+  ["~hs__xiahouyuan"] = "竟然比我还…快……",
 }
 
 local zhanghe = General(extension, "hs__zhanghe", "wei", 4)
 zhanghe:addSkill("qiaobian")
 Fk:loadTranslationTable{
   ["hs__zhanghe"] = "张郃",
+  ["~hs__zhanghe"] = "呃，膝盖中箭了……",
 }
 
 local xuhuang = General(extension, "hs__xuhuang", "wei", 4)
@@ -211,6 +229,10 @@ Fk:loadTranslationTable{
   [":hs__duanliang"] = "你可将一张不为锦囊牌的黑色牌当【兵粮寸断】使用（无距离关系的限制），若你至目标对应的角色的距离大于2，此技能于此阶段内无效。",
 
   ["@@hs__duanliang-phase"] = "断粮 无效",
+
+  ["$hs__duanliang1"] = "截其源，断其粮，贼可擒也。",
+	["$hs__duanliang2"] = "人是铁，饭是钢。",
+	["~hs__xuhuang"] = "一顿不吃饿得慌。",
 }
 
 local caoren = General(extension, "hs__caoren", "wei", 4)
@@ -283,12 +305,17 @@ Fk:loadTranslationTable{
 
   ["#hs__jushou_select"] = "据守",
   ["#hs__jushou-select"] = "据守：选择使用手牌中的一张装备牌或弃置手牌中的一张非装备牌",
+
+  ["$hs__jushou1"] = "我先休息一会儿！",
+	["$hs__jushou2"] = "尽管来吧！",
+	["~hs__caoren"] = "实在是守不住了……",
 }
 
 local dianwei = General(extension, "hs__dianwei", "wei", 4)
 dianwei:addSkill("qiangxi")
 Fk:loadTranslationTable{
   ['hs__dianwei'] = '典韦',
+  ["~hs__dianwei"] = "主公，快走！",
 }
 
 local xunyu = General(extension, "hs__xunyu", "wei", 3)
@@ -296,6 +323,7 @@ xunyu:addSkill("quhu")
 xunyu:addSkill("jieming")
 Fk:loadTranslationTable{
   ['hs__xunyu'] = '荀彧',
+  ["~hs__xunyu"] = "主公要臣死，臣不得不死。",
 }
 
 local caopi = General(extension, "hs__caopi", "wei", 3)
@@ -380,18 +408,26 @@ Fk:loadTranslationTable{
   [":hs__xiaoguo"] = "其他角色的结束阶段开始时，你可以弃置一张基本牌，然后其需弃置一张装备牌，否则你对其造成1点伤害。",
   ["#hs__xiaoguo-invoke"] = "骁果：你可以弃置一张基本牌，%dest 需弃置一张装备牌，否则你对其造成1点伤害",
   ["#hs__xiaoguo-discard"] = "骁果：你需弃置一张装备牌，否则 %src 对你造成1点伤害",
+
+  ["$hs__xiaoguo1"] = "三军听我号令，不得撤退！",
+	["$hs__xiaoguo2"] = "看我先登城头，立下首功！",
+	["~hs__yuejin"] = "箭疮发作，吾命休矣。",
 }
 
 local liubei = General(extension, "hs__liubei", "shu", 4)
 liubei:addSkill("ex__rende")
+liubei:addCompanions({"hs__guanyu", "hs__zhangfei"})
 Fk:loadTranslationTable{
   ["hs__liubei"] = "刘备",
+  ["~hs__liubei"] = "汉室未兴，祖宗未耀，朕实不忍此时西去……",
 }
 
 local guanyu = General(extension, "hs__guanyu", "shu", 5)
 guanyu:addSkill("wusheng")
+guanyu:addCompanions("hs__zhangfei")
 Fk:loadTranslationTable{
   ["hs__guanyu"] = "关羽",
+  ["~hs__guanyu"] = "什么？此地名叫麦城？",
 }
 
 local zhangfei = General(extension, "hs__zhangfei", "shu", 4)
@@ -420,7 +456,7 @@ local paoxiaoTrigger = fk.CreateTriggerSkill{
       player:usedCardTimes("slash") > 1
   end,
   on_refresh = function(self, event, target, player, data)
-    player.room:broadcastSkillInvoke("paoxiao")
+    player:broadcastSkillInvoke("hs__paoxiao")
     player.room:doAnimate("InvokeSkill", {
       name = "paoxiao",
       player = player.id,
@@ -448,6 +484,9 @@ Fk:loadTranslationTable{
   [":hs__paoxiao"] = "锁定技，你使用【杀】无次数限制。当你于出牌阶段使用第二张【杀】时，你摸一张牌。",
 
   ["#hs__paoxiaoTrigger"] = "咆哮",
+  ["$hs__paoxiao1"] = "啊~~~",
+	["$hs__paoxiao2"] = "燕人张飞在此！",
+  ["~hs__zhangfei"] = "实在是杀不动了……",
 }
 
 local zhugeliang = General(extension, "hs__zhugeliang", "shu", 3)
@@ -504,6 +543,7 @@ local kongcheng = fk.CreateTriggerSkill{
 
 zhugeliang:addSkill("guanxing")
 zhugeliang:addSkill(kongcheng)
+zhugeliang:addCompanions("hs__huangyueying")
 
 Fk:loadTranslationTable{
   ["hs__zhugeliang"] = "诸葛亮",
@@ -512,6 +552,10 @@ Fk:loadTranslationTable{
     "2. 你的回合外，当牌因交给而移至你的手牌区前，你将此次移动的目标区域改为你的武将牌上（均称为“琴”），摸牌阶段开始时，你获得所有“琴”。",
 
   ["zither"] = "琴",
+
+  ["$hs__kongcheng1"] = "（抚琴声）",
+	["$hs__kongcheng2"] = "（抚琴声）",
+	["~hs__zhugeliang"] = "将星陨落，天命难违。",
 }
 
 local zhaoyun = General(extension, "hs__zhaoyun", "shu", 4)
@@ -611,6 +655,7 @@ local longdan_after = fk.CreateTriggerSkill{
 
 longdan:addRelatedSkill(longdan_after)
 zhaoyun:addSkill(longdan)
+zhaoyun:addCompanions("hs__liushan")
 
 Fk:loadTranslationTable{
   ["hs__zhaoyun"] = "赵云",
@@ -620,6 +665,10 @@ Fk:loadTranslationTable{
   ["#longdan_after"] = "龙胆",
   ["#longdan_slash-ask"] = "龙胆：你可对 %dest 以外的一名角色造成1点伤害",
   ["#longdan_jink-ask"] = "龙胆：你可令 %dest 以外的一名其他角色回复1点体力",
+
+  ["$hs__longdan1"] = "能进能退，乃真正法器！",
+	["$hs__longdan2"] = "吾乃常山赵子龙也！",
+	["~hs__zhaoyun"] = "这，就是失败的滋味吗？",
 }
 
 local machao = General(extension, "hs__machao", "shu", 4)
@@ -696,17 +745,22 @@ Fk:loadTranslationTable{
 local huangyueying = General(extension, "hs__huangyueying", "shu", 3, 3, General.Female)
 huangyueying:addSkill("jizhi")
 huangyueying:addSkill("qicai")
+huangyueying:addCompanions("hs__wolong")
 
 Fk:loadTranslationTable{
   ["hs__huangyueying"] = "黄月英",
   ["hs__jizhi"] = "集智",
   [":hs__jizhi"] = "当你使用非转化的普通锦囊牌时，你可摸一张牌。",
+
+  ["~hs__huangyueying"] = "亮……",
 }
 
 local huangzhong = General(extension, "hs__huangzhong", "shu", 4)
 huangzhong:addSkill("liegong")
+huangzhong:addCompanions("hs__weiyan")
 Fk:loadTranslationTable{
   ["hs__huangzhong"] = "黄忠",
+  ["~hs__huangzhong"] = "不得不服老了……",
 }
 
 local weiyan = General(extension, "hs__weiyan", "shu", 4)
@@ -774,6 +828,7 @@ Fk:loadTranslationTable{
 }
 
 -- pangtong
+-- pangtong:addCompanions("hs__wolong")
 
 local wolong = General(extension, "hs__wolong", "shu", 3)
 wolong:addSkill("bazhen")
@@ -781,6 +836,7 @@ wolong:addSkill("huoji")
 wolong:addSkill("kanpo")
 Fk:loadTranslationTable{
   ['hs__wolong'] = '卧龙诸葛亮',
+  ["~hs__wolong"] = "我的计谋竟被……",
 }
 
 local liushan = General(extension, "hs__liushan", "shu", 3)
@@ -788,15 +844,18 @@ liushan:addSkill("xiangle")
 liushan:addSkill("fangquan")
 Fk:loadTranslationTable{
   ['hs__liushan'] = '刘禅',
+  ["~hs__liushan"] = "别打脸，我投降还不行吗？",
 }
 
 -- menghuo
+-- menghuo:addCompanions("hs__zhurong")
 
 local zhurong = General(extension, "hs__zhurong", "shu", 4, 4, General.Female)
 zhurong:addSkill("juxiang")
 zhurong:addSkill("lieren")
 Fk:loadTranslationTable{
   ['hs__zhurong'] = '祝融',
+  ["~hs__zhurong"] = "大王，我，先走一步了。",
 }
 
 local ganfuren = General(extension, "hs__ganfuren", "shu", 3, 3, General.Female)
@@ -868,11 +927,16 @@ local zhiheng = fk.CreateActiveSkill{
 }
 
 sunquan:addSkill(zhiheng)
+sunquan:addCompanions("hs__zhoutai")
 
 Fk:loadTranslationTable{
   ["hs__sunquan"] = "孙权",
   ["hs__zhiheng"] = "制衡",
   [":hs__zhiheng"] = "出牌阶段限一次，你可弃置至多X张牌（X为你的体力上限），然后你摸等量的牌。",
+
+  ["$hs__zhiheng1"] = "容我三思。",
+  ["$hs__zhiheng2"] = "且慢。",
+  ["~hs__sunquan"] = "父亲，大哥，仲谋愧矣……",
 }
 
 local ganning = General(extension, "hs__ganning", "wu", 4)
@@ -881,6 +945,7 @@ ganning:addSkill("qixi")
 
 Fk:loadTranslationTable{
   ["hs__ganning"] = "甘宁",
+  ["~hs__ganning"] = "二十年后，又是一条好汉！",
 }
 
 local lvmeng = General(extension, "hs__lvmeng", "wu", 4)
@@ -980,6 +1045,12 @@ Fk:loadTranslationTable{
 	[":hs__mouduan"] = "结束阶段开始时，若你于出牌阶段内使用过四种花色或三种类别的牌，你可移动场上的一张牌。",
 
   ["#hs__mouduan-move"] = "谋断：你可选择两名角色，移动他们场上的一张牌",
+
+  ["$hs__keji1"] = "谨慎为妙。",
+  ["$hs__keji2"] = "时机未到。",
+  ["$hs__mouduan1"] = "今日起兵，渡江攻敌！",
+  ["$hs__mouduan2"] = "时机已到，全军出击！。",
+  ["~hs__lvmeng"] = "种下恶因，必有恶果。",
 }
 
 local huanggai = General(extension, "hs__huanggai", "wu", 4)
@@ -1012,6 +1083,7 @@ local kurouBuff = fk.CreateTargetModSkill{
 kurou:addRelatedSkill(kurouBuff)
 
 huanggai:addSkill(kurou)
+huanggai:addCompanions("hs__zhouyu")
 
 Fk:loadTranslationTable{
   ["hs__huanggai"] = "黄盖",
@@ -1026,17 +1098,21 @@ Fk:loadTranslationTable{
 local zhouyu = General(extension, "hs__zhouyu", "wu", 3)
 zhouyu:addSkill("ex__yingzi")
 zhouyu:addSkill("ex__fanjian")
+huanggai:addCompanions("hs__xiaoqiao")
 Fk:loadTranslationTable{
   ["hs__zhouyu"] = "周瑜",
+  ["~hs__zhouyu"] = "既生瑜，何生亮。既生瑜，何生亮！",
 }
 
 local daqiao = General(extension, "hs__daqiao", "wu", 3, 3, General.Female)
 
 daqiao:addSkill("guose")
 daqiao:addSkill("liuli")
+daqiao:addCompanions("hs__xiaoqiao")
 
 Fk:loadTranslationTable{
   ["hs__daqiao"] = "大乔",
+  ["~hs__daqiao"] = "伯符，我去了……",
 }
 
 local luxun = General(extension, "hs__luxun", "wu", 3)
@@ -1084,6 +1160,12 @@ Fk:loadTranslationTable{
 	[":hs__qianxun"] = "锁定技，当你成为【顺手牵羊】或【乐不思蜀】的目标时，你取消此目标。",
   ["duoshi"] = "度势",
   [":duoshi"] = "每阶段限四次，你可将一张红色手牌当【以逸待劳】使用。",
+
+  ["$qianxun1"] = "儒生脱尘，不为贪逸淫乐之事。",
+	["$qianxun2"] = "谦谦君子，不饮盗泉之水。",
+	["$duoshi2"] = "以今日之大势当行此计。",
+	["$duoshi1"] = "国之大计审视为先。",
+	["~luxun"] = "还以为我已经不再年轻……",
 }
 
 local sunshangxiang = General(extension, "hs__sunshangxiang", "wu", 3, 3, General.Female)
@@ -1116,12 +1198,17 @@ Fk:loadTranslationTable{
   ["hs__sunshangxiang"] = "孙尚香",
   ["hs__xiaoji"] = "枭姬",
 	[":hs__xiaoji"] = "当你失去装备区的装备牌后，你可以摸两张牌。",
+
+	["$hs__xiaoji1"] = "哼！",
+	["$hs__xiaoji2"] = "看我的厉害！",
+	["~hs__sunshangxiang"] = "不！还不可以死！",
 }
 
 local sunjian = General(extension, "hs__sunjian", "wu", 5)
 sunjian:addSkill("yinghun")
 Fk:loadTranslationTable{
   ['hs__sunjian'] = '孙坚',
+  ["~hs__sunjian"] = "有埋伏！呃……啊！！",
 }
 
 local xiaoqiao = General(extension, "hs__xiaoqiao", "wu", 3, 3, General.Female)
@@ -1185,12 +1272,17 @@ Fk:loadTranslationTable{
   ["#hs__tianxiang-choice"] = "天香：选择一项令 %dest 执行",
   ["hs__tianxiang_damage"] = "令其受到1点伤害并摸已损失体力值的牌",
   ["hs__tianxiang_loseHp"] = "令其失去1点体力并获得你弃置的牌",
+
+  ["$hs__tianxiang1"] = "接着哦~",
+	["$hs__tianxiang2"] = "替我挡着~",
+	["~hs__xiaoqiao"] = "公瑾…我先走一步……",
 }
 
 local taishici = General(extension, "hs__taishici", "wu", 4)
 taishici:addSkill("tianyi")
 Fk:loadTranslationTable{
   ['hs__taishici'] = '太史慈',
+  ["~hs__taishici"] = "大丈夫，当带三尺之剑，立不世之功！",
 }
 
 local zhoutai = General(extension, "hs__zhoutai", "wu", 4)
@@ -1268,6 +1360,7 @@ lusu:addSkill("haoshi")
 lusu:addSkill("dimeng")
 Fk:loadTranslationTable{
   ['hs__lusu'] = '鲁肃',
+  ["~hs__lusu"] = "此联盟已破，吴蜀休矣。",
 }
 
 local erzhang = General(extension, "hs__zhangzhaozhanghong", "wu", 3)
@@ -1275,6 +1368,7 @@ erzhang:addSkill("zhijian")
 erzhang:addSkill("guzheng")
 Fk:loadTranslationTable{
   ['hs__zhangzhaozhanghong'] = '张昭张纮',
+  ["~hs__zhangzhaozhanghong"] = "竭力尽智，死而无憾。",
 }
 
 local dingfeng = General(extension, "hs__dingfeng", "wu", 4)
@@ -1282,6 +1376,11 @@ dingfeng:addSkill("duanbing")
 dingfeng:addSkill("fenxun")
 Fk:loadTranslationTable{
   ["hs__dingfeng"] = "丁奉",
+  ["$duanbing1"] = "众将官，短刀出鞘。",
+	["$duanbing2"] = "短兵轻甲也可取汝性命！",
+	["$fenxun1"] = "取封侯爵赏，正在今日！",
+	["$fenxun2"] = "给我拉过来！",
+	["~hs__dingfeng"] = "这风，太冷了……",
 }
 
 local huatuo = General(extension, "hs__huatuo", "qun", 3)
@@ -1335,14 +1434,22 @@ Fk:loadTranslationTable{
   ["hs__huatuo"] = "华佗",
   ["hs__chuli"] = "除疠",
   [":hs__chuli"] = "出牌阶段限一次，你可选择至多三名势力各不相同或未确定势力的其他角色，然后你弃置你和这些角色的各一张牌。被弃置♠牌的角色各摸一张牌。",
+
+  ["$jijiu_hs__huatuo1"] = "救死扶伤，悬壶济世。",
+	["$jijiu_hs__huatuo2"] = "妙手仁心，药到病除。",
+	["$hs__chuli1"] = "病去，如抽丝。",
+	["$hs__chuli2"] = "病入膏肓，需下猛药。",
+	["~hs__huatuo"] = "生老病死，命不可违。",
 }
 
 local lvbu = General(extension, "hs__lvbu", "qun", 5)
 
 lvbu:addSkill("wushuang")
+lvbu:addCompanions("hs__diaochan")
 
 Fk:loadTranslationTable{
   ["hs__lvbu"] = "吕布",
+  ["~hs__lvbu"] = "不可能！",
 }
 
 local diaochan = General(extension, "hs__diaochan", "qun", 3, 3, General.Female)
@@ -1383,6 +1490,10 @@ Fk:loadTranslationTable{
   ["hs__diaochan"] = "貂蝉",
   ["hs__lijian"] = "离间",
   [":hs__lijian"] = "出牌阶段限一次，你可弃置一张牌并选择两名其他男性角色，后选择的角色视为对先选择的角色使用一张【决斗】。",
+
+	["$hs__lijian1"] = "嗯呵呵~~呵呵~~",
+	["$hs__lijian2"] = "夫君，你要替妾身做主啊……",
+	["~hs__diaochan"] = "父亲大人，对不起……",
 }
 
 local yuanshao = General(extension, "hs__yuanshao", "qun", 4)
@@ -1440,6 +1551,7 @@ local luanji_draw = fk.CreateTriggerSkill{
 luanji:addRelatedSkill(luanji_draw)
 
 yuanshao:addSkill(luanji)
+yuanshao:addCompanions("hs__yanliangwenchou")
 
 Fk:loadTranslationTable{
   ["hs__yuanshao"] = "袁绍",
@@ -1449,12 +1561,17 @@ Fk:loadTranslationTable{
   ["@hs__luanji-turn"] = "乱击",
   ["#hs__luanji-draw"] = "乱击：你可摸一张牌",
   ["#hs__luanji_draw"] = "乱击",
+
+  ["$hs__luanji1"] = "弓箭手，准备放箭！",
+	["$hs__luanji2"] = "全都去死吧！",
+	["~hs__yuanshao"] = "老天不助我袁家啊！",
 }
 
 local sx = General(extension, 'hs__yanliangwenchou', 'qun', 4)
 sx:addSkill('shuangxiong')
 Fk:loadTranslationTable{
   ['hs__yanliangwenchou'] = '颜良文丑',
+  ["~hs__yanliangwenchou"] = "这红脸长须大将是……",
 }
 
 local jiaxu = General(extension, 'hs__jiaxu', 'qun', 3)
@@ -1477,6 +1594,10 @@ Fk:loadTranslationTable{
   ['hs__jiaxu'] = '贾诩',
   ['hs__weimu'] = '帷幕',
   [':hs__weimu'] = '锁定技，当你成为黑色锦囊牌目标后，取消之。',
+
+  ["$hs__weimu1"] = "此计伤不到我。",
+	["$hs__weimu2"] = "你奈我何！",
+	["~hs__jiaxu"] = "我的时辰也到了……",
 }
 
 local pangde = General(extension, "hs__pangde", "qun", 4)
@@ -1516,6 +1637,10 @@ Fk:loadTranslationTable{
   ["hs__pangde"] = "庞德",
   ["jianchu"] = "鞬出",
   [":jianchu"] = "当你使用【杀】指定目标后，你可以弃置该角色的一张牌，若此牌：为装备牌，其不能使用【闪】抵消此【杀】；不为装备牌，其获得此【杀】。",
+
+  ["$jianchu1"] = "你，可敢挡我！",
+	["$jianchu2"] = "我要杀你们个片甲不留！",
+	["~hs__pangde"] = "四面都是水……我命休矣。",
 }
 
 local zhangjiao = General(extension, "hs__zhangjiao", 'qun', 3)
@@ -1523,6 +1648,7 @@ zhangjiao:addSkill("leiji")
 zhangjiao:addSkill("guidao")
 Fk:loadTranslationTable{
   ['hs__zhangjiao'] = '张角',
+  ["~hs__zhangjiao"] = "黄天…也死了……",
 }
 
 --[[
@@ -1619,8 +1745,8 @@ Fk:loadTranslationTable{
   ["xiongyi"] = "雄异",
   [":xiongyi"] = "限定技，出牌阶段，你可令与你势力相同的所有角色各摸三张牌，然后若你的势力是角色数最小的势力，你回复1点体力。",
 
-  ["$hs__kuanggu1"] = "弟兄们，我们的机会来啦！",
-  ["$hs__kuanggu2"] = "此时不战，更待何时！",
+  ["$xiongyi1"] = "弟兄们，我们的机会来啦！",
+  ["$xiongyi2"] = "此时不战，更待何时！",
   ["~hs__mateng"] = "儿子，为爹报仇啊！",
 }
 
@@ -1748,6 +1874,12 @@ Fk:loadTranslationTable{
 
   ["#lirang-give"] = "礼让：你可以将这些牌分配给任意角色，点“取消”仍弃置",
   ["#lirang_active"] = "礼让",
+
+  ["$mingshi1"] = "孔门之后，忠孝为先。",
+	["$mingshi2"] = "名士之风，仁义高洁。",
+	["$lirang1"] = "夫礼先王以承天之道，以治人之情。",
+	["$lirang2"] = "谦者，德之柄也，让者，礼之逐也。",
+	["~kongrong"] = "覆巢之下，岂有完卵……",
 }
 
 local jiling = General(extension, "hs__jiling", "qun", 4)
@@ -1821,7 +1953,7 @@ Fk:loadTranslationTable{
 
   ["$shuangren1"] = "仲国大将纪灵在此！",
   ["$shuangren2"] = "吃我一记三尖两刃刀！",
-  ["~jiling"] = "额，将军为何咆哮不断……",
+  ["~hs__jiling"] = "额，将军为何咆哮不断……",
 }
 
 local tianfeng = General(extension, "hs__tianfeng", "qun", 3)
@@ -1902,14 +2034,136 @@ Fk:loadTranslationTable{
 	[":suishi"] = "锁定技，当其他角色因受到伤害而进入濒死状态时，若来源与你势力相同，你摸一张牌；当其他角色死亡时，若其与你势力相同，你失去1点体力。",
 
   ["#sijian-ask"] = "死谏：你可弃置一名其他角色的一张牌",
+
+  ["$sijian2"] = "忠言逆耳啊！！",
+	["$sijian1"] = "且听我最后一言！",
+	["$suishi1"] = "一荣俱荣！",
+	["$suishi2"] = "一损俱损……",
+	["~hs__tianfeng"] = "不纳吾言而反诛吾心，奈何奈何！！",
 }
 
 local panfeng = General(extension, "hs__panfeng", "qun", 4)
 panfeng:addSkill("kuangfu")
 Fk:loadTranslationTable{
   ["hs__panfeng"] = "潘凤",
+
+  ["$kuangfu1"] = "吾乃上将潘凤，可斩华雄！",
+  ["$kuangfu2"] = "这家伙，还是给我用吧！",
+	["~hs__panfeng"] = "潘凤又被华雄斩啦。",
 }
--- zoushi
+
+local zoushi = General(extension, "hs__zoushi", "qun", 3, 3, General.Female)
+local huoshui = fk.CreateTriggerSkill{
+  name = "huoshui",
+  anim_type = "control",
+  frequency = Skill.Compulsory,
+  events = {fk.TurnStart, fk.GeneralRevealed, fk.EventAcquireSkill, fk.EventLoseSkill, fk.Deathed},
+  can_trigger = function(self, event, target, player, data)
+    if target ~= player then return false end
+    if event == fk.TurnStart then
+      return player:hasSkill(self.name) 
+    elseif event == fk.EventAcquireSkill or event == fk.EventLoseSkill then
+      return data == self and player.phase ~= Player.NotActive
+    elseif event == fk.GeneralRevealed then
+      return data == "hs__zoushi" and player:hasSkill(self.name)
+    else
+      return player:hasSkill(self.name, false, true)
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    if table.contains({fk.TurnStart, fk.GeneralRevealed, fk.EventAcquireSkill}, event) then
+      for _, p in ipairs(room:getOtherPlayers(player)) do
+        room:setPlayerMark(p, "@@huoshui-turn", 1)
+        local record = type(p:getMark(MarkEnum.RevealProhibited .. "-turn")) == "table" and p:getMark(MarkEnum.RevealProhibited .. "-turn") or {}
+        table.insertTable(record, {"m", "d"})
+        room:setPlayerMark(p, MarkEnum.RevealProhibited .. "-turn", record)
+      end
+    else
+      for _, p in ipairs(room:getOtherPlayers(player)) do
+        room:setPlayerMark(p, "@@huoshui-turn", 0)
+        local record = type(p:getMark(MarkEnum.RevealProhibited .. "-turn")) == "table" and p:getMark(MarkEnum.RevealProhibited .. "-turn") or {}
+        table.removeOne(record, "m")
+        table.removeOne(record, "d")
+        if #record == 0 then record = 0 end
+        room:setPlayerMark(p, MarkEnum.RevealProhibited .. "-turn", record)
+      end
+    end
+  end,
+}
+local qingcheng = fk.CreateActiveSkill{
+  name = "qingcheng",
+  anim_type = "control",
+  card_num = 1,
+  target_num = 1,
+  card_filter = function(self, to_select, selected, targets)
+    return #selected == 0 and Fk:getCardById(to_select).color == Card.Black
+  end,
+  target_filter = function(self, to_select, selected)
+    if #selected > 0 then return false end
+    local target = Fk:currentRoom():getPlayerById(to_select)
+    return to_select ~= Self.id and target.general ~= "anjiang" and target.deputyGeneral ~= "anjiang"
+  end,
+  on_use = function(self, room, effect)
+    local player = room:getPlayerById(effect.from)
+    local target = room:getPlayerById(effect.tos[1])
+    local ret = false
+    if Fk:getCardById(effect.cards[1]).type == Card.TypeEquip then
+      ret = true
+    end
+    room:throwCard(effect.cards, self.name, player, player)
+    local choices = {}
+    if target.general ~= "anjiang" then
+      table.insert(choices, target.general)
+    end
+    if target.deputyGeneral ~= "anjiang" then
+      table.insert(choices, target.deputyGeneral)
+    end
+    if #choices > 0 then
+      local choice = room:askForChoice(player, choices, self.name, "#qingcheng-ask::" .. target.id)
+      target:hideGeneral(choice == target.deputyGeneral)
+    end
+    if ret and not player.dead then
+      local targets = table.filter(room.alive_players, function(p) return p.general ~= "anjiang" and p.deputyGeneral ~= "anjiang" and p ~= player and p ~= target end)
+      if #targets == 0 then return false end
+      local to = room:askForChoosePlayers(player, table.map(targets, Util.IdMapper), 1, 1, "#qingcheng-again", self.name, true)
+      if #to > 0 then
+        target = room:getPlayerById(to[1])
+        local choices = {}
+        if target.general ~= "anjiang" then
+          table.insert(choices, target.general)
+        end
+        if target.deputyGeneral ~= "anjiang" then
+          table.insert(choices, target.deputyGeneral)
+        end
+        if #choices > 0 then
+          local choice = room:askForChoice(player, choices, self.name, "#qingcheng-ask::" .. target.id)
+          target:hideGeneral(choice == target.deputyGeneral)
+        end
+      end
+    end
+  end,
+}
+zoushi:addSkill(huoshui)
+zoushi:addSkill(qingcheng)
+Fk:loadTranslationTable{
+  ["hs__zoushi"] = "邹氏",
+  -- ["zoushi"] = "邹氏",
+  ["huoshui"] = "祸水",
+  [":huoshui"] = "锁定技，你的回合内，其他角色不能明置其武将牌。",
+  ["qingcheng"] = "倾城",
+  [":qingcheng"] = "出牌阶段，你可弃置一张黑色牌并选择一名武将牌均明置的其他角色，然后你暗置其一张武将牌。然后若你以此法弃置的牌是黑色装备牌，则你可再选择另一名武将牌均明置的其他角色，暗置其一张武将牌。",
+
+  ["@@huoshui-turn"] = "祸水",
+  ["#qingcheng-ask"] = "倾城：暗置 %dest 一张武将牌",
+  ["#qingcheng-again"] = "倾城：你可再选择另一名武将牌均明置的其他角色，暗置其一张武将牌",
+
+  ["$huoshui1"] = "走不动了嘛？" ,
+	["$huoshui2"] = "别走了在玩一会嘛？" ,
+	["$qingcheng1"] = "我和你们真是投缘啊。",
+	["$qingcheng2"] = "哼，眼睛都直了呀。",
+	["~hs__zoushi"] = "年老色衰了吗？",
+}
 
 -- 军令四
 local command4_prohibit = fk.CreateProhibitSkill{
@@ -2105,9 +2359,52 @@ Fk:addSkill(companionPeach)
 Fk:loadTranslationTable{
   ["companion_skill&"] = "珠联[摸]",
   ["#companion_skill&"] = "你可弃一枚“珠联璧合”，摸两张牌",
-  [":companion_skill&"] = "出牌阶段，你可弃一枚“珠联璧合”，摸两张牌；你可弃一枚“珠联璧合”，视为使用【桃】。",
+  [":companion_skill&"] = "出牌阶段，你可弃一枚“珠联璧合”，摸两张牌。",
   ["companion_peach&"] = "珠联[桃]",
   [":companion_peach&"] = "你可弃一枚“珠联璧合”，视为使用【桃】",
+}
+
+local battleRoyalVS = fk.CreateViewAsSkill{
+  name = "battle_royal&",
+  pattern = "slash,jink",
+  interaction = function()
+    local names = {}
+    if Fk.currentResponsePattern == nil and Self:canUse(Fk:cloneCard("slash")) then
+      table.insertIfNeed(names, "slash")
+    else
+      for _, name in ipairs({"slash", "jink"}) do
+        if Fk.currentResponsePattern and Exppattern:Parse(Fk.currentResponsePattern):match(Fk:cloneCard(name)) then
+          table.insertIfNeed(names, name)
+        end
+      end
+    end
+    if #names == 0 then return end
+    return UI.ComboBox {choices = names}
+  end,
+  card_filter = function(self, to_select, selected)
+    return #selected == 0 and Fk:getCardById(to_select).trueName == "peach"
+  end,
+  view_as = function(self, cards)
+    if #cards ~= 1 or self.interaction.data == nil then return end
+    local card = Fk:cloneCard(self.interaction.data)
+    card.skillName = self.name
+    card:addSubcard(cards[1])
+    return card
+  end,
+}
+local battleRoyalProhibit = fk.CreateProhibitSkill{
+  name = "#battle_royal_prohibit&",
+  prohibit_use = function(self, player, card)
+    return card and card.trueName == "peach"
+  end
+}
+battleRoyalVS:addRelatedSkill(battleRoyalProhibit)
+Fk:addSkill(battleRoyalVS)
+
+Fk:loadTranslationTable{
+  ["battle_royal&"] = "鏖战",
+  [":battle_royal&"] = "非转化的【桃】只能当【杀】或【闪】使用或打出。",
+
 }
 
 return extension

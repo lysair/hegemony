@@ -61,6 +61,7 @@ local jieyue_draw = fk.CreateTriggerSkill{
 jieyue:addRelatedSkill(jieyue_draw)
 
 yujin:addSkill(jieyue)
+yujin:addCompanions("hs__xiahoudun")
 
 Fk:loadTranslationTable{
   ['ld__yujin'] = '于禁',
@@ -115,6 +116,7 @@ local buyi = fk.CreateTriggerSkill{
 
 wuguotai:addSkill(buyi)
 wuguotai:addSkill("ganlu")
+wuguotai:addCompanions("hs__sunjian")
 
 Fk:loadTranslationTable{
   ['ld__wuguotai'] = '吴国太',
@@ -122,6 +124,12 @@ Fk:loadTranslationTable{
   [':ld__buyi'] = '与你势力相同的角色的濒死结算结束后，若其存活，你可对伤害来源发起军令。若来源不执行，则你令该角色回复1点体力。',
 
   ["#ld__buyi-ask"] = "补益：你可对 %dest 发起军令。若来源不执行，则 %src 回复1点体力",
+
+  ["$ganlu_ld__wuguotai1"] = "玄德，实乃佳婿呀！。", -- 特化
+	["$ganlu_ld__wuguotai2"] = "好一个郎才女貌，真是天作之合啊。",
+	["$ld__buyi1"] = "有我在，定保贤婿无余！",
+	["$ld__buyi2"] = "东吴，岂容汝等儿戏！",
+	["~ld__wuguotai"] = "诸位卿家，还请尽力辅佐仲谋啊……",
 }
 --[[
 Fk:loadTranslationTable{
@@ -205,6 +213,7 @@ local congjian = fk.CreateTriggerSkill{
 }
 zhangxiu:addSkill(fudi)
 zhangxiu:addSkill(congjian)
+zhangxiu:addCompanions("hs__jiaxu")
 Fk:loadTranslationTable{
   ['ld__zhangxiu'] = '张绣',
   ['ld__fudi'] = '附敌',

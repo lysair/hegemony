@@ -109,6 +109,7 @@ local yongjin = fk.CreateActiveSkill{
 }
 lingtong:addSkill(xuanlve)
 lingtong:addSkill(yongjin)
+lingtong:addCompanions("hs__ganning")
 Fk:loadTranslationTable{
   ['ld__lingtong'] = '凌统',
   ['xuanlve'] = '旋略',

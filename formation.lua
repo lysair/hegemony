@@ -81,9 +81,11 @@ local shoucheng = fk.CreateTriggerSkill{
 
 jiangfei:addSkill(shengxi)
 jiangfei:addSkill(shoucheng)
+jiangfei:addCompanions("hs__zhugeliang")
 
 Fk:loadTranslationTable{
   ["ld__jiangwanfeiyi"] = "蒋琬费祎",
+  ["jiangwanfeiyi"] = "蒋琬费祎", -- 珠联璧合……
   ["ld__shengxi"] = "生息",
   [":ld__shengxi"] = "结束阶段开始时，若你未于此回合内造成过伤害，你可摸两张牌。",
   ["shoucheng"] = "守成",
@@ -121,6 +123,7 @@ local yicheng = fk.CreateTriggerSkill{
 }
 
 xusheng:addSkill(yicheng)
+xusheng:addCompanions("hs__dingfeng")
 
 Fk:loadTranslationTable{
   ["ld__xusheng"] = "徐盛",
@@ -198,6 +201,7 @@ hetaihou:addSkill("zhendu")
 hetaihou:addSkill("qiluan")
 Fk:loadTranslationTable{
   ["ld__hetaihou"] = "何太后",
+  ["~ld__hetaihou"] = "你们男人造的孽，非要说什么红颜祸水……",
 }
 
 return extension

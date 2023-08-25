@@ -9,15 +9,21 @@ Fk:loadTranslationTable{
 local lidian = General(extension, "ld__lidian", "wei", 3)
 lidian:addSkill("xunxun")
 lidian:addSkill("wangxi")
+lidian:addCompanions("hs__yuejin")
 Fk:loadTranslationTable{
   ["ld__lidian"] = "李典",
+  ["~ld__lidian"] = "报国杀敌，虽死犹荣……",
 }
 
 local madai = General(extension, "ld__madai", "shu", 4)
 madai:addSkill("mashu")
 madai:addSkill("re__qianxi")
+madai:addCompanions("machao")
 Fk:loadTranslationTable{
   ["ld__madai"] = "马岱",
+  ["$re__qianxi1"] = "暗影深处，袭敌斩首！",
+  ["$re__qianxi2"] = "擒贼先擒王，打蛇打七寸！",
+  ["~ld__madai"] = "我怎么会死在这里……",
 }
 
 --[[
@@ -95,6 +101,12 @@ Fk:loadTranslationTable{
   [':ld__duanxie'] = '出牌阶段限一次，你可以令一名其他角色横置，然后你横置。',
   ['ld__fenming'] = '奋命',
   [':ld__fenming'] = '结束阶段开始时，若你处于连环状态，你可弃置处于连环状态的每名角色的一张牌。',
+
+  ["$ld__duanxie1"] = "区区绳索就想挡住吾等去路？！",
+	["$ld__duanxie2"] = "以身索敌，何惧同伤！",
+	["$ld__fenming1"] = "东吴男儿，岂是贪生怕死之辈？",
+	["$ld__fenming2"] = "不惜性命，也要保主公周全！",
+  ["~ld__chenwudongxi"] = "杀身卫主，死而无憾！",
 }
 
 return extension

@@ -404,6 +404,26 @@ local heg_rule = fk.CreateTriggerSkill{
   on_trigger = function(self, event, target, player, data)
     local room = player.room
     if event == fk.TurnStart then
+      -- 鏖战
+      if #room.alive_players < (#room.players > 6 and 5 or 4) and not room:getTag("BattleRoyalMode") then
+        local ret = true
+        local num = 0
+        for k, v in pairs(H.getKingdomPlayersNum(room)) do
+          if v > 1 then
+            ret = false
+            break
+          end
+          num = num + 1
+        end
+        if ret and num == #room.alive_players then
+          room:doBroadcastNotify("ShowToast", Fk:translate("#EnterBattleRoyalMode"))
+          room:setTag("BattleRoyalMode", true) 
+          for _, p in ipairs(room.alive_players) do
+            room:handleAddLoseSkills(p, "battle_royal&", nil, false, true)
+          end
+        end
+      end
+
       local choices = {}
       if player.general == "anjiang" and not player:prohibitReveal() then
         table.insert(choices, "revealMain")
@@ -497,6 +517,8 @@ Fk:loadTranslationTable{
   ["revealMain"] = "明置主将",
   ["revealDeputy"] = "明置副将",
   ["revealAll"] = "背水：全部明置",
+  ["#EnterBattleRoyalMode"] = "游戏进入 <font color=\"red\"><b>鏖战模式</b></font>，所有的【<font color=\"yellow\"><b>桃</b></font>】"..
+  "只能当【<font color=\"yellow\"><b>杀</b></font>】或【<font color=\"yellow\"><b>闪</b></font>】使用或打出，不能用于回复体力",
 }
 
 return heg
