@@ -143,12 +143,12 @@ local yinghun = fk.CreateTriggerSkill{
     local n = player:getLostHp()
     local choice = room:askForChoice(player, {"#yinghun-draw:::" .. n,  "#yinghun-discard:::" .. n}, self.name)
     if choice:startsWith("#yinghun-draw") then
-      room:broadcastSkillInvoke(self.name, 1)
+      player:broadcastSkillInvoke(self.name, 1)
       room:notifySkillInvoked(player, self.name, "support")
       to:drawCards(n, self.name)
       room:askForDiscard(to, 1, 1, true, self.name, false)
     else
-      room:broadcastSkillInvoke(self.name, 2)
+      player:broadcastSkillInvoke(self.name, 2)
       room:notifySkillInvoked(player, self.name, "control")
       to:drawCards(1, self.name)
       room:askForDiscard(to, n, n, true, self.name, false)

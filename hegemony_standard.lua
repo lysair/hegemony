@@ -2013,11 +2013,11 @@ local suishi = fk.CreateTriggerSkill{
     local room = player.room
     if event == fk.EnterDying then
       room:notifySkillInvoked(player, self.name, "drawcard")
-      room:broadcastSkillInvoke(self.name, 1)
+      player:broadcastSkillInvoke(self.name, 1)
       player:drawCards(1, self.name)
     else
       room:notifySkillInvoked(player, self.name, "negative")
-      room:broadcastSkillInvoke(self.name, 2)
+      player:broadcastSkillInvoke(self.name, 2)
       room:loseHp(player, 1, self.name)
     end
   end,

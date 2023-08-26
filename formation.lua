@@ -169,7 +169,7 @@ local qianhuan = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    room:broadcastSkillInvoke("qianhuan")
+    player:broadcastSkillInvoke("qianhuan")
     if event == fk.Damaged then
       room:notifySkillInvoked(player, "qianhuan", "masochism")
       player:addToPile("yuji_sorcery", self.cost_data, true, self.name)
