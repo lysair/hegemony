@@ -112,7 +112,7 @@ local burningCampsSkill = fk.CreateActiveSkill{
   name = "burning_camps_skill",
   mod_target_filter = function(self, to_select, selected, user, card, distance_limited)
     local prev = Fk:currentRoom():getPlayerById(user):getNextAlive()
-    return prev.id ~= user and table.contains(H.getFormationRelation(prev), Fk:currentRoom():getPlayerById(to_select))
+    return prev.id ~= user and (to_select == prev.id or table.contains(H.getFormationRelation(prev), Fk:currentRoom():getPlayerById(to_select)))
   end,
   can_use = function(self, player, card)
     return not player:isProhibited(player:getNextAlive(), card) and player:getNextAlive() ~= player
@@ -245,7 +245,7 @@ local fightTogetherSkill = fk.CreateActiveSkill{
     end
   end,
   can_use = function(self, player, card)
-    return not player:prohibitUse(card) and table.find(Fk:currentRoom().alive_players, function(p) return H.isBigKingdomPlayer(p) end)
+    return table.find(Fk:currentRoom().alive_players, function(p) return H.isBigKingdomPlayer(p) end)
   end,
   on_use = function(self, room, use)
     if use.tos and #TargetGroup:getRealTargets(use.tos) > 0 then -- 如果一开始的目标被取消了就寄了，还是需要originalTarget
@@ -553,7 +553,11 @@ local imperialOrderSkill = fk.CreateActiveSkill{
     return Fk:currentRoom():getPlayerById(to_select).kingdom == "unknown"
   end,
   can_use = function(self, player, card)
-    return not player:prohibitUse(card) and table.find(Fk:currentRoom().alive_players, function(p) return p.kingdom == "unknown" end)
+    for _, p in ipairs(Fk:currentRoom().alive_players) do
+      if not player:isProhibited(p, card) and self:modTargetFilter(p.id, {}, player.id, card, true) then
+        return true
+      end
+    end
   end,
   on_use = function(self, room, use)
     if not use.tos or #TargetGroup:getRealTargets(use.tos) == 0 then
