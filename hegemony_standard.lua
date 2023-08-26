@@ -1098,7 +1098,7 @@ Fk:loadTranslationTable{
 local zhouyu = General(extension, "hs__zhouyu", "wu", 3)
 zhouyu:addSkill("ex__yingzi")
 zhouyu:addSkill("ex__fanjian")
-huanggai:addCompanions("hs__xiaoqiao")
+zhouyu:addCompanions("hs__xiaoqiao")
 Fk:loadTranslationTable{
   ["hs__zhouyu"] = "周瑜",
   ["~hs__zhouyu"] = "既生瑜，何生亮。既生瑜，何生亮！",

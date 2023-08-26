@@ -327,6 +327,12 @@ Fk:loadTranslationTable{
   ["#HegNullificationAll"] = "%from 选择此 %card 对 %arg 势力生效",
 }
 
+-- 判断有无主将/副将
+H.hasGeneral = function(player, isDeputy)
+  local orig = isDeputy and (player.deputyGeneral or "") or player.general
+  return orig ~= "" and not orig:startsWith("blank_")
+end
+
 -- 移除武将牌
 ---@param room Room
 ---@param player ServerPlayer
