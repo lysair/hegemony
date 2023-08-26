@@ -117,8 +117,11 @@ local befriendAttackingSkill = fk.CreateActiveSkill{
   end,
   target_filter = function(self, to_select, selected, _, card)
     if #selected == 0 then
-      return Self.kingdom ~= "unknown" and self:modTargetFilter(to_select, selected, Self.id, card, true)
+      return self:modTargetFilter(to_select, selected, Self.id, card, true)
     end
+  end,
+  can_use = function(self, player)
+    return player.kingdom ~= "unknown"
   end,
   on_effect = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
@@ -173,9 +176,12 @@ local knownBothSkill = fk.CreateActiveSkill{
     if #choices == 0 then return end
     local choice = room:askForChoice(player, choices, self.name, "#known_both-choice::"..target.id, false, all_choices)
     if choice == "known_both_hand" then
-      room:fillAG(player, target.player_cards[Player.Hand])
-      room:delay(5000)
-      room:closeAG(player)
+      room:askForCardsChosen(player, target, 0, 0, {
+        card_data = {
+          { "$Hand", target:getCardIds(Player.Hand) }
+        }
+        --TODO:需要进一步突破，自由prompt，max==0（仅观看，不选牌）时的特化优化（新开函数）
+      }, self.name)
     else
       local general = choice == "known_both_main" and {target:getMark("__heg_general"), target.deputyGeneral, target.seat} or {target.general, target:getMark("__heg_deputy"), target.seat}
       room:askForCustomDialog(player, self.name, "packages/hegemony/qml/KnownBothBox.qml", general)
@@ -204,9 +210,17 @@ Fk:loadTranslationTable{
 
 local awaitExhaustedSkill = fk.CreateActiveSkill{
   name = "await_exhausted_skill",
-  mod_target_filter = Util.TrueFunc,
+  mod_target_filter = function(self, to_select, selected, user)
+    local target = Fk:currentRoom():getPlayerById(to_select)
+    local player = Fk:currentRoom():getPlayerById(user)
+    return H.compareKingdomWith(target, player, false)
+  end,
   can_use = function(self, player, card)
-    return not player:isProhibited(player, card)
+    for _, p in ipairs(Fk:currentRoom().alive_players) do
+      if not player:isProhibited(p, card) and self:modTargetFilter(p.id, {}, player.id, card, true) then
+        return true
+      end
+    end
   end,
   on_use = function(self, room, use)
     if not use.tos or #TargetGroup:getRealTargets(use.tos) == 0 then
@@ -251,48 +265,7 @@ extension:addCards{
   Fk:cloneCard("crossbow", Card.Diamond, 1),
   Fk:cloneCard("qinggang_sword", Card.Spade, 6),
   Fk:cloneCard("ice_sword", Card.Spade, 2),
-  -- Fk:cloneCard("double_swords", Card.Spade, 2),
-}
-
-local doubleSwordsSkill = fk.CreateTriggerSkill{
-  name = "#heg__double_swords_skill",
-  attached_equip = "heg__double_swords",
-  events = {fk.TargetSpecified},
-  can_trigger = function(self, event, target, player, data)
-    if target == player and player:hasSkill(self.name) and
-      data.card and data.card.trueName == "slash" then
-      local target = player.room:getPlayerById(data.to)
-      return target.gender ~= player.gender and not (player.kingdom == "unknown" or target.kingdom == "unknown")
-    end
-  end,
-  on_use = function(self, event, target, player, data)
-    local room = player.room
-    room:broadcastPlaySound("./packages/standard_cards/audio/card/double_swords")
-    room:setEmotion(player, "./packages/standard_cards/image/anim/double_swords")
-    local to = player.room:getPlayerById(data.to)
-    if to:isKongcheng() then
-      player:drawCards(1, self.name)
-    else
-      local result = room:askForDiscard(to, 1, 1, false, self.name, true, ".", "#double_swords-invoke:"..player.id)
-      if #result == 0 and not player.dead then
-        player:drawCards(1, self.name)
-      end
-    end
-  end,
-}
-Fk:addSkill(doubleSwordsSkill)
-local doubleSwords = fk.CreateWeapon{
-  name = "heg__double_swords",
-  suit = Card.Spade,
-  number = 2,
-  attack_range = 2,
-  equip_skill = doubleSwordsSkill,
-}
-extension:addCard(doubleSwords)
-Fk:loadTranslationTable{
-  ["heg__double_swords"] = "雌雄双股剑",
-  [":heg__double_swords"] = "装备牌·武器<br /><b>攻击范围</b>：２<br /><b>武器技能</b>：每当你指定异性角色为【杀】的目标后，你可以令其选择一项：弃置一张手牌，或令你摸一张牌。",
-  ["#heg__double_swords_skill"] = "雌雄双股剑",
+  Fk:cloneCard("double_swords", Card.Spade, 2),
 }
 
 local sixSwordsSkill = fk.CreateAttackRangeSkill{
@@ -302,7 +275,7 @@ local sixSwordsSkill = fk.CreateAttackRangeSkill{
   correct_func = function (self, from, to)
     if from.kingdom ~= "unknown" then
       if table.find(Fk:currentRoom().alive_players, function(p)
-        return p.kingdom ~= "unknown" and from.kingdom == p.kingdom and from ~= p and
+        return H.compareKingdomWith(from, p) and
           p:getEquipment(Card.SubtypeWeapon) and Fk:getCardById(p:getEquipment(Card.SubtypeWeapon)).name == "six_swords" end) then
         return 1
       end
