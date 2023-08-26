@@ -17,11 +17,22 @@ Fk:loadTranslationTable{
 }
 
 local madai = General(extension, "ld__madai", "shu", 4)
-madai:addSkill("mashu")
+local madai_mashu = fk.CreateDistanceSkill{
+  name = "heg_madai__mashu",
+  frequency = Skill.Compulsory,
+  correct_func = function(self, from, to)
+    if from:hasSkill(self.name) then
+      return -1
+    end
+  end,
+}
+madai:addSkill(madai_mashu)
 madai:addSkill("re__qianxi")
 madai:addCompanions("machao")
 Fk:loadTranslationTable{
   ["ld__madai"] = "马岱",
+  ["heg_madai__mashu"] = "马术",
+  [":heg_madai__mashu"] = "锁定技，你与其他角色的距离-1。",
   ["$re__qianxi1"] = "暗影深处，袭敌斩首！",
   ["$re__qianxi2"] = "擒贼先擒王，打蛇打七寸！",
   ["~ld__madai"] = "我怎么会死在这里……",

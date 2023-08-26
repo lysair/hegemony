@@ -1747,13 +1747,24 @@ local xiongyi = fk.CreateActiveSkill{
   end,
 }
 
-mateng:addSkill("mashu")
+local mateng_mashu = fk.CreateDistanceSkill{
+  name = "heg_mateng__mashu",
+  frequency = Skill.Compulsory,
+  correct_func = function(self, from, to)
+    if from:hasSkill(self.name) then
+      return -1
+    end
+  end,
+}
+mateng:addSkill(mateng_mashu)
 mateng:addSkill(xiongyi)
 
 Fk:loadTranslationTable{
   ["hs__mateng"] = "马腾",
   ["xiongyi"] = "雄异",
   [":xiongyi"] = "限定技，出牌阶段，你可令与你势力相同的所有角色各摸三张牌，然后若你的势力是角色数最小的势力，你回复1点体力。",
+  ["heg_mateng__mashu"] = "马术",
+  [":heg_mateng__mashu"] = "锁定技，你与其他角色的距离-1。",
 
   ["$xiongyi1"] = "弟兄们，我们的机会来啦！",
   ["$xiongyi2"] = "此时不战，更待何时！",
