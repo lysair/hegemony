@@ -1130,13 +1130,81 @@ local luxun = General(extension, "hs__luxun", "wu", 3)
 local qianxun = fk.CreateTriggerSkill{
   name = "hs__qianxun",
   anim_type = "defensive",
-  events = {fk.TargetConfirming},
+  events = {fk.TargetConfirming, fk.BeforeCardsMove},
   frequency = Skill.Compulsory,
+  mute = true,
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and (data.card.name == "snatch" or data.card.name == "indulgence")
+    if not player:hasSkill(self.name) then return false end
+    if event == fk.TargetConfirming then
+      return target == player and player:hasSkill(self.name) and data.card.name == "snatch"
+    elseif event == fk.BeforeCardsMove then
+      local id = 0
+      local source = player
+      local room = player.room
+      local c
+      for _, move in ipairs(data) do
+        if move.to == player.id and move.toArea == Card.PlayerJudge then
+          for _, info in ipairs(move.moveInfo) do
+            id = info.cardId
+            if info.fromArea == Card.PlayerJudge then
+              source = room:getPlayerById(move.from) or player
+            else
+              source = player
+            end
+            c = source:getVirualEquip(id)
+            --FIXME：巨大隐患，延时锦囊的virtual_equips在置入判定区的事件被篡改，或者判定阶段自然流程以外的方式离开判定区时不会清理
+            if not c then c = Fk:getCardById(id) end
+            if c.trueName == "indulgence" then
+              return true
+            end
+          end
+        end
+      end
+    end
   end,
   on_use = function(self, event, target, player, data)
-    AimGroup:cancelTarget(data, player.id)
+    local room = player.room
+    room:notifySkillInvoked(player, self.name)
+    if event == fk.TargetConfirming then
+      player:broadcastSkillInvoke(self.name, 2)
+      AimGroup:cancelTarget(data, player.id)
+    elseif event == fk.BeforeCardsMove then
+      player:broadcastSkillInvoke(self.name, 1)
+      local source = player
+      local mirror_moves = {}
+      local ids = {}
+      for _, move in ipairs(data) do
+        if move.to == player.id and move.toArea == Card.PlayerJudge then
+          local move_info = {}
+          local mirror_info = {}
+          for _, info in ipairs(move.moveInfo) do
+            local id = info.cardId
+            if info.fromArea == Card.PlayerJudge then
+              source = room:getPlayerById(move.from) or player
+            else
+              source = player
+            end
+            local c = source:getVirualEquip(id)
+            if not c then c = Fk:getCardById(id) end
+            if c.trueName == "indulgence" then
+              table.insert(mirror_info, info)
+              table.insert(ids, id)
+            else
+              table.insert(move_info, info)
+            end
+          end
+          if #mirror_info > 0 then
+            move.moveInfo = move_info
+            local mirror_move = table.clone(move)
+            mirror_move.to = nil
+            mirror_move.toArea = Card.DiscardPile
+            mirror_move.moveInfo = mirror_info
+            table.insert(mirror_moves, mirror_move)
+          end
+        end
+      end
+      table.insertTable(data, mirror_moves)
+    end
   end
 }
 
@@ -1590,15 +1658,80 @@ jiaxu:addSkill('luanwu')
 local weimu = fk.CreateTriggerSkill{
   name = "hs__weimu",
   anim_type = "defensive",
-  events = { fk.TargetConfirming },
+  events = { fk.TargetConfirming, fk.BeforeCardsMove },
   frequency = Skill.Compulsory,
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and data.card.color == Card.Black and data.card.type == Card.TypeTrick
+    if not player:hasSkill(self.name) then return false end
+    if event == fk.TargetConfirming then
+      return target == player and data.card.color == Card.Black and data.card:isCommonTrick()
+    elseif event == fk.BeforeCardsMove then
+      local id = 0
+      local source = player
+      local room = player.room
+      local c
+      for _, move in ipairs(data) do
+        if move.to == player.id and move.toArea == Card.PlayerJudge then
+          for _, info in ipairs(move.moveInfo) do
+            id = info.cardId
+            if info.fromArea == Card.PlayerJudge then
+              source = room:getPlayerById(move.from) or player
+            else
+              source = player
+            end
+            c = source:getVirualEquip(id)
+            --FIXME：巨大隐患，延时锦囊的virtual_equips在置入判定区的事件被篡改，或者判定阶段自然流程以外的方式离开判定区时不会清理
+            if not c then c = Fk:getCardById(id) end
+            if c.sub_type == Card.SubtypeDelayedTrick and c.color == Card.Black then
+              return true
+            end
+          end
+        end
+      end
+    end
   end,
   on_use = function(self, event, target, player, data)
-    AimGroup:cancelTarget(data, player.id)
+    local room = player.room
+    if event == fk.TargetConfirming then
+      AimGroup:cancelTarget(data, player.id)
+    elseif event == fk.BeforeCardsMove then
+      local source = player
+      local mirror_moves = {}
+      local ids = {}
+      for _, move in ipairs(data) do
+        if move.to == player.id and move.toArea == Card.PlayerJudge then
+          local move_info = {}
+          local mirror_info = {}
+          for _, info in ipairs(move.moveInfo) do
+            local id = info.cardId
+            if info.fromArea == Card.PlayerJudge then
+              source = room:getPlayerById(move.from) or player
+            else
+              source = player
+            end
+            local c = source:getVirualEquip(id)
+            if not c then c = Fk:getCardById(id) end
+            if c.sub_type == Card.SubtypeDelayedTrick and c.color == Card.Black then
+              table.insert(mirror_info, info)
+              table.insert(ids, id)
+            else
+              table.insert(move_info, info)
+            end
+          end
+          if #mirror_info > 0 then
+            move.moveInfo = move_info
+            local mirror_move = table.clone(move)
+            mirror_move.to = nil
+            mirror_move.toArea = Card.DiscardPile
+            mirror_move.moveInfo = mirror_info
+            table.insert(mirror_moves, mirror_move)
+          end
+        end
+      end
+      table.insertTable(data, mirror_moves)
+    end
   end
 }
+
 jiaxu:addSkill(weimu)
 Fk:loadTranslationTable{
   ['hs__jiaxu'] = '贾诩',
