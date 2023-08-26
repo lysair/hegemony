@@ -827,8 +827,13 @@ Fk:loadTranslationTable{
   ["~hs__weiyan"] = "奸贼……害我……",
 }
 
--- pangtong
--- pangtong:addCompanions("hs__wolong")
+local pangtong = General(extension, "hs__pangtong", "shu",3)
+pangtong:addSkill("lianhuan")
+pangtong:addSkill("niepan")
+pangtong:addCompanions("hs__wolong")
+Fk:loadTranslationTable{
+  ['hs__pangtong'] = '庞统',
+}
 
 local wolong = General(extension, "hs__wolong", "shu", 3)
 wolong:addSkill("bazhen")
@@ -847,8 +852,13 @@ Fk:loadTranslationTable{
   ["~hs__liushan"] = "别打脸，我投降还不行吗？",
 }
 
--- menghuo
--- menghuo:addCompanions("hs__zhurong")
+local menghuo = General(extension, "hs__menghuo", "shu", 4)
+menghuo:addCompanions("hs__zhurong")
+menghuo:addSkill("huoshou")
+menghuo:addSkill("zaiqi")
+Fk:loadTranslationTable{
+  ['hs__menghuo'] = '孟获',
+}
 
 local zhurong = General(extension, "hs__zhurong", "shu", 4, 4, General.Female)
 zhurong:addSkill("juxiang")
