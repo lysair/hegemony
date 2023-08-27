@@ -38,28 +38,89 @@ Fk:loadTranslationTable{
   ["~ld__madai"] = "我怎么会死在这里……",
 }
 
---[[
 local zangba = General(extension, "ld__zangba", "wei", 4)
-local hjmax = fk.CreateMaxCardsSkill{
-  name = '#hengjiang_maxcard',
-  correct_func = function(self, player)
-    return player:getMark("@hengjiang-turn")
-  end
-}
 local hengjiang = fk.CreateTriggerSkill{
   name = "hengjiang",
   anim_type = "masochism",
   events = { fk.Damaged },
+  can_trigger = function(self, _, target, player, _)
+    if target ~= player or not player:hasSkill(self.name) then return false end
+    local current = player.room.current
+    return current ~= nil and not current.dead
+  end,
+  on_use = function(_, _, _, player, data)
+    local room = player.room
+    local target = room.current
+    if target ~= nil and not target.dead then
+      room:doIndicate(player.id, {target.id})
+      room:addPlayerMark(target, "@hengjiang-turn", data.damage)
+      room:addPlayerMark(target, MarkEnum.MinusMaxCardsInTurn, data.damage)
+    end
+  end
 }
-hengjiang:addRelatedSkill(hjmax)
+local hengjiangdelay = fk.CreateTriggerSkill{
+  name = "#hengjiang_delay",
+  anim_type = "drawcard",
+  events = { fk.TurnEnd },
+  --FIXME:如何体现这个技能是延迟效果？
+  can_trigger = function(_, _, target, player, _)
+    if player.dead or player:usedSkillTimes(hengjiang.name) == 0 then return false end
+    local room = player.room
+    local discard_ids = {}
+    room.logic:getEventsOfScope(GameEvent.Phase, 1, function (e)
+      if e.data[2] == Player.Discard then
+        table.insert(discard_ids, {e.id, e.end_id})
+      end
+      return false
+    end, Player.HistoryTurn)
+    if #discard_ids > 0 then
+      if #room.logic:getEventsOfScope(GameEvent.MoveCards, 1, function (e)
+        local in_discard = false
+        for _, ids in ipairs(discard_ids) do
+          if #ids == 2 and e.id > ids[1] and e.id < ids[2] then
+            in_discard = true
+            break
+          end
+        end
+        if in_discard then
+          for _, move in ipairs(e.data) do
+            if move.from == target.id and move.moveReason == fk.ReasonDiscard then
+              for _, info in ipairs(move.moveInfo) do
+                if info.fromArea == Card.PlayerHand or info.fromArea == Card.PlayerEquip then
+                  return true
+                end
+              end
+            end
+          end
+        end
+        return false
+      end, Player.HistoryTurn) > 0 then
+        return false
+      end
+    end
+    return true
+  end,
+  on_cost = function()
+    return true
+  end,
+  on_use = function(_, _, _, player, _)
+    player:drawCards(1, hengjiang.name)
+  end,
+}
+hengjiang:addRelatedSkill(hengjiangdelay)
 zangba:addSkill(hengjiang)
 Fk:loadTranslationTable{
   ['ld__zangba'] = '臧霸',
   ['hengjiang'] = '横江',
   [':hengjiang'] = '当你受到伤害后，你可以令当前回合角色本回合手牌上限-X（X为伤害值）。' ..
     '然后若其本回合弃牌阶段内没有弃牌，你摸一张牌。',
+  ['@hengjiang-turn'] = '横江',
+  ['#hengjiang_delay'] = '横江',
+
+  ['$hengjiang1'] = '霸必奋勇杀敌，一雪夷陵之耻！',
+	['$hengjiang2'] = '江横索寒，阻敌绝境之中！',
+	['~ld__zangba'] = '断刃沉江，负主重托……',
 }
---]]
 
 local sunce = General(extension, "ld__sunce", "wu", 4)
 sunce.deputyMaxHpAdjustedValue = -1
@@ -291,6 +352,12 @@ Fk:loadTranslationTable{
   [':hengzheng'] = '摸牌阶段，若你体力值为1或者没有手牌，你可以改为获得所有其他角色区域内各一张牌。',
   ['baoling'] = '暴凌',
   [':baoling'] = '主将技，锁定技，出牌阶段结束时，若此武将已明置且你有副将，则你移除副将，加三点体力上限并回复三点体力，然后获得技能“崩坏”。',
+
+  ['$hengzheng1'] = '老夫进京平乱，岂能空手而归？	',
+	['$hengzheng2'] = '谁的都是我的！',
+  ['$baoling1'] = '大丈夫，岂能妇人之仁？',
+	['$baoling2'] = '待吾大开杀戒，哈哈哈哈！',
+	['~ld__dongzhuo'] = '为何人人……皆与我为敌？',
 }
 
 return extension

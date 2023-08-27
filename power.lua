@@ -222,6 +222,10 @@ Fk:loadTranslationTable{
   ['#ld__fudi-dmg'] = '附敌：选择要造成伤害的目标',
   ['ld__congjian'] = '从谏',
   [':ld__congjian'] = '锁定技，当你于回合外造成伤害时或于回合内受到伤害时，伤害值+1。',
+
+  ['$ld__fudi1'] = '弃暗投明，为明公计！',
+	['$ld__fudi2'] = '绣虽有降心，奈何贵营难容。',
+	['~ld__zhangxiu'] = '若失文和，吾将何归？',
 }
 
 return extension
