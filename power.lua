@@ -96,8 +96,8 @@ local buyi = fk.CreateTriggerSkill{
   anim_type = "support",
   events = {fk.AfterDying},
   can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self.name) and target and H.compareKingdomWith(target, player) and not target.dead 
-      and data.damage and data.damage.from and not data.damage.from.dead
+    return player:hasSkill(self.name) and player:usedSkillTimes(self.name) == 0 and target and not target.dead and
+    H.compareKingdomWith(target, player) and data.damage and data.damage.from and not data.damage.from.dead
   end,
   on_cost = function(self, event, target, player, data)
     return player.room:askForSkillInvoke(player, self.name, nil, "#ld__buyi-ask:" .. target.id .. ":" .. data.damage.from.id)
@@ -121,7 +121,7 @@ wuguotai:addCompanions("hs__sunjian")
 Fk:loadTranslationTable{
   ['ld__wuguotai'] = '吴国太',
   ['ld__buyi'] = '补益',
-  [':ld__buyi'] = '与你势力相同的角色的濒死结算结束后，若其存活，你可对伤害来源发起军令。若来源不执行，则你令该角色回复1点体力。',
+  [':ld__buyi'] = '每回合限一次，与你势力相同的角色的濒死结算结束后，若其存活，你可对伤害来源发起军令。若来源不执行，则你令该角色回复1点体力。',
 
   ["#ld__buyi-ask"] = "补益：你可对 %dest 发起军令。若来源不执行，则 %src 回复1点体力",
 

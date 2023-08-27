@@ -139,28 +139,60 @@ Fk:loadTranslationTable{
 local yuji = General(extension, "ld__yuji", "qun", 3)
 local qianhuan = fk.CreateTriggerSkill{
   name = "qianhuan",
-  events = {fk.Damaged, fk.TargetConfirming},
+  events = {fk.Damaged, fk.TargetConfirming, fk.BeforeCardsMove},
   anim_type = "defensive",
   mute = true,
   can_trigger = function(self, event, target, player, data)
-    if not player:hasSkill(self.name) or not H.compareKingdomWith(target, player) then return false end
+    if not player:hasSkill(self.name) then return false end
     if event == fk.Damaged then
-      return not target.dead and not player:isNude() and #player:getPile("yuji_sorcery") < 4
-    else
-      return table.contains({Card.TypeBasic, Card.TypeTrick}, data.card.type) and #player:getPile("yuji_sorcery") > 0
+      return not target.dead and H.compareKingdomWith(target, player) and not player:isNude() and #player:getPile("yuji_sorcery") < 4
+    elseif event == fk.TargetConfirming then
+      return H.compareKingdomWith(target, player) and #player:getPile("yuji_sorcery") > 0 and
+      (data.card.type == Card.TypeBasic or data.card:isCommonTrick()) and #AimGroup:getAllTargets(data.tos) == 1
+    elseif event == fk.BeforeCardsMove then
+      for _, move in ipairs(data) do
+        if move.to ~= nil and move.toArea == Card.PlayerJudge then
+          local friend = player.room:getPlayerById(move.to)
+          return H.compareKingdomWith(friend, player) and #move.moveInfo > 0
+        end
+      end
     end
   end,
   on_cost = function(self, event, target, player, data)
-    local card
+    local card = {}
+    local room = player.room
     if event == fk.Damaged then
       local suits = {}
       for _, id in ipairs(player:getPile("yuji_sorcery")) do
         table.insert(suits, Fk:getCardById(id):getSuitString())
       end
       suits = table.concat(suits, ",")
-      card = player.room:askForCard(player, 1, 1, true, self.name, true, ".|.|^(" .. suits .. ")", "#qianhuan-dmg", "yuji_sorcery")
-    else
-      card = player.room:askForCard(player, 1, 1, false, self.name, true, ".|.|.|yuji_sorcery", "#qianhuan-def::" .. target.id .. ":" .. data.card:toLogString(), "yuji_sorcery")
+      card = room:askForCard(player, 1, 1, true, self.name, true, ".|.|^(" .. suits .. ")", "#qianhuan-dmg", "yuji_sorcery")
+    elseif event == fk.TargetConfirming then
+      card = room:askForCard(player, 1, 1, false, self.name, true, ".|.|.|yuji_sorcery", "#qianhuan-def::" .. target.id .. ":" .. data.card:toLogString(), "yuji_sorcery")
+    elseif event == fk.BeforeCardsMove then
+      local delayed_trick = nil
+      local friend = nil
+      for _, move in ipairs(data) do
+        if move.to ~= nil and move.toArea == Card.PlayerJudge then
+          friend = move.to
+          for _, info in ipairs(move.moveInfo) do
+            local id = info.cardId
+            local source = player
+            if info.fromArea == Card.PlayerJudge then
+              source = room:getPlayerById(move.from) or player
+            end
+            delayed_trick = source:getVirualEquip(id)
+            if delayed_trick == nil then delayed_trick = Fk:getCardById(id) end
+            break
+          end
+          if delayed_trick then break end
+        end
+      end
+      if delayed_trick then
+        card = player.room:askForCard(player, 1, 1, false, self.name, true, ".|.|.|yuji_sorcery",
+        "#qianhuan-def::" .. friend .. ":" .. delayed_trick:toLogString(), "yuji_sorcery")
+      end
     end
     if #card > 0 then
       self.cost_data = card
@@ -173,10 +205,34 @@ local qianhuan = fk.CreateTriggerSkill{
     if event == fk.Damaged then
       room:notifySkillInvoked(player, "qianhuan", "masochism")
       player:addToPile("yuji_sorcery", self.cost_data, true, self.name)
-    else
+    elseif event == fk.TargetConfirming then
       room:notifySkillInvoked(player, "qianhuan", "defensive")
       room:moveCardTo(self.cost_data, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, self.name, "yuji_sorcery")
       AimGroup:cancelTarget(data, player.id)
+    elseif event == fk.BeforeCardsMove then
+      room:moveCardTo(self.cost_data, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, self.name, "yuji_sorcery")
+      local mirror_moves = {}
+      local ids = {}
+      for _, move in ipairs(data) do
+        if move.toArea == Card.PlayerJudge then
+          local move_info = {}
+          local mirror_info = {}
+          for _, info in ipairs(move.moveInfo) do
+            local id = info.cardId
+            table.insert(mirror_info, info)
+            table.insert(ids, id)
+          end
+          if #mirror_info > 0 then
+            move.moveInfo = move_info
+            local mirror_move = table.clone(move)
+            mirror_move.to = nil
+            mirror_move.toArea = Card.DiscardPile
+            mirror_move.moveInfo = mirror_info
+            table.insert(mirror_moves, mirror_move)
+          end
+        end
+      end
+      table.insertTable(data, mirror_moves)
     end
   end,
 }

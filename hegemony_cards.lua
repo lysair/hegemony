@@ -275,7 +275,7 @@ local sixSwordsSkill = fk.CreateAttackRangeSkill{
   correct_func = function (self, from, to)
     if from.kingdom ~= "unknown" then
       if table.find(Fk:currentRoom().alive_players, function(p)
-        return H.compareKingdomWith(from, p) and
+        return from ~= p and H.compareKingdomWith(from, p) and
           p:getEquipment(Card.SubtypeWeapon) and Fk:getCardById(p:getEquipment(Card.SubtypeWeapon)).name == "six_swords" end) then
         return 1
       end
