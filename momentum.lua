@@ -118,8 +118,98 @@ Fk:loadTranslationTable{
   ['#hengjiang_delay'] = '横江',
 
   ['$hengjiang1'] = '霸必奋勇杀敌，一雪夷陵之耻！',
-	['$hengjiang2'] = '江横索寒，阻敌绝境之中！',
-	['~ld__zangba'] = '断刃沉江，负主重托……',
+  ['$hengjiang2'] = '江横索寒，阻敌绝境之中！',
+  ['~ld__zangba'] = '断刃沉江，负主重托……',
+}
+
+local mifuren = General(extension, "ld__mifuren", "shu", 3, 3, General.Female)
+local guixiu = fk.CreateTriggerSkill{
+  name = "guixiu",
+  anim_type = "drawcard",
+  events = {fk.GeneralRevealed, "fk.GeneralRemoved"},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and data == "ld__mifuren" and ((event == "fk.GeneralRemoved" and player:isWounded()) or player:hasSkill(self.name))
+  end,
+  on_cost = function(self, event, target, player, data)
+    return player.room:askForSkillInvoke(player, self.name, nil, "#guixiu-" .. (event == fk.GeneralRevealed and "draw" or "recover"))
+  end,
+  on_use = function(self, event, target, player, data)
+    if event == fk.GeneralRevealed then
+      player:drawCards(2, self.name)
+    else
+      player.room:recover{
+        who = player,
+        num = 1,
+        skillName = self.name,
+      }
+    end
+  end
+}
+local cunsi = fk.CreateActiveSkill{
+  name = "cunsi",
+  anim_type = "big",
+  target_num = 1,
+  target_filter = function(self, to_select, selected)
+    return #selected == 0
+  end,
+  on_use = function(self, room, effect)
+    local player = room:getPlayerById(effect.from)
+    H.removeGeneral(room, player, player.deputyGeneral == "ld__mifuren")
+    local target = room:getPlayerById(effect.tos[1])
+    room:handleAddLoseSkills(target, "yongjue", nil)
+    if target ~= player and not target.dead then
+      target:drawCards(2, self.name)
+    end
+  end,
+}
+local yongjue = fk.CreateTriggerSkill{
+  name = "yongjue",
+  anim_type = "support",
+  events = {fk.CardUseFinished},
+  can_trigger = function(self, event, target, player, data)
+    if player:hasSkill(self.name) and H.compareKingdomWith(target, player) and not target.dead and data.card.trueName == "slash" then
+      local events = target.room.logic:getEventsOfScope(GameEvent.UseCard, 1, function(e) 
+        local use = e.data[1]
+        return use.from == target.id and use.card.trueName == "slash" 
+      end, Player.HistoryTurn)
+      if #events == 1 and events[1].id == target.room.logic:getCurrentEvent().id then
+        local cards = Card:getIdList(data.card)
+        return #cards > 0 and table.every(cards, function(id) return target.room:getCardArea(id) == Card.Processing end)
+      end
+    end
+  end,
+  on_cost = function(self, event, target, player, data)
+    return target.room:askForSkillInvoke(target, self.name, nil, "#yongjue-invoke:::" .. data.card:toLogString())
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = target.room
+    -- room:doIndicate(player.id, {target.id})
+    room:obtainCard(target, data.card, true, fk.ReasonJustMove)
+  end,
+}
+mifuren:addSkill(guixiu)
+mifuren:addSkill(cunsi)
+mifuren:addRelatedSkill(yongjue)
+Fk:loadTranslationTable{
+  ['ld__mifuren'] = '糜夫人',
+  ["guixiu"] = "闺秀",
+  [":guixiu"] = "当你明置此武将牌后，你可摸两张牌。当你移除此武将牌后，你回复1点体力。",
+  ["cunsi"] = "存嗣",
+  [":cunsi"] = "出牌阶段，你可移除此武将牌并选择一名角色，其获得〖勇决〗。若其不为你，其摸两张牌。", -- canShowInPlay 若此武将牌处于明置状态
+  ["yongjue"] = "勇决",
+  [":yongjue"] = "当与你势力相同的一名角色于出牌阶段内使用的【杀】结算结束后，若此【杀】为其于此阶段内使用过的第一张牌，（你令）其选择是否获得此【杀】对应的所有实体牌。",
+
+  ["#guixiu-draw"] = "是否发动“闺秀”，摸两张牌",
+  ["#guixiu-recover"] = "是否发动“闺秀”，回复1点体力",
+  ["#yongjue-invoke"] = "勇决：你可以获得此%arg",
+
+  ["$guixiu1"] = "闺楼独看花月，倚窗顾影自怜。",
+  ["$guixiu2"] = "闺中女子，亦可秀气英拔。",
+  ["$cunsi1"] = "一切，便托付将军了……",
+  ["$cunsi2"] = "存汉室之嗣，留汉室之本。",
+  ["$yongjue1"] = "扶幼主，成霸业！",
+  ["$yongjue2"] = "能救一个是一个！",
+  ["~ld__mifuren"] = "阿斗被救，妾身再无牵挂…",
 }
 
 local sunce = General(extension, "ld__sunce", "wu", 4)
@@ -294,9 +384,9 @@ Fk:loadTranslationTable{
   [':ld__fenming'] = '结束阶段开始时，若你处于连环状态，你可弃置处于连环状态的每名角色的一张牌。',
 
   ["$ld__duanxie1"] = "区区绳索就想挡住吾等去路？！",
-	["$ld__duanxie2"] = "以身索敌，何惧同伤！",
-	["$ld__fenming1"] = "东吴男儿，岂是贪生怕死之辈？",
-	["$ld__fenming2"] = "不惜性命，也要保主公周全！",
+  ["$ld__duanxie2"] = "以身索敌，何惧同伤！",
+  ["$ld__fenming1"] = "东吴男儿，岂是贪生怕死之辈？",
+  ["$ld__fenming2"] = "不惜性命，也要保主公周全！",
   ["~ld__chenwudongxi"] = "杀身卫主，死而无憾！",
 }
 
@@ -351,13 +441,13 @@ Fk:loadTranslationTable{
   ['hengzheng'] = '横征',
   [':hengzheng'] = '摸牌阶段，若你体力值为1或者没有手牌，你可以改为获得所有其他角色区域内各一张牌。',
   ['baoling'] = '暴凌',
-  [':baoling'] = '主将技，锁定技，出牌阶段结束时，若此武将已明置且你有副将，则你移除副将，加三点体力上限并回复三点体力，然后获得技能“崩坏”。',
+  [':baoling'] = '主将技，锁定技，出牌阶段结束时，若此武将已明置且你有副将，则你移除副将，加3点体力上限并回复3点体力，然后获得技能〖崩坏〗。',
 
-  ['$hengzheng1'] = '老夫进京平乱，岂能空手而归？	',
-	['$hengzheng2'] = '谁的都是我的！',
+  ['$hengzheng1'] = '老夫进京平乱，岂能空手而归？',
+  ['$hengzheng2'] = '谁的？都是我的！',
   ['$baoling1'] = '大丈夫，岂能妇人之仁？',
-	['$baoling2'] = '待吾大开杀戒，哈哈哈哈！',
-	['~ld__dongzhuo'] = '为何人人……皆与我为敌？',
+  ['$baoling2'] = '待吾大开杀戒，哈哈哈哈！',
+  ['~ld__dongzhuo'] = '为何人人……皆与我为敌？',
 }
 
 return extension

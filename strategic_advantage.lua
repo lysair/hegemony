@@ -935,5 +935,34 @@ Fk:loadTranslationTable{
   ["#jade_seal_skill"] = "玉玺",
   ["#jade_seal-ask"] = "受到【玉玺】的效果，视为你使用一张【知己知彼】",
 }
-
+--[[
+local alliance = fk.CreateActiveSkill{
+  name = "alliance",
+  can_use = function(self, player, card)
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
+  end,
+  max_card_num = 3,
+  min_card_num = 1,
+  card_filter = function(self, to_select, selected)
+    return table.contains(Fk:getCardById(to_select).special_skills, self.name)
+  end,
+  target_num = 1,
+  target_filter = function(self, to_select, selected, _, card)
+    return #selected == 0 and not H.compareKingdomWith(Fk:currentRoom():getPlayerById(to_select), Self)
+  end,
+  on_use = function(self, room, effect)
+    local target = room:getPlayerById(effect.tos[1])
+    local player = room:getPlayerById(effect.from)
+    room:moveCardTo(effect.cards, Card.PlayerHand, target, fk.ReasonGive, self.name, nil, true, player.id)
+    if H.compareKingdomWith(target, player, true) and not player.dead then
+      player:drawCards(#effect.cards, self.name)
+    end
+  end
+}
+Fk:addSkill(alliance)
+Fk:loadTranslationTable{
+  ["alliance"] = "合纵",
+  [":alliance"] = "出牌阶段限一次，你可选择一项：1.若你已确定势力，你可将手牌中有“合”标记的至多三张牌交给与你势力不同的一名角色，摸等量的牌；2.你可将手牌中有“合”标记的至多三张牌交给未确定势力的一名角色。",
+}
+]]
 return extension

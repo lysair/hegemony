@@ -2,6 +2,8 @@ local extension = Package:new("transformation")
 extension.extensionName = "hegemony"
 extension.game_modes_whitelist = { 'nos_heg_mode', 'new_heg_mode' }
 
+local H = require "packages/hegemony/util"
+
 Fk:loadTranslationTable{
   ["transformation"] = "君临天下·变",
 }
@@ -11,6 +13,48 @@ shamoke:addSkill("jilis")
 Fk:loadTranslationTable{
   ['ld__shamoke'] = '沙摩柯',
   ['~ld__shamoke'] = '五溪蛮夷，不可能输！',
+}
+
+local masu = General(extension, "ld__masu", "shu", 3)
+local zhiman = fk.CreateTriggerSkill{
+  name = "ld__zhiman",
+  events = {fk.DamageCaused},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) and data.to ~= player
+  end,
+  on_cost = function(self, event, target, player, data)
+    return player.room:askForSkillInvoke(player, self.name, nil, "#ld__zhiman-invoke::"..data.to.id)
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    if #data.to:getCardIds{Player.Equip, Player.Judge} > 0 then -- 开摆！
+      local card = room:askForCardChosen(player, data.to, "ej", self.name)
+      room:obtainCard(player.id, card, true, fk.ReasonPrey)
+    end
+    if H.compareKingdomWith(target, player) and player:getMark("@@ld__zhiman_transform") == 0
+      and room:askForChoice(player, {"ld__zhiman_transform::" .. target.id, "Cancel"}, self.name) ~= "Cancel"
+      and room:askForChoice(target, {"ls__zhiman_transform_self", "Cancel"}, self.name) ~= "Cancel" then
+        room:setPlayerMark(player, "@@ld__zhiman_transform", 1)
+        H.transformGeneral(room, target)
+    end
+    return true
+  end
+}
+masu:addSkill("sanyao")
+masu:addSkill(zhiman)
+Fk:loadTranslationTable{
+  ['ld__masu'] = '马谡',
+  ["ld__zhiman"] = "制蛮",
+  [":ld__zhiman"] = "当你对其他角色造成伤害时，你可防止此伤害，你获得其装备区或判定区里的一张牌。若其与你势力相同，你可令其选择是否变更。",
+
+  ["#ld__zhiman-invoke"] = "制蛮：你可以防止对 %dest 造成的伤害，获得其场上的一张牌。若其与你势力相同，你可令其选择是否变更副将",
+  ["ld__zhiman_transform"] = "令%dest选择是否变更副将",
+  ["ld__zhiman_transform_self"] = "变更副将",
+  ["@@ld__zhiman_transform"] = "制蛮 已变更",
+
+  ["$ld__zhiman1"] = "兵法谙熟于心，取胜千里之外！",
+  ["$ld__zhiman2"] = "丞相多虑，且看我的！",
+  ["~ld__masu"] = "败军之罪，万死难赎……" ,
 }
 
 local lingtong = General(extension, "ld__lingtong", "wu", 4)
@@ -97,7 +141,7 @@ Fk:loadTranslationTable{
   ["#yongjin-choose"] = "勇进：你可以移动场上的一张装备牌",
 
   ["$yongjin1"] = "生死，只在电光火石之间。", -- ？
-	["$yongjin2"] = "大军攻城，我打头阵！",
+  ["$yongjin2"] = "大军攻城，我打头阵！",
 }
 
 --[[
@@ -105,9 +149,9 @@ local lijueguosi = General(extension, "ld__lijueguosi", "qun", 4)
 Fk:loadTranslationTable{
   ['ld__lijueguosi'] = '李傕郭汜',
   ["xiongsuan"] = "凶算",
-	[":xiongsuan"] = "限定技，出牌阶段，你可弃置一张手牌并选择与你势力相同的一名角色，你对其造成1点伤害，摸三张牌，选择其一个已发动过的限定技，然后此回合结束前，你令此技能于此局游戏内的发动次数上限+1。",
-	["#xiongsuan-reset"] = "凶算：请重置%dest的一项技能",
-	-- ["#XiongsuanReset"] = "%from 重置了限定技“%arg”",
+  [":xiongsuan"] = "限定技，出牌阶段，你可弃置一张手牌并选择与你势力相同的一名角色，你对其造成1点伤害，摸三张牌，选择其一个已发动过的限定技，然后此回合结束前，你令此技能于此局游戏内的发动次数上限+1。",
+  ["#xiongsuan-reset"] = "凶算：请重置%dest的一项技能",
+  -- ["#XiongsuanReset"] = "%from 重置了限定技“%arg”",
 }
 ]]
 return extension
