@@ -27,13 +27,14 @@ local zhiman = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    if #data.to:getCardIds{Player.Equip, Player.Judge} > 0 then -- 开摆！
-      local card = room:askForCardChosen(player, data.to, "ej", self.name)
+    local target = data.to
+    if #target:getCardIds{Player.Equip, Player.Judge} > 0 then -- 开摆！
+      local card = room:askForCardChosen(player, target, "ej", self.name)
       room:obtainCard(player.id, card, true, fk.ReasonPrey)
     end
     if H.compareKingdomWith(target, player) and player:getMark("@@ld__zhiman_transform") == 0
       and room:askForChoice(player, {"ld__zhiman_transform::" .. target.id, "Cancel"}, self.name) ~= "Cancel"
-      and room:askForChoice(target, {"ls__zhiman_transform_self", "Cancel"}, self.name) ~= "Cancel" then
+      and room:askForChoice(target, {"ld__zhiman_transform_self", "Cancel"}, self.name) ~= "Cancel" then
         room:setPlayerMark(player, "@@ld__zhiman_transform", 1)
         H.transformGeneral(room, target)
     end
