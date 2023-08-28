@@ -1794,7 +1794,6 @@ Fk:loadTranslationTable{
   ["~hs__zhangjiao"] = "黄天…也死了……",
 }
 
---[[
 local caiwenji = General(extension, "hs__caiwenji", "qun", 3, 3, General.Female)
 local duanchang = fk.CreateTriggerSkill{
   name = "hs__duanchang",
@@ -1806,25 +1805,52 @@ local duanchang = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    local to = data.damage.from
-    local skills = {}
-    local choices = {} -- 暗将
-    table.insert(choices, to.general ~= "anjiang" and to.general or "mainGeneral")
-    table.insert(choices, to.deputyGeneral ~= "anjiang" and to.deputyGeneral or "deputyGeneral")
+    local to = data.damage.from ---@type ServerPlayer
+    local choices = {}
+    if not to.general:startsWith("blank_") then
+      table.insert(choices, to.general ~= "anjiang" and to.general or "mainGeneral")
+    end
+    if not to.deputyGeneral:startsWith("blank_") then
+      table.insert(choices, to.deputyGeneral ~= "anjiang" and to.deputyGeneral or "deputyGeneral")
+    end
+    if #choices == 0 then return false end
     local choice = room:askForChoice(player, choices, self.name, "#hs__duanchang-ask::" .. to.id)
     local record = type(to:getMark("@hs__duanchang")) == "table" and to:getMark("@hs__duanchang") or {}
     table.insert(record, choice)
     room:setPlayerMark(to, "@hs__duanchang", record)
-    if choice == "mainGeneral" then
-      choice = to:getMark("__heg_general") -- 没用
-    elseif choice == "deputyGeneral" then
-      choice = to:getMark("__heg_deputy")
+    local _g = (choice == "mainGeneral" or choice == to.general) and to.general or to.deputyGeneral
+    if _g ~= "anjiang" then
+      local skills = {}
+      for _, skill_name in ipairs(Fk.generals[_g]:getSkillNameList(true)) do
+        table.insertIfNeed(skills, skill_name)
+      end
+      if #skills > 0 then
+        room:handleAddLoseSkills(to, "-"..table.concat(skills, "|-"), nil, true, false)
+      end
+    else
+      _g = choice == "mainGeneral" and to:getMark("__heg_general") or to:getMark("__heg_deputy")
+      local general = Fk.generals[_g]
+      for _, s in ipairs(general:getSkillNameList()) do
+        local skill = Fk.skills[s]
+        to:loseFakeSkill(skill)
+      end
+      local record = type(to:getMark("_hs__duanchang_anjiang")) == "table" and to:getMark("_hs__duanchang_anjiang") or {}
+      table.insert(record, _g)
+      room:setPlayerMark(to, "_hs__duanchang_anjiang", record)
     end
-    for _, skill_name in ipairs(Fk.generals[choice]:getSkillNameList(true)) do
+  end,
+
+  refresh_events = {fk.GeneralRevealed},
+  can_refresh = function(self, event, target, player, data)
+    return target == player and type(player:getMark("_hs__duanchang_anjiang")) == "table" and table.contains(player:getMark("_hs__duanchang_anjiang"), data)
+  end,
+  on_refresh = function(self, event, target, player, data)
+    local skills = {}
+    for _, skill_name in ipairs(Fk.generals[data]:getSkillNameList(true)) do
       table.insertIfNeed(skills, skill_name)
     end
     if #skills > 0 then
-      room:handleAddLoseSkills(to, "-"..table.concat(skills, "|-"), nil, true, false)
+      player.room:handleAddLoseSkills(player, "-"..table.concat(skills, "|-"), nil, true, false)
     end
   end,
 }
@@ -1837,8 +1863,11 @@ Fk:loadTranslationTable{
 
   ["#hs__duanchang-ask"] = "断肠：令 %dest 失去一张武将牌上的所有技能",
   ["@hs__duanchang"] = "断肠",
+
+  ["$hs__duanchang1"] = "流落异乡愁断肠。",
+  ["$hs__duanchang2"] = "日东月西兮徒相望，不得相随兮空断肠。",
+  ["~hs__caiwenji"] = "人生几何时，怀忧终年岁。",
 }
---]]
 
 local mateng = General(extension, "hs__mateng", "qun", 4)
 
@@ -2415,7 +2444,7 @@ Fk:addSkill(vanguradSkill)
 Fk:loadTranslationTable{
   ["vanguard_skill&"] = "先驱",
   ["#vanguard_skill&"] = "你可弃一枚“先驱”，将手牌摸至4张，观看一名其他角色的一张暗置武将牌",
-  [":vanguard_skill&"] = "出牌阶段，你可弃一枚“先驱”，将手牌摸至4张，观看一名其他角色的一张暗置武将牌",
+  [":vanguard_skill&"] = "出牌阶段，你可弃一枚“先驱”，将手牌摸至4张，观看一名其他角色的一张暗置武将牌。",
 }
 
 local yinyangfishSkill = fk.CreateActiveSkill{
@@ -2515,7 +2544,7 @@ Fk:loadTranslationTable{
   ["#companion_skill&"] = "你可弃一枚“珠联璧合”，摸两张牌",
   [":companion_skill&"] = "出牌阶段，你可弃一枚“珠联璧合”，摸两张牌。",
   ["companion_peach&"] = "珠联[桃]",
-  [":companion_peach&"] = "你可弃一枚“珠联璧合”，视为使用【桃】",
+  [":companion_peach&"] = "你可弃一枚“珠联璧合”，视为使用【桃】。",
 }
 
 local battleRoyalVS = fk.CreateViewAsSkill{
