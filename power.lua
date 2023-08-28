@@ -125,7 +125,7 @@ Fk:loadTranslationTable{
 
   ["#ld__buyi-ask"] = "补益：你可对 %dest 发起军令。若来源不执行，则 %src 回复1点体力",
 
-  ["$ganlu_ld__wuguotai1"] = "玄德，实乃佳婿呀！。", -- 特化
+  ["$ganlu_ld__wuguotai1"] = "玄德，实乃佳婿呀！", -- 特化
 	["$ganlu_ld__wuguotai2"] = "好一个郎才女貌，真是天作之合啊。",
 	["$ld__buyi1"] = "有我在，定保贤婿无余！",
 	["$ld__buyi2"] = "东吴，岂容汝等儿戏！",
