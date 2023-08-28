@@ -24,7 +24,7 @@ end
 ---@param deputy General
 ---@return boolean
 H.isCompanionWith = function(general, deputy) -- 缺君主
-  return table.contains(general.companions, deputy.trueName) or table.contains(deputy.companions, general.trueName)
+  return table.contains(general.companions, deputy.name) or table.contains(deputy.companions, general.name)
 end
 
 ---@param room Room
