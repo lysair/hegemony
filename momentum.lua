@@ -87,6 +87,7 @@ local hengjiangdelay = fk.CreateTriggerSkill{
 }
 hengjiang:addRelatedSkill(hengjiangdelay)
 zangba:addSkill(hengjiang)
+zangba:addCompanions("hs__zhangliao")
 Fk:loadTranslationTable{
   ['ld__zangba'] = '臧霸',
   ['hengjiang'] = '横江',
@@ -112,7 +113,7 @@ local madai_mashu = fk.CreateDistanceSkill{
 }
 madai:addSkill(madai_mashu)
 madai:addSkill("re__qianxi")
-madai:addCompanions("machao")
+madai:addCompanions("hs__machao")
 Fk:loadTranslationTable{
   ["ld__madai"] = "马岱",
   ["heg_madai__mashu"] = "马术",
@@ -203,12 +204,12 @@ Fk:loadTranslationTable{
   ["#guixiu-recover"] = "是否发动“闺秀”，回复1点体力",
   ["#yongjue-invoke"] = "勇决：你可以获得此%arg",
 
-  ["$guixiu1"] = "闺楼独看花月，倚窗顾影自怜。",
-  ["$guixiu2"] = "闺中女子，亦可秀气英拔。",
-  ["$cunsi1"] = "一切，便托付将军了……",
-  ["$cunsi2"] = "存汉室之嗣，留汉室之本。",
-  ["$yongjue1"] = "扶幼主，成霸业！",
-  ["$yongjue2"] = "能救一个是一个！",
+  ["$guixiu1"] = "闺中女子，亦可秀气英拔。",
+  ["$guixiu2"] = "闺楼独看花月，倚窗顾影自怜。",
+  ["$cunsi1"] = "存汉室之嗣，留汉室之本。",
+  ["$cunsi2"] = "一切，便托付将军了……",
+  ["$yongjue1"] = "能救一个是一个！",
+  ["$yongjue2"] = "扶幼主，成霸业！",
   ["~ld__mifuren"] = "阿斗被救，妾身再无牵挂…",
 }
 
