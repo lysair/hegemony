@@ -199,7 +199,7 @@ local diancai = fk.CreateTriggerSkill{
     local num = 0
     player.room.logic:getEventsOfScope(GameEvent.MoveCards, 1, function(e)
       local move = e.data[1]
-      if move.from == player.id and ((move.to and move.to ~= player.id) or not table.contains({Card.PlayerHand, Card.PlayerEquip}, move.toArea)) then
+      if move.from and move.from == player.id and ((move.to and move.to ~= player.id) or not table.contains({Card.PlayerHand, Card.PlayerEquip}, move.toArea)) then
         for _, info in ipairs(move.moveInfo) do
           if info.fromArea == Card.PlayerHand or info.fromArea == Card.PlayerEquip then
             num = num + 1
