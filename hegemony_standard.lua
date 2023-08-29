@@ -416,7 +416,7 @@ Fk:loadTranslationTable{
 
 local liubei = General(extension, "hs__liubei", "shu", 4)
 liubei:addSkill("ex__rende")
-liubei:addCompanions({"hs__guanyu", "hs__zhangfei"})
+liubei:addCompanions({"hs__guanyu", "hs__zhangfei", "hs__ganfuren"})
 Fk:loadTranslationTable{
   ["hs__liubei"] = "刘备",
   ["~hs__liubei"] = "汉室未兴，祖宗未耀，朕实不忍此时西去……",
