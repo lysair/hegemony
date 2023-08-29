@@ -27,7 +27,7 @@ local jieyue = fk.CreateTriggerSkill{
   end,
   on_cost = function(self, event, target, player, data)
     local plist, cid = player.room:askForChooseCardAndPlayers(player, table.map(table.filter(player.room.alive_players, function(p) return
-      p.kingdom ~= "wei"
+      p.kingdom ~= "wei" and p ~= player
     end), Util.IdMapper), 1, 1, ".|.|.|hand", "#ld__jieyue-target", self.name, true)
     if #plist > 0 then
       self.cost_data = {plist[1], cid}
@@ -71,18 +71,101 @@ Fk:loadTranslationTable{
   ["#ld__jieyue-target"] = "节钺：你可将一张手牌交给不是魏势力或没有势力的一名角色，对其发起军令",
   ["#ld__jieyue_draw"] = "节钺",
 }
---[[
+
+local wangping = General(extension, "ld__wangping", "shu", 4)
+wangping:addCompanions("ld__jiangwanfeiyi")
+local jianglue = fk.CreateActiveSkill{
+  name = "jianglue",
+  frequency = Skill.Limited,
+  anim_type = "support",
+  can_use = function(self, player)
+    return player:usedSkillTimes(self.name, Player.HistoryGame) == 0
+  end,
+  card_filter = Util.FalseFunc,
+  on_use = function(self, room, effect)
+    local player = room:getPlayerById(effect.from)
+    local index = H.startCommand(player, self.name)
+    local kingdom = player.kingdom == "wild" and tostring(player.id) or player.kingdom -- 权宜
+    for _, p in ipairs(room:getAlivePlayers()) do -- 双势力，野心家，君主……
+      if p.kingdom == "unknown" and not p.dead then
+        if H.getKingdomPlayersNum(room)[kingdom] >= #room.players // 2 then break end
+        if Fk.generals[p:getMark("__heg_general")].kingdom == kingdom then
+          local choices = {}
+          if not p:prohibitReveal() then
+            table.insert(choices, "revealMain")
+          end
+          if not p:prohibitReveal(true) then
+            table.insert(choices, "revealDeputy")
+          end
+          if #choices > 0 then
+            if #choices == 2 then table.insert(choices, "revealAll") end
+            table.insert(choices, "Cancel")
+            local choice = room:askForChoice(p, choices, self.name)
+            if choice == "revealMain" then p:revealGeneral(false)
+            elseif choice == "revealDeputy" then p:revealGeneral(true)
+            elseif choice == "revealAll" then
+              p:revealGeneral(false)
+              p:revealGeneral(true)
+            end
+          end
+        end
+      end
+    end
+    local targets = table.map(table.filter(room.alive_players, function(p) return H.compareKingdomWith(p, player) and p ~= player end), Util.IdMapper)
+    local tos = {}
+    if #targets > 0 then
+      room:doIndicate(player.id, {targets})
+      room:sortPlayersByAction(targets)
+      for _, pid in ipairs(targets) do
+        local p = room:getPlayerById(pid)
+        if player.dead then break end
+        if not p.dead and H.doCommand(p, self.name, index, player) then
+          table.insert(tos, pid)
+        end
+      end
+    end
+    room:changeMaxHp(player, 1)
+    room:recover({
+      who = player,
+      num = 1,
+      recoverBy = player,
+      skillName = self.name
+    })
+    if #tos == 0 then return false end
+    local num = 0
+    room:sortPlayersByAction(tos)
+    for _, pid in ipairs(tos) do
+      local p = room:getPlayerById(pid)
+      room:changeMaxHp(p, 1)
+      if room:recover({
+        who = p,
+        num = 1,
+        recoverBy = player,
+        skillName = self.name
+      }) then
+        num = num + 1
+      end
+    end
+    if num > 0 then player:drawCards(num, self.name) end
+  end
+}
+wangping:addSkill(jianglue)
+
 Fk:loadTranslationTable{
   ["ld__wangping"] = "王平",
-  ["jianglve"] = "将略",
-  [":jianglve"] = "限定技，出牌阶段，你可选择军令，然后发动势力召唤。你选择所有与你势力相同的其他角色，这些角色各选择是否执行此军令。你加1点体力上限，回复1点体力。所有选择是的角色各加1点体力上限，回复1点体力。你摸X张牌（X为以此法回复过体力的角色数）。",
+  ["jianglue"] = "将略",
+  [":jianglue"] = "限定技，出牌阶段，你可从随机两项军令中选择一项，然后发动势力召唤。你选择所有与你势力相同的其他角色，这些角色各选择是否执行此军令。你加1点体力上限，回复1点体力，所有选择是的角色各加1点体力上限，回复1点体力。然后你摸X张牌（X为以此法回复过体力的角色数）。",
+}
 
+--[[
+Fk:loadTranslationTable{
   ["ld__fazheng"] = "法正",
   ["ld__enyuan"] = "恩怨",
   [":ld__enyuan"] = "锁定技，当其他角色对你使用【桃】时，其摸一张牌；当你受到伤害后，伤害来源需交给你一张手牌，否则失去1点体力。",
   ["ld__xuanhuo"] = "眩惑",
   [":ld__xuanhuo"] = "与你势力相同的其他角色的出牌阶段限一次，其可以交给你一张手牌，然后其弃置一张牌，选择下列技能中的一个：〖武圣〗〖咆哮〗〖龙胆〗〖铁骑〗〖烈弓〗〖狂骨〗（场上已有的技能无法选择）。其于此回合内或明置有其以此法选择的技能的武将牌之前拥有其以此法选择的技能。",
-
+}
+Fk:loadTranslationTable{
   ["ld__lukang"] = "陆抗", --手杀版
   ["keshou"] = "恪守",
   [":keshou"] = "当你受到伤害时，你可发动此技能，你可弃置两张颜色相同的手牌，令此伤害值-1。若没有与你势力相同的其他角色，你判定，若结果为红色，你摸一张牌。",
@@ -131,15 +214,163 @@ Fk:loadTranslationTable{
 	["$ld__buyi2"] = "东吴，岂容汝等儿戏！",
 	["~ld__wuguotai"] = "诸位卿家，还请尽力辅佐仲谋啊……",
 }
---[[
+
+local yuanshu = General(extension, "ld__yuanshu", "qun", 4)
+local yongsi = fk.CreateTriggerSkill{
+  name = "ld__yongsi",
+  anim_type = "drawcard",
+  frequency = Skill.Compulsory,
+  events = {fk.EventPhaseStart, fk.DrawNCards, fk.TargetConfirmed},
+  mute = true,
+  can_trigger = function(self, event, target, player, data)
+    if target ~= player or not player:hasSkill(self.name) then return false end
+    if event == fk.TargetConfirmed then
+      return data.card.trueName == "known_both" and not player:isKongcheng()
+    else
+      if not H.isBigKingdomPlayer(player) or table.find(player.room.alive_players, function(p)
+        return table.find(p:getEquipments(Card.SubtypeTreasure), function(cid)
+          return Fk:getCardById(cid).name == "jade_seal"
+        end)
+      end) then return false end
+      return event == fk.DrawNCards or player.phase == Player.Play
+    end
+  end,
+  on_cost = function(self, event, target, player, data)
+    local room = player.room
+    if event == fk.EventPhaseStart then
+      local card = Fk:cloneCard("known_both")
+      local max_num = card.skill:getMaxTargetNum(player, card)
+      local targets = {}
+      for _, p in ipairs(room:getOtherPlayers(player)) do
+        if not player:isProhibited(p, card) then
+          table.insert(targets, p.id)
+        end
+      end
+      if #targets == 0 or max_num == 0 then return end
+      local to = room:askForChoosePlayers(player, targets, 1, max_num, "#yongsi__jade_seal-ask", self.name, false)
+      if #to > 0 then
+        self.cost_data = to
+        return true
+      end
+    else
+      return true
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    player:broadcastSkillInvoke(self.name)
+    if event == fk.EventPhaseStart then
+      room:notifySkillInvoked(player, self.name, "control")
+      local targets = table.map(self.cost_data, Util.Id2PlayerMapper)
+      room:useVirtualCard("known_both", nil, player, targets, self.name)
+    elseif event == fk.DrawNCards then
+      room:notifySkillInvoked(player, self.name, "drawcard")
+      data.n = data.n + 1
+    else
+      room:notifySkillInvoked(player, self.name, "negative")
+      if not player:isKongcheng() then
+        player:showCards(player:getCardIds(Player.Hand))
+      end
+    end
+  end,
+}
+local yongsiBig = H.CreateBigKingdomSkill{
+  name = "#yongsi_big",
+  fixed_func = function(self, player)
+    return player:hasSkill(self.name) and player.kingdom ~= "unknown" and not table.find(Fk:currentRoom().alive_players, function(p)
+      return table.find(p:getEquipments(Card.SubtypeTreasure), function(cid)
+        return Fk:getCardById(cid).name == "jade_seal"
+      end)
+    end)
+  end
+}
+yongsi:addRelatedSkill(yongsiBig)
+local weidi = fk.CreateActiveSkill{
+  name = "ld__weidi",
+  anim_type = "control",
+  can_use = function(self, player)
+    return player:usedSkillTimes(self.name, Player.HistoryGame) == 0
+  end,
+  card_filter = Util.FalseFunc,
+  target_num = 1,
+  target_filter = function(self, to_select, selected)
+    return to_select ~= Self.id and Fk:currentRoom():getPlayerById(to_select):getMark("_ld__weidi-turn") > 0
+  end,
+  on_use = function(self, room, effect)
+    local player = room:getPlayerById(effect.from)
+    local target = room:getPlayerById(effect.tos[1])
+    if not H.askCommandTo(player, target, self.name) and not target:isKongcheng() then
+      local cards = Fk:cloneCard("dilu")
+      cards:addSubcards(target:getCardIds(Player.Hand))
+      room:obtainCard(player, cards, false, fk.ReasonPrey)
+      local num = #cards.subcards
+      local cids
+      if #player:getCardIds{Player.Hand} > num then
+        cids = room:askForCard(player, num, num, true, self.name, false, nil, "#ld__weidi-cards::" .. target.id .. ":" .. num)
+      else
+        cids = player:getCardIds{Player.Hand}
+      end
+      if #cids > 0 then
+        room:moveCardTo(cids, Player.Hand, target, fk.ReasonGive, self.name, nil, false, player.id)
+      end
+    end
+  end,
+}
+local weidiRecorder = fk.CreateTriggerSkill{
+  name = "#ld__weidi_recorder",
+  visible = false,
+  refresh_events = {fk.AfterCardsMove, fk.EventAcquireSkill},
+  can_refresh = function(self, event, target, player, data)
+    return event == fk.AfterCardsMove or (target == player and data == weidi)
+  end,
+  on_refresh = function(self, event, target, player, data)
+    local room = player.room
+    if event == fk.AfterCardsMove then
+      for _, move in ipairs(data) do
+        if move.toArea == Card.PlayerHand and move.to then
+          local target = room:getPlayerById(move.to)
+          if target and target:getMark("_ld__weidi-turn") == 0 then
+            for _, info in ipairs(move.moveInfo) do
+              if info.fromArea == Card.DrawPile and target:getMark("_ld__weidi-turn") == 0 then
+                room:setPlayerMark(target, "_ld__weidi-turn", 1)
+              end
+            end
+          end
+        end
+      end
+    else
+      room.logic:getEventsOfScope(GameEvent.MoveCards, 1, function(e)
+        local move = e.data[1]
+        if move.toArea == Card.PlayerHand and move.to then
+          local target = room:getPlayerById(move.to)
+          if target and target:getMark("_ld__weidi-turn") == 0 then
+            for _, info in ipairs(move.moveInfo) do
+              if info.fromArea == Card.DrawPile and target:getMark("_ld__weidi-turn") == 0 then
+                room:setPlayerMark(target, "_ld__weidi-turn", 1)
+              end
+            end
+          end
+        end
+      end, Player.HistoryTurn)
+    end
+  end,
+}
+weidi:addRelatedSkill(weidiRecorder)
+yuanshu:addSkill(yongsi)
+yuanshu:addSkill(weidi)
+
 Fk:loadTranslationTable{
   ['ld__yuanshu'] = '袁术',
   ['ld__yongsi'] = "庸肆",
-  [':ld__yongsi'] = "锁定技，若所有角色的装备区里均没有【玉玺】，你视为装备着【玉玺】；你成为【知己知彼】的目标后，展示所有手牌。",
+  [':ld__yongsi'] = "锁定技，若所有角色的装备区里均没有【玉玺】，你视为装备着【玉玺】；当你成为【知己知彼】的目标后，展示所有手牌。",
   ['ld__weidi'] = "伪帝",
   [':ld__weidi'] = "出牌阶段限一次，你可选择一名本回合从牌堆获得过牌的其他角色，对其发起军令。若其不执行，则你获得其所有手牌，然后交给其等量的牌。",
+
+  ["#yongsi__jade_seal-ask"] = "庸肆：受到【玉玺】的效果，视为你使用一张【知己知彼】",
+  ["#ld__weidi-cards"] = "伪帝：交给 %dest %arg 张牌",
+
 }
-]]
+
 local zhangxiu = General(extension, "ld__zhangxiu", "qun", 4)
 local fudi = fk.CreateTriggerSkill{
   name = 'ld__fudi',

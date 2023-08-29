@@ -43,6 +43,18 @@ H.getKingdomPlayersNum = function(room)
   return kingdomMapper
 end
 
+---@param player ServerPlayer
+---@return string
+H.getActualMainGeneral = function(player)
+  return player.general == "anjiang" and player:getMark("__heg_general") or player.general
+end
+
+---@param player ServerPlayer
+---@return string
+H.getActualDeputyGeneral = function(player)
+  return player.deputyGeneral == "anjiang" and player:getMark("__heg_deputy") or player.deputyGeneral
+end
+
 --- 判断角色是否为大势力角色
 ---@param player ServerPlayer
 ---@return boolean
