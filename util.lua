@@ -43,18 +43,6 @@ H.getKingdomPlayersNum = function(room)
   return kingdomMapper
 end
 
----@param player ServerPlayer
----@return string
-H.getActualMainGeneral = function(player)
-  return player.general == "anjiang" and player:getMark("__heg_general") or player.general
-end
-
----@param player ServerPlayer
----@return string
-H.getActualDeputyGeneral = function(player)
-  return player.deputyGeneral == "anjiang" and player:getMark("__heg_deputy") or player.deputyGeneral
-end
-
 --- 判断角色是否为大势力角色
 ---@param player ServerPlayer
 ---@return boolean
@@ -339,11 +327,27 @@ Fk:loadTranslationTable{
   ["#HegNullificationAll"] = "%from 选择此 %card 对 %arg 势力生效",
 }
 
--- 判断有无主将/副将
+--- 判断有无主将/副将
+---@param player ServerPlayer
+---@param isDeputy bool
+---@return bool
 H.hasGeneral = function(player, isDeputy)
   local orig = isDeputy and (player.deputyGeneral or "") or player.general
   return orig ~= "" and not orig:startsWith("blank_")
 end
+
+--- 获得真正的主将/副将（而非暗将）
+---@param player ServerPlayer
+---@param isDeputy bool
+---@return string
+H.getActualGeneral = function(player, isDeputy)
+  if isDeputy then
+    return player.deputyGeneral == "anjiang" and player:getMark("__heg_deputy") or player.deputyGeneral or ""
+  else
+    return player.general == "anjiang" and player:getMark("__heg_general") or player.general
+  end
+end
+
 
 -- 移除武将牌
 ---@param room Room

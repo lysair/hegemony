@@ -523,6 +523,7 @@ heg = fk.CreateGameMode{
     "transformation",
     "power",
     "strategic_advantage",
+    "tenyear",
   },
 }
 

@@ -231,8 +231,8 @@ Fk:loadTranslationTable{
   ["@@hs__duanliang-phase"] = "断粮 无效",
 
   ["$hs__duanliang1"] = "截其源，断其粮，贼可擒也。",
-	["$hs__duanliang2"] = "人是铁，饭是钢。",
-	["~hs__xuhuang"] = "一顿不吃饿得慌。",
+  ["$hs__duanliang2"] = "人是铁，饭是钢。",
+  ["~hs__xuhuang"] = "一顿不吃饿得慌。",
 }
 
 local caoren = General(extension, "hs__caoren", "wei", 4)
@@ -307,8 +307,8 @@ Fk:loadTranslationTable{
   ["#hs__jushou-select"] = "据守：选择使用手牌中的一张装备牌或弃置手牌中的一张非装备牌",
 
   ["$hs__jushou1"] = "我先休息一会儿！",
-	["$hs__jushou2"] = "尽管来吧！",
-	["~hs__caoren"] = "实在是守不住了……",
+  ["$hs__jushou2"] = "尽管来吧！",
+  ["~hs__caoren"] = "实在是守不住了……",
 }
 
 local dianwei = General(extension, "hs__dianwei", "wei", 4)
@@ -410,8 +410,8 @@ Fk:loadTranslationTable{
   ["#hs__xiaoguo-discard"] = "骁果：你需弃置一张装备牌，否则 %src 对你造成1点伤害",
 
   ["$hs__xiaoguo1"] = "三军听我号令，不得撤退！",
-	["$hs__xiaoguo2"] = "看我先登城头，立下首功！",
-	["~hs__yuejin"] = "箭疮发作，吾命休矣。",
+  ["$hs__xiaoguo2"] = "看我先登城头，立下首功！",
+  ["~hs__yuejin"] = "箭疮发作，吾命休矣。",
 }
 
 local liubei = General(extension, "hs__liubei", "shu", 4)
@@ -423,10 +423,32 @@ Fk:loadTranslationTable{
 }
 
 local guanyu = General(extension, "hs__guanyu", "shu", 5)
-guanyu:addSkill("wusheng")
+local wusheng = fk.CreateViewAsSkill{
+  name = "hs__wusheng",
+  anim_type = "offensive",
+  pattern = "slash",
+  card_filter = function(self, to_select, selected)
+    if #selected == 1 then return false end
+    return Fk:getCardById(to_select).color == Card.Red
+  end,
+  view_as = function(self, cards)
+    if #cards ~= 1 then
+      return nil
+    end
+    local c = Fk:cloneCard("slash")
+    c.skillName = self.name
+    c:addSubcard(cards[1])
+    return c
+  end,
+}
+guanyu:addSkill(wusheng)
 guanyu:addCompanions("hs__zhangfei")
 Fk:loadTranslationTable{
   ["hs__guanyu"] = "关羽",
+  ["hs__wusheng"] = "武圣",
+  [":hs__wusheng"] = "你可将一张红色牌当【杀】使用或打出。",
+  ["$hs__wusheng1"] = "关羽在此，尔等受死！",
+  ["$hs__wusheng2"] = "看尔乃插标卖首！",
   ["~hs__guanyu"] = "什么？此地名叫麦城？",
 }
 
@@ -485,7 +507,7 @@ Fk:loadTranslationTable{
 
   ["#hs__paoxiaoTrigger"] = "咆哮",
   ["$hs__paoxiao1"] = "啊~~~",
-	["$hs__paoxiao2"] = "燕人张飞在此！",
+  ["$hs__paoxiao2"] = "燕人张飞在此！",
   ["~hs__zhangfei"] = "实在是杀不动了……",
 }
 
@@ -554,8 +576,8 @@ Fk:loadTranslationTable{
   ["zither"] = "琴",
 
   ["$hs__kongcheng1"] = "（抚琴声）",
-	["$hs__kongcheng2"] = "（抚琴声）",
-	["~hs__zhugeliang"] = "将星陨落，天命难违。",
+  ["$hs__kongcheng2"] = "（抚琴声）",
+  ["~hs__zhugeliang"] = "将星陨落，天命难违。",
 }
 
 local zhaoyun = General(extension, "hs__zhaoyun", "shu", 4)
@@ -667,8 +689,8 @@ Fk:loadTranslationTable{
   ["#longdan_jink-ask"] = "龙胆：你可令 %dest 以外的一名其他角色回复1点体力",
 
   ["$hs__longdan1"] = "能进能退，乃真正法器！",
-	["$hs__longdan2"] = "吾乃常山赵子龙也！",
-	["~hs__zhaoyun"] = "这，就是失败的滋味吗？",
+  ["$hs__longdan2"] = "吾乃常山赵子龙也！",
+  ["~hs__zhaoyun"] = "这，就是失败的滋味吗？",
 }
 
 local machao = General(extension, "hs__machao", "shu", 4)
@@ -756,15 +778,36 @@ Fk:loadTranslationTable{
 }
 
 local huangzhong = General(extension, "hs__huangzhong", "shu", 4)
-huangzhong:addSkill("liegong")
+local liegong = fk.CreateTriggerSkill{
+  name = "hs__liegong",
+  anim_type = "offensive",
+  events = {fk.TargetSpecified},
+  can_trigger = function(self, event, target, player, data)
+    if not (target == player and player:hasSkill(self.name)) then return end
+    local room = player.room
+    local to = room:getPlayerById(data.to)
+    local num = #to:getCardIds(Player.Hand)
+    local filter = num <= player:getAttackRange() or num >= player.hp
+    return data.card.trueName == "slash" and filter and player.phase == Player.Play
+  end,
+  on_use = function(self, event, target, player, data)
+    data.disresponsiveList = data.disresponsiveList or {}
+    table.insert(data.disresponsiveList, data.to)
+  end,
+}
+huangzhong:addSkill(liegong)
 huangzhong:addCompanions("hs__weiyan")
 Fk:loadTranslationTable{
   ["hs__huangzhong"] = "黄忠",
+  ["hs__liegong"] = "烈弓",
+  [":hs__liegong"] = "当你于出牌阶段内使用【杀】指定目标后，若其手牌数不小于你的体力值或不大于你的攻击范围，你可令其不能使用【闪】响应此【杀】。",
+  ["$hs__liegong1"] = "百步穿杨！",
+  ["$hs__liegong2"] = "中！",
   ["~hs__huangzhong"] = "不得不服老了……",
 }
 
 local weiyan = General(extension, "hs__weiyan", "shu", 4)
-local kuanggu = fk.CreateTriggerSkill{ -- 虽然已有
+local kuanggu = fk.CreateTriggerSkill{
   name = "hs__kuanggu",
   anim_type = "drawcard",
   events = {fk.Damage},
@@ -1048,9 +1091,9 @@ lvmeng:addSkill(mouduan)
 Fk:loadTranslationTable{
   ["hs__lvmeng"] = "吕蒙",
   ["hs__keji"] = "克己",
-	[":hs__keji"] = "锁定技，弃牌阶段开始时，若你于出牌阶段内未使用过有颜色的牌，或于出牌阶段内使用过的所有的牌的颜色均相同，你的手牌上限于此回合内+4。",
-	["hs__mouduan"] = "谋断",
-	[":hs__mouduan"] = "结束阶段开始时，若你于出牌阶段内使用过四种花色或三种类别的牌，你可移动场上的一张牌。",
+  [":hs__keji"] = "锁定技，弃牌阶段开始时，若你于出牌阶段内未使用过有颜色的牌，或于出牌阶段内使用过的所有的牌的颜色均相同，你的手牌上限于此回合内+4。",
+  ["hs__mouduan"] = "谋断",
+  [":hs__mouduan"] = "结束阶段开始时，若你于出牌阶段内使用过四种花色或三种类别的牌，你可移动场上的一张牌。",
 
   ["#hs__mouduan-move"] = "谋断：你可选择两名角色，移动他们场上的一张牌",
 
@@ -1233,15 +1276,15 @@ luxun:addSkill(duoshi)
 Fk:loadTranslationTable{
   ["hs__luxun"] = "陆逊",
   ["hs__qianxun"] = "谦逊",
-	[":hs__qianxun"] = "锁定技，当你成为【顺手牵羊】或【乐不思蜀】的目标时，你取消此目标。",
+  [":hs__qianxun"] = "锁定技，当你成为【顺手牵羊】或【乐不思蜀】的目标时，你取消此目标。",
   ["duoshi"] = "度势",
   [":duoshi"] = "每阶段限四次，你可将一张红色手牌当【以逸待劳】使用。",
 
   ["$qianxun1"] = "儒生脱尘，不为贪逸淫乐之事。",
-	["$qianxun2"] = "谦谦君子，不饮盗泉之水。",
-	["$duoshi2"] = "以今日之大势当行此计。",
-	["$duoshi1"] = "国之大计审视为先。",
-	["~luxun"] = "还以为我已经不再年轻……",
+  ["$qianxun2"] = "谦谦君子，不饮盗泉之水。",
+  ["$duoshi2"] = "以今日之大势当行此计。",
+  ["$duoshi1"] = "国之大计审视为先。",
+  ["~luxun"] = "还以为我已经不再年轻……",
 }
 
 local sunshangxiang = General(extension, "hs__sunshangxiang", "wu", 3, 3, General.Female)
@@ -1273,11 +1316,11 @@ sunshangxiang:addSkill("jieyin")
 Fk:loadTranslationTable{
   ["hs__sunshangxiang"] = "孙尚香",
   ["hs__xiaoji"] = "枭姬",
-	[":hs__xiaoji"] = "当你失去装备区的装备牌后，你可以摸两张牌。",
+  [":hs__xiaoji"] = "当你失去装备区的装备牌后，你可以摸两张牌。",
 
-	["$hs__xiaoji1"] = "哼！",
-	["$hs__xiaoji2"] = "看我的厉害！",
-	["~hs__sunshangxiang"] = "不！还不可以死！",
+  ["$hs__xiaoji1"] = "哼！",
+  ["$hs__xiaoji2"] = "看我的厉害！",
+  ["~hs__sunshangxiang"] = "不！还不可以死！",
 }
 
 local sunjian = General(extension, "hs__sunjian", "wu", 5)
@@ -1350,8 +1393,8 @@ Fk:loadTranslationTable{
   ["hs__tianxiang_loseHp"] = "令其失去1点体力并获得你弃置的牌",
 
   ["$hs__tianxiang1"] = "接着哦~",
-	["$hs__tianxiang2"] = "替我挡着~",
-	["~hs__xiaoqiao"] = "公瑾…我先走一步……",
+  ["$hs__tianxiang2"] = "替我挡着~",
+  ["~hs__xiaoqiao"] = "公瑾…我先走一步……",
 }
 
 local taishici = General(extension, "hs__taishici", "wu", 4)
@@ -1453,10 +1496,10 @@ dingfeng:addSkill("fenxun")
 Fk:loadTranslationTable{
   ["hs__dingfeng"] = "丁奉",
   ["$duanbing1"] = "众将官，短刀出鞘。",
-	["$duanbing2"] = "短兵轻甲也可取汝性命！",
-	["$fenxun1"] = "取封侯爵赏，正在今日！",
-	["$fenxun2"] = "给我拉过来！",
-	["~hs__dingfeng"] = "这风，太冷了……",
+  ["$duanbing2"] = "短兵轻甲也可取汝性命！",
+  ["$fenxun1"] = "取封侯爵赏，正在今日！",
+  ["$fenxun2"] = "给我拉过来！",
+  ["~hs__dingfeng"] = "这风，太冷了……",
 }
 
 local huatuo = General(extension, "hs__huatuo", "qun", 3)
@@ -1512,10 +1555,10 @@ Fk:loadTranslationTable{
   [":hs__chuli"] = "出牌阶段限一次，你可选择至多三名势力各不相同或未确定势力的其他角色，然后你弃置你和这些角色的各一张牌。被弃置♠牌的角色各摸一张牌。",
 
   ["$jijiu_hs__huatuo1"] = "救死扶伤，悬壶济世。",
-	["$jijiu_hs__huatuo2"] = "妙手仁心，药到病除。",
-	["$hs__chuli1"] = "病去，如抽丝。",
-	["$hs__chuli2"] = "病入膏肓，需下猛药。",
-	["~hs__huatuo"] = "生老病死，命不可违。",
+  ["$jijiu_hs__huatuo2"] = "妙手仁心，药到病除。",
+  ["$hs__chuli1"] = "病去，如抽丝。",
+  ["$hs__chuli2"] = "病入膏肓，需下猛药。",
+  ["~hs__huatuo"] = "生老病死，命不可违。",
 }
 
 local lvbu = General(extension, "hs__lvbu", "qun", 5)
@@ -1567,9 +1610,9 @@ Fk:loadTranslationTable{
   ["hs__lijian"] = "离间",
   [":hs__lijian"] = "出牌阶段限一次，你可弃置一张牌并选择两名其他男性角色，后选择的角色视为对先选择的角色使用一张【决斗】。",
 
-	["$hs__lijian1"] = "嗯呵呵~~呵呵~~",
-	["$hs__lijian2"] = "夫君，你要替妾身做主啊……",
-	["~hs__diaochan"] = "父亲大人，对不起……",
+  ["$hs__lijian1"] = "嗯呵呵~~呵呵~~",
+  ["$hs__lijian2"] = "夫君，你要替妾身做主啊……",
+  ["~hs__diaochan"] = "父亲大人，对不起……",
 }
 
 local yuanshao = General(extension, "hs__yuanshao", "qun", 4)
@@ -1639,8 +1682,8 @@ Fk:loadTranslationTable{
   ["#hs__luanji_draw"] = "乱击",
 
   ["$hs__luanji1"] = "弓箭手，准备放箭！",
-	["$hs__luanji2"] = "全都去死吧！",
-	["~hs__yuanshao"] = "老天不助我袁家啊！",
+  ["$hs__luanji2"] = "全都去死吧！",
+  ["~hs__yuanshao"] = "老天不助我袁家啊！",
 }
 
 local sx = General(extension, 'hs__yanliangwenchou', 'qun', 4)
@@ -1737,8 +1780,8 @@ Fk:loadTranslationTable{
   [':hs__weimu'] = '锁定技，当你成为黑色锦囊牌目标后，取消之。',
 
   ["$hs__weimu1"] = "此计伤不到我。",
-	["$hs__weimu2"] = "你奈我何！",
-	["~hs__jiaxu"] = "我的时辰也到了……",
+  ["$hs__weimu2"] = "你奈我何！",
+  ["~hs__jiaxu"] = "我的时辰也到了……",
 }
 
 local pangde = General(extension, "hs__pangde", "qun", 4)
@@ -1780,8 +1823,8 @@ Fk:loadTranslationTable{
   [":jianchu"] = "当你使用【杀】指定目标后，你可以弃置该角色的一张牌，若此牌：为装备牌，其不能使用【闪】抵消此【杀】；不为装备牌，其获得此【杀】。",
 
   ["$jianchu1"] = "你，可敢挡我！",
-	["$jianchu2"] = "我要杀你们个片甲不留！",
-	["~hs__pangde"] = "四面都是水……我命休矣。",
+  ["$jianchu2"] = "我要杀你们个片甲不留！",
+  ["~hs__pangde"] = "四面都是水……我命休矣。",
 }
 
 local zhangjiao = General(extension, "hs__zhangjiao", 'qun', 3)
@@ -2050,17 +2093,17 @@ Fk:loadTranslationTable{
   ["hs__kongrong"] = "孔融",
   ["mingshi"] = "名士",
   [":mingshi"] = "锁定技，当你受到伤害时，若来源有暗置的武将牌，你令伤害值-1。",
-	["lirang"] = "礼让",
-	[":lirang"] = "当你的牌因弃置而移至弃牌堆后，你可将其中的至少一张牌交给其他角色。",
+  ["lirang"] = "礼让",
+  [":lirang"] = "当你的牌因弃置而移至弃牌堆后，你可将其中的至少一张牌交给其他角色。",
 
   ["#lirang-give"] = "礼让：你可以将这些牌分配给任意角色，点“取消”仍弃置",
   ["#lirang_active"] = "礼让",
 
   ["$mingshi1"] = "孔门之后，忠孝为先。",
-	["$mingshi2"] = "名士之风，仁义高洁。",
-	["$lirang1"] = "夫礼先王以承天之道，以治人之情。",
-	["$lirang2"] = "谦者，德之柄也，让者，礼之逐也。",
-	["~kongrong"] = "覆巢之下，岂有完卵……",
+  ["$mingshi2"] = "名士之风，仁义高洁。",
+  ["$lirang1"] = "夫礼先王以承天之道，以治人之情。",
+  ["$lirang2"] = "谦者，德之柄也，让者，礼之逐也。",
+  ["~kongrong"] = "覆巢之下，岂有完卵……",
 }
 
 local jiling = General(extension, "hs__jiling", "qun", 4)
@@ -2210,17 +2253,17 @@ tianfeng:addSkill(suishi)
 Fk:loadTranslationTable{
   ["hs__tianfeng"] = "田丰",
   ["sijian"] = "死谏",
-	[":sijian"] = "当你失去手牌后，若你没有手牌，你可弃置一名其他角色的一张牌。",
-	["suishi"] = "随势",
-	[":suishi"] = "锁定技，当其他角色因受到伤害而进入濒死状态时，若来源与你势力相同，你摸一张牌；当其他角色死亡时，若其与你势力相同，你失去1点体力。",
+  [":sijian"] = "当你失去手牌后，若你没有手牌，你可弃置一名其他角色的一张牌。",
+  ["suishi"] = "随势",
+  [":suishi"] = "锁定技，当其他角色因受到伤害而进入濒死状态时，若来源与你势力相同，你摸一张牌；当其他角色死亡时，若其与你势力相同，你失去1点体力。",
 
   ["#sijian-ask"] = "死谏：你可弃置一名其他角色的一张牌",
 
   ["$sijian2"] = "忠言逆耳啊！！",
-	["$sijian1"] = "且听我最后一言！",
-	["$suishi1"] = "一荣俱荣！",
-	["$suishi2"] = "一损俱损……",
-	["~hs__tianfeng"] = "不纳吾言而反诛吾心，奈何奈何！！",
+  ["$sijian1"] = "且听我最后一言！",
+  ["$suishi1"] = "一荣俱荣！",
+  ["$suishi2"] = "一损俱损……",
+  ["~hs__tianfeng"] = "不纳吾言而反诛吾心，奈何奈何！！",
 }
 
 local panfeng = General(extension, "hs__panfeng", "qun", 4)
@@ -2230,7 +2273,7 @@ Fk:loadTranslationTable{
 
   ["$kuangfu1"] = "吾乃上将潘凤，可斩华雄！",
   ["$kuangfu2"] = "这家伙，还是给我用吧！",
-	["~hs__panfeng"] = "潘凤又被华雄斩啦。",
+  ["~hs__panfeng"] = "潘凤又被华雄斩啦。",
 }
 
 local zoushi = General(extension, "hs__zoushi", "qun", 3, 3, General.Female)
@@ -2340,10 +2383,10 @@ Fk:loadTranslationTable{
   ["#qingcheng-again"] = "倾城：你可再选择另一名武将牌均明置的其他角色，暗置其一张武将牌",
 
   ["$huoshui1"] = "走不动了嘛？" ,
-	["$huoshui2"] = "别走了在玩一会嘛？" ,
-	["$qingcheng1"] = "我和你们真是投缘啊。",
-	["$qingcheng2"] = "哼，眼睛都直了呀。",
-	["~hs__zoushi"] = "年老色衰了吗？",
+  ["$huoshui2"] = "别走了在玩一会嘛？" ,
+  ["$qingcheng1"] = "我和你们真是投缘啊。",
+  ["$qingcheng2"] = "哼，眼睛都直了呀。",
+  ["~hs__zoushi"] = "年老色衰了吗？",
 }
 
 -- 军令四
