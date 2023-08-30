@@ -1,11 +1,11 @@
-local extension = Package:new("overseas")
+local extension = Package:new("overseas_heg")
 extension.extensionName = "hegemony"
 extension.game_modes_whitelist = { 'nos_heg_mode', 'new_heg_mode' }
 
 local H = require "packages/hegemony/util"
 
 Fk:loadTranslationTable{
-  ["overseas"] = "国际服-国战专属",
+  ["overseas_heg"] = "国际服-国战专属",
   ["os_heg"] = "国际",
 }
 
