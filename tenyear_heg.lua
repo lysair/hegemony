@@ -5,15 +5,261 @@ extension.game_modes_whitelist = { 'nos_heg_mode', 'new_heg_mode' }
 local H = require "packages/hegemony/util"
 
 Fk:loadTranslationTable{
-  ["tenyear_heg"] = "十周年-国战专属",
+  ["tenyear_heg"] = "国战-十周年专属",
   ["ty_heg"] = "新服",
+}
+
+-- local huaxin = General(extension, "ty_heg__huaxin", "wei", 3)
+Fk:loadTranslationTable{
+  ["ty_heg__huaxin"] = "华歆",
+  ["ty_heg__wanggui"] = "望归",
+  [":ty_heg__wanggui"] = "每回合限一次，当你造成或受到伤害后，若你：仅明置了此武将牌，你可对与你势力不同的一名角色造成1点伤害；武将牌均明置，"..
+  "你可令所有与你势力相同的角色各摸一张牌。",
+  ["ty_heg__xibing"] = "息兵",
+  [":ty_heg__xibing"] = "当一名其他角色于其出牌阶段内使用第一张黑色【杀】或黑色普通锦囊牌指定一名角色为唯一目标后，你可令其将手牌摸至体力值"..
+  "（至多摸至5张），然后若你与其均明置了所有武将牌，则你可暗置你与其各一张武将牌且本回合不能明置以此法暗置的武将牌。若其因此摸牌，其本回合不能再使用手牌。",
+
+  ["$ty_heg__wanggui1"] = "存志太虚，安心玄妙。",
+  ["$ty_heg__wanggui2"] = "礼法有度，良德才略。",
+  ["$ty_heg__xibing1"] = "千里运粮，非用兵之利。",
+  ["$ty_heg__xibing2"] = "宜弘一代之治，绍三王之迹。",
+  ["~ty_heg__huaxin"] = "大举发兵，劳民伤国。",
+}
+
+Fk:loadTranslationTable{
+  ["ty_heg__yanghu"] = "羊祜",
+  ["ty_heg__deshao"] = "德劭",
+  [":ty_heg__deshao"] = "每回合限X次（X为你的体力值），当其他角色使用黑色牌指定你为唯一目标后，若其明置的武将牌数不大于你，你可弃置其一张牌。",
+  ["ty_heg__mingfa"] = "明伐",
+  [":ty_heg__mingfa"] = "出牌阶段限一次，你可以选择其他势力的一名角色，该角色下个回合结束时，若其手牌数：小于你，你对其造成1点伤害并获得其一张手牌；"..
+  "不小于你，你摸至与其手牌数相同（最多摸五张）。",
+}
+
+Fk:loadTranslationTable{
+  ["ty_heg__zongyu"] = "宗预",
+  ["ty_heg__qiao"] = "气傲",
+  [":ty_heg__qiao"] = "每回合限两次，当你成为其他势力角色使用牌的目标后，你可弃置其一张牌，然后你弃置一张牌。",
+  ["ty_heg__chengshang"] = "承赏",
+  [":ty_heg__chengshang"] = "出牌阶段限一次，当你使用指定其他势力为目标的牌结算后，若此牌没有造成伤害，你可以获得牌堆中所有与此牌花色点数相同的牌。"..
+  "若你没有因此获得牌，此技能视为未发动过。",
+}
+
+Fk:loadTranslationTable{
+  ["ty_heg__dengzhi"] = "邓芝",
+  ["ty_heg__jianliang"] = "简亮",
+  [":ty_heg__jianliang"] = "摸牌阶段开始时，若你的手牌数为全场最少，你可令与你势力相同的所有角色各摸一张牌。",
+  ["ty_heg__weimeng"] = "危盟",
+  [":ty_heg__weimeng"] = "出牌阶段限一次，你可以获得目标角色至多X张手牌，然后交给其等量的牌（X为你的体力值）。"..
+  "<br><font color=\"blue\">◆纵横：〖危盟〗描述中的X改为1。<font><br><font color=\"grey\"><b>纵横</b>："..
+  "当拥有“纵横”效果技能发动结算完成后，可以令技能目标角色获得对应修订描述后的技能，直到其下回合结束。",
+}
+
+Fk:loadTranslationTable{
+  ["ty_heg__luyusheng"] = "陆郁生",
+  ["ty_heg__zhente"] = "贞特",
+  [":ty_heg__zhente"] = "每名角色的回合限一次，当你成为其他角色使用基本牌或普通锦囊牌的目标后，你可令使用者选择一项：1.本回合不能再使用此颜色的牌；"..
+  "2.此牌对你无效",
+  ["ty_heg__zhiwei"] = "至微",
+  [":ty_heg__zhiwei"] = "当你明置此武将牌时，你可以选择一名其他角色：该角色造成伤害后，你摸一张牌；该角色受到伤害后，你随机弃置一张手牌；"..
+  "你弃牌阶段弃置的牌均被该角色获得；该角色死亡时，你暗置此武将牌。",
+}
+
+local fengxiw = General(extension, "ty_heg__fengxiw", "wu", 3)
+local yusui = fk.CreateTriggerSkill{
+  name = "ty_heg__yusui",
+  anim_type = "offensive",
+  events = {fk.TargetConfirmed},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) and data.from ~= player.id and data.card.color == Card.Black and
+      player:usedSkillTimes(self.name, Player.HistoryTurn) == 0 and H.compareKingdomWith(player.room:getPlayerById(data.from), player, true) and
+      player.hp > 0
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local to = room:getPlayerById(data.from)
+    room:loseHp(player, 1, self.name)
+    if player.dead then return end
+    local choices = {}
+    if not to:isKongcheng() then
+      table.insert(choices, "ty_heg__yusui_discard::" .. to.id .. ":" .. to.maxHp)
+    end
+    if to.hp > player.hp then
+      table.insert(choices, "ty_heg__yusui_loseHp::" .. to.id .. ":" .. player.hp)
+    end
+    if #choices == 0 then return false end
+    local choice = room:askForChoice(player, choices, self.name)
+    if choice:startsWith("ty_heg__yusui_discard") then
+      room:askForDiscard(to, to.maxHp, to.maxHp, false, self.name, false)
+    else
+      room:loseHp(to, to.hp - player.hp, self.name)
+    end
+  end,
+}
+local boyan = fk.CreateActiveSkill{
+  name = "ty_heg__boyan",
+  anim_type = "control",
+  card_num = 0,
+  target_num = 1,
+  can_use = function(self, player)
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
+  end,
+  card_filter = function(self, to_select, selected)
+    return false
+  end,
+  target_filter = function(self, to_select, selected)
+    return #selected == 0 and to_select ~= Self.id
+  end,
+  on_use = function(self, room, effect)
+    local player = room:getPlayerById(effect.from)
+    local target = room:getPlayerById(effect.tos[1])
+    local n = target.maxHp - target:getHandcardNum()
+    if n > 0 then
+      target:drawCards(n, self.name)
+    end
+    room:setPlayerMark(target, "@@ty_heg__boyan-turn", 1)
+    local choices = {"ty_heg__boyan_mn_ask::" .. target.id, "Cancel"}
+    if room:askForChoice(player, choices, self.name) ~= "Cancel" then
+      room:setPlayerMark(target, "@@ty_heg__boyan_manoeuvre", 1)
+      room:handleAddLoseSkills(target, "ty_heg__boyan_manoeuvre", nil)
+    end
+  end,
+}
+local boyan_prohibit = fk.CreateProhibitSkill{
+  name = "#ty_heg__boyan_prohibit",
+  prohibit_use = function(self, player, card)
+    return player:getMark("@@ty_heg__boyan-turn") > 0
+  end,
+  prohibit_response = function(self, player, card)
+    return player:getMark("@@ty_heg__boyan-turn") > 0
+  end,
+}
+boyan:addRelatedSkill(boyan_prohibit)
+local boyan_mn = fk.CreateActiveSkill{
+  name = "ty_heg__boyan_manoeuvre",
+  anim_type = "control",
+  card_num = 0,
+  target_num = 1,
+  can_use = function(self, player)
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
+  end,
+  card_filter = function(self, to_select, selected)
+    return false
+  end,
+  target_filter = function(self, to_select, selected)
+    return #selected == 0 and to_select ~= Self.id
+  end,
+  on_use = function(self, room, effect)
+    local target = room:getPlayerById(effect.tos[1])
+    room:setPlayerMark(target, "@@ty_heg__boyan-turn", 1)
+  end,
+}
+local boyan_mn_detach = fk.CreateTriggerSkill{
+  name = "#ty_heg__boyan_manoeuvre_detach",
+  refresh_events = {fk.EventPhaseStart},
+  can_refresh = function(self, event, target, player, data)
+    return target == player and player.phase == Player.NotActive and player:hasSkill("ty_heg__boyan_manoeuvre", true, true) 
+  end,
+  on_refresh = function(self, event, target, player, data)
+    local room = player.room
+    room:handleAddLoseSkills(player, "-ty_heg__boyan_manoeuvre", nil)
+    room:setPlayerMark(player, "@@ty_heg__boyan_manoeuvre", 0)
+  end,
+}
+boyan_mn:addRelatedSkill(boyan_mn_detach)
+Fk:addSkill(boyan_mn)
+fengxiw:addSkill(yusui)
+fengxiw:addSkill(boyan)
+Fk:loadTranslationTable{
+  ["ty_heg__fengxiw"] = "冯熙",
+  ["ty_heg__yusui"] = "玉碎",
+  [":ty_heg__yusui"] = "每回合限一次，当你成为其他角色使用黑色牌的目标后，若你与其势力不同，你可失去1点体力，然后选择一项：1.令其弃置X张手牌"..
+  "（X为其体力上限）；2.令其失去体力值至与你相同。",
+  ["ty_heg__boyan"] = "驳言",
+  [":ty_heg__boyan"] = "出牌阶段限一次，你可选择一名其他角色，其将手牌摸至其体力上限，其本回合不能使用或打出手牌。"..
+  "<br><font color=\"blue\">◆纵横：删去〖驳言〗描述中的“其将手牌摸至体力上限”。<font><br><font color=\"grey\"><b>纵横</b>："..
+  "当拥有“纵横”效果技能发动结算完成后，可以令技能目标角色获得对应修订描述后的技能，直到其下回合结束。",
+
+  ["ty_heg__yusui_discard"] = "令%dest弃置%arg张手牌",
+  ["ty_heg__yusui_loseHp"] = "令%dest失去体力至%arg",
+  ["ty_heg__boyan_mn_ask"] = "令%dest获得〖驳言（纵横）〗直到其下回合结束",
+  ["@@ty_heg__boyan-turn"] = "驳言",
+  ["@@ty_heg__boyan_manoeuvre"] = "驳言 纵横",
+
+  ["ty_heg__boyan_manoeuvre"] = "驳言(纵横)",
+  [":ty_heg__boyan_manoeuvre"] = "出牌阶段限一次，你可选择一名其他角色，其本回合不能使用或打出手牌。",
+
+  ["$ty_heg__boyan1"] = "黑白颠倒，汝言谬矣！",
+  ["$ty_heg__boyan2"] = "魏王高论，实为无知之言。",
+  ["$ty_heg__yusui1"] = "宁为玉碎，不为瓦全！",
+  ["$ty_heg__yusui2"] = "生义相左，舍生取义。",
+  ["~ty_heg__fengxi"] = "乡音未改双鬓苍，身陷北国有义求。",
+}
+
+local miheng = General(extension, "ty_heg__miheng", "qun", 3)
+local ty_heg__shejian = fk.CreateTriggerSkill{
+  name = "ty_heg__shejian",
+  anim_type = "control",
+  events = {fk.TargetConfirmed},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) and data.from ~= player.id and #AimGroup:getAllTargets(data.tos) == 1 and
+      not player:isKongcheng()
+  end,
+  on_cost = function(self, event, target, player, data)
+    return player.room:askForSkillInvoke(player, self.name, nil, "#ty_heg__shejian-invoke::"..data.from..":"..data.card:toLogString())
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local from = room:getPlayerById(data.from)
+    local n = player:getHandcardNum()
+    player:throwAllCards("h")
+    if not (player.dead or from.dead) then
+      room:doIndicate(player.id, {data.from})
+      local choices = {"damage1"}
+      if not from:isNude() then
+        table.insert(choices, 1, "discard_skill")
+      end
+      n = math.min(n, #from:getCardIds("he"))
+      local choice = room:askForChoice(player, choices, self.name, "#ty_heg__shejian-choice::"..data.from..":"..n)
+      if choice == "discard_skill" then
+        local cards = room:askForCardsChosen(player, from, n, n, "he", self.name)
+        room:throwCard(cards, self.name, from, player)
+      else
+        room:damage{
+          from = player,
+          to = from,
+          damage = 1,
+          skillName = self.name
+        }
+      end
+    end
+  end,
+}
+miheng:addSkill("kuangcai")
+miheng:addSkill(ty_heg__shejian)
+Fk:loadTranslationTable{
+  ["ty_heg__miheng"] = "祢衡",
+  ["ty_heg__shejian"] = "舌剑",
+  [":ty_heg__shejian"] = "当你成为其他角色使用牌的唯一目标后，你可以弃置所有手牌。若如此做，你选择一项：1.弃置其等量的牌；2.对其造成1点伤害。",
+  ["#ty_heg__shejian-invoke"] = "舌剑：%dest 对你使用 %arg，你可以弃置所有手牌，弃置其等量的牌或对其造成1点伤害",
+  ["#ty_heg__shejian-choice"] = "舌剑：弃置 %dest %arg张牌或对其造成1点伤害",
+}
+
+Fk:loadTranslationTable{
+  ["ty_heg__xunchen"] = "荀谌",
+  ["ty_heg__fenglve"] = "锋略",
+  [":ty_heg__fenglve"] = "出牌阶段限一次，你可以和一名其他角色拼点，若你赢，该角色交给你其区域内的两张牌；若你输，你交给其一张牌。"..
+  "<br><font color=\"blue\">◆纵横：交换〖锋略〗描述中的“一张牌”和“两张牌”。<font><br><font color=\"grey\"><b>纵横</b>："..
+  "当拥有“纵横”效果技能发动结算完成后，可以令技能目标角色获得对应修订描述后的技能，直到其下回合结束。",
+  ["ty_heg__anyong"] = "暗涌",
+  [":ty_heg__anyong"] = "每回合限一次，当与你势力相同的一名角色对另一名其他角色造成伤害时，你可令此伤害翻倍，然后若受到伤害的角色："..
+  "武将牌均明置，你失去1点体力并失去此技能；只明置了一张武将牌，你弃置两张手牌。",
 }
 
 local jianggan = General(extension, "ty_heg__jianggan", "wei", 3)
 jianggan:addSkill("weicheng")
 jianggan:addSkill("daoshu")
 Fk:loadTranslationTable{
-  ['ty_heg__jianggan'] = '蒋干',
+  ["ty_heg__jianggan"] = "蒋干",
   ["~ty_heg__jianggan"] = "丞相，再给我一次机会啊！",
 }
 

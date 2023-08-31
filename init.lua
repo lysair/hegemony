@@ -3,7 +3,6 @@ local formation = require "packages/hegemony/formation"
 local momentum = require "packages/hegemony/momentum"
 local transformation = require "packages/hegemony/transformation"
 local power = require "packages/hegemony/power"
-local manoeuvre = require "packages/hegemony/manoeuvre"
 local tenyear = require "packages/hegemony/tenyear_heg"
 local overseas = require "packages/hegemony/overseas_heg"
 
@@ -16,7 +15,6 @@ return {
   momentum,
   transformation,
   power,
-  manoeuvre,
   tenyear,
   overseas,
   hegemony_cards,
