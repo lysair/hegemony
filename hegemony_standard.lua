@@ -2291,7 +2291,7 @@ local huoshui = fk.CreateTriggerSkill{
     elseif event == fk.GeneralRevealed then
       return data == "hs__zoushi" and player:hasSkill(self.name)
     else
-      return player:hasSkill(self.name, false, true)
+      return player:hasSkill(self.name, true, true) and player.phase ~= Player.NotActive
     end
   end,
   on_use = function(self, event, target, player, data)
@@ -2336,34 +2336,14 @@ local qingcheng = fk.CreateActiveSkill{
       ret = true
     end
     room:throwCard(effect.cards, self.name, player, player)
-    local choices = {}
-    if target.general ~= "anjiang" then
-      table.insert(choices, target.general)
-    end
-    if target.deputyGeneral ~= "anjiang" then
-      table.insert(choices, target.deputyGeneral)
-    end
-    if #choices > 0 then
-      local choice = room:askForChoice(player, choices, self.name, "#qingcheng-ask::" .. target.id)
-      target:hideGeneral(choice == target.deputyGeneral)
-    end
+    H.doHideGeneral(room, player, target, self.name)
     if ret and not player.dead then
       local targets = table.filter(room.alive_players, function(p) return p.general ~= "anjiang" and p.deputyGeneral ~= "anjiang" and p ~= player and p ~= target end)
       if #targets == 0 then return false end
       local to = room:askForChoosePlayers(player, table.map(targets, Util.IdMapper), 1, 1, "#qingcheng-again", self.name, true)
       if #to > 0 then
         target = room:getPlayerById(to[1])
-        local choices = {}
-        if target.general ~= "anjiang" then
-          table.insert(choices, target.general)
-        end
-        if target.deputyGeneral ~= "anjiang" then
-          table.insert(choices, target.deputyGeneral)
-        end
-        if #choices > 0 then
-          local choice = room:askForChoice(player, choices, self.name, "#qingcheng-ask::" .. target.id)
-          target:hideGeneral(choice == target.deputyGeneral)
-        end
+        H.doHideGeneral(room, player, target, self.name)
       end
     end
   end,
@@ -2379,7 +2359,6 @@ Fk:loadTranslationTable{
   [":qingcheng"] = "出牌阶段，你可弃置一张黑色牌并选择一名武将牌均明置的其他角色，然后你暗置其一张武将牌。然后若你以此法弃置的牌是黑色装备牌，则你可再选择另一名武将牌均明置的其他角色，暗置其一张武将牌。",
 
   ["@@huoshui-turn"] = "祸水",
-  ["#qingcheng-ask"] = "倾城：暗置 %dest 一张武将牌",
   ["#qingcheng-again"] = "倾城：你可再选择另一名武将牌均明置的其他角色，暗置其一张武将牌",
 
   ["$huoshui1"] = "走不动了嘛？" ,
@@ -2460,7 +2439,8 @@ local vanguradSkill = fk.CreateActiveSkill{
     local player = room:getPlayerById(effect.from)
     room:removePlayerMark(player, "@!vanguard")
     if player:getMark("@!vanguard") == 0 then
-      room:handleAddLoseSkills(player, "-vanguard_skill&", nil, false, true)
+      player:loseFakeSkill("vanguard_skill&")
+      -- room:handleAddLoseSkills(player, "-vanguard_skill&", nil, false, true)
     end
     local num = 4 - player:getHandcardNum()
     if num > 0 then
@@ -2501,7 +2481,8 @@ local yinyangfishSkill = fk.CreateActiveSkill{
     local player = room:getPlayerById(effect.from)
     room:removePlayerMark(player, "@!yinyangfish")
     if player:getMark("@!yinyangfish") == 0 then
-      room:handleAddLoseSkills(player, "-yinyangfish_skill&", nil, false, true)
+      player:loseFakeSkill("yinyangfish_skill&")
+      -- room:handleAddLoseSkills(player, "-yinyangfish_skill&", nil, false, true)
     end
     player:drawCards(1, self.name)
   end,
@@ -2521,7 +2502,8 @@ local yinyangfishMax = fk.CreateTriggerSkill{
     local room = player.room
     room:removePlayerMark(player, "@!yinyangfish")
     if player:getMark("@!yinyangfish") == 0 then
-      room:handleAddLoseSkills(player, "-yinyangfish_skill&", nil, false, true)
+      player:loseFakeSkill("yinyangfish_skill&")
+      -- room:handleAddLoseSkills(player, "-yinyangfish_skill&", nil, false, true)
     end
     room:addPlayerMark(target, MarkEnum.AddMaxCardsInTurn, 2)
   end,
@@ -2549,7 +2531,9 @@ local companionSkill = fk.CreateActiveSkill{
     local player = room:getPlayerById(effect.from)
     room:removePlayerMark(player, "@!companion")
     if player:getMark("@!companion") == 0 then
-      room:handleAddLoseSkills(player, "-companion_skill&|-companion_peach&", nil, false, true)
+      player:loseFakeSkill("companion_skill&")
+      player:loseFakeSkill("companion_peach&")
+      -- room:handleAddLoseSkills(player, "-companion_skill&|-companion_peach&", nil, false, true)
     end
     player:drawCards(2, self.name)
   end,
@@ -2557,6 +2541,7 @@ local companionSkill = fk.CreateActiveSkill{
 local companionPeach = fk.CreateViewAsSkill{
   name = "companion_peach&",
   anim_type = "support",
+  prompt = "#companion_peach&",
   pattern = "peach",
   card_filter = Util.FalseFunc,
   view_as = function(self, cards)
@@ -2568,7 +2553,9 @@ local companionPeach = fk.CreateViewAsSkill{
     local room = player.room
     room:removePlayerMark(player, "@!companion")
     if player:getMark("@!companion") == 0 then
-      room:handleAddLoseSkills(player, "-companion_skill&|-companion_peach&", nil, false, true)
+      player:loseFakeSkill("companion_skill&")
+      player:loseFakeSkill("companion_peach&")
+      -- room:handleAddLoseSkills(player, "-companion_skill&|-companion_peach&", nil, false, true)
     end
   end,
   enabled_at_play = function(self, player)
@@ -2586,6 +2573,7 @@ Fk:loadTranslationTable{
   [":companion_skill&"] = "出牌阶段，你可弃一枚“珠联璧合”，摸两张牌。",
   ["companion_peach&"] = "珠联[桃]",
   [":companion_peach&"] = "你可弃一枚“珠联璧合”，视为使用【桃】。",
+  ["#companion_peach&"] = "你可弃一枚“珠联璧合”，视为使用【桃】",
 }
 
 local battleRoyalVS = fk.CreateViewAsSkill{
@@ -2624,11 +2612,12 @@ local battleRoyalProhibit = fk.CreateProhibitSkill{
 }
 battleRoyalVS:addRelatedSkill(battleRoyalProhibit)
 Fk:addSkill(battleRoyalVS)
+-- Fk:addSkill(battleRoyalProhibit)
 
 Fk:loadTranslationTable{
   ["battle_royal&"] = "鏖战",
   [":battle_royal&"] = "非转化的【桃】只能当【杀】或【闪】使用或打出。",
-
+  ["battle_royal_prohibit&"] = "鏖战",
 }
 
 return extension

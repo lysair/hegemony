@@ -509,7 +509,6 @@ local imperialOrderRemoved = fk.CreateTriggerSkill{
           for _, info in ipairs(move.moveInfo) do
             local id = info.cardId
             if Fk:getCardById(id).name == "imperial_order" then
-              info.moveVisible = true
               table.insert(mirror_info, info)
               table.insert(ids, id)
             else
@@ -522,6 +521,7 @@ local imperialOrderRemoved = fk.CreateTriggerSkill{
             mirror_move.to = nil
             mirror_move.toArea = Card.Void
             mirror_move.moveInfo = mirror_info
+            mirror_move.moveVisible = true
             table.insert(mirror_moves, mirror_move)
           end
         end

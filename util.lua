@@ -257,7 +257,7 @@ local hegNullificationSkill = fk.CreateActiveSkill{
     return false
   end,
   on_use = function(self, room, use)
-    if use.responseToEvent.to then 
+    if use.responseToEvent.to and #TargetGroup:getRealTargets(use.responseToEvent.tos) > 1 then 
       local from = room:getPlayerById(use.from)
       local to = room:getPlayerById(use.responseToEvent.to)
       if to.kingdom ~= "unknown" then
@@ -347,6 +347,39 @@ H.getActualGeneral = function(player, isDeputy)
     return player.general == "anjiang" and player:getMark("__heg_general") or player.general
   end
 end
+
+--- 暗置武将牌
+---@param room Room
+---@param player ServerPlayer
+---@param target ServerPlayer
+---@param skill_name string
+---@return isDeputy bool
+H.doHideGeneral = function(room, player, target, skill_name)
+  if player.dead or target.dead then return end
+  local choices = {}
+  if target.general ~= "anjiang" and not target.general:startsWith("blank_") then  -- 君主 还要再处理
+    table.insert(choices, target.general)
+  end
+  if target.deputyGeneral and target.deputyGeneral ~= "anjiang" and not target.deputyGeneral:startsWith("blank_") then
+    table.insert(choices, target.deputyGeneral)
+  end
+  if #choices == 0 then return end
+  local choice = room:askForChoice(player, choices, skill_name, "#hide_general-ask::" .. target.id .. ":" .. skill_name)
+  local isDeputy = choice == target.deputyGeneral
+  target:hideGeneral(isDeputy)
+  room:sendLog{
+    type = "#HideOtherGeneral",
+    from = player.id,
+    to = {target.id},
+    arg = isDeputy and "deputyGeneral" or "mainGeneral",
+    arg2 = isDeputy and target:getMark("__heg_deputy") or target:getMark("__heg_general"),
+  }
+  return isDeputy
+end
+Fk:loadTranslationTable{
+  ["#hide_general-ask"] = "%arg：暗置 %dest 一张武将牌",
+  ["#HideOtherGeneral"] = "%from 暗置了 %to 的 %arg %arg2",
+}
 
 
 -- 移除武将牌

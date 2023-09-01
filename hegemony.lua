@@ -376,6 +376,7 @@ function HegLogic:attachSkillToPlayers()
   end
 
   room:setTag("SkipNormalDeathProcess", true)
+  room:doBroadcastNotify("ShowToast", Fk:translate("#YinyangfishNotice"))
 end
 
 local heg_getlogic = function()
@@ -436,6 +437,8 @@ local heg_rule = fk.CreateTriggerSkill{
           room:doBroadcastNotify("ShowToast", Fk:translate("#EnterBattleRoyalMode"))
           room:setTag("BattleRoyalMode", true) 
           for _, p in ipairs(room.alive_players) do
+            -- p:addFakeSkill("battle_royal&")
+            -- p:addFakeSkill("battle_royal_prohibit&")
             room:handleAddLoseSkills(p, "battle_royal&", nil, false, true)
           end
         end
@@ -490,18 +493,22 @@ local heg_rule = fk.CreateTriggerSkill{
       if not room:getTag("TheFirstToShowRewarded") then
         room:setTag("TheFirstToShowRewarded", player.id)
         room:addPlayerMark(player, "@!vanguard", 1)
-        room:handleAddLoseSkills(player, "vanguard_skill&", nil, false, true)
+        player:addFakeSkill("vanguard_skill&")
+        -- room:handleAddLoseSkills(player, "vanguard_skill&", nil, false, true)
       end
       if player.general == "anjiang" or player.deputyGeneral == "anjiang" then return false end
       if player:getMark("HalfMaxHpLeft") > 0 then
         room:setPlayerMark(player, "HalfMaxHpLeft", 0)
         room:addPlayerMark(player, "@!yinyangfish", 1)
-        room:handleAddLoseSkills(player, "yinyangfish_skill&", nil, false, true)
+        player:addFakeSkill("yinyangfish_skill&")
+        -- room:handleAddLoseSkills(player, "yinyangfish_skill&", nil, false, true)
       end
       if player:getMark("CompanionEffect") > 0 then
         room:setPlayerMark(player, "CompanionEffect", 0)
         room:addPlayerMark(player, "@!companion", 1)
-        room:handleAddLoseSkills(player, "companion_skill&|companion_peach&", nil, false, true)
+        player:addFakeSkill("companion_skill&")
+        player:addFakeSkill("companion_peach&")
+        -- room:handleAddLoseSkills(player, "companion_skill&|companion_peach&", nil, false, true)
       end
     end
   end,
@@ -523,7 +530,6 @@ heg = fk.CreateGameMode{
     "transformation",
     "power",
     "strategic_advantage",
-    "manoeuvre",
     "tenyear_heg",
     "overseas_heg",
   },
@@ -539,6 +545,8 @@ Fk:loadTranslationTable{
   ["revealAll"] = "背水：全部明置",
   ["#EnterBattleRoyalMode"] = "游戏进入 <font color=\"red\"><b>鏖战模式</b></font>，所有的【<font color=\"#3598E8\"><b>桃</b></font>】"..
   "只能当【<font color=\"#3598E8\"><b>杀</b></font>】或【<font color=\"#3598E8\"><b>闪</b></font>】使用或打出，不能用于回复体力",
+
+  ["#YinyangfishNotice"] = "调整：<b><font color=\"green\">阴阳鱼</font>需预亮</b>来使用<b>手牌上限+2</b>的效果",
 }
 
 return heg

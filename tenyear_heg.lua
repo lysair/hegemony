@@ -9,7 +9,107 @@ Fk:loadTranslationTable{
   ["ty_heg"] = "新服",
 }
 
--- local huaxin = General(extension, "ty_heg__huaxin", "wei", 3)
+local huaxin = General(extension, "ty_heg__huaxin", "wei", 3)
+local wanggui = fk.CreateTriggerSkill{
+  name = "ty_heg__wanggui",
+  mute = true,
+  events = {fk.Damage, fk.Damaged},
+  can_trigger = function(self, event, target, player, data)
+    if target ~= player or not player:hasSkill(self.name) or player:usedSkillTimes(self.name) > 0 then return false end
+    return table.contains(player.player_skills, self) -- 此武将已明置
+  end,
+  on_cost = function(self, event, target, player, data)
+    local room = player.room
+    if player.general ~= "anjiang" and player.deputyGeneral ~= "anjiang" then
+      if room:askForSkillInvoke(player, self.name, data, "#ty_heg__wanggui_draw-invoke") then
+        self.cost_data = nil
+        return true
+      end
+    else
+      local targets = table.map(table.filter(room.alive_players, function(p)
+        return H.compareKingdomWith(p, player, true) end), function(p) return p.id end)
+      if #targets == 0 then return end
+      local to = room:askForChoosePlayers(player, targets, 1, 1, "#ty_heg__wanggui_damage-choose", self.name, true)
+      if #to > 0 then
+        self.cost_data = to[1]
+        return true
+      end
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    player:broadcastSkillInvoke(self.name)
+    if self.cost_data then
+      room:notifySkillInvoked(player, self.name, "offensive")
+      local to = room:getPlayerById(self.cost_data)
+      room:damage{
+        from = player,
+        to = to,
+        damage = 1,
+        skillName = self.name,
+      }
+    else
+      room:notifySkillInvoked(player, self.name, "drawcard")
+      local targets = table.map(table.filter(room.alive_players, function(p) return H.compareKingdomWith(p, player) end), Util.IdMapper)
+      room:sortPlayersByAction(targets)
+      for _, pid in ipairs(targets) do
+        local p = room:getPlayerById(pid)
+        if not p.dead then
+          p:drawCards(1, self.name)
+        end
+      end
+    end
+  end,
+}
+local xibing = fk.CreateTriggerSkill{
+  name = "ty_heg__xibing",
+  anim_type = "control",
+  events = {fk.TargetSpecified},
+  can_trigger = function(self, event, target, player, data)
+    if not (player:hasSkill(self.name) and target ~= player and target.phase == Player.Play and
+      data.card.color == Card.Black and (data.card.trueName == "slash" or data.card:isCommonTrick()) and #AimGroup:getAllTargets(data.tos) == 1) then return false end
+    local events = target.room.logic:getEventsOfScope(GameEvent.UseCard, 1, function(e) 
+      local use = e.data[1]
+      return use.from == target.id and use.card.color == Card.Black and (use.card.trueName == "slash" or use.card:isCommonTrick())
+    end, Player.HistoryTurn)
+    return #events == 1 and events[1].id == target.room.logic:getCurrentEvent().id
+  end,
+  on_cost = function(self, event, target, player, data)
+    return player.room:askForSkillInvoke(player, self.name, nil, "#ty_heg__xibing-invoke::"..target.id)
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    room:doIndicate(player.id, {target.id})
+    local num = math.min(target.hp, 5) - target:getHandcardNum()
+    local cards
+    if num > 0 then
+      cards = target:drawCards(num, self.name)
+    end
+    if player.general ~= "anjiang" and player.deputyGeneral ~= "anjiang" and target.general ~= "anjiang" and target.deputyGeneral ~= "anjiang" then
+      for _, p in ipairs({player, target}) do
+        local isDeputy = H.doHideGeneral(room, player, p, self.name)
+        room:setPlayerMark(p, "@ty_heg__xibing_reveal-turn", H.getActualGeneral(p, isDeputy))
+        local record = type(p:getMark(MarkEnum.RevealProhibited .. "-turn")) == "table" and p:getMark(MarkEnum.RevealProhibited .. "-turn") or {}
+        table.insert(record, isDeputy and "d" or "m")
+        room:setPlayerMark(p, MarkEnum.RevealProhibited .. "-turn", record)
+      end
+    end
+    if cards and not target.dead then
+      room:setPlayerMark(target, "@@ty_heg__xibing-turn", 1)
+    end
+  end,
+}
+local xibing_prohibit = fk.CreateProhibitSkill{
+  name = "#ty_heg__xibing_prohibit",
+  prohibit_use = function(self, player, card)
+    return player:getMark("@@ty_heg__xibing-turn") > 0
+  end,
+}
+xibing:addRelatedSkill(xibing_prohibit)
+
+huaxin:addSkill(wanggui)
+huaxin:addSkill(xibing)
+
 Fk:loadTranslationTable{
   ["ty_heg__huaxin"] = "华歆",
   ["ty_heg__wanggui"] = "望归",
@@ -17,7 +117,13 @@ Fk:loadTranslationTable{
   "你可令所有与你势力相同的角色各摸一张牌。",
   ["ty_heg__xibing"] = "息兵",
   [":ty_heg__xibing"] = "当一名其他角色于其出牌阶段内使用第一张黑色【杀】或黑色普通锦囊牌指定一名角色为唯一目标后，你可令其将手牌摸至体力值"..
-  "（至多摸至5张），然后若你与其均明置了所有武将牌，则你可暗置你与其各一张武将牌且本回合不能明置以此法暗置的武将牌。若其因此摸牌，其本回合不能再使用手牌。",
+  "（至多摸至五张），然后若你与其均明置了所有武将牌，则你可暗置你与其各一张武将牌且本回合不能明置以此法暗置的武将牌。若其因此摸牌，其本回合不能使用手牌。",
+
+  ["#ty_heg__xibing-invoke"] = "你想对 %dest 发动 “息兵” 吗？",
+  ["@ty_heg__xibing_reveal-turn"] = "息兵 不能明置",
+  ["@@ty_heg__xibing-turn"] = "息兵 不能使用手牌",
+  ["#ty_heg__wanggui_damage-choose"] = "望归：你可对与你势力不同的一名角色造成1点伤害",
+  ["#ty_heg__wanggui_draw-invoke"] = "望归：你可令所有与你势力相同的角色各摸一张牌",
 
   ["$ty_heg__wanggui1"] = "存志太虚，安心玄妙。",
   ["$ty_heg__wanggui2"] = "礼法有度，良德才略。",
@@ -192,10 +298,65 @@ Fk:loadTranslationTable{
   ["$ty_heg__boyan2"] = "魏王高论，实为无知之言。",
   ["$ty_heg__yusui1"] = "宁为玉碎，不为瓦全！",
   ["$ty_heg__yusui2"] = "生义相左，舍生取义。",
-  ["~ty_heg__fengxi"] = "乡音未改双鬓苍，身陷北国有义求。",
+  ["~ty_heg__fengxiw"] = "乡音未改双鬓苍，身陷北国有义求。",
 }
 
 local miheng = General(extension, "ty_heg__miheng", "qun", 3)
+local kuangcai = fk.CreateTriggerSkill{
+  name = "ty_heg__kuangcai",
+  mute = true,
+  frequency = Skill.Compulsory,
+  events = {fk.EventPhaseStart},
+  can_trigger = function(self, event, target, player, data)
+    if target == player and player:hasSkill(self.name) and player.phase == Player.Discard then
+      local n = 0
+      for _, v in pairs(player.cardUsedHistory) do
+        if v[Player.HistoryTurn] > 0 then
+          n = 1
+          break
+        end
+      end
+      if n == 0 then
+        return true
+      else
+        return #player.room.logic:getEventsOfScope(GameEvent.ChangeHp, 1, function (e)
+          local damage = e.data[5]
+          if damage and target == damage.from then
+            return true
+          end
+        end, Player.HistoryTurn) == 0 and player:getMaxCards() > 0
+      end
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    player:broadcastSkillInvoke(self.name)
+    local n = 0
+    for _, v in pairs(player.cardUsedHistory) do
+      if v[Player.HistoryTurn] > 0 then
+        n = 1
+        break
+      end
+    end
+    if n == 0 then
+      room:notifySkillInvoked(player, self.name, "support")
+      room:addPlayerMark(player, MarkEnum.AddMaxCards, 1)
+    else
+      room:notifySkillInvoked(player, self.name, "negative")
+      room:addPlayerMark(player, MarkEnum.MinusMaxCards, 1)
+    end
+  end,
+}
+local kuangcai_targetmod = fk.CreateTargetModSkill{
+  name = "#ty_heg__kuangcai_targetmod",
+  bypass_times = function(self, player, skill, scope, card, to)
+    return player:hasSkill("ty_heg__kuangcai") and scope == Player.HistoryPhase and player.phase ~= Player.NotActive
+  end,
+  bypass_distances = function(self, player, skill, card, to)
+    return player:hasSkill("ty_heg__kuangcai") and player.phase ~= Player.NotActive
+  end,
+}
+kuangcai:addRelatedSkill(kuangcai_targetmod)
 local ty_heg__shejian = fk.CreateTriggerSkill{
   name = "ty_heg__shejian",
   anim_type = "control",
@@ -214,13 +375,13 @@ local ty_heg__shejian = fk.CreateTriggerSkill{
     player:throwAllCards("h")
     if not (player.dead or from.dead) then
       room:doIndicate(player.id, {data.from})
-      local choices = {"damage1"}
-      if not from:isNude() then
-        table.insert(choices, 1, "discard_skill")
-      end
+      local choices = {"shejian_damage::" .. data.from}
       n = math.min(n, #from:getCardIds("he"))
+      if not from:isNude() then
+        table.insert(choices, 1, "shejian_discard::" .. data.from .. ":" .. n)
+      end
       local choice = room:askForChoice(player, choices, self.name, "#ty_heg__shejian-choice::"..data.from..":"..n)
-      if choice == "discard_skill" then
+      if choice:startsWith("shejian_discard") then
         local cards = room:askForCardsChosen(player, from, n, n, "he", self.name)
         room:throwCard(cards, self.name, from, player)
       else
@@ -234,14 +395,24 @@ local ty_heg__shejian = fk.CreateTriggerSkill{
     end
   end,
 }
-miheng:addSkill("kuangcai")
+miheng:addSkill(kuangcai)
 miheng:addSkill(ty_heg__shejian)
 Fk:loadTranslationTable{
   ["ty_heg__miheng"] = "祢衡",
+  ["ty_heg__kuangcai"] = "狂才",
+  [":ty_heg__kuangcai"] = "锁定技，你的回合内，你使用牌无距离和次数限制。弃牌阶段开始时，若你本回合：没有使用过牌，你的手牌上限+1；使用过牌且没有造成伤害，你手牌上限-1。",
   ["ty_heg__shejian"] = "舌剑",
   [":ty_heg__shejian"] = "当你成为其他角色使用牌的唯一目标后，你可以弃置所有手牌。若如此做，你选择一项：1.弃置其等量的牌；2.对其造成1点伤害。",
   ["#ty_heg__shejian-invoke"] = "舌剑：%dest 对你使用 %arg，你可以弃置所有手牌，弃置其等量的牌或对其造成1点伤害",
   ["#ty_heg__shejian-choice"] = "舌剑：弃置 %dest %arg张牌或对其造成1点伤害",
+  ["shejian_discard"] = "弃置%dest%arg张牌",
+  ["shejian_damage"] = "对%dest造成1点伤害",
+
+  ["$ty_heg__kuangcai1"] = "耳所瞥闻，不忘于心。",
+  ["$ty_heg__kuangcai2"] = "吾焉能从屠沽儿耶！",
+  ["$ty_heg__shejian1"] = "伤人的，可不止刀剑。",
+  ["$ty_heg__shejian2"] = "死公！云等道？",
+  ["~ty_heg__miheng"] = "恶口……终致杀身……",
 }
 
 Fk:loadTranslationTable{

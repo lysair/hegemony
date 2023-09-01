@@ -5,7 +5,7 @@ extension.game_modes_whitelist = { 'nos_heg_mode', 'new_heg_mode' }
 local H = require "packages/hegemony/util"
 
 Fk:loadTranslationTable{
-  ["overseas_heg"] = "国际服-国战专属",
+  ["overseas_heg"] = "国战-国际服专属",
   ["os_heg"] = "国际",
 }
 
@@ -15,6 +15,114 @@ yangxiu:addSkill("jilei")
 Fk:loadTranslationTable{
   ['os_heg__yangxiu'] = '杨修',
   ["~os_heg__yangxiu"] = "我固自以死之晚也……",
+}
+
+local xiahoushang = General(extension, "os_heg__xiahoushang", "wei", 4)
+xiahoushang:addCompanions("caopi")
+local tanfeng = fk.CreateTriggerSkill{
+  name = "os_heg__tanfeng",
+  anim_type = "offensive",
+  events = {fk.EventPhaseStart},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) and
+      player.phase == Player.Start and table.find(player.room.alive_players, function(p) return
+        not H.compareKingdomWith(p, player) and not p:isAllNude()
+      end)
+  end,
+  on_cost = function(self, event, target, player, data)
+    local room = player.room
+    local availableTargets = table.map(table.filter(room.alive_players, function(p)
+        return not H.compareKingdomWith(p, player) and not p:isAllNude() -- not willBeFriendWith，救命！
+      end), Util.IdMapper)
+    if #availableTargets == 0 then return false end
+    local target = room:askForChoosePlayers(player, availableTargets, 1, 1, "#os_heg__tanfeng-ask", self.name, true)
+    if #target > 0 then
+      self.cost_data = target[1]
+      return true
+    end
+    return false
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local target = room:getPlayerById(self.cost_data)
+    local cid = room:askForCardChosen(player, target, "hej", self.name)
+    room:throwCard({cid}, self.name, target, player)
+    local choices = {"os_heg__tanfeng_damaged::" .. player.id, "Cancel"}
+    local slash = Fk:cloneCard("slash")
+    slash.skillName = self.name
+    local choice = room:askForChoice(target, choices, self.name, nil)
+    if choice ~= "Cancel" then
+      room:damage{
+        from = player,
+        to = target,
+        damage = 1,
+        damageType = fk.FireDamage,
+        skillName = self.name,
+      }
+      if not (target.dead or player.dead) then
+        local phase = {"phase_judge", "phase_draw", "phase_play", "phase_discard", "phase_finish"}
+        player:skip(table.indexOf(phase, room:askForChoice(target, phase, self.name, "#os_heg__tanfeng-skip:" .. player.id)) + 2)
+      end
+    end
+  end,
+}
+xiahoushang:addSkill(tanfeng)
+Fk:loadTranslationTable{
+  ["os_heg__xiahoushang"] = "夏侯尚",
+  ["os_heg__tanfeng"] = "探锋",
+  [":os_heg__tanfeng"] = "准备阶段开始时，你可弃置一名没有势力或势力与你不同的角色区域内的一张牌，然后其选择是否受到你造成的1点火焰伤害，令你跳过一个阶段。",
+
+  ["#os_heg__tanfeng-ask"] = "探锋：你可选择一名其他势力角色，弃置其区域内的一张牌", -- 留一下
+  ["os_heg__tanfeng_damaged"] = "受到%dest造成的1点火焰伤害，令其跳过一个阶段",
+  ["#os_heg__tanfeng-skip"] = "探锋：令 %src 跳过此回合的一个阶段",
+
+  ["$os_heg__tanfeng1"] = "探敌薄防之地，夺敌不备之间。",
+  ["$os_heg__tanfeng2"] = "探锋之锐，以待进取之机。",
+  ["~os_heg__xiahoushang"] = "陛下垂怜至此，臣纵死无憾……",
+}
+
+local liaohua = General(extension, "os_heg__liaohua", "shu", 4)
+liaohua:addCompanions("guanyu")
+local dangxian = fk.CreateTriggerSkill{
+  name = "os_heg__dangxian",
+  anim_type = "special",
+  frequency = Skill.Compulsory,
+  events = {fk.EventPhaseChanging, fk.GeneralRevealed}, -- 先这样
+  can_trigger = function(self, event, target, player, data)
+    if target ~= player or not player:hasSkill(self.name) then return false end
+    if event == fk.GeneralRevealed then
+      return data == "os_heg__liaohua" and player:usedSkillTimes(self.name, Player.HistoryGame) == 0
+    elseif event == fk.EventPhaseChanging then
+      return data.from == Player.NotActive
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    if event == fk.GeneralRevealed then
+      player.room:addPlayerMark(player, "@!vanguard", 1)
+      player:addFakeSkill("vanguard_skill&")
+    else
+      player:gainAnExtraPhase(Player.Play)
+    end
+  end
+}
+liaohua:addSkill(dangxian)
+
+Fk:loadTranslationTable{
+  ['os_heg__liaohua'] = '廖化',
+  ["os_heg__dangxian"] = "当先",
+  [":os_heg__dangxian"] = "锁定技，当你首次明置此武将牌后，你获得一枚“先驱”标记；回合开始时，你执行一个额外的出牌阶段。",
+
+  ["$os_heg__dangxian1"] = "谁言蜀汉已无大将？",
+  ["$os_heg__dangxian2"] = "老将虽白发，宝刀刃犹锋！",
+  ["~os_heg__liaohua"] = "兴复大业，就靠你们了……",
+}
+
+local zumao = General(extension, "os_heg__zumao", "wu", 4)
+zumao:addSkill("yinbing")
+zumao:addSkill("juedi")
+Fk:loadTranslationTable{
+  ['os_heg__zumao'] = '祖茂',
+  ["~os_heg__zumao"] = "孙将军，已经，安全了吧……",
 }
 
 local fuwan = General(extension, "os_heg__fuwan", "qun", 4)

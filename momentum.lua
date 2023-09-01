@@ -329,6 +329,9 @@ Fk:loadTranslationTable{
   [":heg_sunce__yingzi"] = "锁定技，摸牌阶段，你多摸一张牌；你的手牌上限等同于你的体力上限。",
   ["heg_sunce__yinghun"] = "英魂",
   [":heg_sunce__yinghun"] = "准备阶段，若你已受伤，你可以选择一名其他角色并选择一项：1.令其摸X张牌，然后弃置一张牌；2.令其摸一张牌，然后弃置X张牌（X为你已损失的体力值）。",
+
+  ["yingyang_plus3"] = "令你的拼点牌点数+3",
+  ["yingyang_sub3"] = "令你的拼点牌点数-3",
 }
 
 local chengdong = General(extension, "ld__chenwudongxi", "wu", 4)
