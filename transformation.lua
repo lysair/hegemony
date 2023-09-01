@@ -141,8 +141,11 @@ Fk:loadTranslationTable{
   "<font color='grey'><br />注：可以多次移动同一张牌。",
   ["#yongjin-choose"] = "勇进：你可以移动场上的一张装备牌",
 
-  ["$yongjin1"] = "生死，只在电光火石之间。", -- ？
-  ["$yongjin2"] = "大军攻城，我打头阵！",
+  ["$xuanlve1"] = "舍辎简装，袭掠如风！",
+  ["$xuanlve2"] = "卸甲奔袭，摧枯拉朽！",
+  ["$yongjin1"] = "急流勇进，覆戈倒甲！",
+  ["$yongjin2"] = "长缨缚敌，先登夺旗！",
+  ["~ld__lingtong"] = "大丈夫，不惧死亡……",
 }
 
 local lvfan = General(extension, "ld__lvfan", "wu", 3)
@@ -319,6 +322,8 @@ Fk:loadTranslationTable{
   ["#xiongsuanDelay"] = "凶算",
   ["#XiongsuanReset"] = "%from 重置了限定技“%arg”",
 
+  ["$xiongsuan1"] = "此战虽凶，得益颇高。",
+  ["$xiongsuan2"] = "谋算计策，吾二人尚有险招。",
   ["~ld__lijueguosi"] = "异心相争，兵败战损……",
 }
 

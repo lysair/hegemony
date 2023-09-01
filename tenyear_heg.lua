@@ -192,7 +192,7 @@ Fk:loadTranslationTable{
   ["$ty_heg__boyan2"] = "魏王高论，实为无知之言。",
   ["$ty_heg__yusui1"] = "宁为玉碎，不为瓦全！",
   ["$ty_heg__yusui2"] = "生义相左，舍生取义。",
-  ["~ty_heg__fengxi"] = "乡音未改双鬓苍，身陷北国有义求。",
+  ["~ty_heg__fengxiw"] = "乡音未改双鬓苍，身陷北国有义求。",
 }
 
 local miheng = General(extension, "ty_heg__miheng", "qun", 3)
@@ -242,6 +242,12 @@ Fk:loadTranslationTable{
   [":ty_heg__shejian"] = "当你成为其他角色使用牌的唯一目标后，你可以弃置所有手牌。若如此做，你选择一项：1.弃置其等量的牌；2.对其造成1点伤害。",
   ["#ty_heg__shejian-invoke"] = "舌剑：%dest 对你使用 %arg，你可以弃置所有手牌，弃置其等量的牌或对其造成1点伤害",
   ["#ty_heg__shejian-choice"] = "舌剑：弃置 %dest %arg张牌或对其造成1点伤害",
+
+  ["$ty_heg__kuangcai1"] = "耳所瞥闻，不忘于心。",
+  ["$ty_heg__kuangcai2"] = "吾焉能从屠沽儿耶？",
+  ["$ty_heg__shejian1"] = "伤人的，可不止刀剑！	",
+  ["$ty_heg__shejian2"] = "死公！云等道？",
+  ["~ty_heg__miheng"] = "恶口……终至杀身……",
 }
 
 Fk:loadTranslationTable{
