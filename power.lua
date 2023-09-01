@@ -8,11 +8,17 @@ Fk:loadTranslationTable{
 }
 --[[
 Fk:loadTranslationTable{
-  ["ld__cuiyanmaojie"] = "崔琰＆毛玠",
+  ["ld__cuiyanmaojie"] = "崔琰毛玠",
   ["zhengbi"] = "征辟",
   [":zhengbi"] = "出牌阶段开始时，你可选择：1.选择一名没有势力的角色，你于此回合内对其使用牌无距离关系的限制，且对包括其在内的角色使用牌无次数限制；2.将一张基本牌交给一名有势力的角色，若其有牌且牌数：为1，其将所有牌交给你；大于1，其将一张不是基本牌的牌或两张基本牌交给你。",
   ["ld__fengying"] = "奉迎",
   [":ld__fengying"] = "限定技，出牌阶段，你可将所有手牌当【挟天子以令诸侯】（无目标的限制）使用，当此牌被使用时，你选择所有与你势力相同的角色，这些角色各将手牌补至X张（X为其体力上限）。",
+
+  ["$zhengbi1"] = "跅弛之士，在御之而已。",
+  ["$zhengbi2"] = "	内不避亲，外不避仇。",
+  ["$ld__fengying1"] = "二臣恭奉，以迎皇嗣。	",
+  ["$ld__fengying2"] = "奉旨典选，以迎忠良。",
+  ["~ld__cuiyanmaojie"] = "为世所痛惜，冤哉……",
 }
 ]]
 local yujin = General(extension, "ld__yujin", "wei", 4)
@@ -70,6 +76,10 @@ Fk:loadTranslationTable{
 
   ["#ld__jieyue-target"] = "节钺：你可将一张手牌交给不是魏势力或没有势力的一名角色，对其发起军令",
   ["#ld__jieyue_draw"] = "节钺",
+
+  ["$ld__jieyue1"] = "杀我？你做不到！",
+  ["$ld__jieyue2"] = "阳关大道，你不选吗？",
+  ["~ld__yujin"] = "晚节不保……",
 }
 
 local wangping = General(extension, "ld__wangping", "shu", 4)
@@ -155,6 +165,10 @@ Fk:loadTranslationTable{
   ["ld__wangping"] = "王平",
   ["jianglue"] = "将略",
   [":jianglue"] = "限定技，出牌阶段，你可从随机两项军令中选择一项，然后发动势力召唤。你选择所有与你势力相同的其他角色，这些角色各选择是否执行此军令。你加1点体力上限，回复1点体力，所有选择是的角色各加1点体力上限，回复1点体力。然后你摸X张牌（X为以此法回复过体力的角色数）。",
+
+  ["$jianglue1"] = "奇谋为短，将略为要。",
+  ["$jianglue2"] = "为将者，需有谋略。",
+  ["~ld__wangping"] = "无当飞军，也有困于深林之时……",
 }
 
 local fazheng = General(extension, "ld__fazheng", "shu", 3)
@@ -174,9 +188,9 @@ local enyuan = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    -- player:broadcastSkillInvoke(self.name)
     if event == fk.TargetConfirmed then
       room:notifySkillInvoked(player, self.name, "support")
+      player:broadcastSkillInvoke(self.name, 2)
       local from = data.from
       if from and not room:getPlayerById(from).dead then
         room:doIndicate(player.id, {from})
@@ -184,6 +198,7 @@ local enyuan = fk.CreateTriggerSkill{
       end
     else
       room:notifySkillInvoked(player, self.name, "masochism")
+      player:broadcastSkillInvoke(self.name, 1)
       local from = data.from
       if from and not from.dead then
         room:doIndicate(player.id, {from.id})
@@ -642,6 +657,10 @@ Fk:loadTranslationTable{
   ["#ld__enyuan-give"] = "恩怨：交给 %src 一张手牌，否则失去1点体力",
   ["#ld__xuanhuo-ask"] = "眩惑：弃置一张牌",
   ["@ld__xuanhuo_skills-turn"] = "眩惑",
+  
+  ["$ld__enyuan1"] = "伤了我，休想全身而退！",
+  ["$ld__enyuan2"] = "报之以李，还之以桃。",
+  ["~ld__fazheng"] = "汉室复兴，我，是看不到了……",
 }
 
 --[[
@@ -651,6 +670,12 @@ Fk:loadTranslationTable{
   [":keshou"] = "当你受到伤害时，你可发动此技能，你可弃置两张颜色相同的手牌，令此伤害值-1。若没有与你势力相同的其他角色，你判定，若结果为红色，你摸一张牌。",
   ["zhuwei"] = "筑围",
   [":zhuwei"] = "当你进行的判定结果确定后，你可获得此牌，然后你可令当前回合角色手牌上限和使用【杀】的次数上限于此回合内+1。",
+
+  ["$keshou1"] = "城固兵足，无所忧患。",
+  ["$keshou2"] = "攻城易之，守城难矣。",
+  ["$zhuwei1"] = "不筑，必将有盗。",
+  ["$zhuwei2"] = "缮完城围，葺其墙屋。",
+  ["~ld__lukang"] = "吾即亡矣，吴又能存几时……",
 }
 ]]
 local wuguotai = General(extension, "ld__wuguotai", "wu", 3, 3, General.Female)
@@ -850,6 +875,11 @@ Fk:loadTranslationTable{
   ["#yongsi__jade_seal-ask"] = "庸肆：受到【玉玺】的效果，视为你使用一张【知己知彼】",
   ["#ld__weidi-cards"] = "伪帝：交给 %dest %arg 张牌",
 
+  ["$ld__yongsi1"] = "大汉天下，已半入我手。",
+  ["$ld__yongsi2"] = "玉玺在手，天下我有。",
+  ["$ld__weidi1"] = "你们都得听我的号令！",
+  ["$ld__weidi2"] = "我才是皇帝！",
+  ["~ld__yuanshu"] = "可恶！就差……一步了……",
 }
 
 local zhangxiu = General(extension, "ld__zhangxiu", "qun", 4)

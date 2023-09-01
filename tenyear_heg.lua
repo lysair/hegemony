@@ -409,10 +409,10 @@ Fk:loadTranslationTable{
   ["shejian_damage"] = "对%dest造成1点伤害",
 
   ["$ty_heg__kuangcai1"] = "耳所瞥闻，不忘于心。",
-  ["$ty_heg__kuangcai2"] = "吾焉能从屠沽儿耶！",
-  ["$ty_heg__shejian1"] = "伤人的，可不止刀剑。",
+  ["$ty_heg__kuangcai2"] = "吾焉能从屠沽儿耶？",
+  ["$ty_heg__shejian1"] = "伤人的，可不止刀剑！	",
   ["$ty_heg__shejian2"] = "死公！云等道？",
-  ["~ty_heg__miheng"] = "恶口……终致杀身……",
+  ["~ty_heg__miheng"] = "恶口……终至杀身……",
 }
 
 Fk:loadTranslationTable{
