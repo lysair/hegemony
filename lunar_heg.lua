@@ -4,7 +4,7 @@ extension.extensionName = "hegemony"
 extension.game_modes_whitelist = { 'nos_heg_mode', 'new_heg_mode' }
 
 Fk:loadTranslationTable{
-  ["lunar_heg"] = "新月杀-国战专属",
+  ["lunar_heg"] = "国战-新月杀专属",
   ["fk_heg"] = "国际",
 }
 
