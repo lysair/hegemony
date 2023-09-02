@@ -454,6 +454,7 @@ heg = fk.CreateGameMode{
     "strategic_advantage",
     "tenyear_heg",
     "overseas_heg",
+    "lunar_heg",
   },
 }
 
