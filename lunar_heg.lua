@@ -29,6 +29,7 @@ local jingce = fk.CreateTriggerSkill{
   end,
 }
 guohuai:addSkill(jingce)
+guohuai:addCompanions { "hs__zhanghe", "hs__xiahouyuan" }
 Fk:loadTranslationTable{
   ["fk_heg__guohuai"] = "郭淮",
   ["fk_heg__jingce"] = "精策",
@@ -39,6 +40,20 @@ local caozhang = General(extension, "fk_heg__caozhang", "wei", 4)
 caozhang:addSkill("jiangchi")
 Fk:loadTranslationTable{
   ["fk_heg__caozhang"] = "曹彰",
+}
+
+local caoang = General(extension, "fk_heg__caoang", "wei", 4)
+caoang:addSkill("kangkai")
+caoang:addCompanions("hs__dianwei")
+Fk:loadTranslationTable{
+  ["fk_heg__caoang"] = "曹昂",
+}
+
+local wangyi = General(extension, "fk_heg__wangyi", "wei", 3, 3, General.Female)
+wangyi:addSkill("zhenlie")
+wangyi:addSkill("miji")
+Fk:loadTranslationTable{
+  ["fk_heg__wangyi"] = "王异",
 }
 
 local maliang = General(extension, "fk_heg__maliang", "shu", 3)
@@ -73,6 +88,19 @@ Fk:loadTranslationTable{
   [":fk_heg__jiyuan"] = "当一名角色进入濒死时，你可令其摸一张牌。",
 }
 
+local mazhong = General(extension, "fk_heg__mazhong", "shu", 4)
+mazhong:addSkill("fuman")
+Fk:loadTranslationTable{
+  ['fk_heg__mazhong'] = '马忠',
+}
+
+local jianyong = General(extension, "fk_heg__jianyong", "shu", 3)
+jianyong:addSkill("qiaoshui")
+jianyong:addSkill("zongshij")
+Fk:loadTranslationTable{
+  ["fk_heg__jianyong"] = "简雍",
+}
+
 local handang = General(extension, "fk_heg__handang", "wu", 4)
 handang:addSkill("gongqi")
 handang:addSkill("jiefan")
@@ -80,11 +108,29 @@ Fk:loadTranslationTable{
   ["fk_heg__handang"] = "韩当",
 }
 
--- 吴国另一人待定，张嫙好像被NG掉了
+local panma = General(extension, "fk_heg__panzhangmazhong", "wu", 4)
+panma:addSkill("duodao")
+panma:addSkill("anjian")
+Fk:loadTranslationTable{
+  ['fk_heg__panzhangmazhong'] = '潘璋马忠',
+}
+
+local zhuzhi = General(extension, "fk_heg__zhuzhi", "wu", 4)
+zhuzhi:addSkill("nos__anguo")
+Fk:loadTranslationTable{
+  ['fk_heg__zhuzhi'] = '朱治',
+}
+
+local zhuhuan = General(extension, "fk_heg__zhuhuan", "wu", 4)
+zhuhuan:addSkill("youdi")
+Fk:loadTranslationTable{
+  ['fk_heg__zhuhuan'] = '朱桓',
+}
 
 local hjls = General(extension, "fk_heg__huangjinleishi", "qun", 3, 3, General.Female)
 hjls:addSkill("fulu")
 hjls:addSkill("zhuji")
+hjls:addCompanions("hs__zhangjiao")
 Fk:loadTranslationTable{
   ["fk_heg__huangjinleishi"] = "黄巾雷使",
 }
@@ -185,6 +231,13 @@ Fk:loadTranslationTable{
   ["$fk_heg__congshi1"] = "阁下奉天子以令诸侯，珪自当相从。",
   ["$fk_heg__congshi2"] = "将军率六师以伐不臣，珪何敢相抗？",
   ["~fk_heg__chengui"] = "终日戏虎，竟为虎所噬。",
+}
+
+local gongsunzan = General(extension, "fk_heg__gongsunzan", "qun", 4)
+gongsunzan:addSkill("yicong")
+gongsunzan:addSkill("qiaomeng")
+Fk:loadTranslationTable{
+  ["fk_heg__gongsunzan"] = "公孙瓒",
 }
 
 return extension
