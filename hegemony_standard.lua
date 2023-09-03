@@ -1935,7 +1935,7 @@ local xiongyi = fk.CreateActiveSkill{
     end
     if player.dead then return false end
     local kingdomMapper = H.getKingdomPlayersNum(room)
-    local num = kingdomMapper[player.kingdom == "wild" and tostring(player.id) or player.kingdom]
+    local num = kingdomMapper[player.kingdom == "wild" and player.role or player.kingdom]
     for k, n in pairs(kingdomMapper) do
       if n < num then return false end
     end
@@ -2323,8 +2323,8 @@ local qingcheng = fk.CreateActiveSkill{
   card_filter = function(self, to_select, selected, targets)
     return #selected == 0 and Fk:getCardById(to_select).color == Card.Black
   end,
-  target_filter = function(self, to_select, selected)
-    if #selected > 0 then return false end
+  target_filter = function(self, to_select, selected, selected_cards)
+    if #selected > 0 or #selected_cards == 0 then return false end --TODO
     local target = Fk:currentRoom():getPlayerById(to_select)
     return to_select ~= Self.id and target.general ~= "anjiang" and target.deputyGeneral ~= "anjiang"
   end,
@@ -2607,7 +2607,11 @@ local battleRoyalVS = fk.CreateViewAsSkill{
 local battleRoyalProhibit = fk.CreateProhibitSkill{
   name = "#battle_royal_prohibit&",
   prohibit_use = function(self, player, card)
-    return card and card.trueName == "peach"
+    if not card or card.trueName ~= "peach" or #card.skillNames > 0 then return false end
+    local subcards = Card:getIdList(card)
+    return #subcards > 0 and table.every(subcards, function(id)
+      return table.contains(player:getCardIds(Player.Hand), id)
+    end)
   end
 }
 battleRoyalVS:addRelatedSkill(battleRoyalProhibit)

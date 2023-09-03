@@ -95,7 +95,7 @@ local jianglue = fk.CreateActiveSkill{
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
     local index = H.startCommand(player, self.name)
-    local kingdom = player.kingdom == "wild" and tostring(player.id) or player.kingdom -- 权宜
+    local kingdom = player.kingdom == "wild" and p.role or player.kingdom
     for _, p in ipairs(room:getAlivePlayers()) do -- 双势力，野心家，君主……
       if p.kingdom == "unknown" and not p.dead then
         if H.getKingdomPlayersNum(room)[kingdom] >= #room.players // 2 then break end

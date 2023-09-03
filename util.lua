@@ -34,8 +34,8 @@ H.getKingdomPlayersNum = function(room)
   for _, p in ipairs(room.alive_players) do
     local kingdom = p.kingdom -- p.role
     if kingdom ~= "unknown" then
-      if kingdom == "wild" then --权宜
-        kingdom = tostring(p.id)
+      if kingdom == "wild" then
+        kingdom = p.role
       end
       kingdomMapper[kingdom] = (kingdomMapper[kingdom] or 0) + 1
     end
@@ -60,7 +60,7 @@ H.isBigKingdomPlayer = function(player)
   end
 
   local mapper = H.getKingdomPlayersNum(room)
-  local num = mapper[player.kingdom == "wild" and tostring(player.id) or player.kingdom]
+  local num = mapper[player.kingdom == "wild" and player.role or player.kingdom]
   if num < 2 then return false end
   for k, n in pairs(mapper) do
     if n > num then return false end

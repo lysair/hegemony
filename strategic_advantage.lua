@@ -563,7 +563,7 @@ local imperialOrderSkill = fk.CreateActiveSkill{
     if not use.tos or #TargetGroup:getRealTargets(use.tos) == 0 then
       use.tos = {}
       local user = room:getPlayerById(use.from)
-      for _, player in ipairs(room:getOtherPlayers(user)) do
+      for _, player in ipairs(room.alive_players) do
         if player.kingdom == "unknown" and not user:isProhibited(player, use.card) then
           TargetGroup:pushTargets(use.tos, player.id)
         end
@@ -673,30 +673,22 @@ local halberdTargets = fk.CreateActiveSkill{
 local halberdDelay = fk.CreateTriggerSkill{
   name = "#sa__halberd_delay",
   mute = true,
-  events = {fk.CardEffectCancelledOut, fk.PreCardEffect},
+  events = {fk.CardEffectCancelledOut},
   frequency = Skill.Compulsory,
   can_trigger = function(self, event, target, player, data)
-    if event == fk.CardEffectCancelledOut then
-      return target == player and data.card.trueName == "slash" and table.contains(data.card.skillNames, "sa__halberd")
-    else
-      return player.id == data.to and data.card.trueName == "slash" and (data.card.extra_data or {}).sa__halberdNullified
-    end
+    return target == player and data.card.trueName == "slash" and table.contains(data.card.skillNames, "sa__halberd")
   end,
   on_use = function(self, event, target, player, data)
-    if event == fk.CardEffectCancelledOut then
-      data.card.extra_data = data.card.extra_data or {}
-      data.card.extra_data.sa__halberdNullified = true
-    else
-      local room = player.room
-      room:sendLog{
-        type = "#HalberdNullified",
-        from = target.id,
-        to = {player.id},
-        arg = "sa__halberd",
-        card = Card:getIdList(data.card),
-      }
-      return true
-    end
+    local room = player.room
+    local e = room.logic:getCurrentEvent():findParent(GameEvent.UseCard)
+    room:sendLog{
+      type = "#HalberdNullified",
+      from = target.id,
+      -- to = {player.id},
+      arg = "sa__halberd",
+      card = Card:getIdList(data.card),
+    }
+    e:shutdown()
   end,
 }
 local halberdSkill = fk.CreateTriggerSkill{
@@ -749,7 +741,7 @@ Fk:loadTranslationTable{
   ["#sa__halberd_targets"] = "方天画戟",
   ["#sa__halberd-ask"] = "你可发动【方天画戟】，令任意名势力各不相同且与已选择的目标势力均不相同的角色和任意名没有势力的角色也成为目标",
   ["#sa__halberd_delay"] = "方天画戟",
-  ["#HalberdNullified"] = "由于 “%arg” 的效果，%from 对 %to 使用的 %card 无效",
+  ["#HalberdNullified"] = "由于 “%arg” 的效果，%from 对所有剩余目标使用的 %card 无效",
 }
 
 local damage_nature_table = {

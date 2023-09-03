@@ -258,10 +258,15 @@ function HegLogic:chooseGenerals()
       deputy = p.default_reply[2]
     end
 
-    p:setMark("__heg_general", general)
+--[[ -- FIXME
+    p:setMark("__heg_general", general) 
     p:setMark("__heg_deputy", deputy)
     p:doNotify("SetPlayerMark", json.encode{ p.id, "__heg_general", general})
     p:doNotify("SetPlayerMark", json.encode{ p.id, "__heg_deputy", deputy})
+]]
+
+    room:setPlayerMark(p, "__heg_general", general)
+    room:setPlayerMark(p, "__heg_deputy", deputy)
 
     room:setPlayerGeneral(p, "anjiang", true)
     room:setDeputyGeneral(p, "anjiang")

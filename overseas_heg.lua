@@ -117,6 +117,13 @@ Fk:loadTranslationTable{
   ["~os_heg__liaohua"] = "兴复大业，就靠你们了……",
 }
 
+local chendao = General(extension, "os_heg__chendao", "shu", 4)
+chendao:addSkill("wangliec")
+Fk:loadTranslationTable{
+  ["os_heg__chendao"] = "陈到",
+  ["~os_heg__chendao"] = "我的白毦兵，再也不能为先帝出力了。",
+}
+
 local zumao = General(extension, "os_heg__zumao", "wu", 4)
 zumao:addSkill("yinbing")
 zumao:addSkill("juedi")
