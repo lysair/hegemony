@@ -150,6 +150,133 @@ Fk:loadTranslationTable{
   "若你没有因此获得牌，此技能视为未发动过。",
 }
 
+local dengzhi = General(extension, "ty_heg__dengzhi", "shu", 3)
+local jianliang = fk.CreateTriggerSkill{
+  name = "ty_heg__jianliang",
+  mute = true,
+  events = {fk.EventPhaseStart},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) and player.phase == Player.Draw and
+      table.every(player.room.alive_players, function(p) return player:getHandcardNum() <= p:getHandcardNum() end)
+  end,
+  on_use = function (self, event, target, player, data)
+    local room = player.room
+    room:notifySkillInvoked(player, self.name, "drawcard")
+    local targets = table.map(table.filter(room.alive_players, function(p) return H.compareKingdomWith(p, player) end), Util.IdMapper)
+    room:sortPlayersByAction(targets)
+    for _, pid in ipairs(targets) do
+      local p = room:getPlayerById(pid)
+      if not p.dead then
+        p:drawCards(1, self.name)
+      end
+    end
+  end,
+}
+
+local weimeng = fk.CreateActiveSkill{
+  name = "ty_heg__weimeng",
+  anim_type = "control",
+  card_num = 0,
+  target_num = 1,
+  prompt = function (self, selected, selected_cards)
+    return "#weimeng:::"..Self.hp
+  end,
+  can_use = function(self, player)
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
+  end,
+  card_filter = function(self, to_select, selected)
+    return false
+  end,
+  target_filter = function(self, to_select, selected)
+    return #selected == 0 and to_select ~= Self.id and not Fk:currentRoom():getPlayerById(to_select):isKongcheng()
+  end,
+  on_use = function (self, room, effect)
+    local player = room:getPlayerById(effect.from)
+    local target = room:getPlayerById(effect.tos[1])
+    local cards = room:askForCardsChosen(player, target, 1, player.hp, "h", self.name)
+    
+    local dummy1 = Fk:cloneCard("dilu")
+    dummy1:addSubcards(cards)
+    room:obtainCard(player, dummy1, false, fk.ReasonPrey)
+    if player.dead or player:isNude() or target.dead then return end
+    local cards2
+    if #player:getCardIds("he") <= #cards then
+      cards2 = player:getCardIds("he")
+    else
+      cards2 = room:askForCard(player, #cards, #cards, true, self.name, false, ".",
+        "#ty_heg__weimeng-give::"..target.id..":"..#cards)
+      if #cards2 < #cards then
+        cards2 = table.random(player:getCardIds("he"), #cards)
+      end
+    end
+    local dummy2 = Fk:cloneCard("dilu")
+    dummy2:addSubcards(cards2)
+    room:obtainCard(target, dummy2, false, fk.ReasonGive)
+    local choices = {"ty_heg__weimeng_mn_ask::" .. target.id, "Cancel"}
+    if room:askForChoice(player, choices, self.name) ~= "Cancel" then
+      room:setPlayerMark(target, "@@ty_heg__weimeng_manoeuvre", 1)
+      room:handleAddLoseSkills(target, "ty_heg__weimeng_manoeuvre", nil)
+    end
+  end,
+}
+
+local weimeng_mn = fk.CreateActiveSkill{
+  name = "ty_heg__weimeng_manoeuvre",
+  anim_type = "control",
+  card_num = 0,
+  target_num = 1,
+  can_use = function(self, player)
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
+  end,
+  card_filter = function(self, to_select, selected)
+    return false
+  end,
+  target_filter = function(self, to_select, selected)
+    return #selected == 0 and to_select ~= Self.id and not Fk:currentRoom():getPlayerById(to_select):isKongcheng()
+  end,
+  on_use = function (self, room, effect)
+    local player = room:getPlayerById(effect.from)
+    local target = room:getPlayerById(effect.tos[1])
+    local cards = room:askForCardsChosen(player, target, 1, 1, "h", self.name)
+    
+    local dummy1 = Fk:cloneCard("dilu")
+    dummy1:addSubcards(cards)
+    room:obtainCard(player, dummy1, false, fk.ReasonPrey)
+    if player.dead or player:isNude() or target.dead then return end
+    local cards2
+    if #player:getCardIds("he") <= #cards then
+      cards2 = player:getCardIds("he")
+    else
+      cards2 = room:askForCard(player, #cards, #cards, true, self.name, false, ".",
+        "#ty_heg__weimeng-give::"..target.id..":"..#cards)
+      if #cards2 < #cards then
+        cards2 = table.random(player:getCardIds("he"), #cards)
+      end
+    end
+    local dummy2 = Fk:cloneCard("dilu")
+    dummy2:addSubcards(cards2)
+    room:obtainCard(target, dummy2, false, fk.ReasonGive)
+    
+  end,
+}
+
+local weimeng_mn_detach = fk.CreateTriggerSkill{
+  name = "#ty_heg__weimeng_manoeuvre_detach",
+  refresh_events = {fk.EventPhaseStart},
+  can_refresh = function(self, event, target, player, data)
+    return target == player and player.phase == Player.NotActive and player:hasSkill("ty_heg__weimeng_manoeuvre", true, true) 
+  end,
+  on_refresh = function(self, event, target, player, data)
+    local room = player.room
+    room:handleAddLoseSkills(player, "-ty_heg__weimeng_manoeuvre", nil)
+    room:setPlayerMark(player, "@@ty_heg__weimeng_manoeuvre", 0)
+  end,
+}
+
+weimeng_mn:addRelatedSkill(weimeng_mn_detach)
+Fk:addSkill(weimeng_mn)
+dengzhi:addSkill(jianliang)
+dengzhi:addSkill(weimeng)
 Fk:loadTranslationTable{
   ["ty_heg__dengzhi"] = "邓芝",
   ["ty_heg__jianliang"] = "简亮",
@@ -158,6 +285,10 @@ Fk:loadTranslationTable{
   [":ty_heg__weimeng"] = "出牌阶段限一次，你可以获得目标角色至多X张手牌，然后交给其等量的牌（X为你的体力值）。"..
   "<br><font color=\"blue\">◆纵横：〖危盟〗描述中的X改为1。<font><br><font color=\"grey\"><b>纵横</b>："..
   "当拥有“纵横”效果技能发动结算完成后，可以令技能目标角色获得对应修订描述后的技能，直到其下回合结束。",
+  ["#ty_heg__weimeng-give"] = "危盟：交还 %dest %arg 张牌。",
+  ["ty_heg__weimeng_mn_ask"] = "令%dest获得〖危盟（纵横）〗直到其下回合结束。",
+  ["@@ty_heg__weimeng_manoeuvre"] = "危盟 纵横",
+  ["ty_heg__weimeng_manoeuvre"] = "危盟(纵横)",
 }
 
 Fk:loadTranslationTable{
