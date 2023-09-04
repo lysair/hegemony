@@ -132,6 +132,99 @@ Fk:loadTranslationTable{
   ["~ty_heg__huaxin"] = "大举发兵，劳民伤国。",
 }
 
+local yanghu = General(extension, "ty_heg__yanghu", "wei", 3)
+local deshao = fk.CreateTriggerSkill{
+  name = "ty_heg__deshao",
+  anim_type = "defensive",
+  events = {fk.TargetSpecified},
+  can_trigger = function (self, event, target, player, data)
+    local anjiang_trigger = false
+    if player.general ~= "anjiang" and player.deputyGeneral ~= "anjiang" then
+      anjiang_trigger = true
+    elseif player.general == "anjiang" and player.deputyGeneral == "anjiang" then
+      if target.general == "anjiang" and target.deputyGeneral == "anjiang" then
+        anjiang_trigger = true
+      end
+    else
+      if not (target.general ~= "anjiang" and target.deputyGeneral ~= "anjiang") then
+        anjiang_trigger = true
+      end
+    end
+    return target ~= player and player:hasSkill(self.name) and #TargetGroup:getRealTargets(data.tos) == 1
+     and data.card.color == Card.Black and player:usedSkillTimes(self.name, Player.HistoryTurn) < player.hp
+     and anjiang_trigger and TargetGroup:getRealTargets(data.tos)[1] == player.id
+    
+  end,
+  on_cost = function(self, event, target, player, data)
+    return player.room:askForSkillInvoke(player, self.name, nil, "#ty_heg__deshao-invoke::"..data.from)
+  end,
+  on_use = function (self, event, target, player, data)
+    local room = player.room
+    local from = room:getPlayerById(data.from)
+    if from:getHandcardNum() ~= 0 then
+      local id = room:askForCardChosen(player, from, "he", self.name)
+      room:throwCard(id, self.name, from, player)
+    end
+  end,
+}
+
+local mingfa = fk.CreateActiveSkill{
+  name = "ty_heg__mingfa",
+  anim_type = "offensive",
+  card_num = 0,
+  target_num = 1,
+  can_use = function (self, player)
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
+  end,
+  card_filter = function (self, to_select, selected)
+    return false
+  end,
+  target_filter = function (self, to_select, selected)
+    return #selected == 0 and to_select ~= Self.id and (not H.compareKingdomWith(Fk:currentRoom():getPlayerById(to_select), Self))
+  end,
+  on_use = function(self, room, effect)
+    local target = room:getPlayerById(effect.tos[1])
+    -- room:setPlayerMark(player, "@@ty")
+    room:setPlayerMark(target, "@@ty_heg__mingfa_delay", 1)
+  end,
+}
+
+local mingfa_delay = fk.CreateTriggerSkill{
+  name = "#ty_heg__mingfa_delay",
+  anim_type = "offensive",
+  events = {fk.EventPhaseStart},
+  can_trigger = function (self, event, target, player, data)
+    return target.phase == Player.Finish and target:getMark("@@ty_heg__mingfa_delay") ~= 0 
+      and not player.dead and player:hasSkill(self.name)
+  end,
+  on_cost = function (self, event, target, player, data)
+    return true
+  end,
+  on_use = function (self, event, target, player, data)
+    local room = player.room
+    if player:getHandcardNum() > target:getHandcardNum() then
+      room:damage{
+        from = player,
+        to = target,
+        damage = 1,
+        skillName = self.name,
+      }
+      if target:getHandcardNum() > 0 then
+        local cards = room:askForCardsChosen(player, target, 1, 1, "h", self.name)
+        local dummy = Fk:cloneCard("dilu")
+        dummy:addSubcards(cards)
+        room:obtainCard(player, dummy, false, fk.ReasonPrey)
+      end
+    elseif player:getHandcardNum() < target:getHandcardNum() then
+      player:drawCards(math.min(target:getHandcardNum() - player:getHandcardNum(), 5), self.name)
+    end
+    room:setPlayerMark(target, "@@ty_heg__mingfa_delay", 0)
+  end,
+}
+
+mingfa:addRelatedSkill(mingfa_delay)
+yanghu:addSkill(deshao)
+yanghu:addSkill(mingfa)
 Fk:loadTranslationTable{
   ["ty_heg__yanghu"] = "羊祜",
   ["ty_heg__deshao"] = "德劭",
@@ -139,6 +232,9 @@ Fk:loadTranslationTable{
   ["ty_heg__mingfa"] = "明伐",
   [":ty_heg__mingfa"] = "出牌阶段限一次，你可以选择其他势力的一名角色，该角色下个回合结束时，若其手牌数：小于你，你对其造成1点伤害并获得其一张手牌；"..
   "不小于你，你摸至与其手牌数相同（最多摸五张）。",
+  ["#ty_heg__mingfa_delay"] = "明伐",
+  ["@@ty_heg__mingfa_delay"] = "明伐",
+  ["#ty_heg__deshao-invoke::"] = "德劭：你可以弃置 %dest 一张牌。",
 }
 
 Fk:loadTranslationTable{
@@ -161,7 +257,6 @@ local jianliang = fk.CreateTriggerSkill{
   end,
   on_use = function (self, event, target, player, data)
     local room = player.room
-    room:notifySkillInvoked(player, self.name, "drawcard")
     local targets = table.map(table.filter(room.alive_players, function(p) return H.compareKingdomWith(p, player) end), Util.IdMapper)
     room:sortPlayersByAction(targets)
     for _, pid in ipairs(targets) do
@@ -179,7 +274,7 @@ local weimeng = fk.CreateActiveSkill{
   card_num = 0,
   target_num = 1,
   prompt = function (self, selected, selected_cards)
-    return "#weimeng:::"..Self.hp
+    return "#ty_heg__weimeng:::"..Self.hp
   end,
   can_use = function(self, player)
     return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
@@ -198,7 +293,7 @@ local weimeng = fk.CreateActiveSkill{
     local dummy1 = Fk:cloneCard("dilu")
     dummy1:addSubcards(cards)
     room:obtainCard(player, dummy1, false, fk.ReasonPrey)
-    -- if player.dead or player:isNude() or target.dead then return end
+    if player.dead or player:isNude() or target.dead then return end
     local cards2
     if #player:getCardIds("he") <= #cards then
       cards2 = player:getCardIds("he")
@@ -289,6 +384,7 @@ Fk:loadTranslationTable{
   ["ty_heg__weimeng_mn_ask"] = "令%dest获得〖危盟（纵横）〗直到其下回合结束。",
   ["@@ty_heg__weimeng_manoeuvre"] = "危盟 纵横",
   ["ty_heg__weimeng_manoeuvre"] = "危盟(纵横)",
+  ["#ty_heg__weimeng"] = "危盟：获得一名其他角色至多%arg张牌，交还等量牌。",
   [":ty_heg__weimeng_manoeuvre"] = "出牌阶段限一次，你可以获得目标角色一张手牌，然后交给其等量的牌。",
 }
 
