@@ -662,7 +662,7 @@ local halberdTargets = fk.CreateActiveSkill{
   card_num = 0,
   card_filter = Util.FalseFunc,
   target_filter = function(self, to_select, selected)
-    local orig = Self:getMark("_sa__halberd")
+    local orig = table.simpleClone(Self:getMark("_sa__halberd"))
     if table.contains(orig, to_select) or to_select == Self.id then return false end
     local target = Fk:currentRoom():getPlayerById(to_select)
     if target.kingdom == "unknown" then return true end
@@ -686,9 +686,10 @@ local halberdDelay = fk.CreateTriggerSkill{
       from = target.id,
       -- to = {player.id},
       arg = "sa__halberd",
-      card = Card:getIdList(data.card),
+      arg2 = data.card:toLogString(),
     }
-    e:shutdown()
+    local use = e.data[1]
+    use.nullifiedTargets = TargetGroup:getRealTargets(use.tos)
   end,
 }
 local halberdSkill = fk.CreateTriggerSkill{
@@ -741,7 +742,7 @@ Fk:loadTranslationTable{
   ["#sa__halberd_targets"] = "方天画戟",
   ["#sa__halberd-ask"] = "你可发动【方天画戟】，令任意名势力各不相同且与已选择的目标势力均不相同的角色和任意名没有势力的角色也成为目标",
   ["#sa__halberd_delay"] = "方天画戟",
-  ["#HalberdNullified"] = "由于 “%arg” 的效果，%from 对所有剩余目标使用的 %card 无效",
+  ["#HalberdNullified"] = "由于 “%arg” 的效果，%from 对所有剩余目标使用的 %arg2 无效",
 }
 
 local damage_nature_table = {

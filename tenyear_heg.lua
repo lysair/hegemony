@@ -190,8 +190,9 @@ local mingfa = fk.CreateActiveSkill{
   end,
   on_use = function(self, room, effect)
     local target = room:getPlayerById(effect.tos[1])
-    -- room:setPlayerMark(player, "@@ty")
-    room:setPlayerMark(target, "@@ty_heg__mingfa_delay", 1)
+    local mark = type(target:getMark("@@ty_heg__mingfa_delay")) == "table" and target:getMark("@@ty_heg__mingfa_delay") or {}
+    table.insert(mark, effect.from)
+    room:setPlayerMark(target, "@@ty_heg__mingfa_delay", mark)
   end,
 }
 
@@ -200,8 +201,9 @@ local mingfa_delay = fk.CreateTriggerSkill{
   anim_type = "offensive",
   events = {fk.EventPhaseStart},
   can_trigger = function (self, event, target, player, data)
-    return target.phase == Player.Finish and target:getMark("@@ty_heg__mingfa_delay") ~= 0 
-      and not player.dead and player:hasSkill(self.name)
+    if target.dead or target.phase ~= Player.Finish or player.dead then return false end
+    local mark = target:getMark("@@ty_heg__mingfa_delay")
+    return type(mark) == "table" and table.contains(mark, player.id)
   end,
   on_cost = function (self, event, target, player, data)
     return true
@@ -224,7 +226,21 @@ local mingfa_delay = fk.CreateTriggerSkill{
     elseif player:getHandcardNum() < target:getHandcardNum() then
       player:drawCards(math.min(target:getHandcardNum() - player:getHandcardNum(), 5), self.name)
     end
-    room:setPlayerMark(target, "@@ty_heg__mingfa_delay", 0)
+  end,
+
+  refresh_events = {fk.AfterTurnEnd, fk.BuryVictim},
+  can_refresh = function(self, event, target, player, data)
+    if event == fk.AfterTurnEnd then
+      return player == target and player:getMark("@@ty_heg__mingfa_delay") ~= 0
+    elseif event == fk.BuryVictim then
+      local mark = player:getMark("@@ty_heg__mingfa_delay")
+      return type(mark) == "table" and table.every(player.room.alive_players, function (p)
+        return not table.contains(mark, p.id)
+      end)
+    end
+  end,
+  on_refresh = function(self, event, target, player, data)
+    player.room:setPlayerMark(player, "@@ty_heg__mingfa_delay", 0)
   end,
 }
 
@@ -241,6 +257,12 @@ Fk:loadTranslationTable{
   ["#ty_heg__mingfa_delay"] = "明伐",
   ["@@ty_heg__mingfa_delay"] = "明伐",
   ["#ty_heg__deshao-invoke"] = "德劭：你可以弃置 %dest 一张牌。",
+
+  ["$ty_heg__deshao1"] = "名德远播，朝野俱瞻。",
+  ["$ty_heg__deshao2"] = "增修德信，以诚服人。",
+  ["$ty_heg__mingfa1"] = "煌煌大势，无须诈取。",
+  ["$ty_heg__mingfa2"] = "开示公道，不为掩袭。",
+  ["~ty_heg__yanghu"] = "臣死之后，杜元凯可继之……",
 }
 
 Fk:loadTranslationTable{
@@ -295,7 +317,6 @@ local weimeng = fk.CreateActiveSkill{
     local player = room:getPlayerById(effect.from)
     local target = room:getPlayerById(effect.tos[1])
     local cards = room:askForCardsChosen(player, target, 1, player.hp, "h", self.name)
-    
     local dummy1 = Fk:cloneCard("dilu")
     dummy1:addSubcards(cards)
     room:obtainCard(player, dummy1, false, fk.ReasonPrey)
@@ -338,26 +359,11 @@ local weimeng_mn = fk.CreateActiveSkill{
   on_use = function (self, room, effect)
     local player = room:getPlayerById(effect.from)
     local target = room:getPlayerById(effect.tos[1])
-    local cards = room:askForCardsChosen(player, target, 1, 1, "h", self.name)
-    
-    local dummy1 = Fk:cloneCard("dilu")
-    dummy1:addSubcards(cards)
-    room:obtainCard(player, dummy1, false, fk.ReasonPrey)
+    local card1 = room:askForCardChosen(player, target, "h", self.name)
+    room:obtainCard(player, card1, false, fk.ReasonPrey)
     if player.dead or player:isNude() or target.dead then return end
-    local cards2
-    if #player:getCardIds("he") <= #cards then
-      cards2 = player:getCardIds("he")
-    else
-      cards2 = room:askForCard(player, #cards, #cards, true, self.name, false, ".",
-        "#ty_heg__weimeng-give::"..target.id..":"..#cards)
-      if #cards2 < #cards then
-        cards2 = table.random(player:getCardIds("he"), #cards)
-      end
-    end
-    local dummy2 = Fk:cloneCard("dilu")
-    dummy2:addSubcards(cards2)
-    room:obtainCard(target, dummy2, false, fk.ReasonGive)
-    
+    local cards2 = room:askForCard(player, 1, 1, true, self.name, false, ".", "#ty_heg__weimeng-give::"..target.id..":"..tostring(1))
+    room:obtainCard(target, cards2[1], false, fk.ReasonGive)
   end,
 }
 
@@ -392,6 +398,12 @@ Fk:loadTranslationTable{
   ["ty_heg__weimeng_manoeuvre"] = "危盟(纵横)",
   ["#ty_heg__weimeng"] = "危盟：获得一名其他角色至多%arg张牌，交还等量牌。",
   [":ty_heg__weimeng_manoeuvre"] = "出牌阶段限一次，你可以获得目标角色一张手牌，然后交给其等量的牌。",
+
+  ["$ty_heg__jianliang1"] = "岂曰少衣食，与君共袍泽！",
+  ["$ty_heg__jianliang2"] = "义士同心力，粮秣应期来！",
+  ["$ty_heg__weimeng1"] = "此礼献于友邦，共赴兴汉大业！",
+  ["$ty_heg__weimeng2"] = "吴有三江之守，何故委身侍魏？",
+  ["~ty_heg__dengzhi"] = "伯约啊，我帮不了你了……",
 }
 
 Fk:loadTranslationTable{
