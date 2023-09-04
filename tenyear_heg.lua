@@ -153,7 +153,7 @@ Fk:loadTranslationTable{
 local dengzhi = General(extension, "ty_heg__dengzhi", "shu", 3)
 local jianliang = fk.CreateTriggerSkill{
   name = "ty_heg__jianliang",
-  mute = true,
+  anim_type = "drawcard",
   events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(self.name) and player.phase == Player.Draw and
@@ -198,7 +198,7 @@ local weimeng = fk.CreateActiveSkill{
     local dummy1 = Fk:cloneCard("dilu")
     dummy1:addSubcards(cards)
     room:obtainCard(player, dummy1, false, fk.ReasonPrey)
-    if player.dead or player:isNude() or target.dead then return end
+    -- if player.dead or player:isNude() or target.dead then return end
     local cards2
     if #player:getCardIds("he") <= #cards then
       cards2 = player:getCardIds("he")
