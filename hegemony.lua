@@ -405,7 +405,7 @@ local wildKingdoms = {"heg_qin", "heg_qi", "heg_chu", "heg_yan", "heg_zhao", "he
 local heg_rule = fk.CreateTriggerSkill{
   name = "#heg_rule",
   priority = 0.001,
-  events = {fk.TurnStart, fk.GameOverJudge, fk.Deathed, fk.GeneralRevealed},
+  events = {fk.TurnStart, fk.GameOverJudge, fk.Deathed, fk.GeneralRevealed, fk.EventPhaseChanging},
   can_trigger = function(self, event, target, player, data)
     return target == player
   end,
@@ -517,6 +517,12 @@ local heg_rule = fk.CreateTriggerSkill{
         player:addFakeSkill("companion_skill&")
         player:addFakeSkill("companion_peach&")
         -- room:handleAddLoseSkills(player, "companion_skill&|companion_peach&", nil, false, true)
+      end
+    elseif event == fk.EventPhaseChanging then
+      if data.to == Player.Play then
+        player:addFakeSkill("alliance&")
+      elseif data.from == Player.Play then
+        player:loseFakeSkill("alliance&")
       end
     end
   end,
