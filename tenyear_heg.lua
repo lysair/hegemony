@@ -85,7 +85,8 @@ local xibing = fk.CreateTriggerSkill{
     if num > 0 then
       cards = target:drawCards(num, self.name)
     end
-    if player.general ~= "anjiang" and player.deputyGeneral ~= "anjiang" and target.general ~= "anjiang" and target.deputyGeneral ~= "anjiang" then
+    if player.general ~= "anjiang" and player.deputyGeneral ~= "anjiang" and target.general ~= "anjiang" and target.deputyGeneral ~= "anjiang" 
+      and room:askForChoice(player, {"ty_heg__xibing_hide::" .. target.id, "Cancel"}, self.name) ~= "Cancel" then
       for _, p in ipairs({player, target}) do
         local isDeputy = H.doHideGeneral(room, player, p, self.name)
         room:setPlayerMark(p, "@ty_heg__xibing_reveal-turn", H.getActualGeneral(p, isDeputy))
@@ -102,7 +103,11 @@ local xibing = fk.CreateTriggerSkill{
 local xibing_prohibit = fk.CreateProhibitSkill{
   name = "#ty_heg__xibing_prohibit",
   prohibit_use = function(self, player, card)
-    return player:getMark("@@ty_heg__xibing-turn") > 0
+    if player:getMark("@@ty_heg__xibing-turn") == 0 then return false end 
+    local subcards = Card:getIdList(card)
+    return #subcards > 0 and table.every(subcards, function(id)
+      return table.contains(player:getCardIds(Player.Hand), id)
+    end)
   end,
 }
 xibing:addRelatedSkill(xibing_prohibit)
@@ -120,8 +125,9 @@ Fk:loadTranslationTable{
   "（至多摸至五张），然后若你与其均明置了所有武将牌，则你可暗置你与其各一张武将牌且本回合不能明置以此法暗置的武将牌。若其因此摸牌，其本回合不能使用手牌。",
 
   ["#ty_heg__xibing-invoke"] = "你想对 %dest 发动 “息兵” 吗？",
-  ["@ty_heg__xibing_reveal-turn"] = "息兵 不能明置",
-  ["@@ty_heg__xibing-turn"] = "息兵 不能使用手牌",
+  ["ty_heg__xibing_hide"] = "暗置你与%dest各一张武将牌且本回合不能明置",
+  ["@ty_heg__xibing_reveal-turn"] = "息兵禁亮",
+  ["@@ty_heg__xibing-turn"] = "息兵 禁用手牌",
   ["#ty_heg__wanggui_damage-choose"] = "望归：你可对与你势力不同的一名角色造成1点伤害",
   ["#ty_heg__wanggui_draw-invoke"] = "望归：你可令所有与你势力相同的角色各摸一张牌",
 
@@ -151,8 +157,8 @@ local deshao = fk.CreateTriggerSkill{
       end
     end
     return target ~= player and player:hasSkill(self.name) and #TargetGroup:getRealTargets(data.tos) == 1
-     and data.card.color == Card.Black and player:usedSkillTimes(self.name, Player.HistoryTurn) < player.hp
-     and anjiang_trigger and TargetGroup:getRealTargets(data.tos)[1] == player.id
+      and data.card.color == Card.Black and player:usedSkillTimes(self.name, Player.HistoryTurn) < player.hp
+      and anjiang_trigger and TargetGroup:getRealTargets(data.tos)[1] == player.id
     
   end,
   on_cost = function(self, event, target, player, data)
@@ -230,11 +236,11 @@ Fk:loadTranslationTable{
   ["ty_heg__deshao"] = "德劭",
   [":ty_heg__deshao"] = "每回合限X次（X为你的体力值），当其他角色使用黑色牌指定你为唯一目标后，若其明置的武将牌数不大于你，你可弃置其一张牌。",
   ["ty_heg__mingfa"] = "明伐",
-  [":ty_heg__mingfa"] = "出牌阶段限一次，你可以选择其他势力的一名角色，该角色下个回合结束时，若其手牌数：小于你，你对其造成1点伤害并获得其一张手牌；"..
+  [":ty_heg__mingfa"] = "出牌阶段限一次，你可以选择其他势力的一名角色，其下个回合结束时，若其手牌数：小于你，你对其造成1点伤害并获得其一张手牌；"..
   "不小于你，你摸至与其手牌数相同（最多摸五张）。",
   ["#ty_heg__mingfa_delay"] = "明伐",
   ["@@ty_heg__mingfa_delay"] = "明伐",
-  ["#ty_heg__deshao-invoke::"] = "德劭：你可以弃置 %dest 一张牌。",
+  ["#ty_heg__deshao-invoke"] = "德劭：你可以弃置 %dest 一张牌。",
 }
 
 Fk:loadTranslationTable{
@@ -377,7 +383,7 @@ Fk:loadTranslationTable{
   ["ty_heg__jianliang"] = "简亮",
   [":ty_heg__jianliang"] = "摸牌阶段开始时，若你的手牌数为全场最少，你可令与你势力相同的所有角色各摸一张牌。",
   ["ty_heg__weimeng"] = "危盟",
-  [":ty_heg__weimeng"] = "出牌阶段限一次，你可以获得目标角色至多X张手牌，然后交给其等量的牌（X为你的体力值）。"..
+  [":ty_heg__weimeng"] = "出牌阶段限一次，你可选择一名其他角色，获得其至多X张手牌，然后交给其等量的牌（X为你的体力值）。"..
   "<br><font color=\"blue\">◆纵横：〖危盟〗描述中的X改为1。<font><br><font color=\"grey\"><b>纵横</b>："..
   "当拥有“纵横”效果技能发动结算完成后，可以令技能目标角色获得对应修订描述后的技能，直到其下回合结束。",
   ["#ty_heg__weimeng-give"] = "危盟：交还 %dest %arg 张牌。",
