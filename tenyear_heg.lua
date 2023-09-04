@@ -289,6 +289,7 @@ Fk:loadTranslationTable{
   ["ty_heg__weimeng_mn_ask"] = "令%dest获得〖危盟（纵横）〗直到其下回合结束。",
   ["@@ty_heg__weimeng_manoeuvre"] = "危盟 纵横",
   ["ty_heg__weimeng_manoeuvre"] = "危盟(纵横)",
+  [":ty_heg__weimeng_manoeuvre"] = "出牌阶段限一次，你可以获得目标角色一张手牌，然后交给其等量的牌。",
 }
 
 Fk:loadTranslationTable{
