@@ -913,13 +913,26 @@ xunchen:addSkill(fenglve)
 Fk:loadTranslationTable{
   ["ty_heg__xunchen"] = "荀谌",
   ["ty_heg__fenglve"] = "锋略",
-  [":ty_heg__fenglve"] = "出牌阶段限一次，你可以和一名其他角色拼点，若你赢，该角色交给你其区域内的两张牌；若其赢，你交给其一张牌。"..
+  [":ty_heg__fenglve"] = "出牌阶段限一次，你可以和一名其他角色拼点，若你赢，该角色交给你其区域内的两张牌；若你输，你交给其一张牌。"..
   "<br><font color=\"blue\">◆纵横：交换〖锋略〗描述中的“一张牌”和“两张牌”。<font><br><font color=\"grey\"><b>纵横</b>："..
   "当拥有“纵横”效果技能发动结算完成后，可以令技能目标角色获得对应修订描述后的技能，直到其下回合结束。",
+  ["ty_heg__fenglve_mn_ask"] = "令%dest获得〖锋略（纵横）〗直到其下回合结束",
+  ["@@ty_heg__fenglve_manoeuvre"] = "锋略 纵横",
+
+  ["ty_heg__fenglve_manoeuvre"] = "锋略(纵横)",
+  [":ty_heg__fenglve_manoeuvre"] = "出牌阶段限一次，你可以和一名其他角色拼点，若你赢，该角色交给你其区域内的一张牌；若你输，你交给其两张牌。",
+
+
   ["ty_heg__anyong"] = "暗涌",
+  ["ty_heg__anyong-invoke"] = "暗涌：是否令此次造成的伤害翻倍。",
   [":ty_heg__anyong"] = "每回合限一次，当与你势力相同的一名角色对另一名其他角色造成伤害时，你可令此伤害翻倍，然后若受到伤害的角色："..
   "武将牌均明置，你失去1点体力并失去此技能；只明置了一张武将牌，你弃置两张手牌。",
-  
+
+  ["$ty_heg__fenglve1"] = "冀州宝地，本当贤者居之。",
+  ["$ty_heg__fenglve2"] = "当今敢称贤者，唯袁氏本初一人。",
+  ["$ty_heg__anyong1"] = "冀州暗潮汹涌，群仕居危思变。",
+  ["$ty_heg__anyong2"] = "殿上太守且相看，殿下几人还拥韩。",
+  ["~ty_heg__xunchen"] = "为臣当不贰，贰臣不当为。",
 }
 
 local jianggan = General(extension, "ty_heg__jianggan", "wei", 3)
