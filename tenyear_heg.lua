@@ -737,7 +737,7 @@ local fenglve_mn = fk.CreateTriggerSkill{
   card_num = 0,
   target_num = 1,
   prompt = function (self, selected, selected_cards)
-    return "#ty_heg__fenglue::"
+    return "#ty_heg__fenglve::"
   end,
   can_use = function(self, player)
     return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
