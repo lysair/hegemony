@@ -930,7 +930,7 @@ Fk:loadTranslationTable{
 }
 
 local isAllianceCard = function(card)
-  local names = {"jingfan", "burning_camps", "threaten_emperor", "breastplate"}
+  local names = {"jingfan", "burning_camps", "threaten_emperor", "sa__breastplate"}
   if table.contains(names, card.name) then return true end
   if card.name == "lure_tiger" then
     return card.suit == Card.Diamond and card.number == 10

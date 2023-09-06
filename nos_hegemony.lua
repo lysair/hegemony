@@ -445,7 +445,7 @@ Fk:addSkill(heg_rule)
 heg = fk.CreateGameMode{
   name = "nos_heg_mode",
   minPlayer = 2,
-  maxPlayer = 8,
+  maxPlayer = 10,
   rule = heg_rule,
   logic = heg_getlogic,
   is_counted = Util.FalseFunc,
