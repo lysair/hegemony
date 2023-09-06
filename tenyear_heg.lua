@@ -669,129 +669,7 @@ local anyong = fk.CreateTriggerSkill{
   events = {fk.DamageCaused},
   can_trigger = function (self, event, target, player, data)
     return H.compareKingdomWith(target, player) and player:hasSkill(self.name)
-     and data.to ~= player and data.to ~= target
-     and player:usedSkillTimes(self.name, Player.HistoryTurn) == 0
-  end,
-  on_cost = function(self, event, target, player, data)
-    return player.room:askForSkillInvoke(player, self.name, nil, "#ty_heg__anyong")
-  end,
-  on_use = function (self, event, target, player, data)
-    local room = player.room
-    local to = data.to
-    player:broadcastSkillInvoke(self.name, 1)
-    room:notifySkillInvoked(player, self.name, "offensive")
-    if to.general == "anjiang" and to.deputyGeneral == "anjiang" then
-    elseif (to.general == "anjiang" and to.deputyGeneral ~= "anjiang") or (to.general ~= "anjiang" and to.deputyGeneral == "anjiang") then
-      if player:getHandcardNum() >= 2 then
-        room:askForDiscard(player, 2, 2, false, self.name, false)
-      elseif player:getHandcardNum() == 1 then
-        room:askForDiscard(player, 1, 1, false, self.name, false)
-      end
-    elseif to.general ~= "anjiang" and to.deputyGeneral ~= "anjiang" then
-      room:loseHp(player, 1, self.name)
-      room:handleAddLoseSkills(player, "-ty_heg__anyong", nil)
-    end
-    data.damage = data.damage * 2
-  end,
-}
-
-local fenglue = fk.CreateActiveSkill{
-  name = "ty_heg__fenglve",
-  anim_type = "control",
-  card_num = 0,
-  target_num = 1,
-  prompt = function (self, selected, selected_cards)
-    return "#ty_heg__fenglue::"
-  end,
-  can_use = function(self, player)
-    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
-  end,
-  card_filter = function(self, to_select, selected)
-    return false
-  end,
-  target_filter = function(self, to_select, selected)
-    return #selected == 0 and to_select ~= Self.id and not Fk:currentRoom():getPlayerById(to_select):isKongcheng()
-  end,
-  on_use = function (self, room, effect)
-    local player = room:getPlayerById(effect.from)
-    local target = room:getPlayerById(effect.tos[1])
-    local pindian = player:pindian({target}, self.name)
-    if pindian.results[target.id].winner == player then
-      local cards1 = room:askForCardsChosen(target, target, 2, 2, "he", self.name)
-      local dummy1 = Fk:cloneCard("dilu")
-      dummy1:addSubcards(cards1)
-      room:obtainCard(player, dummy1, false, fk.ReasonPrey)
-    elseif pindian.results[target.id].winner == target then
-      local cards2 = room:askForCardsChosen(player, player, 1, 1, "he", self.name)
-      local dummy2 = Fk:cloneCard("dilu")
-      dummy2:addSubcards(cards2)
-      room:obtainCard(target, dummy2, false, fk.ReasonPrey)
-    end
-    local choices = {"ty_heg__fenglve_mn_ask::" .. target.id, "Cancel"}
-    if room:askForChoice(player, choices, self.name) ~= "Cancel" then
-      room:setPlayerMark(target, "@@ty_heg__fenglve_manoeuvre", 1)
-      room:handleAddLoseSkills(target, "ty_heg__fenglve_manoeuvre", nil)
-    end
-  end,
-}
-
-local fenglve_mn = fk.CreateTriggerSkill{
-  name = "ty_heg__fenglve",
-  anim_type = "control",
-  card_num = 0,
-  target_num = 1,
-  prompt = function (self, selected, selected_cards)
-    return "#ty_heg__fenglue::"
-  end,
-  can_use = function(self, player)
-    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
-  end,
-  card_filter = function(self, to_select, selected)
-    return false
-  end,
-  target_filter = function(self, to_select, selected)
-    return #selected == 0 and to_select ~= Self.id and not Fk:currentRoom():getPlayerById(to_select):isKongcheng()
-  end,
-  on_use = function (self, room, effect)
-    local player = room:getPlayerById(effect.from)
-    local target = room:getPlayerById(effect.tos[1])
-    local pindian = player:pindian({target}, self.name)
-    if pindian.results[target.id].winner == player then
-      local cards1 = room:askForCardsChosen(target, target, 1, 1, "he", self.name)
-      local dummy1 = Fk:cloneCard("dilu")
-      dummy1:addSubcards(cards1)
-      room:obtainCard(player, dummy1, false, fk.ReasonPrey)
-    elseif pindian.results[target.id].winner == target then
-      local cards2 = room:askForCardsChosen(player, player, 2, 2, "he", self.name)
-      local dummy2 = Fk:cloneCard("dilu")
-      dummy2:addSubcards(cards2)
-      room:obtainCard(target, dummy2, false, fk.ReasonPrey)
-    end
-  end,
-}
-
-local fenglve_mn_detach = fk.CreateTriggerSkill{
-  name = "#ty_heg__fenglve_manoeuvre_detach",
-  refresh_events = {fk.EventPhaseStart},
-  can_refresh = function(self, event, target, player, data)
-    return target == player and player.phase == Player.NotActive and player:hasSkill("ty_heg__fenglve_manoeuvre", true, true) 
-  end,
-  on_refresh = function(self, event, target, player, data)
-    local room = player.room
-    room:handleAddLoseSkills(player, "-ty_heg__fenglve_manoeuvre", nil)
-    room:setPlayerMark(player, "@@ty_heg__fenglve_manoeuvre", 0)
-  end,
-}
-
-local xunchen = General(extension, "ty_heg__xunchen", "qun", 3)
-local anyong = fk.CreateTriggerSkill{
-  name = "ty_heg__anyong",
-  mute = true,
-  frequency = Skill.Compulsory,
-  events = {fk.DamageCaused},
-  can_trigger = function (self, event, target, player, data)
-    return H.compareKingdomWith(target, player) and player:hasSkill(self.name)
-     and data.to ~= player and data.to ~= target
+     and data.to ~= player and data.to ~= target and not target.dead
      and player:usedSkillTimes(self.name, Player.HistoryTurn) == 0
   end,
   on_cost = function(self, event, target, player, data)
@@ -804,11 +682,7 @@ local anyong = fk.CreateTriggerSkill{
     room:notifySkillInvoked(player, self.name, "offensive")
     if to.general == "anjiang" and to.deputyGeneral == "anjiang" then
     elseif (to.general == "anjiang" and to.deputyGeneral ~= "anjiang") or (to.general ~= "anjiang" and to.deputyGeneral == "anjiang") then
-      if player:getHandcardNum() >= 2 then
-        room:askForDiscard(player, 2, 2, false, self.name, false)
-      elseif player:getHandcardNum() == 1 then
-        room:askForDiscard(player, 1, 1, false, self.name, false)
-      end
+      room:askForDiscard(player, 2, 2, false, self.name, false)
     elseif to.general ~= "anjiang" and to.deputyGeneral ~= "anjiang" then
       room:loseHp(player, 1, self.name)
       room:handleAddLoseSkills(player, "-ty_heg__anyong", nil)
@@ -826,7 +700,7 @@ local fenglve = fk.CreateActiveSkill{
     return "#ty_heg__fenglve::"
   end,
   can_use = function(self, player)
-    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and player:getHandcardNum() > 0
   end,
   card_filter = function(self, to_select, selected)
     return false
@@ -839,7 +713,7 @@ local fenglve = fk.CreateActiveSkill{
     local target = room:getPlayerById(effect.tos[1])
     local pindian = player:pindian({target}, self.name)
     if pindian.results[target.id].winner == player then
-      local cards1 = room:askForCardsChosen(target, target, 2, 2, "he", self.name)
+      local cards1 = room:askForCardsChosen(target, target, 2, 2, "hej", self.name)
       local dummy1 = Fk:cloneCard("dilu")
       dummy1:addSubcards(cards1)
       room:obtainCard(player, dummy1, false, fk.ReasonPrey)
@@ -879,7 +753,7 @@ local fenglve_mn = fk.CreateTriggerSkill{
     local target = room:getPlayerById(effect.tos[1])
     local pindian = player:pindian({target}, self.name)
     if pindian.results[target.id].winner == player then
-      local cards1 = room:askForCardsChosen(target, target, 1, 1, "he", self.name)
+      local cards1 = room:askForCardsChosen(target, target, 1, 1, "hej", self.name)
       local dummy1 = Fk:cloneCard("dilu")
       dummy1:addSubcards(cards1)
       room:obtainCard(player, dummy1, false, fk.ReasonPrey)
