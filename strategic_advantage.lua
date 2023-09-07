@@ -25,15 +25,15 @@ extension:addCards{
 
   Fk:cloneCard("thunder__slash", Card.Spade, 9),
   Fk:cloneCard("thunder__slash", Card.Spade, 10),
-  Fk:cloneCard("thunder__slash", Card.Spade, 11),
-  Fk:cloneCard("thunder__slash", Card.Club, 5),
+  -- Fk:cloneCard("thunder__slash", Card.Spade, 11),
+  -- Fk:cloneCard("thunder__slash", Card.Club, 5),
 
   Fk:cloneCard("fire__slash", Card.Diamond, 8),
   Fk:cloneCard("fire__slash", Card.Diamond, 9),
 
   Fk:cloneCard("jink", Card.Heart, 4),
   Fk:cloneCard("jink", Card.Heart, 5),
-  Fk:cloneCard("jink", Card.Heart, 6),
+  -- Fk:cloneCard("jink", Card.Heart, 6),
   Fk:cloneCard("jink", Card.Heart, 7),
   Fk:cloneCard("jink", Card.Diamond, 6),
   Fk:cloneCard("jink", Card.Diamond, 7),
@@ -42,9 +42,9 @@ extension:addCards{
   Fk:cloneCard("peach", Card.Heart, 8),
   Fk:cloneCard("peach", Card.Heart, 9),
   Fk:cloneCard("peach", Card.Diamond, 2),
-  Fk:cloneCard("peach", Card.Diamond, 3),
+  -- Fk:cloneCard("peach", Card.Diamond, 3),
 
-  Fk:cloneCard("analeptic", Card.Spade, 6),
+  -- Fk:cloneCard("analeptic", Card.Spade, 6),
   Fk:cloneCard("analeptic", Card.Club, 9),
 
   Fk:cloneCard("nullification", Card.Spade, 13),
@@ -53,6 +53,15 @@ extension:addCards{
   H.hegNullification:clone(Card.Club, 13),
 }
 
+for _, c in ipairs{Fk:cloneCard("jink", Card.Heart, 6),
+  Fk:cloneCard("peach", Card.Diamond, 3),
+  Fk:cloneCard("analeptic", Card.Spade, 6),
+  Fk:cloneCard("thunder__slash", Card.Spade, 11),
+  Fk:cloneCard("thunder__slash", Card.Club, 5),
+} do
+  extension:addCard(c)
+  H.addCardToAllianceCards(c)
+end
 
 local drowningSkill = fk.CreateActiveSkill{
   name = "sa__drowning_skill",
@@ -150,11 +159,23 @@ local burningCamps = fk.CreateTrickCard{
   multiple_targets = true,
   is_damage_card = true,
 }
+
+for _, c in ipairs{
+  burningCamps,
+  burningCamps:clone(Card.Spade, 3),
+  burningCamps:clone(Card.Club, 11),
+} do
+  extension:addCard(c)
+  H.addCardToAllianceCards(c)
+end
+
+--[[
 extension:addCards{
   burningCamps,
   burningCamps:clone(Card.Spade, 3),
   burningCamps:clone(Card.Club, 11),
 }
+]]
 
 Fk:loadTranslationTable{
   ["burning_camps"] = "火烧连营",
@@ -215,10 +236,10 @@ local lureTiger = fk.CreateTrickCard{
   number = 2,
   multiple_targets = true,
 }
-extension:addCards{
-  lureTiger,
-  lureTiger:clone(Card.Diamond, 10),
-}
+extension:addCard(lureTiger)
+lureTiger = lureTiger:clone(Card.Diamond, 10)
+extension:addCard(lureTiger)
+H.addCardToAllianceCards(lureTiger)
 
 Fk:loadTranslationTable{
   ["lure_tiger"] = "调虎离山",
@@ -433,12 +454,22 @@ local threatenEmperor = fk.CreateTrickCard{
   suit = Card.Diamond,
   number = 1,
 }
+
+for _, c in ipairs{
+  threatenEmperor,
+  threatenEmperor:clone(Card.Diamond, 4),
+  threatenEmperor:clone(Card.Spade, 1),
+} do
+  extension:addCard(c)
+  H.addCardToAllianceCards(c)
+end
+--[[
 extension:addCards{
   threatenEmperor,
   threatenEmperor:clone(Card.Diamond, 4),
   threatenEmperor:clone(Card.Spade, 1),
 }
-
+]]
 Fk:loadTranslationTable{
   ["threaten_emperor"] = "挟天子以令诸侯",
   [":threaten_emperor"] = "锦囊牌<br/><b>时机</b>：出牌阶段<br/><b>目标</b>：为大势力角色的你<br/><b>效果</b>：目标角色结束出牌阶段，当前回合的弃牌阶段结束时，其可弃置一张手牌，然后其获得一个额外回合。",
@@ -785,6 +816,7 @@ local breastplate = fk.CreateArmor{
   equip_skill = breastplateSkill,
 }
 extension:addCard(breastplate)
+H.addCardToAllianceCards(breastplate)
 Fk:loadTranslationTable{
   ["sa__breastplate"] = "护心镜",
   ["#sa__breastplate_skill"] = "护心镜",
@@ -833,6 +865,7 @@ local jingfan = fk.CreateOffensiveRide{
   number = 3,
 }
 extension:addCard(jingfan)
+H.addCardToAllianceCards(jingfan)
 Fk:loadTranslationTable{
   ["jingfan"] = "惊帆",
   [":jingfan"] = "装备牌·坐骑<br /><b>坐骑技能</b>：你与其他角色的距离-1。",
@@ -929,42 +962,24 @@ Fk:loadTranslationTable{
   ["#jade_seal-ask"] = "受到【玉玺】的效果，视为你使用一张【知己知彼】",
 }
 
-local isAllianceCard = function(card)
-  local names = {"jingfan", "burning_camps", "threaten_emperor", "sa__breastplate"}
-  if table.contains(names, card.name) then return true end
-  if card.name == "lure_tiger" then
-    return card.suit == Card.Diamond and card.number == 10
-  elseif card.name == "jink" then
-    return card.suit == Card.Heart and card.number == 6
-  elseif card.name == "peach" then
-    return card.suit == Card.Diamond and card.number == 3
-  elseif card.name == "thunder__slash" then
-    if card.suit == Card.Club then
-      return card.number == 5
-    elseif card.suit == Card.Spade then
-      return card.number == 11
-    end
-  elseif card.name == "analeptic" then
-    return card.suit == Card.Spade and card.number == 6
-  end
-  return false
-end
-
 local alliance = fk.CreateActiveSkill{
   name = "alliance&",
   prompt = "#alliance&",
   anim_type = "support",
   can_use = function(self, player)
-    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and table.find(player:getCardIds(Player.Hand), function(id) return isAllianceCard(Fk:getCardById(id)) end)
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and table.find(player:getCardIds(Player.Hand), function(id) return Fk:getCardById(id):getMark("@@alliance") > 0 end)
   end,
   max_card_num = 3,
   min_card_num = 1,
   card_filter = function(self, to_select, selected)
-    return isAllianceCard(Fk:getCardById(to_select)) and table.contains(Self.player_cards[Player.Hand], to_select) and #selected <= 3
+    return Fk:getCardById(to_select):getMark("@@alliance") > 0 and table.contains(Self.player_cards[Player.Hand], to_select) and #selected <= 3
   end,
   target_num = 1,
   target_filter = function(self, to_select, selected, selected_cards)
-    return #selected == 0 and not H.compareKingdomWith(Fk:currentRoom():getPlayerById(to_select), Self) and #selected_cards >= 1 and #selected_cards <= 3
+    if #selected == 0 and #selected_cards >= 1 and #selected_cards <= 3 then
+      local target = Fk:currentRoom():getPlayerById(to_select)
+      return (H.compareKingdomWith(target, Self, true) or target.kingdom == "unknown") and to_select ~= Self.id
+    end
   end,
   on_use = function(self, room, effect)
     local target = room:getPlayerById(effect.tos[1])
@@ -980,7 +995,7 @@ Fk:addSkill(alliance)
 Fk:loadTranslationTable{
   ["alliance&"] = "合纵",
   [":alliance&"] = "出牌阶段限一次，你可选择一项：1.若你已确定势力，你可将有“合”标记的至多三张手牌交给与你势力不同的一名角色，摸等量的牌；2.你可将有“合”标记的至多三张手牌交给未确定势力的一名角色。",
-  ["#alliance&"] = "合纵：你可将至多3张可合纵（高亮）的手牌交给势力不同或无势力的角色，前者你摸等量的牌",
+  ["#alliance&"] = "合纵：你可将至多3张有“合”标记的手牌交给势力不同或无势力的角色，前者你摸等量的牌",
 }
 
 return extension

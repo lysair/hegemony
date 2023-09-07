@@ -2493,7 +2493,7 @@ local yinyangfishMax = fk.CreateTriggerSkill{
   anim_type = "defensive",
   events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player.phase == Player.Discard and player:hasSkill(self.name) and player:getMark("@!yinyangfish") > 0
+    return target == player and player.phase == Player.Discard and player:hasSkill(self.name) and player:getMark("@!yinyangfish") > 0 and player:getHandcardNum() > player:getMaxCards()
   end,
   on_cost = function(self, event, target, player, data)
     return player.room:askForSkillInvoke(player, self.name, nil, "#yinyangfish_max-ask")

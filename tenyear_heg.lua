@@ -199,9 +199,9 @@ local mingfa = fk.CreateActiveSkill{
 local mingfa_delay = fk.CreateTriggerSkill{
   name = "#ty_heg__mingfa_delay",
   anim_type = "offensive",
-  events = {fk.EventPhaseStart},
+  events = {fk.EventPhaseChanging},
   can_trigger = function (self, event, target, player, data)
-    if target.dead or target.phase ~= Player.Finish or player.dead then return false end
+    if target.dead or data.to ~= Player.NotActive or player.dead then return false end
     local mark = target:getMark("@@ty_heg__mingfa_delay")
     return type(mark) == "table" and table.contains(mark, player.id)
   end,
@@ -256,7 +256,7 @@ Fk:loadTranslationTable{
   "不小于你，你摸至与其手牌数相同（最多摸五张）。",
   ["#ty_heg__mingfa_delay"] = "明伐",
   ["@@ty_heg__mingfa_delay"] = "明伐",
-  ["#ty_heg__deshao-invoke"] = "德劭：你可以弃置 %dest 一张牌。",
+  ["#ty_heg__deshao-invoke"] = "德劭：你可以弃置 %dest 一张牌",
 
   ["$ty_heg__deshao1"] = "名德远播，朝野俱瞻。",
   ["$ty_heg__deshao2"] = "增修德信，以诚服人。",

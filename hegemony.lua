@@ -235,6 +235,30 @@ function HegLogic:assignRoles()
   room.players[1].role = "lord"
 end
 
+function HegLogic:prepareDrawPile()
+  local room = self.room
+  local allCardIds = Fk:getAllCardIds()
+
+  for i = #allCardIds, 1, -1 do
+    local card = Fk:getCardById(allCardIds[i])
+    if card.is_derived then
+      local id = allCardIds[i]
+      table.removeOne(allCardIds, id)
+      table.insert(room.void, id)
+      room:setCardArea(id, Card.Void, nil)
+    end
+    if table.contains(H.allianceCards, card) then
+      room:setCardMark(card, "@@alliance", 1)
+    end
+  end
+
+  table.shuffle(allCardIds)
+  room.draw_pile = allCardIds
+  for _, id in ipairs(room.draw_pile) do
+    room:setCardArea(id, Card.DrawPile, nil)
+  end
+end
+
 function HegLogic:chooseGenerals()
   local room = self.room
   local generalNum = math.max(room.settings.generalNum, 5)
@@ -613,6 +637,7 @@ Fk:loadTranslationTable{
   ["heg_liang"] = "凉",
   ["#WildChooseKingdom"] = "%from 成为 %arg2 ，选择了势力 %arg",
   ["heg: all one kingdom enemies"] = "被同一势力围观",
+  ["@@alliance"] = "合",
 
   ["#YinyangfishNotice"] = "调整：<b><font color=\"green\">阴阳鱼</font></b>手牌上限+2的效果<b>默认预亮</b>",
 }

@@ -438,6 +438,16 @@ H.transformGeneral = function(room, player, isMain)
   room:changeHero(player, general, false, not isMain, true, false)
 end
 
+--- 合纵
+H.allianceCards = {}
+
+--- 向合纵库中加载张卡牌。
+---@param card Card @ 要加载的卡牌
+H.addCardToAllianceCards = function(card)
+  assert(card.class:isSubclassOf(Card))
+  table.insertIfNeed(H.allianceCards, card)
+end
+
 --- 大势力技
 ---@class BigKingdomSkill : StatusSkill
 H.BigKingdomSkill = StatusSkill:subclass("BigKingdomSkill")
