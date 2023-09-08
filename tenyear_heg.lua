@@ -665,6 +665,7 @@ local xunchen = General(extension, "ty_heg__xunchen", "qun", 3)
 local anyong = fk.CreateTriggerSkill{
   name = "ty_heg__anyong",
   events = {fk.DamageCaused},
+  anim_type = "offensive",
   can_trigger = function (self, event, target, player, data)
     return H.compareKingdomWith(target, player) and player:hasSkill(self.name)
      and data.to ~= player and data.to ~= target and target
@@ -721,8 +722,8 @@ local fenglve = fk.CreateActiveSkill{
       end
     elseif pindian.results[target.id].winner == target then
       local dummy2 = Fk:cloneCard("dilu")
-      if #player:getCardIds{Player.Hand, Player.Equip, Player.Judge} < 2 then
-        dummy2:addSubcards(target:getCardIds{Player.Hand, Player.Equip, Player.Judge})
+      if #player:getCardIds{Player.Hand, Player.Equip} < 2 then
+        dummy2:addSubcards(target:getCardIds{Player.Hand, Player.Equip})
       else
         local cards2 = room:askForCardsChosen(player, player, 1, 1, "he", self.name)
         dummy2:addSubcards(cards2)
@@ -773,8 +774,8 @@ local fenglve_mn = fk.CreateTriggerSkill{
       end
     elseif pindian.results[target.id].winner == target then
       local dummy2 = Fk:cloneCard("dilu")
-      if #player:getCardIds{Player.Hand, Player.Equip, Player.Judge} < 3 then
-        dummy2:addSubcards(target:getCardIds{Player.Hand, Player.Equip, Player.Judge})
+      if #player:getCardIds{Player.Hand, Player.Equip} < 3 then
+        dummy2:addSubcards(target:getCardIds{Player.Hand, Player.Equip})
       else
         local cards2 = room:askForCardsChosen(player, player, 2, 2, "he", self.name)
         dummy2:addSubcards(cards2)
@@ -782,11 +783,6 @@ local fenglve_mn = fk.CreateTriggerSkill{
       if #dummy2.subcards > 0 then
         room:obtainCard(target, dummy2, false, fk.ReasonGive)
       end
-    end
-    local choices = {"ty_heg__fenglve_mn_ask::" .. target.id, "Cancel"}
-    if room:askForChoice(player, choices, self.name) ~= "Cancel" then
-      room:setPlayerMark(target, "@@ty_heg__fenglve_manoeuvre", 1)
-      room:handleAddLoseSkills(target, "ty_heg__fenglve_manoeuvre", nil)
     end
   end,
 }
