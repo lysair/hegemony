@@ -85,7 +85,7 @@ local xibing = fk.CreateTriggerSkill{
     if num > 0 then
       cards = target:drawCards(num, self.name)
     end
-    if player.general ~= "anjiang" and player.deputyGeneral ~= "anjiang" and target.general ~= "anjiang" and target.deputyGeneral ~= "anjiang" 
+    if H.getGeneralsRevealedNum(player) == 2 and H.getGeneralsRevealedNum(target) == 2
       and room:askForChoice(player, {"ty_heg__xibing_hide::" .. target.id, "Cancel"}, self.name) ~= "Cancel" then
       for _, p in ipairs({player, target}) do
         local isDeputy = H.doHideGeneral(room, player, p, self.name)
@@ -144,22 +144,10 @@ local deshao = fk.CreateTriggerSkill{
   anim_type = "defensive",
   events = {fk.TargetSpecified},
   can_trigger = function (self, event, target, player, data)
-    local anjiang_trigger = false
-    if player.general ~= "anjiang" and player.deputyGeneral ~= "anjiang" then
-      anjiang_trigger = true
-    elseif player.general == "anjiang" and player.deputyGeneral == "anjiang" then
-      if target.general == "anjiang" and target.deputyGeneral == "anjiang" then
-        anjiang_trigger = true
-      end
-    else
-      if not (target.general ~= "anjiang" and target.deputyGeneral ~= "anjiang") then
-        anjiang_trigger = true
-      end
-    end
     return target ~= player and player:hasSkill(self.name) and #TargetGroup:getRealTargets(data.tos) == 1
-      and data.card.color == Card.Black and player:usedSkillTimes(self.name, Player.HistoryTurn) < player.hp
-      and anjiang_trigger and TargetGroup:getRealTargets(data.tos)[1] == player.id
-    
+      and data.card.color == Card.Black
+      and TargetGroup:getRealTargets(data.tos)[1] == player.id and H.getGeneralsRevealedNum(player) >= H.getGeneralsRevealedNum(target) 
+      and player:usedSkillTimes(self.name, Player.HistoryTurn) < player.hp
   end,
   on_cost = function(self, event, target, player, data)
     return player.room:askForSkillInvoke(player, self.name, nil, "#ty_heg__deshao-invoke::"..data.from)
@@ -205,9 +193,7 @@ local mingfa_delay = fk.CreateTriggerSkill{
     local mark = target:getMark("@@ty_heg__mingfa_delay")
     return type(mark) == "table" and table.contains(mark, player.id)
   end,
-  on_cost = function (self, event, target, player, data)
-    return true
-  end,
+  on_cost = Util.TrueFunc,
   on_use = function (self, event, target, player, data)
     local room = player.room
     if player:getHandcardNum() > target:getHandcardNum() then

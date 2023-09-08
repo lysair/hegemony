@@ -138,33 +138,38 @@ Fk:loadTranslationTable{
   ['os_heg__fuwan'] = '伏完',
   ["~os_heg__fuwan"] = "后会有期……",
 }
---[[
+
 local huaxiong = General(extension, "os_heg__huaxiong", "qun", 4)
 
 local yaowu = fk.CreateTriggerSkill{
   name = "os_heg__yaowu",
   frequency = Skill.Limited,
   events = {fk.Damage},
+  anim_type = "support",
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(self.name) and player:usedSkillTimes(self.name, Player.HistoryGame) == 0 and not table.contains(player.player_skills, self) 
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
     room:changeMaxHp(player, 2)
-    room:recover({
-      who = player,
-      num = 2,
-      recoverBy = player,
-      skillName = self.name
-    })
+    if not player.dead then
+      room:recover({
+        who = player,
+        num = 2,
+        recoverBy = player,
+        skillName = self.name
+      })
+      player.tag["os_heg__yaowu"] = true -- bury()!
+    end
   end,
 }
 local yaowuDeath = fk.CreateTriggerSkill{
   name = "#os_heg__yaowu_death",
   events = {fk.Deathed},
+  anim_type = "negative",
   frequency = Skill.Compulsory,
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:usedSkillTimes(yaowu.name, Player.HistoryGame) > 0
+    return target == player and player.tag["os_heg__yaowu"]
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
@@ -188,7 +193,9 @@ local shiyong = fk.CreateTriggerSkill{
   events = {fk.Damaged},
   mute = true,
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and data.card
+    if not (target == player and player:hasSkill(self.name) and data.card) then return end
+    if player:usedSkillTimes(yaowu.name, Player.HistoryGame) == 0 then return data.card.color ~= Card.Red 
+    else return data.card.color ~= Card.Black and data.from end
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
@@ -211,7 +218,7 @@ huaxiong:addSkill(shiyong)
 Fk:loadTranslationTable{
   ['os_heg__huaxiong'] = '华雄',
   ["os_heg__yaowu"] = "耀武",
-  [":os_heg__yaowu"] = "限定技，当你造成伤害后，你可明置此武将牌，加2点体力上限，回复2点体力，“升级”〖恃勇〗，且当你死亡后，与你势力相同的角色各失去1点体力。",
+  [":os_heg__yaowu"] = "限定技，当你造成伤害后，若此武将处于暗置状态，你可明置此武将牌，加2点体力上限，回复2点体力，“升级”〖恃勇〗，且当你死亡后，与你势力相同的角色各失去1点体力。",
   ["os_heg__shiyong"] = "恃勇",
   [":os_heg__shiyong"] = "锁定技，当你受到伤害后，1级：若造成伤害的牌不为红色，你摸一张牌；2级：若造成伤害的牌不为黑色，伤害来源摸一张牌。",
 
@@ -223,7 +230,6 @@ Fk:loadTranslationTable{
   ["$os_heg__shiyong2"] = "哼，不痛不痒。",
   ["~os_heg__huaxiong"] = "我掉以轻心了……",
 }
-]]
 
 local himiko = General(extension, "os_heg__himiko", "qun", 3, 3, General.Female)
 

@@ -343,7 +343,7 @@ function HegLogic:broadcastGeneral()
     room:broadcastProperty(p, "hp")
     room:broadcastProperty(p, "shield")
 
-    p.role = general.kingdom
+    p.role = general.kingdom -- 为了死亡时log有势力提示
 
     if (dmaxHp + gmaxHp) % 2 == 1 then
       p:setMark("HalfMaxHpLeft", 1)
@@ -622,7 +622,7 @@ Fk:loadTranslationTable{
   ["revealAll"] = "背水：全部明置",
   ["#EnterBattleRoyalMode"] = "游戏进入 <font color=\"red\"><b>鏖战模式</b></font>，所有的【<font color=\"#3598E8\"><b>桃</b></font>】"..
   "只能当【<font color=\"#3598E8\"><b>杀</b></font>】或【<font color=\"#3598E8\"><b>闪</b></font>】使用或打出，不能用于回复体力",
-  ["#wild-choose"] = "野心家：选择你要成为的一个势力！",
+  ["#wild-choose"] = "野心家建国：选择你要成为的势力！",
   ["heg_qin"] = "秦",
   ["heg_qi"] = "齐", 
   ["heg_chu"] = "楚", 

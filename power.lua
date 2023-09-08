@@ -95,29 +95,26 @@ local jianglue = fk.CreateActiveSkill{
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
     local index = H.startCommand(player, self.name)
-    local kingdom = player.kingdom == "wild" and p.role or player.kingdom
+    local kingdom = H.getKingdom(player)
     for _, p in ipairs(room:getAlivePlayers()) do -- 双势力，野心家，君主……
       if p.kingdom == "unknown" and not p.dead then
         if H.getKingdomPlayersNum(room)[kingdom] >= #room.players // 2 then break end
-        if Fk.generals[p:getMark("__heg_general")].kingdom == kingdom then
-          local choices = {}
-          if not p:prohibitReveal() then
-            table.insert(choices, "revealMain")
-          end
-          if not p:prohibitReveal(true) then
-            table.insert(choices, "revealDeputy")
-          end
-          if #choices > 0 then
-            if #choices == 2 then table.insert(choices, "revealAll") end
-            table.insert(choices, "Cancel")
-            local choice = room:askForChoice(p, choices, self.name)
-            if choice == "revealMain" then p:revealGeneral(false)
-            elseif choice == "revealDeputy" then p:revealGeneral(true)
-            elseif choice == "revealAll" then
-              p:revealGeneral(false)
-              p:revealGeneral(true)
-            end
-          end
+        local choices = {}
+        if Fk.generals[p:getMark("__heg_general")].kingdom == kingdom and not p:prohibitReveal() then
+          table.insert(choices, "revealMain")
+        end
+        if Fk.generals[p:getMark("__heg_deputy")].kingdom == kingdom and not p:prohibitReveal(true) then
+          table.insert(choices, "revealDeputy")
+        end
+        local all_choices = {"revealMain", "revealDeputy", "revealAll", "Cancel"}
+        if #choices == 2 then table.insert(choices, "revealAll") end
+        table.insert(choices, "Cancel")
+        local choice = room:askForChoice(p, choices, self.name, nil, false, all_choices)
+        if choice == "revealMain" then p:revealGeneral(false)
+        elseif choice == "revealDeputy" then p:revealGeneral(true)
+        elseif choice == "revealAll" then
+          p:revealGeneral(false)
+          p:revealGeneral(true)
         end
       end
     end
@@ -691,6 +688,7 @@ local buyi = fk.CreateTriggerSkill{
     return player.room:askForSkillInvoke(player, self.name, nil, "#ld__buyi-ask:" .. target.id .. ":" .. data.damage.from.id)
   end,
   on_use = function(self, event, target, player, data)
+    player.room:doIndicate(player.id, {data.damage.from.id})
     if not H.askCommandTo(player, data.damage.from, self.name) then
       player.room:recover({
         who = target,

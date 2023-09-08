@@ -1935,7 +1935,7 @@ local xiongyi = fk.CreateActiveSkill{
     end
     if player.dead then return false end
     local kingdomMapper = H.getKingdomPlayersNum(room)
-    local num = kingdomMapper[player.kingdom == "wild" and player.role or player.kingdom]
+    local num = kingdomMapper[H.getKingdom(player)]
     for k, n in pairs(kingdomMapper) do
       if n < num then return false end
     end
@@ -2277,7 +2277,7 @@ Fk:loadTranslationTable{
 }
 
 local zoushi = General(extension, "hs__zoushi", "qun", 3, 3, General.Female)
-local huoshui = fk.CreateTriggerSkill{
+local huoshui = fk.CreateTriggerSkill{ -- FIXME
   name = "huoshui",
   anim_type = "control",
   frequency = Skill.Compulsory,
@@ -2297,12 +2297,15 @@ local huoshui = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     local room = player.room
     if table.contains({fk.TurnStart, fk.GeneralRevealed, fk.EventAcquireSkill}, event) then
+      local targets = {}
       for _, p in ipairs(room:getOtherPlayers(player)) do
         room:setPlayerMark(p, "@@huoshui-turn", 1)
         local record = type(p:getMark(MarkEnum.RevealProhibited .. "-turn")) == "table" and p:getMark(MarkEnum.RevealProhibited .. "-turn") or {}
         table.insertTable(record, {"m", "d"})
         room:setPlayerMark(p, MarkEnum.RevealProhibited .. "-turn", record)
+        table.insert(targets, p.id)
       end
+      room:doIndicate(player.id, targets)
     else
       for _, p in ipairs(room:getOtherPlayers(player)) do
         room:setPlayerMark(p, "@@huoshui-turn", 0)
@@ -2352,7 +2355,6 @@ zoushi:addSkill(huoshui)
 zoushi:addSkill(qingcheng)
 Fk:loadTranslationTable{
   ["hs__zoushi"] = "邹氏",
-  -- ["zoushi"] = "邹氏",
   ["huoshui"] = "祸水",
   [":huoshui"] = "锁定技，你的回合内，其他角色不能明置其武将牌。",
   ["qingcheng"] = "倾城",

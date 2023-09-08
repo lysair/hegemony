@@ -1,5 +1,18 @@
 local H = {}
 
+-- 势力相关
+
+--- 获取势力（野心家为role）
+---@param player ServerPlayer
+---@return string
+H.getKingdom = function(player)
+  local ret = player.kingdom
+  if ret == "wild" then
+    ret = player.role
+  end
+  return ret
+end
+
 --- from与to势力是否相同
 ---
 --- diff为false为相同，true为不同
@@ -15,28 +28,19 @@ H.compareKingdomWith = function(from, to, diff)
     return false
   end
 
-  local ret = from.kingdom == to.kingdom
+  local ret = H.getKingdom(from) == H.getKingdom(to)
   if diff then ret = not ret end
   return ret
 end
 
----@param general General
----@param deputy General
----@return boolean
-H.isCompanionWith = function(general, deputy) -- 缺君主
-  return table.contains(general.companions, deputy.name) or table.contains(deputy.companions, general.name)
-end
-
+--- 获取势力角色数列表
 ---@param room Room
 H.getKingdomPlayersNum = function(room)
   assert(room)
   local kingdomMapper = {}
   for _, p in ipairs(room.alive_players) do
-    local kingdom = p.kingdom -- p.role
+    local kingdom = H.getKingdom(p)
     if kingdom ~= "unknown" then
-      if kingdom == "wild" then
-        kingdom = p.role
-      end
       kingdomMapper[kingdom] = (kingdomMapper[kingdom] or 0) + 1
     end
   end
@@ -60,7 +64,7 @@ H.isBigKingdomPlayer = function(player)
   end
 
   local mapper = H.getKingdomPlayersNum(room)
-  local num = mapper[player.kingdom == "wild" and player.role or player.kingdom]
+  local num = mapper[H.getKingdom(player)]
   if num < 2 then return false end
   for k, n in pairs(mapper) do
     if n > num then return false end
@@ -76,6 +80,8 @@ H.isSmallKingdomPlayer = function(player)
   return table.find(Fk:currentRoom().alive_players, function(p) return H.isBigKingdomPlayer(p) end)
 end
 
+-- 阵型
+
 --- 获取与角色成队列的其余角色
 ---@param player ServerPlayer
 ---@return players ServerPlayer[]|nil @ 队列中的角色
@@ -83,7 +89,7 @@ H.getFormationRelation = function(player)
   local players = Fk:currentRoom():getAlivePlayers()
   local index = table.indexOf(players, player) -- ABCDEF, C
   local targets = table.slice(players, index)
-  table.insertTable(targets, table.slice(players, 1, index)) --CDEFAB
+  table.insertTable(targets, table.slice(players, 1, index)) -- CDEFAB
   players = {}
   for i = 2, #targets do
     local p = targets[i] ---@type ServerPlayer
@@ -108,6 +114,7 @@ H.getFormationRelation = function(player)
   return players
 end
 
+-- 军令
 --- 对某角色发起军令（抽取、选择、询问）
 ---@param from ServerPlayer @ 军令发起者
 ---@param to ServerPlayer @ 军令执行者
@@ -251,6 +258,8 @@ Fk:loadTranslationTable{
   ["#command6-select"] = "军令：请选择要保留的一张手牌和一张装备",
 }
 
+-- 国无懈
+
 local hegNullificationSkill = fk.CreateActiveSkill{
   name = "heg__nullification_skill",
   can_use = function()
@@ -327,6 +336,16 @@ Fk:loadTranslationTable{
   ["#HegNullificationAll"] = "%from 选择此 %card 对 %arg 势力生效",
 }
 
+-- 武将牌相关
+
+--- 是否珠联璧合
+---@param general General
+---@param deputy General
+---@return boolean
+H.isCompanionWith = function(general, deputy) -- 缺君主
+  return table.contains(general.companions, deputy.name) or table.contains(deputy.companions, general.name)
+end
+
 --- 判断有无主将/副将
 ---@param player ServerPlayer
 ---@param isDeputy bool
@@ -346,6 +365,16 @@ H.getActualGeneral = function(player, isDeputy)
   else
     return player.general == "anjiang" and player:getMark("__heg_general") or player.general
   end
+end
+
+--- 获取明置的武将牌数
+---@param player ServerPlayer
+---@return integer
+H.getGeneralsRevealedNum = function(player)
+  local num = 0
+  if player.general ~= "anjiang" then num = num + 1 end
+  if player.deputyGeneral and player.deputyGeneral ~= "anjiang" then num = num + 1 end
+  return num
 end
 
 --- 暗置武将牌
@@ -387,14 +416,16 @@ Fk:loadTranslationTable{
 ---@param player ServerPlayer
 ---@param isDeputy bool @ 是否为副将，默认主将
 H.removeGeneral = function(room, player, isDeputy)
-  local orig = isDeputy and (player.deputyGeneral or "") or player.general
-
   player:setMark("CompanionEffect", 0)
   player:setMark("HalfMaxHpLeft", 0)
   player:doNotify("SetPlayerMark", json.encode{ player.id, "CompanionEffect", 0})
   player:doNotify("SetPlayerMark", json.encode{ player.id, "HalfMaxHpLeft", 0})
 
-  if player.kingdom == "unknown" then player:revealGeneral(isDeputy, true) end
+  --if player.kingdom == "unknown" then player:revealGeneral(isDeputy, true) end 
+  player:revealGeneral(isDeputy, true) -- 先摆
+
+  local orig = isDeputy and (player.deputyGeneral or "") or player.general
+
   if orig:startsWith("blank_") then return false end
 
   orig = Fk.generals[orig]
@@ -416,8 +447,17 @@ H.removeGeneral = function(room, player, isDeputy)
   end
 
   player:filterHandcards()
+  room:sendLog{
+    type = "#GeneralRemoved",
+    from = player.id,
+    arg = isDeputy and "deputyGeneral" or "mainGeneral",
+    arg2 = orig,
+  }
   room.logic:trigger("fk.GeneralRemoved", player, orig.name)
 end
+Fk:loadTranslationTable{
+  ["#GeneralRemoved"] = "%from 移除了 %arg %arg2",
+}
 
 --- 变更武将牌
 ---@param room Room
@@ -438,17 +478,20 @@ H.transformGeneral = function(room, player, isMain)
   room:changeHero(player, general, false, not isMain, true, false)
 end
 
---- 合纵
+-- 合纵
+
 H.allianceCards = {}
 
---- 向合纵库中加载张卡牌。
+--- 向合纵库中加载一张卡牌。
 ---@param card Card @ 要加载的卡牌
 H.addCardToAllianceCards = function(card)
   assert(card.class:isSubclassOf(Card))
   table.insertIfNeed(H.allianceCards, card)
 end
 
---- 大势力技
+-- 大势力
+
+--- 视为大势力技
 ---@class BigKingdomSkill : StatusSkill
 H.BigKingdomSkill = StatusSkill:subclass("BigKingdomSkill")
 

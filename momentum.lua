@@ -78,9 +78,7 @@ local hengjiangdelay = fk.CreateTriggerSkill{
     end
     return true
   end,
-  on_cost = function()
-    return true
-  end,
+  on_cost = Util.TrueFunc,
   on_use = function(_, _, _, player, _)
     player:drawCards(1, hengjiang.name)
   end,
