@@ -667,8 +667,8 @@ local anyong = fk.CreateTriggerSkill{
   events = {fk.DamageCaused},
   anim_type = "offensive",
   can_trigger = function (self, event, target, player, data)
-    return H.compareKingdomWith(target, player) and player:hasSkill(self.name)
-     and data.to ~= player and data.to ~= target and target
+    return target and H.compareKingdomWith(target, player) and player:hasSkill(self.name)
+     and data.to ~= player and data.to ~= target 
      and player:usedSkillTimes(self.name, Player.HistoryTurn) == 0
   end,
   on_cost = function(self, event, target, player, data)
@@ -725,7 +725,7 @@ local fenglve = fk.CreateActiveSkill{
       if #player:getCardIds{Player.Hand, Player.Equip} < 2 then
         dummy2:addSubcards(target:getCardIds{Player.Hand, Player.Equip})
       else
-        local cards2 = room:askForCardsChosen(player, player, 1, 1, "he", self.name)
+        local cards2 = room:askForCardChosen(player, player, "he", self.name)
         dummy2:addSubcards(cards2)
       end
       if #dummy2.subcards > 0 then
@@ -766,7 +766,7 @@ local fenglve_mn = fk.CreateTriggerSkill{
       if #target:getCardIds{Player.Hand, Player.Equip, Player.Judge} < 2 then
         dummy1:addSubcards(target:getCardIds{Player.Hand, Player.Equip, Player.Judge})
       else
-        local cards1 = room:askForCardsChosen(target, target, 1, 1, "hej", self.name)
+        local cards1 = room:askForCardChosen(target, target, "hej", self.name)
         dummy1:addSubcards(cards1)
       end
       if #dummy1.subcards > 0 then
