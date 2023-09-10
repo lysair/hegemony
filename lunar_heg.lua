@@ -285,14 +285,12 @@ local wumei = fk.CreateTriggerSkill{
 local wumei_delay = fk.CreateTriggerSkill{
   name = "#fk_heg__wumei_delay",
   events = {fk.EventPhaseStart},
-  mute = true,
   can_trigger = function(self, event, target, player, data)
     return player == target and player.phase == Player.Finish and player:getMark("@@fk_heg__wumei_extra") > 0
   end,
   on_cost = function() return true end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    room:notifySkillInvoked(player, fk_heg__wumei.name, "special")
     local hp_record = player:getMark("fk_heg__wumei_record")
     if type(hp_record) ~= "table" then return false end
     for _, p in ipairs(room:getAlivePlayers()) do

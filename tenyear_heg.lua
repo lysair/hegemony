@@ -355,9 +355,9 @@ local weimeng_mn = fk.CreateActiveSkill{
 
 local weimeng_mn_detach = fk.CreateTriggerSkill{
   name = "#ty_heg__weimeng_manoeuvre_detach",
-  refresh_events = {fk.EventPhaseStart},
+  refresh_events = {fk.AfterTurnEnd},
   can_refresh = function(self, event, target, player, data)
-    return target == player and player.phase == Player.NotActive and player:hasSkill("ty_heg__weimeng_manoeuvre", true, true) 
+    return target == Player and player:hasSkill("ty_heg__weimeng_manoeuvre", true, true) 
   end,
   on_refresh = function(self, event, target, player, data)
     local room = player.room
@@ -493,9 +493,9 @@ local boyan_mn = fk.CreateActiveSkill{
 }
 local boyan_mn_detach = fk.CreateTriggerSkill{
   name = "#ty_heg__boyan_manoeuvre_detach",
-  refresh_events = {fk.EventPhaseStart},
+  refresh_events = {fk.AfterTurnEnd},
   can_refresh = function(self, event, target, player, data)
-    return target == player and player.phase == Player.NotActive and player:hasSkill("ty_heg__boyan_manoeuvre", true, true) 
+    return target == player and player:hasSkill("ty_heg__boyan_manoeuvre", true, true) 
   end,
   on_refresh = function(self, event, target, player, data)
     local room = player.room
@@ -654,11 +654,11 @@ local anyong = fk.CreateTriggerSkill{
   anim_type = "offensive",
   can_trigger = function (self, event, target, player, data)
     return target and H.compareKingdomWith(target, player) and player:hasSkill(self.name)
-     and data.to ~= player and data.to ~= target 
+     and data.to ~= player and data.to ~= target
      and player:usedSkillTimes(self.name, Player.HistoryTurn) == 0
   end,
   on_cost = function(self, event, target, player, data)
-    return player.room:askForSkillInvoke(player, self.name, nil, "ty_heg__anyong-invoke")
+    return player.room:askForSkillInvoke(player, self.name, nil, "#ty_heg__anyong-invoke:"..data.from.id .. ":" .. data.to.id)
   end,
   on_use = function (self, event, target, player, data)
     local room = player.room
@@ -677,6 +677,7 @@ local anyong = fk.CreateTriggerSkill{
 local fenglve = fk.CreateActiveSkill{
   name = "ty_heg__fenglve",
   anim_type = "control",
+  prompt = "#ty_heg__fenglve-active",
   card_num = 0,
   target_num = 1,
   can_use = function(self, player)
@@ -693,28 +694,20 @@ local fenglve = fk.CreateActiveSkill{
     local target = room:getPlayerById(effect.tos[1])
     local pindian = player:pindian({target}, self.name)
     if pindian.results[target.id].winner == player then
-      local dummy1 = Fk:cloneCard("dilu")
-      if #target:getCardIds{Player.Hand, Player.Equip, Player.Judge} < 3 then
-        dummy1:addSubcards(target:getCardIds{Player.Hand, Player.Equip, Player.Judge})
-      else
-        local cards1 = room:askForCardsChosen(target, target, 2, 2, "hej", self.name)
-        dummy1:addSubcards(cards1)
-      end
-      if #dummy1.subcards > 0 then
-        room:obtainCard(player, dummy1, false, fk.ReasonGive)
+      if not (player.dead or target.dead or target:isNude()) then
+        local cards = target:getCardIds("hej")
+        if #cards > 2 then
+          cards = room:askForCardsChosen(target, target, 2, 2, "hej", self.name)
+        end
+        room:moveCardTo(cards, Player.Hand, player, fk.ReasonGive, self.name, nil, false, player.id)
       end
     elseif pindian.results[target.id].winner == target then
-      local dummy2 = Fk:cloneCard("dilu")
-      if #player:getCardIds{Player.Hand, Player.Equip} < 2 then
-        dummy2:addSubcards(target:getCardIds{Player.Hand, Player.Equip})
-        if #dummy2.subcards > 0 then
-            room:obtainCard(target, dummy2, false, fk.ReasonGive)
-        end
-      else
-        local cards2 = room:askForCardChosen(player, player, "he", self.name)
-        room:obtainCard(target, cards2, false, fk.ReasonGive)
+      if not (player.dead or target.dead or player:isNude()) then
+        local cards2 = room:askForCard(player, 1, 1, true, self.name, false, ".", "#ty_heg__fenglve-give::" .. target.id)
+        room:obtainCard(target, cards2[1], false, fk.ReasonGive)
       end
     end
+    if player.dead or target.dead then return false end
     local choices = {"ty_heg__fenglve_mn_ask::" .. target.id, "Cancel"}
     if room:askForChoice(player, choices, self.name) ~= "Cancel" then
       room:setPlayerMark(target, "@@ty_heg__fenglve_manoeuvre", 1)
@@ -726,6 +719,7 @@ local fenglve = fk.CreateActiveSkill{
 local fenglve_mn = fk.CreateActiveSkill{
   name = "ty_heg__fenglve_manoeuvre",
   anim_type = "control",
+  prompt = "#ty_heg__fenglve-active",
   card_num = 0,
   target_num = 1,
   can_use = function(self, player)
@@ -742,26 +736,17 @@ local fenglve_mn = fk.CreateActiveSkill{
     local target = room:getPlayerById(effect.tos[1])
     local pindian = player:pindian({target}, self.name)
     if pindian.results[target.id].winner == player then
-      local dummy1 = Fk:cloneCard("dilu")
-      if #target:getCardIds{Player.Hand, Player.Equip, Player.Judge} < 2 then
-        dummy1:addSubcards(target:getCardIds{Player.Hand, Player.Equip, Player.Judge})
-        if #dummy1.subcards > 0 then
-            room:obtainCard(player, dummy1, false, fk.ReasonGive)
-        end
-      else
-        local cards1 = room:askForCardsChosen(target, target, 1, 1, "hej", self.name)
+      if not (player.dead or target.dead or target:isNude()) then
+        local cards1 = room:askForCardChosen(target, target, "hej", self.name)
         room:obtainCard(player, cards1, false, fk.ReasonGive)
       end
     elseif pindian.results[target.id].winner == target then
-      local dummy2 = Fk:cloneCard("dilu")
-      if #player:getCardIds{Player.Hand, Player.Equip} < 3 then
-        dummy2:addSubcards(target:getCardIds{Player.Hand, Player.Equip})
-      else
-        local cards2 = room:askForCardsChosen(player, player, 2, 2, "he", self.name)
-        dummy2:addSubcards(cards2)
-      end
-      if #dummy2.subcards > 0 then
-        room:obtainCard(target, dummy2, false, fk.ReasonGive)
+      if not (player.dead or target.dead or player:isNude()) then
+        local cards = player:getCardIds("he")
+        if #cards > 2 then
+          cards = room:askForCard(player, 2, 2, true, self.name, false, ".", "#ty_heg__fenglve-give::" .. target.id .. ":" .. tostring(2))
+        end
+        room:moveCardTo(cards, Player.Hand, target, fk.ReasonGive, self.name, nil, false, player.id)
       end
     end
   end,
@@ -769,9 +754,9 @@ local fenglve_mn = fk.CreateActiveSkill{
 
 local fenglve_mn_detach = fk.CreateTriggerSkill{
   name = "#ty_heg__fenglve_manoeuvre_detach",
-  refresh_events = {fk.EventPhaseStart},
+  refresh_events = {fk.AfterTurnEnd},
   can_refresh = function(self, event, target, player, data)
-    return target == player and player.phase == Player.NotActive and player:hasSkill("ty_heg__fenglve_manoeuvre", true, true) 
+    return target == player and player:hasSkill("ty_heg__fenglve_manoeuvre", true, true)
   end,
   on_refresh = function(self, event, target, player, data)
     local room = player.room
@@ -792,15 +777,17 @@ Fk:loadTranslationTable{
   [":ty_heg__fenglve"] = "出牌阶段限一次，你可以和一名其他角色拼点，若你赢，该角色交给你其区域内的两张牌；若其赢，你交给其一张牌。"..
   "<br><font color=\"blue\">◆纵横：交换〖锋略〗描述中的“一张牌”和“两张牌”。<font><br><font color=\"grey\"><b>纵横</b>："..
   "当拥有“纵横”效果技能发动结算完成后，可以令技能目标角色获得对应修订描述后的技能，直到其下回合结束。",
+
+  ["#ty_heg__fenglve-active"] = "发动 锋略，与一名角色拼点",
+  ["#ty_heg__fenglve-give"] = "锋略：选择 %arg 张牌交给 %dest",
   ["ty_heg__fenglve_mn_ask"] = "令%dest获得〖锋略（纵横）〗直到其下回合结束",
   ["@@ty_heg__fenglve_manoeuvre"] = "锋略 纵横",
 
   ["ty_heg__fenglve_manoeuvre"] = "锋略(纵横)",
   [":ty_heg__fenglve_manoeuvre"] = "出牌阶段限一次，你可以和一名其他角色拼点，若你赢，该角色交给你其区域内的一张牌；若其赢，你交给其两张牌。",
 
-
   ["ty_heg__anyong"] = "暗涌",
-  ["ty_heg__anyong-invoke"] = "暗涌：是否令此次造成的伤害翻倍。",
+  ["ty_heg__anyong-invoke"] = "暗涌：是否令%src对%dest造成的伤害翻倍！",
   [":ty_heg__anyong"] = "每回合限一次，当与你势力相同的一名角色对另一名其他角色造成伤害时，你可令此伤害翻倍，然后若受到伤害的角色："..
   "武将牌均明置，你失去1点体力并失去此技能；只明置了一张武将牌，你弃置两张手牌。",
 

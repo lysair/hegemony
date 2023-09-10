@@ -451,7 +451,7 @@ H.removeGeneral = function(room, player, isDeputy)
     type = "#GeneralRemoved",
     from = player.id,
     arg = isDeputy and "deputyGeneral" or "mainGeneral",
-    arg2 = orig,
+    arg2 = orig.name,
   }
   room.logic:trigger("fk.GeneralRemoved", player, orig.name)
 end
