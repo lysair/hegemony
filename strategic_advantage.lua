@@ -179,7 +179,7 @@ extension:addCards{
 
 Fk:loadTranslationTable{
   ["burning_camps"] = "火烧连营",
-  [":burning_camps"] = "锦囊牌<br/><b>时机</b>：出牌阶段<br/><b>目标</b>：你的下家和除其外与其处于同一队列的所有角色<br/><b>效果</b>：目标角色受到你造成的1点火焰伤害。",
+  [":burning_camps"] = "锦囊牌<br/><b>时机</b>：出牌阶段<br/><b>目标</b>：你的下家和除其外与其处于同一队列的所有角色<br/><b>效果</b>：目标角色受到你造成的1点火焰伤害。<br /><font color='grey'>\"<b>队列</b>\"：连续相邻的若干名(至少2名)势力相同的角色处于同一队列",
 }
 
 local lureTigerSkill = fk.CreateActiveSkill{

@@ -376,12 +376,12 @@ Fk:loadTranslationTable{
   [":ty_heg__jianliang"] = "摸牌阶段开始时，若你的手牌数为全场最少，你可令与你势力相同的所有角色各摸一张牌。",
   ["ty_heg__weimeng"] = "危盟",
   [":ty_heg__weimeng"] = "出牌阶段限一次，你可选择一名其他角色，获得其至多X张手牌，然后交给其等量的牌（X为你的体力值）。"..
-  "<br><font color=\"blue\">◆纵横：〖危盟〗描述中的X改为1。<font><br><font color=\"grey\"><b>纵横</b>："..
+  "<br><font color=\"blue\">◆纵横：〖危盟〗描述中的X改为1。<font><br><font color=\"grey\">\"<b>纵横</b>\"："..
   "当拥有“纵横”效果技能发动结算完成后，可以令技能目标角色获得对应修订描述后的技能，直到其下回合结束。",
   ["#ty_heg__weimeng-give"] = "危盟：交还 %dest %arg 张牌。",
   ["ty_heg__weimeng_mn_ask"] = "令%dest获得〖危盟（纵横）〗直到其下回合结束。",
   ["@@ty_heg__weimeng_manoeuvre"] = "危盟 纵横",
-  ["ty_heg__weimeng_manoeuvre"] = "危盟(纵横)",
+  ["ty_heg__weimeng_manoeuvre"] = "危盟⇋",
   ["#ty_heg__weimeng"] = "危盟：获得一名其他角色至多%arg张牌，交还等量牌。",
   [":ty_heg__weimeng_manoeuvre"] = "出牌阶段限一次，你可以获得目标角色一张手牌，然后交给其等量的牌。",
 
@@ -514,7 +514,7 @@ Fk:loadTranslationTable{
   "（X为其体力上限）；2.令其失去体力值至与你相同。",
   ["ty_heg__boyan"] = "驳言",
   [":ty_heg__boyan"] = "出牌阶段限一次，你可选择一名其他角色，其将手牌摸至其体力上限，其本回合不能使用或打出手牌。"..
-  "<br><font color=\"blue\">◆纵横：删去〖驳言〗描述中的“其将手牌摸至体力上限”。<font><br><font color=\"grey\"><b>纵横</b>："..
+  "<br><font color=\"blue\">◆纵横：删去〖驳言〗描述中的“其将手牌摸至体力上限”。<font><br><font color=\"grey\">\"<b>纵横</b>\"："..
   "当拥有“纵横”效果技能发动结算完成后，可以令技能目标角色获得对应修订描述后的技能，直到其下回合结束。",
 
   ["ty_heg__yusui_discard"] = "令%dest弃置%arg张手牌",
@@ -523,7 +523,7 @@ Fk:loadTranslationTable{
   ["@@ty_heg__boyan-turn"] = "驳言",
   ["@@ty_heg__boyan_manoeuvre"] = "驳言 纵横",
 
-  ["ty_heg__boyan_manoeuvre"] = "驳言(纵横)",
+  ["ty_heg__boyan_manoeuvre"] = "驳言⇋",
   [":ty_heg__boyan_manoeuvre"] = "出牌阶段限一次，你可选择一名其他角色，其本回合不能使用或打出手牌。",
 
   ["$ty_heg__boyan1"] = "黑白颠倒，汝言谬矣！",
@@ -654,19 +654,19 @@ local anyong = fk.CreateTriggerSkill{
   anim_type = "offensive",
   can_trigger = function (self, event, target, player, data)
     return target and H.compareKingdomWith(target, player) and player:hasSkill(self.name)
-     and data.to ~= player and data.to ~= target
-     and player:usedSkillTimes(self.name, Player.HistoryTurn) == 0
+      and data.to ~= player and data.to ~= target
+      and player:usedSkillTimes(self.name, Player.HistoryTurn) == 0
   end,
   on_cost = function(self, event, target, player, data)
-    return player.room:askForSkillInvoke(player, self.name, nil, "#ty_heg__anyong-invoke:"..data.from.id .. ":" .. data.to.id)
+    return player.room:askForSkillInvoke(player, self.name, nil, "#ty_heg__anyong-invoke:"..data.from.id .. ":" .. data.to.id .. ":" .. data.damage)
   end,
   on_use = function (self, event, target, player, data)
     local room = player.room
     local to = data.to
-    if to.general == "anjiang" and to.deputyGeneral == "anjiang" then
-    elseif (to.general == "anjiang" and to.deputyGeneral ~= "anjiang") or (to.general ~= "anjiang" and to.deputyGeneral == "anjiang") then
+    local num = H.getGeneralsRevealedNum(to)
+    if num == 1 then
       room:askForDiscard(player, 2, 2, false, self.name, false)
-    elseif to.general ~= "anjiang" and to.deputyGeneral ~= "anjiang" then
+    elseif num == 2 then
       room:loseHp(player, 1, self.name)
       room:handleAddLoseSkills(player, "-ty_heg__anyong", nil)
     end
@@ -773,21 +773,20 @@ xunchen:addSkill(fenglve)
 Fk:loadTranslationTable{
   ["ty_heg__xunchen"] = "荀谌",
   ["ty_heg__fenglve"] = "锋略",
-  ["ty_heg__fenglve__mn"] = "锋略：选择一名其他角色与其拼点，若你赢，该角色交给你其区域内的一张牌；若其赢，你交给其两张牌。",
   [":ty_heg__fenglve"] = "出牌阶段限一次，你可以和一名其他角色拼点，若你赢，该角色交给你其区域内的两张牌；若其赢，你交给其一张牌。"..
-  "<br><font color=\"blue\">◆纵横：交换〖锋略〗描述中的“一张牌”和“两张牌”。<font><br><font color=\"grey\"><b>纵横</b>："..
+  "<br><font color=\"blue\">◆纵横：交换〖锋略〗描述中的“一张牌”和“两张牌”。<font><br><font color=\"grey\">\"<b>纵横</b>\"："..
   "当拥有“纵横”效果技能发动结算完成后，可以令技能目标角色获得对应修订描述后的技能，直到其下回合结束。",
 
-  ["#ty_heg__fenglve-active"] = "发动 锋略，与一名角色拼点",
+  ["#ty_heg__fenglve-active"] = "发动“锋略”，与一名角色拼点",
   ["#ty_heg__fenglve-give"] = "锋略：选择 %arg 张牌交给 %dest",
   ["ty_heg__fenglve_mn_ask"] = "令%dest获得〖锋略（纵横）〗直到其下回合结束",
   ["@@ty_heg__fenglve_manoeuvre"] = "锋略 纵横",
 
-  ["ty_heg__fenglve_manoeuvre"] = "锋略(纵横)",
+  ["ty_heg__fenglve_manoeuvre"] = "锋略⇋",
   [":ty_heg__fenglve_manoeuvre"] = "出牌阶段限一次，你可以和一名其他角色拼点，若你赢，该角色交给你其区域内的一张牌；若其赢，你交给其两张牌。",
 
   ["ty_heg__anyong"] = "暗涌",
-  ["ty_heg__anyong-invoke"] = "暗涌：是否令%src对%dest造成的伤害翻倍！",
+  ["#ty_heg__anyong-invoke"] = "暗涌：是否令 %src 对 %dest 造成的 %arg 点伤害翻倍！",
   [":ty_heg__anyong"] = "每回合限一次，当与你势力相同的一名角色对另一名其他角色造成伤害时，你可令此伤害翻倍，然后若受到伤害的角色："..
   "武将牌均明置，你失去1点体力并失去此技能；只明置了一张武将牌，你弃置两张手牌。",
 

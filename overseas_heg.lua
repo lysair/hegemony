@@ -124,6 +124,167 @@ Fk:loadTranslationTable{
   ["~os_heg__chendao"] = "我的白毦兵，再也不能为先帝出力了。",
 }
 
+local zhugejin = General(extension, "os_heg__zhugejin", "wu", 3)
+zhugejin:addCompanions("hs__sunquan")
+
+local huanshi = fk.CreateTriggerSkill{
+  name = "os_heg__huanshi",
+  anim_type = "control",
+  events = {fk.AskForRetrial},
+  can_trigger = function(self, event, target, player, data)
+    return player:hasSkill(self.name) and not player:isNude() and H.compareKingdomWith(target, player)
+  end,
+  on_cost = function(self, event, target, player, data)
+    local card = player.room:askForResponse(player, self.name, ".|.|.|hand,equip|.|", "#os_heg__huanshi-ask::" .. target.id .. ":" .. data.reason, true)
+    if card then
+      self.cost_data = card
+      return true
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    player.room:retrial(self.cost_data, player, data, self.name)
+  end,
+}
+
+local hongyuan = fk.CreateActiveSkill{
+  name = "os_heg__hongyuan",
+  anim_type = "support",
+  can_use = function(self, player)
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and not player:isKongcheng()
+  end,
+  card_num = 1,
+  card_filter = function(self, to_select, selected)
+    if #selected > 0 then return false end
+    return Fk:currentRoom():getCardArea(to_select) == Card.PlayerHand and Fk:getCardById(to_select):getMark("@@alliance") == 0
+  end,
+  target_filter = Util.FalseFunc,
+  on_use = function(self, room, effect)
+    local player = room:getPlayerById(effect.from)
+    local card = effect.cards[1]
+    room:setCardMark(Fk:getCardById(card), "@@alliance", 1)
+    local record = type(player:getMark("_os_heg__hongyuan")) == "table" and player:getMark("_os_heg__hongyuan") or {}
+    table.insert(record, tostring(card))
+    room:setPlayerMark(player, "_os_heg__hongyuan", record)
+  end,
+}
+local hongyuanTrigger = fk.CreateTriggerSkill{
+  name = "#os_heg__hongyuan_trigger",
+  anim_type = "support",
+  mute = true,
+  events = {fk.BeforeDrawCard},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and data.skillName == "alliance&" and table.find(player.room.alive_players, function(p) return H.compareKingdomWith(p, player) and p ~= player end)
+  end,
+  on_cost = function(self, event, target, player, data)
+    local room = player.room
+    local targets = table.map(table.filter(room.alive_players, function(p) return H.compareKingdomWith(p, player) and p ~= player end), Util.IdMapper)
+    local target = room:askForChoosePlayers(player, targets, 1, 1, "#os_heg__hongyuan-ask:::" .. data.num, self.name, true)
+    if #target > 0 then
+      self.cost_data = target[1]
+      return true
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local target = self.cost_data
+    local room = player.room
+    room:notifySkillInvoked(player, "os_heg__hongyuan", "support")
+    player:broadcastSkillInvoke("os_heg__hongyuan")
+    -- data.player = room:getPlayerById(target) -- 没用
+    room:getPlayerById(target):drawCards(data.num, self.name) -- 摆先
+    return true
+  end,
+
+  refresh_events = {fk.AfterTurnEnd, fk.BuryVictim},
+  can_refresh = function(self, event, target, player, data)
+    return player == target and type(player:getMark("_os_heg__hongyuan")) == "table"
+  end,
+  on_refresh = function(self, event, target, player, data)
+    local room = player.room
+    for _, cid in ipairs(player:getMark("_os_heg__hongyuan")) do
+      cid = tonumber(cid)
+      room:setCardMark(Fk:getCardById(cid), "@@alliance", 0)
+    end
+    room:setPlayerMark(player, "_os_heg__hongyuan", 0)
+  end,
+}
+hongyuan:addRelatedSkill(hongyuanTrigger)
+
+local mingzhe = fk.CreateTriggerSkill{
+  name = "os_heg__mingzhe",
+  anim_type = "drawcard",
+  events = {fk.AfterCardsMove},
+  can_trigger = function(self, event, target, player, data)
+    if not player:hasSkill(self.name) or player.phase ~= Player.NotActive then return end
+    for _, move in ipairs(data) do
+      if move.from == player.id then
+        for _, info in ipairs(move.moveInfo) do
+          if Fk:getCardById(info.cardId).color == Card.Red then
+            if info.fromArea == Card.PlayerEquip then
+              return true
+            end
+            if table.contains({fk.ReasonUse, fk.ReasonResonpse}, move.moveReason) 
+              and table.contains({Card.PlayerHand, Card.PlayerEquip}, info.fromArea) then
+                return true
+            end
+          end
+        end
+      end
+    end
+  end,
+  on_trigger = function(self, event, target, player, data)
+    local num = 0
+    for _, move in ipairs(data) do
+      if not player:hasSkill(self.name) then break end
+      if move.from == player.id then
+        for _, info in ipairs(move.moveInfo) do
+          if Fk:getCardById(info.cardId).color == Card.Red then
+            if info.fromArea == Card.PlayerEquip then
+              num = num + 1
+            end
+            if table.contains({fk.ReasonUse, fk.ReasonResonpse}, move.moveReason)
+              and table.contains({Card.PlayerHand, Card.PlayerEquip}, info.fromArea) then
+                num = num + 1
+            end
+          end
+        end
+      end
+    end
+    if num == 0 then return end
+    for _ = 1, num do
+      if not player:hasSkill(self.name) then return end
+      self:doCost(event, nil, player, nil)
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    player:drawCards(1, self.name)
+  end,
+}
+
+zhugejin:addSkill(huanshi)
+zhugejin:addSkill(hongyuan)
+zhugejin:addSkill(mingzhe)
+Fk:loadTranslationTable{
+  ["os_heg__zhugejin"] = "诸葛瑾",
+  ["os_heg__huanshi"] = "缓释",
+  [":os_heg__huanshi"] = "当与你势力相同的角色的判定牌生效前，你可打出一张牌代替之。",
+  ["os_heg__hongyuan"] = "弘援",
+  [":os_heg__hongyuan"] = "当你因合纵摸牌时，你可改为令与你势力相同的一名其他角色摸牌。出牌阶段限一次，你可令一张无合纵标记的手牌于本回合视为有合纵标记。",
+  ["os_heg__mingzhe"] = "明哲",
+  [":os_heg__mingzhe"] = "当你于回合外{因使用、打出而失去一张红色牌或失去装备区里的红色牌}后，你可摸一张牌。",
+
+  ["#os_heg__huanshi-ask"] = "缓释：你可打出一张牌代替 %dest 的 %arg 判定",
+  ["#os_heg__hongyuan-ask"] = "弘援：你将摸%arg张牌，可改为令与你势力相同的一名其他角色摸牌",
+  ["#os_heg__hongyuan_trigger"] = "弘援",
+
+  ["$os_heg__huanshi1"] = "缓乐之危急，释兵之困顿。",
+  ["$os_heg__huanshi2"] = "尽死生之力，保友邦之安。",
+  ["$os_heg__hongyuan1"] = "诸将莫慌，粮草已到。",
+  ["$os_heg__hongyuan2"] = "自舍其身，施于天下。",
+  ["$os_heg__mingzhe1"] = "明以洞察，哲以保身。",
+  ["$os_heg__mingzhe2"] = "塞翁失马，焉知非福。",
+  ["~os_heg__zhugejin"] = "君臣不相负，来世复君臣。",
+}
+
 local zumao = General(extension, "os_heg__zumao", "wu", 4)
 zumao:addSkill("yinbing")
 zumao:addSkill("juedi")
