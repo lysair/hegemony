@@ -58,6 +58,7 @@ Fk:loadTranslationTable{
 }
 
 local maliang = General(extension, "fk_heg__maliang", "shu", 3)
+maliang:addCompanions("ld__masu")
 maliang:addSkill("xiemu")
 maliang:addSkill("naman")
 Fk:loadTranslationTable{
