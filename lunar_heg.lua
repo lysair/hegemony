@@ -240,4 +240,234 @@ Fk:loadTranslationTable{
   ["fk_heg__gongsunzan"] = "公孙瓒",
 }
 
+local zhouxuan = General(extension, "fk_heg__zhouxuan", "wei", 3)
+local wumei = fk.CreateTriggerSkill{
+  name = "fk_heg__wumei",
+  anim_type = "support",
+  events = {fk.BeforeTurnStart},
+  frequency = Skill.Limited,
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) 
+     and player:usedSkillTimes(self.name, Player.HistoryGame) == 0
+     and player.hp <= player.room:getTag("RoundCount")
+  end,
+  on_cost = function(self, event, target, player, data)
+    local room = player.room
+    local to = room:askForChoosePlayers(player, table.map(table.filter(room.alive_players, function (p)
+      return p:getMark("@@fk_heg__wumei_extra") == 0 end), function(p) return p.id end), 1, 1, "#fk_heg__wumei-choose", self.name, true)
+    if #to > 0 then
+      self.cost_data = to[1]
+      return true
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local to = room:getPlayerById(self.cost_data)
+    room:addPlayerMark(to, "@@fk_heg__wumei_extra", 1)
+    local hp_record = {}
+    for _, p in ipairs(room.alive_players) do
+      table.insert(hp_record, {p.id, p.hp})
+    end
+    room:setPlayerMark(to, "fk_heg__wumei_record", hp_record)
+    to:gainAnExtraTurn()
+  end,
+
+  refresh_events = {fk.AfterTurnEnd},
+  can_refresh = function(self, event, target, player, data)
+    return target == player and player:getMark("@@fk_heg__wumei_extra") > 0
+  end,
+  on_refresh = function(self, event, target, player, data)
+    local room = player.room
+    room:setPlayerMark(player, "@@fk_heg__wumei_extra", 0)
+    room:setPlayerMark(player, "fk_heg__wumei_record", 0)
+  end,
+}
+local fk_heg__wumei_delay = fk.CreateTriggerSkill{
+  name = "#fk_heg__wumei_delay",
+  events = {fk.EventPhaseStart},
+  mute = true,
+  can_trigger = function(self, event, target, player, data)
+    return player == target and player.phase == Player.Finish and player:getMark("@@fk_heg__wumei_extra") > 0
+  end,
+  on_cost = function() return true end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    room:notifySkillInvoked(player, fk_heg__wumei.name, "special")
+    local hp_record = player:getMark("fk_heg__wumei_record")
+    if type(hp_record) ~= "table" then return false end
+    for _, p in ipairs(room:getAlivePlayers()) do
+      local p_record = table.find(hp_record, function (sub_record)
+        return #sub_record == 2 and sub_record[1] == p.id
+      end)
+      if p_record then
+        p.hp = math.min(p.maxHp, p_record[2])
+        room:broadcastProperty(p, "hp")
+      end
+    end
+  end,
+}
+local zhanmeng = fk.CreateTriggerSkill{
+  name = "fk_heg__zhanmeng",
+  events = {fk.CardUsing},
+  can_trigger = function(self, event, target, player, data)
+    if target == player and player:hasSkill(self.name) and player.room.current == player then
+      for i = 1, 3, 1 do
+        if player:getMark(self.name .. tostring(i).."-turn") == 0 then
+          return true
+        end
+      end
+    end
+  end,
+  on_cost = function(self, event, target, player, data)
+    local room = player.room
+    local choices = {}
+    self.cost_data = {}
+    if player:getMark("fk_heg__zhanmeng1-turn") == 0 and not table.contains(room:getTag("fk_heg__zhanmeng1") or {}, data.card.trueName) then
+      table.insert(choices, "fk_heg__zhanmeng1")
+    end
+    if player:getMark("fk_heg__zhanmeng2-turn") == 0 then
+      table.insert(choices, "fk_heg__zhanmeng2")
+    end
+    local targets = {}
+    if player:getMark("fk_heg__zhanmeng3-turn") == 0 then
+      for _, p in ipairs(room:getOtherPlayers(player)) do
+        if not p:isNude() then
+          table.insertIfNeed(choices, "fk_heg__zhanmeng3")
+          table.insert(targets, p.id)
+        end
+      end
+    end
+    table.insert(choices, "Cancel")
+    local choice = room:askForChoice(player, choices, self.name)
+    if choice == "Cancel" then return end
+    self.cost_data[1] = choice
+    if choice == "fk_heg__zhanmeng3" then
+      local to = room:askForChoosePlayers(player, targets, 1, 1, "#fk_heg__zhanmeng-choose", self.name, false)
+      if #to > 0 then
+        self.cost_data[2] = to[1]
+      else
+        self.cost_data[2] = table.random(targets)
+      end
+    end
+    return true
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local choice = self.cost_data[1]
+    room:setPlayerMark(player, choice.."-turn", 1)
+    if choice == "fk_heg__zhanmeng1" then
+      local cards = {}
+      for i = 1, #room.draw_pile, 1 do
+        local card = Fk:getCardById(room.draw_pile[i])
+        if not card.is_damage_card then
+          table.insertIfNeed(cards, room.draw_pile[i])
+        end
+      end
+      if #cards > 0 then
+        local card = table.random(cards)
+        room:moveCards({
+          ids = {card},
+          to = player.id,
+          toArea = Card.PlayerHand,
+          moveReason = fk.ReasonJustMove,
+          proposer = player.id,
+          skillName = self.name,
+        })
+      end
+    elseif choice == "fk_heg__zhanmeng2" then
+      room:setPlayerMark(player, "fk_heg__zhanmeng2_invoke", data.card.trueName)
+    elseif choice == "fk_heg__zhanmeng3" then
+      local p = room:getPlayerById(self.cost_data[2])
+      local n = math.min(1, #p:getCardIds{Player.Hand, Player.Equip})
+      local cards = room:askForDiscard(p, n, 1, true, self.name, false, ".", "#fk_heg__zhanmeng-discard:"..player.id.."::"..tostring(n))
+    end
+  end,
+}
+local zhanmeng_record = fk.CreateTriggerSkill{
+  name = "#fk_heg__zhanmeng_record",
+
+  refresh_events = {fk.CardUsing, fk.EventPhaseStart},
+  can_refresh = function(self, event, target, player, data)
+    if target == player then
+      if event == fk.CardUsing then
+        return true
+      else
+        return player.phase == Player.Start
+      end
+    end
+  end,
+  on_refresh = function(self, event, target, player, data)
+    local room = player.room
+    if event == fk.CardUsing then
+      local fk_heg__zhanmeng2 = room:getTag("fk_heg__zhanmeng2") or {}
+      if not table.contains(fk_heg__zhanmeng2, data.card.trueName) then
+        table.insert(fk_heg__zhanmeng2, data.card.trueName)
+        room:setTag("fk_heg__zhanmeng2", fk_heg__zhanmeng2)
+      end
+      for _, p in ipairs(room:getAlivePlayers()) do
+        if p:getMark("fk_heg__zhanmeng2_get-turn") == data.card.trueName then
+          room:setPlayerMark(p, "fk_heg__zhanmeng2_get-turn", 0)
+          local cards = {}
+          for i = 1, #room.draw_pile, 1 do
+            local card = Fk:getCardById(room.draw_pile[i])
+            if card.is_damage_card then
+              table.insertIfNeed(cards, room.draw_pile[i])
+            end
+          end
+          if #cards > 0 then
+            local card = table.random(cards)
+            room:moveCards({
+              ids = {card},
+              to = p.id,
+              toArea = Card.PlayerHand,
+              moveReason = fk.ReasonJustMove,
+              proposer = p.id,
+              skillName = "fk_heg__zhanmeng",
+            })
+          end
+        end
+      end
+    else
+      local fk_heg__zhanmeng2 = room:getTag("fk_heg__zhanmeng2") or {}
+      room:setTag("fk_heg__zhanmeng1", fk_heg__zhanmeng2)  --上回合使用的牌
+      fk_heg__zhanmeng2 = {}
+      room:setTag("fk_heg__zhanmeng2", fk_heg__zhanmeng2)  --当前回合使用的牌
+      for _, p in ipairs(room:getAlivePlayers()) do
+        if type(p:getMark("fk_heg__zhanmeng2_invoke")) == "string" then
+          room:setPlayerMark(p, "fk_heg__zhanmeng2_get-turn", p:getMark("fk_heg__zhanmeng2_invoke"))
+          room:setPlayerMark(p, "fk_heg__zhanmeng2_invoke", 0)
+        end
+      end
+    end
+  end,
+}
+wumei:addRelatedSkill(wumei_delay)
+zhanmeng:addRelatedSkill(zhanmeng_record)
+zhouxuan:addSkill(wumei)
+zhouxuan:addSkill(zhanmeng)
+Fk:loadTranslationTable{
+  ["fk_heg__zhouxuan"] = "周宣",
+  ["fk_heg__wumei"] = "寤寐",
+  ["#fk_heg__wumei_delay"] = "寤寐",
+  [":fk_heg__wumei"] = "限定技，回合开始前，若你的体力值不大于游戏轮数，你可以令一名角色执行一个额外的回合：该回合结束时，将所有存活角色的体力值调整为此额外回合开始时的数值。",
+  ["fk_heg__zhanmeng"] = "占梦",
+  [":fk_heg__zhanmeng"] = "你的回合内，你使用牌时，可以执行以下一项（每回合每项各限一次）：<br>"..
+  "1.上一回合内，若没有同名牌被使用，你获得一张非伤害牌。<br>"..
+  "2.下一回合内，当同名牌首次被使用后，你获得一张伤害牌。<br>"..
+  "3.令一名其他角色弃置一张牌。",
+  ["#fk_heg__wumei-choose"] = "寤寐: 你可以令一名角色执行一个额外的回合",
+  ["@@fk_heg__wumei_extra"] = "寤寐",
+  ["fk_heg__zhanmeng1"] = "你获得一张非伤害牌",
+  ["fk_heg__zhanmeng2"] = "下一回合内，当同名牌首次被使用后，你获得一张伤害牌",
+  ["fk_heg__zhanmeng3"] = "令一名其他角色弃置一张牌",
+  ["#fk_heg__zhanmeng-choose"] = "占梦: 令一名其他角色弃置一张牌",
+  ["#fk_heg__zhanmeng-discard"] = "占梦：弃置%arg张牌",
+
+  ["$fk_heg__wumei1"] = "大梦若期，皆付一枕黄粱。",
+  ["$fk_heg__wumei2"] = "日所思之，故夜所梦之。",
+  ["$fk_heg__zhanmeng1"] = "梦境缥缈，然有迹可占。",
+  ["$fk_heg__zhanmeng2"] = "万物有兆，唯梦可卜。",
+  ["~fk_heg__zhouxuan"] = "人生如梦，假时亦真。",
+}
+
 return extension

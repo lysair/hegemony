@@ -647,15 +647,174 @@ Fk:loadTranslationTable{
   ["~ty_heg__miheng"] = "恶口……终至杀身……",
 }
 
+local xunchen = General(extension, "ty_heg__xunchen", "qun", 3)
+local anyong = fk.CreateTriggerSkill{
+  name = "ty_heg__anyong",
+  events = {fk.DamageCaused},
+  anim_type = "offensive",
+  can_trigger = function (self, event, target, player, data)
+    return target and H.compareKingdomWith(target, player) and player:hasSkill(self.name)
+     and data.to ~= player and data.to ~= target 
+     and player:usedSkillTimes(self.name, Player.HistoryTurn) == 0
+  end,
+  on_cost = function(self, event, target, player, data)
+    return player.room:askForSkillInvoke(player, self.name, nil, "ty_heg__anyong-invoke")
+  end,
+  on_use = function (self, event, target, player, data)
+    local room = player.room
+    local to = data.to
+    if to.general == "anjiang" and to.deputyGeneral == "anjiang" then
+    elseif (to.general == "anjiang" and to.deputyGeneral ~= "anjiang") or (to.general ~= "anjiang" and to.deputyGeneral == "anjiang") then
+      room:askForDiscard(player, 2, 2, false, self.name, false)
+    elseif to.general ~= "anjiang" and to.deputyGeneral ~= "anjiang" then
+      room:loseHp(player, 1, self.name)
+      room:handleAddLoseSkills(player, "-ty_heg__anyong", nil)
+    end
+    data.damage = data.damage * 2
+  end,
+}
+
+local fenglve = fk.CreateActiveSkill{
+  name = "ty_heg__fenglve",
+  anim_type = "control",
+  card_num = 0,
+  target_num = 1,
+  prompt = function (self, selected, selected_cards)
+    return "#ty_heg__fenglve"
+  end,
+  can_use = function(self, player)
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and not player:isKongcheng()
+  end,
+  card_filter = function(self, to_select, selected)
+    return false
+  end,
+  target_filter = function(self, to_select, selected)
+    return #selected == 0 and to_select ~= Self.id and not Fk:currentRoom():getPlayerById(to_select):isKongcheng()
+  end,
+  on_use = function (self, room, effect)
+    local player = room:getPlayerById(effect.from)
+    local target = room:getPlayerById(effect.tos[1])
+    local pindian = player:pindian({target}, self.name)
+    if pindian.results[target.id].winner == player then
+      local dummy1 = Fk:cloneCard("dilu")
+      if #target:getCardIds{Player.Hand, Player.Equip, Player.Judge} < 3 then
+        dummy1:addSubcards(target:getCardIds{Player.Hand, Player.Equip, Player.Judge})
+      else
+        local cards1 = room:askForCardsChosen(target, target, 2, 2, "hej", self.name)
+        dummy1:addSubcards(cards1)
+      end
+      if #dummy1.subcards > 0 then
+        room:obtainCard(player, dummy1, false, fk.ReasonGive)
+      end
+    elseif pindian.results[target.id].winner == target then
+      local dummy2 = Fk:cloneCard("dilu")
+      if #player:getCardIds{Player.Hand, Player.Equip} < 2 then
+        dummy2:addSubcards(target:getCardIds{Player.Hand, Player.Equip})
+      else
+        local cards2 = room:askForCardChosen(player, player, "he", self.name)
+        dummy2:addSubcards(cards2)
+      end
+      if #dummy2.subcards > 0 then
+        room:obtainCard(target, dummy2, false, fk.ReasonGive)
+      end
+    end
+    local choices = {"ty_heg__fenglve_mn_ask::" .. target.id, "Cancel"}
+    if room:askForChoice(player, choices, self.name) ~= "Cancel" then
+      room:setPlayerMark(target, "@@ty_heg__fenglve_manoeuvre", 1)
+      room:handleAddLoseSkills(target, "ty_heg__fenglve_manoeuvre", nil)
+    end
+  end,
+}
+
+local fenglve_mn = fk.CreateTriggerSkill{
+  name = "ty_heg__fenglve_manoeuvre",
+  anim_type = "control",
+  card_num = 0,
+  target_num = 1,
+  prompt = function (self, selected, selected_cards)
+    return "#ty_heg__fenglve__mn"
+  end,
+  can_use = function(self, player)
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and not player:isKongcheng()
+  end,
+  card_filter = function(self, to_select, selected)
+    return false
+  end,
+  target_filter = function(self, to_select, selected)
+    return #selected == 0 and to_select ~= Self.id and not Fk:currentRoom():getPlayerById(to_select):isKongcheng()
+  end,
+  on_use = function (self, room, effect)
+    local player = room:getPlayerById(effect.from)
+    local target = room:getPlayerById(effect.tos[1])
+    local pindian = player:pindian({target}, self.name)
+    if pindian.results[target.id].winner == player then
+      local dummy1 = Fk:cloneCard("dilu")
+      if #target:getCardIds{Player.Hand, Player.Equip, Player.Judge} < 2 then
+        dummy1:addSubcards(target:getCardIds{Player.Hand, Player.Equip, Player.Judge})
+      else
+        local cards1 = room:askForCardChosen(target, target, "hej", self.name)
+        dummy1:addSubcards(cards1)
+      end
+      if #dummy1.subcards > 0 then
+        room:obtainCard(player, dummy1, false, fk.ReasonGive)
+      end
+    elseif pindian.results[target.id].winner == target then
+      local dummy2 = Fk:cloneCard("dilu")
+      if #player:getCardIds{Player.Hand, Player.Equip} < 3 then
+        dummy2:addSubcards(target:getCardIds{Player.Hand, Player.Equip})
+      else
+        local cards2 = room:askForCardsChosen(player, player, 2, 2, "he", self.name)
+        dummy2:addSubcards(cards2)
+      end
+      if #dummy2.subcards > 0 then
+        room:obtainCard(target, dummy2, false, fk.ReasonGive)
+      end
+    end
+  end,
+}
+
+local fenglve_mn_detach = fk.CreateTriggerSkill{
+  name = "#ty_heg__fenglve_manoeuvre_detach",
+  refresh_events = {fk.EventPhaseStart},
+  can_refresh = function(self, event, target, player, data)
+    return target == player and player.phase == Player.NotActive and player:hasSkill("ty_heg__fenglve_manoeuvre", true, true) 
+  end,
+  on_refresh = function(self, event, target, player, data)
+    local room = player.room
+    room:handleAddLoseSkills(player, "-ty_heg__fenglve_manoeuvre", nil)
+    room:setPlayerMark(player, "@@ty_heg__fenglve_manoeuvre", 0)
+  end,
+}
+
+fenglve_mn:addRelatedSkill(fenglve_mn_detach)
+Fk:addSkill(fenglve_mn)
+xunchen:addSkill(anyong)
+xunchen:addSkill(fenglve)
+
 Fk:loadTranslationTable{
   ["ty_heg__xunchen"] = "荀谌",
-  ["ty_heg__fenglve"] = "锋略",
-  [":ty_heg__fenglve"] = "出牌阶段限一次，你可以和一名其他角色拼点，若你赢，该角色交给你其区域内的两张牌；若你输，你交给其一张牌。"..
+  ["ty_heg__fenglve"] = "锋略：选择一名其他角色与其拼点，若你赢，该角色交给你其区域内的两张牌；若其赢，你交给其一张牌。，",
+  ["ty_heg__fenglve__mn"] = "锋略：选择一名其他角色与其拼点，若你赢，该角色交给你其区域内的一张牌；若其赢，你交给其两张牌。，",
+  [":ty_heg__fenglve"] = "出牌阶段限一次，你可以和一名其他角色拼点，若你赢，该角色交给你其区域内的两张牌；若其赢，你交给其一张牌。"..
   "<br><font color=\"blue\">◆纵横：交换〖锋略〗描述中的“一张牌”和“两张牌”。<font><br><font color=\"grey\"><b>纵横</b>："..
   "当拥有“纵横”效果技能发动结算完成后，可以令技能目标角色获得对应修订描述后的技能，直到其下回合结束。",
+  ["ty_heg__fenglve_mn_ask"] = "令%dest获得〖锋略（纵横）〗直到其下回合结束",
+  ["@@ty_heg__fenglve_manoeuvre"] = "锋略 纵横",
+
+  ["ty_heg__fenglve_manoeuvre"] = "锋略(纵横)",
+  [":ty_heg__fenglve_manoeuvre"] = "出牌阶段限一次，你可以和一名其他角色拼点，若你赢，该角色交给你其区域内的一张牌；若你输，你交给其两张牌。",
+
+
   ["ty_heg__anyong"] = "暗涌",
+  ["ty_heg__anyong-invoke"] = "暗涌：是否令此次造成的伤害翻倍。",
   [":ty_heg__anyong"] = "每回合限一次，当与你势力相同的一名角色对另一名其他角色造成伤害时，你可令此伤害翻倍，然后若受到伤害的角色："..
   "武将牌均明置，你失去1点体力并失去此技能；只明置了一张武将牌，你弃置两张手牌。",
+
+  ["$ty_heg__fenglve1"] = "冀州宝地，本当贤者居之。",
+  ["$ty_heg__fenglve2"] = "当今敢称贤者，唯袁氏本初一人。",
+  ["$ty_heg__anyong1"] = "冀州暗潮汹涌，群仕居危思变。",
+  ["$ty_heg__anyong2"] = "殿上太守且相看，殿下几人还拥韩。",
+  ["~ty_heg__xunchen"] = "为臣当不贰，贰臣不当为。",
 }
 
 local jianggan = General(extension, "ty_heg__jianggan", "wei", 3)
