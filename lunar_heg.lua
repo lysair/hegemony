@@ -282,7 +282,7 @@ local wumei = fk.CreateTriggerSkill{
     room:setPlayerMark(player, "fk_heg__wumei_record", 0)
   end,
 }
-local fk_heg__wumei_delay = fk.CreateTriggerSkill{
+local wumei_delay = fk.CreateTriggerSkill{
   name = "#fk_heg__wumei_delay",
   events = {fk.EventPhaseStart},
   mute = true,
