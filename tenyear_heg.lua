@@ -693,9 +693,6 @@ local fenglve = fk.CreateActiveSkill{
   anim_type = "control",
   card_num = 0,
   target_num = 1,
-  prompt = function (self, selected, selected_cards)
-    return "#ty_heg__fenglve"
-  end,
   can_use = function(self, player)
     return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and not player:isKongcheng()
   end,
@@ -725,7 +722,7 @@ local fenglve = fk.CreateActiveSkill{
       if #player:getCardIds{Player.Hand, Player.Equip} < 2 then
         dummy2:addSubcards(target:getCardIds{Player.Hand, Player.Equip})
       else
-        local cards2 = room:askForCardChosen(player, player, "he", self.name)
+        local cards2 = room:askForCardsChosen(player, player, 1, 1, "he", self.name)
         dummy2:addSubcards(cards2)
       end
       if #dummy2.subcards > 0 then
@@ -740,14 +737,11 @@ local fenglve = fk.CreateActiveSkill{
   end,
 }
 
-local fenglve_mn = fk.CreateTriggerSkill{
+local fenglve_mn = fk.CreateActiveSkill{
   name = "ty_heg__fenglve_manoeuvre",
   anim_type = "control",
   card_num = 0,
   target_num = 1,
-  prompt = function (self, selected, selected_cards)
-    return "#ty_heg__fenglve__mn"
-  end,
   can_use = function(self, player)
     return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and not player:isKongcheng()
   end,
@@ -766,7 +760,7 @@ local fenglve_mn = fk.CreateTriggerSkill{
       if #target:getCardIds{Player.Hand, Player.Equip, Player.Judge} < 2 then
         dummy1:addSubcards(target:getCardIds{Player.Hand, Player.Equip, Player.Judge})
       else
-        local cards1 = room:askForCardChosen(target, target, "hej", self.name)
+        local cards1 = room:askForCardsChosen(target, target, 1, 1, "hej", self.name)
         dummy1:addSubcards(cards1)
       end
       if #dummy1.subcards > 0 then
@@ -807,7 +801,7 @@ xunchen:addSkill(fenglve)
 
 Fk:loadTranslationTable{
   ["ty_heg__xunchen"] = "荀谌",
-  ["ty_heg__fenglve"] = "锋略：选择一名其他角色与其拼点，若你赢，该角色交给你其区域内的两张牌；若其赢，你交给其一张牌。，",
+  ["ty_heg__fenglve"] = "锋略",
   ["ty_heg__fenglve__mn"] = "锋略：选择一名其他角色与其拼点，若你赢，该角色交给你其区域内的一张牌；若其赢，你交给其两张牌。，",
   [":ty_heg__fenglve"] = "出牌阶段限一次，你可以和一名其他角色拼点，若你赢，该角色交给你其区域内的两张牌；若其赢，你交给其一张牌。"..
   "<br><font color=\"blue\">◆纵横：交换〖锋略〗描述中的“一张牌”和“两张牌”。<font><br><font color=\"grey\"><b>纵横</b>："..
@@ -816,7 +810,7 @@ Fk:loadTranslationTable{
   ["@@ty_heg__fenglve_manoeuvre"] = "锋略 纵横",
 
   ["ty_heg__fenglve_manoeuvre"] = "锋略(纵横)",
-  [":ty_heg__fenglve_manoeuvre"] = "出牌阶段限一次，你可以和一名其他角色拼点，若你赢，该角色交给你其区域内的一张牌；若你输，你交给其两张牌。",
+  [":ty_heg__fenglve_manoeuvre"] = "出牌阶段限一次，你可以和一名其他角色拼点，若你赢，该角色交给你其区域内的一张牌；若其赢，你交给其两张牌。",
 
 
   ["ty_heg__anyong"] = "暗涌",
