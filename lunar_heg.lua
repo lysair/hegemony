@@ -47,6 +47,7 @@ caoang:addSkill("kangkai")
 caoang:addCompanions("hs__dianwei")
 Fk:loadTranslationTable{
   ["fk_heg__caoang"] = "曹昂",
+  ["~fk_heg__caoang"] = "典将军，还是你赢了……",
 }
 
 local wangyi = General(extension, "fk_heg__wangyi", "wei", 3, 3, General.Female)
@@ -61,6 +62,7 @@ maliang:addSkill("xiemu")
 maliang:addSkill("naman")
 Fk:loadTranslationTable{
   ["fk_heg__maliang"] = "马良",
+  ["~fk_heg__maliang"] = "皇叔为何不听我之言？",
 }
 
 local yijik = General(extension, "fk_heg__yijik", "shu", 3)
@@ -133,6 +135,7 @@ hjls:addSkill("zhuji")
 hjls:addCompanions("hs__zhangjiao")
 Fk:loadTranslationTable{
   ["fk_heg__huangjinleishi"] = "黄巾雷使",
+  ["~fk_heg__huangjinleishi"] = "速报大贤良师……大事已泄……",
 }
 
 local chengui = General(extension, "fk_heg__chengui", "qun", 3)
