@@ -395,7 +395,7 @@ Fk:loadTranslationTable{
 local dongzhuo = General(extension, "ld__dongzhuo", "qun", 4)
 local hengzheng = fk.CreateTriggerSkill{
   name = 'hengzheng',
-  anim_type = "control",
+  anim_type = "big", -- 神杀特色
   events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(self.name) and player.phase == Player.Draw and

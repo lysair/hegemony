@@ -357,7 +357,7 @@ local weimeng_mn_detach = fk.CreateTriggerSkill{
   name = "#ty_heg__weimeng_manoeuvre_detach",
   refresh_events = {fk.AfterTurnEnd},
   can_refresh = function(self, event, target, player, data)
-    return target == Player and player:hasSkill("ty_heg__weimeng_manoeuvre", true, true) 
+    return target == player and player:hasSkill("ty_heg__weimeng_manoeuvre", true, true) 
   end,
   on_refresh = function(self, event, target, player, data)
     local room = player.room
@@ -534,6 +534,7 @@ Fk:loadTranslationTable{
 }
 
 local miheng = General(extension, "ty_heg__miheng", "qun", 3)
+miheng:addCompanions("hs__kongrong")
 local kuangcai = fk.CreateTriggerSkill{
   name = "ty_heg__kuangcai",
   mute = true,

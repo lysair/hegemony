@@ -118,6 +118,7 @@ Fk:loadTranslationTable{
 }
 
 local chendao = General(extension, "os_heg__chendao", "shu", 4)
+chendao:addCompanions("hs__zhaoyun")
 chendao:addSkill("wangliec")
 Fk:loadTranslationTable{
   ["os_heg__chendao"] = "陈到",
@@ -173,7 +174,7 @@ local hongyuanTrigger = fk.CreateTriggerSkill{
   mute = true,
   events = {fk.BeforeDrawCard},
   can_trigger = function(self, event, target, player, data)
-    return target == player and data.skillName == "alliance&" and table.find(player.room.alive_players, function(p) return H.compareKingdomWith(p, player) and p ~= player end)
+    return target == player and player:hasSkill(self.name) and data.skillName == "alliance&" and table.find(player.room.alive_players, function(p) return H.compareKingdomWith(p, player) and p ~= player end)
   end,
   on_cost = function(self, event, target, player, data)
     local room = player.room
