@@ -3,7 +3,7 @@ local H = {}
 -- 势力相关
 
 --- 获取势力（野心家为role）
----@param player ServerPlayer
+---@param player Player
 ---@return string
 H.getKingdom = function(player)
   local ret = player.kingdom
@@ -16,8 +16,8 @@ end
 --- from与to势力是否相同
 ---
 --- diff为false为相同，true为不同
----@param from ServerPlayer
----@param to ServerPlayer
+---@param from Player
+---@param to Player
 ---@param diff bool
 ---@return boolean
 H.compareKingdomWith = function(from, to, diff)
@@ -82,6 +82,32 @@ end
 
 -- 阵型
 
+--- 获取下N家
+---@param player Player
+---@param n integer
+---@param ignoreRemoved bool
+---@return player ServerPlayer
+H.getNextNAlive = function(player, n, ignoreRemoved)
+  n = n or 1
+  local ret = player
+  for _ = 1, n do
+    ret = ret:getNextAlive(ignoreRemoved)
+  end
+  return ret
+end
+
+--- 获取上N家
+---@param player Player
+---@param n integer
+---@param ignoreRemoved bool
+---@return player ServerPlayer
+H.getLastNAlive = function(player, n, ignoreRemoved)
+  n = n or 1
+  local room = Fk:currentRoom()
+  local index = ignoreRemoved and #room.alive_players or #table.filter(room.alive_players, function(p) return not p:isRemoved() end) - n
+  return H.getNextNAlive(player, index, ignoreRemoved)
+end
+
 --- 获取与角色成队列的其余角色
 ---@param player ServerPlayer
 ---@return players ServerPlayer[]|nil @ 队列中的角色
@@ -114,6 +140,21 @@ H.getFormationRelation = function(player)
   return players
 end
 
+--- 确认与某角色是否处于围攻关系
+---@param player ServerPlayer @ 围攻角色1
+---@param target ServerPlayer @ 围攻角色2
+---@param victim ServerPlayer @ 被围攻角色
+---@return bool
+H.inSiegeRelation = function(player, target, victim)
+  if H.compareKingdomWith(player, victim) or not H.compareKingdomWith(player, target) or victim.kingdom == "unknown" then return false end
+  if player == target then
+    return (player:getNextAlive() == victim and H.getNextNAlive(player, 2) ~= player and H.compareKingdomWith(H.getNextNAlive(player, 2), player))
+    or (H.getLastNAlive(player) == victim and H.getLastNAlive(player, 2) ~= player and H.compareKingdomWith(H.getLastNAlive(player, 2), player))
+  else
+    return (player:getNextAlive() == victim and H.getNextNAlive(player, 2) == target)
+    or (H.getLastNAlive(player) == victim and H.getLastNAlive(player, 2) == target)
+  end
+end
 
 -- 军令
 --- 对某角色发起军令（抽取、选择、询问）

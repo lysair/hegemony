@@ -429,7 +429,7 @@ local wildKingdoms = {"heg_qin", "heg_qi", "heg_chu", "heg_yan", "heg_zhao", "he
 local heg_rule = fk.CreateTriggerSkill{
   name = "#heg_rule",
   priority = 0.001,
-  events = {fk.TurnStart, fk.GameOverJudge, fk.Deathed, fk.GeneralRevealed, fk.EventPhaseChanging},
+  events = {fk.TurnStart, fk.GameOverJudge, fk.Deathed, fk.GeneralRevealed, fk.EventPhaseChanging, fk.GeneralHidden},
   can_trigger = function(self, event, target, player, data)
     return target == player
   end,
@@ -479,6 +479,10 @@ local heg_rule = fk.CreateTriggerSkill{
       player:revealGeneral(true)
       local winner = Fk.game_modes[room.settings.gameMode]:getWinner(player)
       if winner ~= "" then
+        for _, p in ipairs(room.alive_players) do
+          if p.general == "anjiang" then p:revealGeneral(false) end
+          if p.deputyGeneral == "anjiang" then p:revealGeneral(true) end
+        end
         room:gameOver(winner)
         return true
       end
@@ -521,6 +525,12 @@ local heg_rule = fk.CreateTriggerSkill{
       else
         player.role = player.kingdom
       end
+      if player.general == "anjiang" then -- FIXME!
+        local gender
+        local ret = Fk.generals[player.deputyGeneral].gender
+        if ret ~= General.Agender then gender = ret end
+        if gender then room:setPlayerProperty(player, "gender", gender) end
+      end
       if not room:getTag("TheFirstToShowRewarded") then
         room:setTag("TheFirstToShowRewarded", player.id)
         room:addPlayerMark(player, "@!vanguard", 1)
@@ -547,6 +557,13 @@ local heg_rule = fk.CreateTriggerSkill{
         player:addFakeSkill("alliance&")
       elseif data.from == Player.Play then
         player:loseFakeSkill("alliance&")
+      end
+    elseif event == fk.GeneralHidden then
+      if player.general == "anjiang" then -- FIXME!
+        local gender
+        local ret = Fk.generals[player.deputyGeneral].gender
+        if ret ~= General.Agender then gender = ret end
+        if gender then room:setPlayerProperty(player, "gender", gender) end
       end
     end
   end,
@@ -586,29 +603,30 @@ heg = fk.CreateGameMode{
       return p.role
     end
 
-    local winner = alive[1].kingdom
-    if winner == "unknown" then return "" end
+    local winner = alive[1]
+    local kingdom = H.getKingdom(winner)
+    if kingdom == "unknown" then return "" end
     for _, p in ipairs(alive) do
-      if p.kingdom ~= winner or p.kingdom == "wild" then
+      if not H.compareKingdomWith(p, winner) then -- willBeFriendWith!!!
         return ""
       end
     end
-    return winner
+    return kingdom
   end,
   surrender_func = function(self, playedTime)
-    local kingdom
+    local winner
     local kingdomCheck = true
     for _, p in ipairs(Fk:currentRoom().alive_players) do
       if p ~= Self then
-        if not kingdom then
-          kingdom = p.kingdom
-        elseif kingdom ~= p.kingdom or kingdom == "wild" or kingdom == "unknown" then
+        if not winner then
+          winner = p
+        elseif not H.compareKingdomWith(winner, p) then
           kingdomCheck = false
           break
         end
       end
     end
-    return { { text = "heg: all one kingdom enemies", passed = kingdomCheck } }
+    return { { text = "heg: besieged on all sides", passed = kingdomCheck } }
   end,
 }
 
@@ -636,7 +654,7 @@ Fk:loadTranslationTable{
   ["heg_zhou"] = "周", 
   ["heg_liang"] = "凉",
   ["#WildChooseKingdom"] = "%from 成为 %arg2 ，选择了势力 %arg",
-  ["heg: all one kingdom enemies"] = "被同一势力围观",
+  ["heg: besieged on all sides"] = "四面楚歌，被同一势力围观",
   ["@@alliance"] = "合",
 
   ["#YinyangfishNotice"] = "调整：<b><font color=\"green\">阴阳鱼</font></b>手牌上限+2的效果<b>默认预亮</b>",

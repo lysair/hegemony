@@ -7,6 +7,123 @@ Fk:loadTranslationTable{
   ["lord_ex"] = "君临天下·EX/不臣篇",
 }
 
+local dongzhao = General(extension, "ld__dongzhao", "wei", 3)
+
+local quanjin = fk.CreateActiveSkill{
+  name = "quanjin",
+  anim_type = "control",
+  can_use = function(self, player)
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
+  end,
+  card_num = 1,
+  card_filter = function(self, to_select, selected)
+    return #selected < 1 and Fk:currentRoom():getCardArea(to_select) == Player.Hand
+  end,
+  target_num = 1,
+  target_filter = function(self, to_select, selected, selected_cards)
+    return #selected == 0 and to_select ~= Self.id and Fk:currentRoom():getPlayerById(to_select):getMark("_quanjin-phase") > 0 and #selected_cards == 1
+  end,
+  on_use = function(self, room, effect)
+    local player = room:getPlayerById(effect.from)
+    local target = room:getPlayerById(effect.tos[1])
+    room:moveCardTo(effect.cards, Card.PlayerHand, target, fk.ReasonGive, self.name, nil, false, player.id)
+    if H.askCommandTo(player, target, self.name) then
+      player:drawCards(1, self.name)
+    else
+      local num = player:getHandcardNum()
+      for hc, p in ipairs(room.alive_players) do
+        hc = p:getHandcardNum()
+        if hc > num then
+          num = hc
+        end
+      end
+      num = math.min(num - player:getHandcardNum(), 5)
+      player:drawCards(num, self.name)
+    end
+  end,
+}
+local quanjinRecorder = fk.CreateTriggerSkill{
+  name = "#quanjin_recorder",
+  visible = false,
+  refresh_events = {fk.Damaged, fk.EventAcquireSkill},
+  can_refresh = function(self, event, target, player, data)
+    if not player:hasSkill(self.name) or player.room.current ~= player or player.phase ~= Player.Play then return false end
+    return event == fk.Damaged or (target == player and data == quanjin)
+  end,
+  on_refresh = function(self, event, target, player, data)
+    local room = player.room
+    if event == fk.Damaged then
+      room:setPlayerMark(target, "_quanjin-phase", 1)
+    else
+      room.logic:getEventsOfScope(GameEvent.ChangeHp, 1, function (e)
+        local damage = e.data[5]
+        if damage then
+          local target = data.to
+          if target:getMark("_quanjin-phase") == 0 then
+            room:setPlayerMark(target, "_quanjin-phase", 1)
+          end
+        end
+      end, Player.HistoryPhase)
+    end
+  end,
+}
+quanjin:addRelatedSkill(quanjinRecorder)
+
+local zaoyun = fk.CreateActiveSkill{
+  name = "zaoyun",
+  anim_type = "offensive",
+  prompt = "#zaoyun",
+  can_use = function(self, player)
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
+  end,
+  min_card_num = 1,
+  card_filter = function(self, to_select, selected)
+    return Fk:currentRoom():getCardArea(to_select) == Player.Hand
+  end,
+  target_num = 1,
+  target_filter = function(self, to_select, selected, selected_cards)
+    local target = Fk:currentRoom():getPlayerById(to_select)
+    return #selected == 0 and not H.compareKingdomWith(target, Self) and target.kingdom ~= "unknown" -- ?
+      and Self:distanceTo(target) - 1 == #selected_cards and #selected_cards > 0
+  end,
+  on_use = function(self, room, effect)
+    local player = room:getPlayerById(effect.from)
+    local target = room:getPlayerById(effect.tos[1])
+    room:throwCard(effect.cards, self.name, player, player)
+    room:setPlayerMark(player, "_zaoyun_distance-turn", target.id)
+    room:damage{ from = player, to = target, damage = 1, skillName = self.name }
+  end,
+}
+local zaoyun_distance = fk.CreateDistanceSkill{
+  name = "#zaoyun_distance",
+  fixed_func = function(self, from, to)
+    if from:getMark("_zaoyun_distance-turn") == to.id then
+      return 1
+    end
+  end,
+}
+zaoyun:addRelatedSkill(zaoyun_distance)
+
+dongzhao:addSkill(quanjin)
+dongzhao:addSkill(zaoyun)
+
+Fk:loadTranslationTable{
+  ["ld__dongzhao"] = "董昭",
+  ["quanjin"] = "劝进",
+  [":quanjin"] = "出牌阶段限一次，你可将一张手牌交给一名此阶段受到过伤害的角色，对其发起军令。若其执行，你摸一张牌；若其不执行，你将手牌摸至与手牌最多的角色相同（最多摸五张）。",
+  ["zaoyun"] = "凿运",
+  [":zaoyun"] = "出牌阶段限一次，你可选择一名与你势力不同且你至其距离大于1的角色并弃置X张手牌（X为你至其的距离-1），令你至其的距离此回合视为1，然后你对其造成1点伤害。",
+
+  ["#zaoyun-discard"] = "凿运：弃置 %arg 张手牌（你至%src的距离-1）",
+  ["#zaoyun"] = "凿运：选择任意张手牌弃置，再选择一名与你势力不同且你至其距离为弃置手牌数+1的角色",
+
+  ["$quanjin1"] = "今称魏公，则可以藩卫之名，征吴伐蜀也。",
+  ["$quanjin2"] = "明公受封，正合天心人意！",
+  ["$zaoyun1"] = "开渠输粮，振军之心，破敌之胆！",
+  ["$zaoyun2"] = "兵精粮足，胜局已定！",
+  ["~ld__dongzhao"] = "一生无愧，又何惧身后之议……",
+}
+
 local zhonghui = General(extension, "ld__zhonghui", "wild", 4)
 zhonghui.total_hidden = true
 -- zhonghui:addCompanions("ld__jiangwei")

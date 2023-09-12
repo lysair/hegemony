@@ -183,16 +183,10 @@ local yingtu = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     local room = player.room
     local from = room:getPlayerById(self.cost_data)
-    local lastplayer = (player:getNextAlive() == from)
     local card = room:askForCardChosen(player, from, "he", self.name)
     room:obtainCard(player.id, card, false, fk.ReasonPrey)
-    local to = player:getNextAlive()
-    if lastplayer then
-      to = table.find(room.alive_players, function (p)
-        return p:getNextAlive() == player
-      end)
-    end
-    if to == nil or to == player then return false end
+    local to = player:getNextAlive() == from and H.getLastNAlive(player) or player:getNextAlive()
+    if not to or to == player then return false end
     local id = room:askForCard(player, 1, 1, true, self.name, false, ".", "#yingtu-choose::"..to.id)[1]
     room:obtainCard(to, id, false, fk.ReasonGive)
     local to_use = Fk:getCardById(id)
