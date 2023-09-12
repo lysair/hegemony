@@ -122,8 +122,32 @@ Fk:loadTranslationTable{
   ["$ld__jixi2"] = "哪里走！！",
   ["~ld__dengai"] = "君不知臣，臣不知君。罢了……罢了！",
 }
+--[[
+local jiangwei = General(extension, "ld__jiangwei", "shu", 4)
+jiangwei:addCompanions("hs__zhugeliang")
+jiangwei.deputyMaxHpAdjustedValue = -1
+local tianfu = H.CreateBattleArraySkill{
+  name = 'tianfu',
+  -- relate_to_place = 'm',
+  array_type = "formation",
+  refresh_events = {fk.RoundStart},
+  can_refresh = function(self, event, target, player, data)
+    return player:hasSkill(self.name, true, true) and not player:isFakeSkill(self.name)
+  end,
+  on_refresh = function(self, event, target, player, data)
+    local room = player.room
+    local formation = H.getFormationRelation(target)
+    room:handleAddLoseSkills(player, (table.contains(formation, player) or (target == player and #formation > 0)) and #room.alive_players > 3 and 'tianfu' or "-tianfu", nil)
+  end,
+}
+jiangwei:addSkill("tiaoxin")
+jiangwei:addSkill(tianfu)
 
-
+Fk:loadTranslationTable{
+  ["ld__jiangwei"] = "姜维",
+  ["tianfu"] = "天覆",
+}
+]]
 local jiangfei = General(extension, "ld__jiangwanfeiyi", "shu", 3)
 local shengxi = fk.CreateTriggerSkill{
   name = "ld__shengxi",

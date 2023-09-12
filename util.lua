@@ -502,6 +502,26 @@ function H.BigKingdomSkill:getFixed(player)
   return false
 end
 
+local function readCommonSpecToSkill(skill, spec)
+  skill.mute = spec.mute
+  skill.anim_type = spec.anim_type
+
+  if spec.attached_equip then
+    assert(type(spec.attached_equip) == "string")
+    skill.attached_equip = spec.attached_equip
+  end
+
+  if spec.switch_skill_name then
+    assert(type(spec.switch_skill_name) == "string")
+    skill.switchSkillName = spec.switch_skill_name
+  end
+
+  if spec.relate_to_place then
+    assert(type(spec.relate_to_place) == "string")
+    skill.relate_to_place = spec.relate_to_place
+  end
+end
+
 local function readStatusSpecToSkill(skill, spec)
   readCommonSpecToSkill(skill, spec)
   if spec.global then

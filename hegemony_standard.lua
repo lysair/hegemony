@@ -2286,12 +2286,14 @@ local huoshui = fk.CreateTriggerSkill{ -- FIXME
     if target ~= player then return false end
     if event == fk.TurnStart then
       return player:hasSkill(self.name) 
-    elseif event == fk.EventAcquireSkill or event == fk.EventLoseSkill then
-      return data == self and player.phase ~= Player.NotActive
+    end
+    if player.phase == Player.NotActive then return false end
+    if event == fk.EventAcquireSkill or event == fk.EventLoseSkill then
+      return data == self 
     elseif event == fk.GeneralRevealed then
-      return data == "hs__zoushi" and player:hasSkill(self.name)
+      return data == "hs__zoushi" and player:hasSkill(self.name) 
     else
-      return player:hasSkill(self.name, true, true) and player.phase ~= Player.NotActive
+      return player:hasSkill(self.name, true, true) 
     end
   end,
   on_use = function(self, event, target, player, data)
