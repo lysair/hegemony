@@ -125,20 +125,26 @@ Fk:loadTranslationTable{
 }
 
 local zhonghui = General(extension, "ld__zhonghui", "wild", 4)
--- zhonghui:addCompanions("ld__jiangwei")
+zhonghui:addCompanions("ld__jiangwei")
 local quanji = fk.CreateTriggerSkill{
   name = "ld__quanji",
-  anim_type = "drawcard",
+  mute = true,
   events = {fk.Damaged, fk.Damage},
   can_trigger = function(self, event, target, player, data)
-    if target ~= player or not player:hasSkill(self.name) then return false end
+    if target ~= player or not player:hasSkill(self.name) or player.dead then return false end
     if event == fk.Damaged then return player:getMark("_ld__quanji_damaged-turn") == 0
     else return player:getMark("_ld__quanji_damage-turn") == 0 end
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    if event == fk.Damaged then room:setPlayerMark(player, "_ld__quanji_damaged-turn", 1)
-    else room:setPlayerMark(player, "_ld__quanji_damage-turn", 1) end
+    player:broadcastSkillInvoke(self.name)
+    if event == fk.Damaged then
+      room:setPlayerMark(player, "_ld__quanji_damaged-turn", 1)
+      room:notifySkillInvoked(player, self.name, "masochism")
+    else
+      room:setPlayerMark(player, "_ld__quanji_damage-turn", 1)
+      room:notifySkillInvoked(player, self.name, "drawcard")
+    end
     player:drawCards(1, self.name)
     if not player:isNude() then
       local card = room:askForCard(player, 1, 1, true, self.name, false, nil, "#ld__quanji-push")
@@ -153,7 +159,6 @@ local quanji_maxcards = fk.CreateMaxCardsSkill{
   end,
 }
 quanji:addRelatedSkill(quanji_maxcards)
--- quanji:addRelatedSkill(H.CreateClearSkill("ld__quanji", "ld__zhonghui_power"))
 H.CreateClearSkill(quanji, "ld__zhonghui_power")
 local paiyi = fk.CreateActiveSkill{
   name = "ld__paiyi",

@@ -512,7 +512,20 @@ Fk:loadTranslationTable{
 }
 
 local zhugeliang = General(extension, "hs__zhugeliang", "shu", 3)
-
+local guanxing = fk.CreateTriggerSkill{
+  name = "hs__guanxing",
+  anim_type = "control",
+  events = {fk.EventPhaseStart},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) and
+      player.phase == Player.Start
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local num = (H.inGeneralSkills(player, self.name) == "m" and H.hasShownSkill(player, "yizhi")) and 5 or math.min(5, #room.alive_players)
+    room:askForGuanxing(player, room:getNCards(num))
+  end,
+}
 local kongcheng = fk.CreateTriggerSkill{
   name = "hs__kongcheng",
   anim_type = "defensive",
@@ -563,18 +576,22 @@ local kongcheng = fk.CreateTriggerSkill{
   end
 }
 
-zhugeliang:addSkill("guanxing")
+zhugeliang:addSkill(guanxing)
 zhugeliang:addSkill(kongcheng)
 zhugeliang:addCompanions("hs__huangyueying")
 
 Fk:loadTranslationTable{
   ["hs__zhugeliang"] = "诸葛亮",
+  ["hs__guanxing"] = "观星",
+  [":hs__guanxing"] = "准备阶段开始时，你可将牌堆顶的X张牌（X为角色数且至多为5}）扣置入处理区（对你可见），你将其中任意数量的牌置于牌堆顶，将其余的牌置于牌堆底。",
   ["hs__kongcheng"] = "空城",
   [":hs__kongcheng"] = "锁定技，若你没有手牌：1. 当你成为【杀】或【决斗】的目标时，取消之；"..
     "2. 你的回合外，当牌因交给而移至你的手牌区前，你将此次移动的目标区域改为你的武将牌上（均称为“琴”），摸牌阶段开始时，你获得所有“琴”。",
 
   ["zither"] = "琴",
 
+  ["$hs__guanxing1"] = "观今夜天象，知天下大事。",
+  ["$hs__guanxing2"] = "知天易，逆天难。",
   ["$hs__kongcheng1"] = "（抚琴声）",
   ["$hs__kongcheng2"] = "（抚琴声）",
   ["~hs__zhugeliang"] = "将星陨落，天命难违。",
@@ -2437,7 +2454,10 @@ local vanguradSkill = fk.CreateActiveSkill{
     return table.find(Fk:currentRoom().alive_players, function(p) return (p.general == "anjiang" or p.deputyGeneral == "anjiang") and p ~= Self end) and 1 or 0
   end,
   target_filter = function(self, to_select, selected, selected_cards)
-    return to_select ~= Self.id and #selected == 0 and table.find(Fk:currentRoom().alive_players, function(p) return (p.general == "anjiang" or p.deputyGeneral == "anjiang") and p ~= Self end)
+    if to_select ~= Self.id and #selected == 0 and table.find(Fk:currentRoom().alive_players, function(p) return (p.general == "anjiang" or p.deputyGeneral == "anjiang") and p ~= Self end) then
+      local target = Fk:currentRoom():getPlayerById(to_select)
+      return target.general == "anjiang" or target.deputyGeneral == "anjiang"
+    end
   end,
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
@@ -2598,8 +2618,10 @@ local wildDraw = fk.CreateActiveSkill{
     return self.interaction.data == "wild_vanguard" and table.find(Fk:currentRoom().alive_players, function(p) return (p.general == "anjiang" or p.deputyGeneral == "anjiang") and p ~= Self end) and 1 or 0 
   end,
   target_filter = function(self, to_select, selected, selected_cards)
-    return self.interaction.data == "wild_vanguard" and to_select ~= Self.id and table.find(Fk:currentRoom().alive_players, function(p) return (p.general == "anjiang" or p.deputyGeneral == "anjiang") and p ~= Self end)
-    and #selected == 0
+    if self.interaction.data == "wild_vanguard" and to_select ~= Self.id and #selected == 0 and table.find(Fk:currentRoom().alive_players, function(p) return (p.general == "anjiang" or p.deputyGeneral == "anjiang") and p ~= Self end) then
+      local target = Fk:currentRoom():getPlayerById(to_select)
+      return target.general == "anjiang" or target.deputyGeneral == "anjiang"
+    end
   end,
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)

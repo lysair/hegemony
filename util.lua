@@ -36,7 +36,6 @@ end
 --- 获取势力角色数列表
 ---@param room Room
 H.getKingdomPlayersNum = function(room)
-  assert(room)
   local kingdomMapper = {}
   for _, p in ipairs(room.alive_players) do
     local kingdom = H.getKingdom(p)
@@ -154,6 +153,158 @@ H.inSiegeRelation = function(player, target, victim)
     return (player:getNextAlive() == victim and H.getNextNAlive(player, 2) == target)
     or (H.getLastNAlive(player) == victim and H.getLastNAlive(player, 2) == target)
   end
+end
+
+--- 阵法召唤技
+---@class ArraySummonSkill : ActiveSkill
+H.ArraySummonSkill = ActiveSkill:subclass("ArraySummonSkill")
+
+local function readCommonSpecToSkill(skill, spec)
+  skill.mute = spec.mute
+  skill.anim_type = spec.anim_type
+
+  if spec.attached_equip then
+    assert(type(spec.attached_equip) == "string")
+    skill.attached_equip = spec.attached_equip
+  end
+
+  if spec.switch_skill_name then
+    assert(type(spec.switch_skill_name) == "string")
+    skill.switchSkillName = spec.switch_skill_name
+  end
+
+  if spec.relate_to_place then
+    assert(type(spec.relate_to_place) == "string")
+    skill.relate_to_place = spec.relate_to_place
+  end
+end
+
+local function readUsableSpecToSkill(skill, spec)
+  readCommonSpecToSkill(skill, spec)
+  assert(spec.main_skill == nil or spec.main_skill:isInstanceOf(UsableSkill))
+  skill.main_skill = spec.main_skill
+  skill.target_num = spec.target_num or skill.target_num
+  skill.min_target_num = spec.min_target_num or skill.min_target_num
+  skill.max_target_num = spec.max_target_num or skill.max_target_num
+  skill.target_num_table = spec.target_num_table or skill.target_num_table
+  skill.card_num = spec.card_num or skill.card_num
+  skill.min_card_num = spec.min_card_num or skill.min_card_num
+  skill.max_card_num = spec.max_card_num or skill.max_card_num
+  skill.card_num_table = spec.card_num_table or skill.card_num_table
+  skill.max_use_time = {
+    spec.max_phase_use_time or 9999,
+    spec.max_turn_use_time or 9999,
+    spec.max_round_use_time or 9999,
+    spec.max_game_use_time or 9999,
+  }
+  skill.distance_limit = spec.distance_limit or skill.distance_limit
+  skill.expand_pile = spec.expand_pile
+end
+
+local function readActiveSpecToSkill(skill, spec)
+  readUsableSpecToSkill(skill, spec)
+
+  if spec.can_use then
+    skill.canUse = function(curSkill, player, card)
+      return spec.can_use(curSkill, player, card) and curSkill:isEffectable(player)
+    end
+  end
+  if spec.card_filter then skill.cardFilter = spec.card_filter end
+  if spec.target_filter then skill.targetFilter = spec.target_filter end
+  if spec.mod_target_filter then skill.modTargetFilter = spec.mod_target_filter end
+  if spec.feasible then
+    -- print(spec.name .. ": feasible is deprecated. Use target_num and card_num instead.")
+    skill.feasible = spec.feasible
+  end
+  if spec.on_use then skill.onUse = spec.on_use end
+  if spec.about_to_effect then skill.aboutToEffect = spec.about_to_effect end
+  if spec.on_effect then skill.onEffect = spec.on_effect end
+  if spec.on_nullified then skill.onNullified = spec.on_nullified end
+  if spec.prompt then skill.prompt = spec.prompt end
+
+  if spec.interaction then
+    skill.interaction = setmetatable({}, {
+      __call = function(self)
+        if type(spec.interaction) == "function" then
+          return spec.interaction(self)
+        else
+          return spec.interaction
+        end
+      end,
+    })
+  end
+end
+---@class ActiveSkillSpec: ActiveSkill
+
+---@class ArraySummonSkill: ActiveSkillSpec
+
+---@param spec ArraySummonSkillSpec
+---@return ArraySummonSkill
+H.CreateArraySummonSkill = function(spec)
+  assert(type(spec.name) == "string")
+  assert(type(spec.array_type) == "string")
+
+  local skill = H.ArraySummonSkill:new(spec.name)
+  readActiveSpecToSkill(skill, spec)
+
+  skill.arrayType = spec.array_type
+
+  skill.canUse = function(curSkill, player, card)
+    local ret = curSkill:isEffectable(player) and player:usedSkillTimes(curSkill.name, Player.HistoryPhase) == 0 and player.kingdom ~= "wild"
+    and (table.contains(Fk.generals[player.general]:getSkillNameList(), curSkill.name) or table.contains(Fk.generals[player.deputyGeneral]:getSkillNameList(), curSkill.name))
+    and table.find(Fk:currentRoom().alive_players, function(p) return p.kingdom == "unknown" end)
+    if not ret then return false end
+    local pattern = curSkill.arrayType
+    if pattern == "formation" then
+      local p = player
+      while true do
+        p = p:getNextAlive()
+        if p == player then break end
+        if not H.compareKingdomWith(p, player) then
+          if p.kingdom == "unknown" then return true
+          else break end
+        end
+      end
+      while true do
+        p = H.getLastNAlive(p)
+        if p == player then break end
+        if not H.compareKingdomWith(p, player) then
+          if p.kingdom == "unknown" then return true
+          else break end
+        end
+      end
+    else -- 围攻
+    end
+    return false
+  end
+
+  skill.onUse = function(curSkill, room, effect)
+    local player = room:getPlayerById(effect.from)
+    local pattern = curSkill.arrayType
+    if pattern == "formation" then
+      local kingdom = H.getKingdom(player)
+      for i = 1, 2 do
+        local p = player
+        while true do
+          if H.getKingdomPlayersNum(room)[kingdom] >= #room.players // 2 then break end
+          p = i == 1 and p:getNextAlive() or H.getLastNAlive(p)
+          if p == player then break end
+          if not H.compareKingdomWith(p, player) then
+            if p.kingdom == "unknown" then
+              local main = Fk.generals[p:getMark("__heg_general")].kingdom == kingdom
+              local deputy = Fk.generals[p:getMark("__heg_deputy")].kingdom == kingdom
+              if not H.askForRevealGenerals(room, p, curSkill.name, main, deputy) then
+                break
+              end
+            else break end
+          end
+        end
+      end
+    else -- 围攻
+    end
+  end
+
+  return skill
 end
 
 -- 军令
@@ -419,6 +570,41 @@ H.getGeneralsRevealedNum = function(player)
   return num
 end
 
+--- 询问亮将
+---@param room Room
+---@param player ServerPlayer
+---@return boolean
+H.askForRevealGenerals = function(room, player, skill_name, main, deputy, all, cancelable, lord_convert)
+  if H.getGeneralsRevealedNum(player) == 2 then return false end
+  main = (main == nil) and true or main
+  deputy = (deputy == nil) and true or deputy
+  all = (all == nil) and true or all
+  cancelable = (cancelable == nil) and true or cancelable
+  local all_choices = {"revealMain", "revealDeputy", "revealAll", "Cancel"}
+  local choices = {}
+
+  if main and player.general == "anjiang" and not player:prohibitReveal() then
+    table.insert(choices, "revealMain")
+  end
+  if deputy and player.deputyGeneral == "anjiang" and not player:prohibitReveal(true) then
+    table.insert(choices, "revealDeputy")
+  end
+  if #choices == 2 and all then table.insert(choices, "revealAll") end
+  if cancelable then table.insert(choices, "Cancel") end
+  if #choices == 0 then return false end
+
+  local choice = room:askForChoice(player, choices, skill_name, nil, false, all_choices)
+  if choice == "revealMain" then player:revealGeneral(false)
+  elseif choice == "revealDeputy" then player:revealGeneral(true)
+  elseif choice == "revealAll" then
+    player:revealGeneral(false)
+    player:revealGeneral(true)
+  elseif choice == "Cancel" then
+    return false
+  end
+  return true
+end
+
 --- 暗置武将牌
 ---@param room Room
 ---@param player ServerPlayer
@@ -520,6 +706,31 @@ H.transformGeneral = function(room, player, isMain)
   room:changeHero(player, general, false, not isMain, true, false)
 end
 
+-- 技能相关
+
+--- 技能是否亮出
+---@param player ServerPlayer
+---@param skill string | Skill
+---@return bool
+H.hasShownSkill = function(player, skill, ignoreNullified, ignoreAlive)
+  return player:hasSkill(skill, ignoreNullified, ignoreAlive) and not player:isFakeSkill(skill)
+end
+
+--- 技能是否为主将/副将武将牌上的技能，返回“m”“d”或nil
+---@param player ServerPlayer
+---@param skill string | Skill
+---@return string | nil
+H.inGeneralSkills = function(player, skill)
+  assert(type(skill) == "string" or skill:isInstanceOf(Skill))
+  if type(skill) ~= "string" then skill = skill.name end
+  if table.contains(Fk.generals[player.general]:getSkillNameList(), skill) then
+    return "m"
+  elseif player.deputyGeneral and table.contains(Fk.generals[player.deputyGeneral]:getSkillNameList(), skill) then
+    return "d"
+  end
+  return nil
+end
+
 -- 合纵
 
 H.allianceCards = {}
@@ -542,7 +753,7 @@ H.BigKingdomSkill = StatusSkill:subclass("BigKingdomSkill")
 function H.BigKingdomSkill:getFixed(player)
   return false
 end
-
+--[[
 local function readCommonSpecToSkill(skill, spec)
   skill.mute = spec.mute
   skill.anim_type = spec.anim_type
@@ -562,7 +773,7 @@ local function readCommonSpecToSkill(skill, spec)
     skill.relate_to_place = spec.relate_to_place
   end
 end
-
+]]
 local function readStatusSpecToSkill(skill, spec)
   readCommonSpecToSkill(skill, spec)
   if spec.global then

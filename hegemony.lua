@@ -262,6 +262,7 @@ end
 function HegLogic:chooseGenerals()
   local room = self.room
   local generalNum = math.max(room.settings.generalNum, 5)
+  room:doBroadcastNotify("ShowToast", Fk:translate("#InitialNotice"))
 
   local lord = room:getLord()
   room.current = lord
@@ -407,7 +408,7 @@ function HegLogic:attachSkillToPlayers()
   end
 
   room:setTag("SkipNormalDeathProcess", true)
-  room:doBroadcastNotify("ShowToast", Fk:translate("#YinyangfishNotice"))
+  room:doBroadcastNotify("ShowToast", Fk:translate("#InitialNotice"))
 end
 
 local heg_getlogic = function()
@@ -455,25 +456,7 @@ local heg_rule = fk.CreateTriggerSkill{
           end
         end
       end
-
-      local choices = {}
-      if player.general == "anjiang" and not player:prohibitReveal() then
-        table.insert(choices, "revealMain")
-      end
-      if player.deputyGeneral == "anjiang" and not player:prohibitReveal(true) then
-        table.insert(choices, "revealDeputy")
-      end
-      if #choices == 0 then return end
-      if #choices == 2 then table.insert(choices, "revealAll") end
-      table.insert(choices, "Cancel")
-
-      local choice = room:askForChoice(player, choices, self.name)
-      if choice == "revealMain" then player:revealGeneral(false)
-      elseif choice == "revealDeputy" then player:revealGeneral(true)
-      elseif choice == "revealAll" then
-        player:revealGeneral(false)
-        player:revealGeneral(true)
-      end
+      H.askForRevealGenerals(room, player, self.name) -- lord
     elseif event == fk.GameOverJudge then
       player:revealGeneral(false)
       player:revealGeneral(true)
@@ -604,6 +587,7 @@ heg = fk.CreateGameMode{
     "tenyear_heg",
     "overseas_heg",
     "lunar_heg",
+    "lord_ex",
   },
   winner_getter = function(self, victim)
     local room = victim.room
@@ -671,7 +655,7 @@ Fk:loadTranslationTable{
   ["heg: besieged on all sides"] = "四面楚歌，被同一势力围观",
   ["@@alliance"] = "合",
 
-  ["#YinyangfishNotice"] = "调整：<b><font color=\"green\">阴阳鱼</font></b>手牌上限+2的效果<b>默认预亮</b>",
+  ["#InitialNotice"] = "提示：<b><font color='purple'>暴露野心</font></b>、<b><font color='goldenrod'>君主</font></b><b>暂无</b>",
 }
 
 return heg

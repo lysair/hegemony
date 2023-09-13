@@ -91,7 +91,7 @@ local dangxian = fk.CreateTriggerSkill{
   can_trigger = function(self, event, target, player, data)
     if target ~= player or not player:hasSkill(self.name) then return false end
     if event == fk.GeneralRevealed then
-      return data == "os_heg__liaohua" and player:usedSkillTimes(self.name, Player.HistoryGame) == 0
+      return table.contains(Fk.generals[data]:getSkillNameList(), self.name) and player:usedSkillTimes(self.name, Player.HistoryGame) == 0
     elseif event == fk.EventPhaseChanging then
       return data.from == Player.NotActive
     end

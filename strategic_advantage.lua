@@ -199,6 +199,7 @@ local lureTigerSkill = fk.CreateActiveSkill{
     room:setPlayerMark(target, "@@lure_tiger-turn", 1)
     room:setPlayerMark(target, MarkEnum.PlayerRemoved .. "-turn", 1)
     room:handleAddLoseSkills(target, "#lure_tiger_hp|#lure_tiger_prohibit", nil, false, true) -- global...
+    room.logic:trigger("fk.RemoveStateChanged", target, nil) -- FIXME
   end,
 }
 local lureTigerProhibit = fk.CreateProhibitSkill{
@@ -491,16 +492,7 @@ local function doImperialOrder(room, target)
   if #choices == 0 then return false end
   local choice = room:askForChoice(target, choices, "imperial_order_skill", nil, false, all_choices)
   if choice == "IO_reveal" then
-    choices = {}
-    if target.general == "anjiang" and not target:prohibitReveal() then
-      table.insert(choices, "revealMain")
-    end
-    if target.deputyGeneral == "anjiang" and not target:prohibitReveal(true) then
-      table.insert(choices, "revealDeputy")
-    end
-    choice = room:askForChoice(target, choices, "imperial_order_skill")
-    if choice == "revealMain" then target:revealGeneral(false)
-    elseif choice == "revealDeputy" then target:revealGeneral(true) end
+    H.askForRevealGenerals(room, target, "imperial_order_skill", true, true, false, false)
     target:drawCards(1, "imperial_order_skill")
   elseif choice == "IO_discard" then
     room:askForDiscard(target, 1, 1, true, "imperial_order_skill", false, ".|.|.|.|.|equip")

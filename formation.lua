@@ -123,32 +123,114 @@ Fk:loadTranslationTable{
   ["$ld__jixi2"] = "哪里走！！",
   ["~ld__dengai"] = "君不知臣，臣不知君。罢了……罢了！",
 }
---[[
+
 local jiangwei = General(extension, "ld__jiangwei", "shu", 4)
 jiangwei:addCompanions("hs__zhugeliang")
 jiangwei.deputyMaxHpAdjustedValue = -1
-local tianfu = H.CreateBattleArraySkill{
-  name = 'tianfu',
-  -- relate_to_place = 'm',
+local tianfu = H.CreateArraySummonSkill{
+  name = "tianfu",
   array_type = "formation",
-  refresh_events = {fk.RoundStart},
+  relate_to_place = "m",
+}
+local tianfuTrig = fk.CreateTriggerSkill{ -- FIXME
+  name = '#tianfu_trigger',
+  visible = false,
+  frequency = Skill.Compulsory,
+  refresh_events = {fk.RoundStart, fk.GeneralRevealed, fk.EventAcquireSkill, "fk.RemoveStateChanged", fk.EventLoseSkill, fk.GeneralHidden},
   can_refresh = function(self, event, target, player, data)
-    return player:hasSkill(self.name, true, true) and not player:isFakeSkill(self.name)
+    if event == fk.EventLoseSkill then return data == tianfu
+    else return H.hasShownSkill(player, self.name, true, true) end
   end,
   on_refresh = function(self, event, target, player, data)
     local room = player.room
     local formation = H.getFormationRelation(target)
-    room:handleAddLoseSkills(player, (table.contains(formation, player) or (target == player and #formation > 0)) and #room.alive_players > 3 and 'tianfu' or "-tianfu", nil)
+    local ret = (table.contains(formation, player) or (target == player and #formation > 0)) and #room.alive_players > 3 and player:hasSkill(self.name)
+    room:handleAddLoseSkills(player, ret and 'ld__kanpo' or "-ld__kanpo", nil, false, true)
   end,
 }
+tianfu:addRelatedSkill(tianfuTrig)
+local kanpo = fk.CreateViewAsSkill{
+  name = "ld__kanpo",
+  anim_type = "control",
+  pattern = "nullification",
+  prompt = "#kanpo",
+  card_filter = function(self, to_select, selected)
+    return #selected == 0 and Fk:getCardById(to_select).color == Card.Black and Fk:currentRoom():getCardArea(to_select) == Player.Hand
+  end,
+  view_as = function(self, cards)
+    if #cards ~= 1 then return end
+    local card = Fk:cloneCard("nullification")
+    card.skillName = self.name
+    card:addSubcard(cards[1])
+    return card
+  end,
+}
+
+local yizhi = fk.CreateTriggerSkill{
+  name = "yizhi",
+  refresh_events = {fk.GeneralRevealed, fk.GeneralHidden, fk.EventLoseSkill},
+  relate_to_place = "d",
+  frequency = Skill.Compulsory,
+  can_refresh = function(self, event, target, player, data)
+    return target == player
+  end,
+  on_refresh = function(self, event, target, player, data)
+    local has_head_guanxing = false
+    for _, sname in ipairs(Fk.generals[player.general]:getSkillNameList()) do
+      if Fk.skills[sname].trueName == "guanxing" then
+        has_head_guanxing = true
+        break
+      end
+    end
+    local room = player.room
+    if H.hasShownSkill(player, self.name) and not (has_head_guanxing and player.general ~= "anjiang") then
+      room:handleAddLoseSkills(player, "ld__guanxing", nil, false, true)
+    else
+      room:handleAddLoseSkills(player, "-ld__guanxing", nil, false, true)
+    end
+  end
+}
+local guanxing = fk.CreateTriggerSkill{
+  name = "ld__guanxing",
+  anim_type = "control",
+  events = {fk.EventPhaseStart},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) and
+      player.phase == Player.Start
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    room:askForGuanxing(player, room:getNCards(math.min(5, #room.alive_players)))
+  end,
+}
+
 jiangwei:addSkill("tiaoxin")
 jiangwei:addSkill(tianfu)
+jiangwei:addRelatedSkill(kanpo)
+jiangwei:addSkill(yizhi)
+jiangwei:addRelatedSkill(guanxing)
 
 Fk:loadTranslationTable{
   ["ld__jiangwei"] = "姜维",
   ["tianfu"] = "天覆",
+  [":tianfu"] = "主将技，阵法技，若当前回合角色为你所在队列里的角色，你拥有〖看破〗。",
+  ["yizhi"] = "遗志",
+  [":yizhi"] = "副将技，此武将牌上单独的阴阳鱼个数-1；若你的主将的武将牌：有〖观星〗且处于明置状态，此〖观星〗改为{准备阶段开始时，你可将牌堆顶的五张牌扣置入处理区（对你可见），你将其中任意数量的牌置于牌堆顶，将其余的牌置于牌堆底。}；没有〖观星〗或处于暗置状态，你拥有〖观星〗。",
+
+  ["ld__kanpo"] = "看破",
+  [":ld__kanpo"] = "你可将一张黑色手牌当【无懈可击】使用。",
+  ["ld__guanxing"] = "观星",
+  [":ld__guanxing"] = "准备阶段开始时，你可将牌堆顶的X张牌（X为角色数且至多为5}）扣置入处理区（对你可见），你将其中任意数量的牌置于牌堆顶，将其余的牌置于牌堆底。",
+
+  ["$tiaoxin_ld__jiangwei1"] = "小小娃娃，乳臭未干。",
+  ["$tiaoxin_ld__jiangwei2"] = "快滚回去，叫你主将出来！",
+  ["$ld__kanpo1"] = "丞相已教我识得此计。",
+  ["$ld__kanpo2"] = "哼！有破绽！",
+  ["$ld__guanxing1"] = "天文地理，丞相所教，维铭记于心。",
+  ["$ld__guanxing2"] = "哪怕只有一线生机，我也不会放弃！",
+  ["~ld__jiangwei"] = "臣等正欲死战，陛下何故先降？",
 }
-]]
+
 local jiangfei = General(extension, "ld__jiangwanfeiyi", "shu", 3)
 local shengxi = fk.CreateTriggerSkill{
   name = "ld__shengxi",

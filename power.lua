@@ -96,26 +96,12 @@ local jianglue = fk.CreateActiveSkill{
     local player = room:getPlayerById(effect.from)
     local index = H.startCommand(player, self.name)
     local kingdom = H.getKingdom(player)
-    for _, p in ipairs(room:getAlivePlayers()) do -- 双势力，野心家，君主……
+    for _, p in ipairs(room:getAlivePlayers()) do -- 双势力，君主……
       if p.kingdom == "unknown" and not p.dead then
         if H.getKingdomPlayersNum(room)[kingdom] >= #room.players // 2 then break end
-        local choices = {}
-        if Fk.generals[p:getMark("__heg_general")].kingdom == kingdom and not p:prohibitReveal() then
-          table.insert(choices, "revealMain")
-        end
-        if Fk.generals[p:getMark("__heg_deputy")].kingdom == kingdom and not p:prohibitReveal(true) then
-          table.insert(choices, "revealDeputy")
-        end
-        local all_choices = {"revealMain", "revealDeputy", "revealAll", "Cancel"}
-        if #choices == 2 then table.insert(choices, "revealAll") end
-        table.insert(choices, "Cancel")
-        local choice = room:askForChoice(p, choices, self.name, nil, false, all_choices)
-        if choice == "revealMain" then p:revealGeneral(false)
-        elseif choice == "revealDeputy" then p:revealGeneral(true)
-        elseif choice == "revealAll" then
-          p:revealGeneral(false)
-          p:revealGeneral(true)
-        end
+        local main = Fk.generals[p:getMark("__heg_general")].kingdom == kingdom
+        local deputy = Fk.generals[p:getMark("__heg_deputy")].kingdom == kingdom
+        H.askForRevealGenerals(room, p, self.name, main, deputy)
       end
     end
     local targets = table.map(table.filter(room.alive_players, function(p) return H.compareKingdomWith(p, player) and p ~= player end), Util.IdMapper)

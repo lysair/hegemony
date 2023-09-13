@@ -460,6 +460,7 @@ heg = fk.CreateGameMode{
     "tenyear_heg",
     "overseas_heg",
     "lunar_heg",
+    "lord_ex",
   },
 }
 
