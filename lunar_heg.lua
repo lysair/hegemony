@@ -466,4 +466,138 @@ Fk:loadTranslationTable{
   ["~fk_heg__zhouxuan"] = "人生如梦，假时亦真。",
 }
 
+local xianglang = General(extension, "fk_heg__xianglang", "shu", 3)
+local kanji = fk.CreateActiveSkill{
+  name = "fk_heg__kanji",
+  anim_type = "drawcard",
+  card_num = 0,
+  target_num = 0,
+  can_use = function(self, player)
+    return not player:isKongcheng() and player:usedSkillTimes(self.name, Player.HistoryPhase) < 1
+  end,
+  card_filter = function(self, to_select, selected)
+    return false
+  end,
+  on_use = function(self, room, effect)
+    local player = room:getPlayerById(effect.from)
+    local cards = player.player_cards[Player.Hand]
+    player:showCards(cards)
+    local suits = {}
+    for _, id in ipairs(cards) do
+      local suit = Fk:getCardById(id).suit
+      if suit ~= Card.NoSuit then
+        if table.contains(suits, suit) then
+          return
+        else
+          table.insert(suits, suit)
+        end
+      end
+    end
+    local suits1 = #suits
+    player:drawCards(2, self.name)
+    if suits1 == 4 then return end
+    suits = {}
+    for _, id in ipairs(player.player_cards[Player.Hand]) do
+      local suit = Fk:getCardById(id).suit
+      if suit ~= Card.NoSuit then
+        table.insertIfNeed(suits, suit)
+      end
+    end
+    if #suits == 4 then
+      player.room:addPlayerMark(player, "@fk_heg__kanji", 2)
+    end
+  end,
+}
+
+local kanji_refresh = fk.CreateTriggerSkill{
+  name = "#fk_heg__kanji_refresh",
+  mute = true,
+  events = {fk.TurnEnd},
+  can_trigger = function(self, event, target, player, data)
+    return player.room.current == player and player:getMark("@fk_heg__kanji") > 0
+  end,
+  on_cost = function(self, event, target, player, data)
+    return true
+  end,
+  on_use = function(self, event, target, player, data)
+    player.room:setPlayerMark(player, "@fk_heg__kanji", 0)
+  end,
+}
+
+local kanji_maxcards = fk.CreateMaxCardsSkill{
+  name = "#fk_heg__kanji_maxcards",
+  correct_func = function(self, player)
+    return player:getMark("@fk_heg__kanji")
+  end,
+}
+
+local qianzheng = fk.CreateTriggerSkill{
+  name = "fk_heg__qianzheng",
+  anim_type = "drawcard",
+  events = {fk.TargetConfirming},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) and data.firstTarget and data.from ~= player.id and
+      (data.card:isCommonTrick() or data.card.trueName == "slash") and #player:getCardIds{Player.Hand, Player.Equip} > 1 and
+      player:usedSkillTimes(self.name, Player.HistoryTurn) < 1
+  end,
+  on_cost = function(self, event, target, player, data)
+    local prompt = "#fk_heg__qianzheng1-card:::"..data.card:getTypeString()..":"..data.card:toLogString()
+    if data.card:isVirtual() and not data.card:getEffectiveId() then
+      prompt = "#fk_heg__qianzheng2-card"
+    end
+    local cards = player.room:askForCard(player, 2, 2, true, self.name, true, ".", prompt)
+    if #cards == 2 then
+      self.cost_data = cards
+      return true
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local cards = self.cost_data
+    if Fk:getCardById(cards[1]).type ~= data.card.type and Fk:getCardById(cards[2]).type ~= data.card.type then
+      data.extra_data = data.extra_data or {}
+      data.extra_data.qianzheng = player.id
+    end
+    room:recastCard(cards, player, self.name)
+  end,
+}
+local qianzheng_trigger = fk.CreateTriggerSkill{
+  name = "#fk_heg__qianzheng_trigger",
+  mute = true,
+  events = {fk.CardUseFinished},
+  can_trigger = function(self, event, target, player, data)
+    return data.extra_data and data.extra_data.qianzheng and data.extra_data.qianzheng == player.id and
+      player.room:getCardArea(data.card) == Card.Processing and not player.dead
+  end,
+  on_cost = function(self, event, target, player, data)
+    return player.room:askForSkillInvoke(player, "fk_heg__qianzheng", nil, "#fk_heg__qianzheng-invoke:::"..data.card:toLogString())
+  end,
+  on_use = function(self, event, target, player, data)
+    player.room:obtainCard(player.id, data.card, true, fk.ReasonJustMove)
+  end,
+}
+
+kanji:addRelatedSkill(kanji_refresh)
+kanji:addRelatedSkill(kanji_maxcards)
+qianzheng:addRelatedSkill(qianzheng_trigger)
+xianglang:addSkill(kanji)
+xianglang:addSkill(qianzheng)
+Fk:loadTranslationTable{
+  ["fk_heg__xianglang"] = "向朗",
+  ["fk_heg__kanji"] = "勘集",
+  [":fk_heg__kanji"] = "出牌阶段限一次，你可以展示所有手牌，若花色均不同，你摸两张牌，然后若因此使手牌包含四种花色，则你本回合手牌上限+2。",
+  ["fk_heg__qianzheng"] = "愆正",
+  [":fk_heg__qianzheng"] = "每回合限一次，当你成为其他角色使用普通锦囊牌或【杀】的目标时，你可以重铸两张牌，若这两张牌与使用牌类型均不同，"..
+  "此牌结算后进入弃牌堆时你可以获得之。",
+  ["#fk_heg__qianzheng1-card"] = "愆正：你可以重铸两张牌，若均不为%arg，结算后获得%arg2",
+  ["#fk_heg__qianzheng2-card"] = "愆正：你可以重铸两张牌",
+  ["#fk_heg__qianzheng-invoke"] = "愆正：你可以获得此%arg",
+  
+  ["$fk_heg__kanji1"] = "览文库全书，筑文心文胆。",
+  ["$fk_heg__kanji2"] = "世间学问，皆载韦编之上。",
+  ["$fk_heg__qianzheng1"] = "悔往昔之种种，恨彼时之切切。",
+  ["$fk_heg__qianzheng2"] = "罪臣怀咎难辞，有愧国恩。",
+  ["~fk_heg__xianglang"] = "识文重义而徇私，恨也……",
+}
+
 return extension
