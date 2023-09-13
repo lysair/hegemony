@@ -505,23 +505,30 @@ local heg_rule = fk.CreateTriggerSkill{
       end
     elseif event == fk.GeneralRevealed then
       if player.kingdom == "wild" then
-        if table.contains({"wei", "shu", "wu", "qun", "jin", "unknown"}, player.role) then
-          local all_choices = table.clone(wildKingdoms) -- 野心家武将钦点
-          local choices = table.clone(all_choices)
-          for _, p in ipairs(room.players) do
-            table.removeOne(choices, p.role)
-          end
-          local choice = room:askForChoice(player, choices, self.name, "#wild-choose", false, all_choices)
-          player.role = choice
-          player.role_shown = true
-          room:broadcastProperty(player, "role")
-          room:sendLog{
-            type = "#WildChooseKingdom",
-            from = player.id,
-            arg = choice,
-            arg2 = "wild",
-          }
+        local choice
+        local all_choices = table.clone(wildKingdoms)
+        local choices = table.clone(all_choices)
+        for _, p in ipairs(room.players) do
+          table.removeOne(choices, p.role)
         end
+        if player.general == "ld__zhonghui" and data == "ld__zhonghui" and player.role ~= "heg_han" then -- 野心家钦定
+          if table.contains(choices, "heg_han") then
+            choice = "heg_han"
+          else
+            choice = room:askForChoice(player, choices, self.name, "#wild-choose", false, all_choices)
+          end
+        elseif table.contains({"wei", "shu", "wu", "qun", "jin", "unknown"}, player.role) then
+          choice = room:askForChoice(player, choices, self.name, "#wild-choose", false, all_choices)
+        end
+        player.role = choice
+        player.role_shown = true
+        room:broadcastProperty(player, "role")
+        room:sendLog{
+          type = "#WildChooseKingdom",
+          from = player.id,
+          arg = choice,
+          arg2 = "wild",
+        }
       else
         player.role = player.kingdom
       end
@@ -536,6 +543,13 @@ local heg_rule = fk.CreateTriggerSkill{
         room:addPlayerMark(player, "@!vanguard", 1)
         player:addFakeSkill("vanguard_skill&")
         -- room:handleAddLoseSkills(player, "vanguard_skill&", nil, false, true)
+      end
+      if Fk.generals[data].kingdom == "wild" and player:getMark("hasShownMainGeneral") == 0 then -- 摆
+        room:setPlayerMark(player, "hasShownMainGeneral", 1)
+        room:addPlayerMark(player, "@!wild", 1)
+        player:addFakeSkill("wild_draw&")
+        player:addFakeSkill("wild_peach&")
+        player:prelightSkill("wild_draw&", true)
       end
       if player.general == "anjiang" or player.deputyGeneral == "anjiang" then return false end
       if player:getMark("HalfMaxHpLeft") > 0 then

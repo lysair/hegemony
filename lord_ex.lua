@@ -125,21 +125,85 @@ Fk:loadTranslationTable{
 }
 
 local zhonghui = General(extension, "ld__zhonghui", "wild", 4)
-zhonghui.total_hidden = true
 -- zhonghui:addCompanions("ld__jiangwei")
 local quanji = fk.CreateTriggerSkill{
   name = "ld__quanji",
+  anim_type = "drawcard",
+  events = {fk.Damaged, fk.Damage},
+  can_trigger = function(self, event, target, player, data)
+    if target ~= player or not player:hasSkill(self.name) then return false end
+    if event == fk.Damaged then return player:getMark("_ld__quanji_damaged-turn") == 0
+    else return player:getMark("_ld__quanji_damage-turn") == 0 end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    if event == fk.Damaged then room:setPlayerMark(player, "_ld__quanji_damaged-turn", 1)
+    else room:setPlayerMark(player, "_ld__quanji_damage-turn", 1) end
+    player:drawCards(1, self.name)
+    if not player:isNude() then
+      local card = room:askForCard(player, 1, 1, true, self.name, false, nil, "#ld__quanji-push")
+      player:addToPile("ld__zhonghui_power", card, true, self.name)
+    end
+  end,
 }
+local quanji_maxcards = fk.CreateMaxCardsSkill{
+  name = "#ld__quanji_maxcards",
+  correct_func = function(self, player)
+    return player:hasSkill(self.name) and #player:getPile("ld__zhonghui_power") or 0
+  end,
+}
+quanji:addRelatedSkill(quanji_maxcards)
+-- quanji:addRelatedSkill(H.CreateClearSkill("ld__quanji", "ld__zhonghui_power"))
+H.CreateClearSkill(quanji, "ld__zhonghui_power")
 local paiyi = fk.CreateActiveSkill{
   name = "ld__paiyi",
+  anim_type = "control",
+  prompt = function(self)
+    return "#ld__paiyi-active:::" .. #Self:getPile("ld__zhonghui_power") - 1
+  end,
+  card_num = 1,
+  target_num = 1,
+  expand_pile = "ld__zhonghui_power",
+  can_use = function(self, player)
+    return #player:getPile("ld__zhonghui_power") > 0 and player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
+  end,
+  target_filter = function(self, to_select, selected)
+    return #selected == 0
+  end,
+  card_filter = function(self, to_select, selected)
+    return #selected == 0 and Self:getPileNameOfId(to_select) == "ld__zhonghui_power"
+  end,
+  on_use = function(self, room, effect)
+    local player = room:getPlayerById(effect.from)
+    local target = room:getPlayerById(effect.tos[1])
+    room:moveCardTo(effect.cards, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, self.name, "ld__zhonghui_power", true, player.id)
+    if not target.dead then
+      room:drawCards(target, math.min(#player:getPile("ld__zhonghui_power"), 7), self.name)
+    end
+    if not player.dead and not target.dead and target:getHandcardNum() > player:getHandcardNum() then
+      room:damage{
+        from = player,
+        to = target,
+        damage = 1,
+        skillName = self.name,
+      }
+    end
+  end,
 }
+
 zhonghui:addSkill(quanji)
 zhonghui:addSkill(paiyi)
 
 Fk:loadTranslationTable{
   ["ld__zhonghui"] = "钟会",
   ["ld__quanji"] = "权计",
+  [":ld__quanji"] = "每回合各限一次，当你受到伤害后或当你造成伤害后，你可摸一张牌，然后将一张牌置于武将牌上（称为“权”）；你的手牌上限+X（X为“权”数）。",
   ["ld__paiyi"] = "排异",
+  [":ld__paiyi"] = "出牌阶段限一次，你将一张“权”置入弃牌堆并选择一名角色，其摸X张牌，若其手牌数大于你，你对其造成1点伤害（X为“权”的数量且至多为7）。",
+
+  ["#ld__quanji-push"] = "权计：将一张牌置于武将牌上（称为“权”）",
+  ["ld__zhonghui_power"] = "权",
+  ["#ld__paiyi-active"] = "发动排异，选择一张“权”牌置入弃牌堆并选择一名角色，令其摸 %arg 张牌",
 
   ["$ld__quanji1"] = "不露圭角，择时而发！",
   ["$ld__quanji2"] = "晦养厚积，乘势而起！",

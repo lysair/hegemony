@@ -50,6 +50,7 @@ local tuntian_distance = fk.CreateDistanceSkill{
   end,
 }
 tuntian:addRelatedSkill(tuntian_distance)
+H.CreateClearSkill(tuntian, "ld__dengai_field")
 
 local jixi = fk.CreateViewAsSkill{
   name = "ld__jixi",
@@ -376,6 +377,7 @@ local qianhuan = fk.CreateTriggerSkill{
   end,
 }
 yuji:addSkill(qianhuan)
+H.CreateClearSkill(qianhuan, "yuji_sorcery")
 Fk:loadTranslationTable{
   ["ld__yuji"] = "于吉",
   ["qianhuan"] = "千幻",
