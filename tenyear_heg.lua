@@ -258,7 +258,7 @@ local qiao = fk.CreateTriggerSkill{
   anim_type = "control",
   events = {fk.TargetConfirmed},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and data.firstTarget and
+    return target == player and player:hasSkill(self.name) and
       not player.room:getPlayerById(data.from):isNude() and player:usedSkillTimes(self.name, Player.HistoryTurn) < 2
       and not H.compareKingdomWith(data.from, player)
   end,
