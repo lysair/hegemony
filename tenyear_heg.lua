@@ -609,6 +609,11 @@ local zhiwei = fk.CreateTriggerSkill{
     local room = player.room
     room:setPlayerMark(player, self.name, 0)
     room:setPlayerMark(player, "@zhiwei", 0)
+    local isDeputy = H.inGeneralSkills(player, self.name)
+      if isDeputy then
+        isDeputy = isDeputy == "d"
+        player:hideGeneral(isDeputy)
+      end
   end,
 }
 zhente:addRelatedSkill(zhente_prohibit)
