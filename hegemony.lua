@@ -488,7 +488,7 @@ local heg_rule = fk.CreateTriggerSkill{
       end
     elseif event == fk.GeneralRevealed then
       if player.kingdom == "wild" then
-        local choice
+        local choice = "hidden"
         local all_choices = table.clone(wildKingdoms)
         local choices = table.clone(all_choices)
         for _, p in ipairs(room.players) do
