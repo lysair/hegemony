@@ -475,9 +475,7 @@ local kanji = fk.CreateActiveSkill{
   can_use = function(self, player)
     return not player:isKongcheng() and player:usedSkillTimes(self.name, Player.HistoryPhase) < 1
   end,
-  card_filter = function(self, to_select, selected)
-    return false
-  end,
+  card_filter = Util.FalseFunc,
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
     local cards = player.player_cards[Player.Hand]
@@ -504,30 +502,8 @@ local kanji = fk.CreateActiveSkill{
       end
     end
     if #suits == 4 then
-      player.room:addPlayerMark(player, "@fk_heg__kanji", 2)
+      player.room:addPlayerMark(player, MarkEnum.AddMaxCardsInTurn, 2)
     end
-  end,
-}
-
-local kanji_refresh = fk.CreateTriggerSkill{
-  name = "#fk_heg__kanji_refresh",
-  mute = true,
-  events = {fk.TurnEnd},
-  can_trigger = function(self, event, target, player, data)
-    return player.room.current == player and player:getMark("@fk_heg__kanji") > 0
-  end,
-  on_cost = function(self, event, target, player, data)
-    return true
-  end,
-  on_use = function(self, event, target, player, data)
-    player.room:setPlayerMark(player, "@fk_heg__kanji", 0)
-  end,
-}
-
-local kanji_maxcards = fk.CreateMaxCardsSkill{
-  name = "#fk_heg__kanji_maxcards",
-  correct_func = function(self, player)
-    return player:getMark("@fk_heg__kanji")
   end,
 }
 
@@ -577,8 +553,6 @@ local qianzheng_trigger = fk.CreateTriggerSkill{
   end,
 }
 
-kanji:addRelatedSkill(kanji_refresh)
-kanji:addRelatedSkill(kanji_maxcards)
 qianzheng:addRelatedSkill(qianzheng_trigger)
 xianglang:addSkill(kanji)
 xianglang:addSkill(qianzheng)
