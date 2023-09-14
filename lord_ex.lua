@@ -125,6 +125,8 @@ Fk:loadTranslationTable{
 }
 --[[
 local zhonghui = General(extension, "ld__zhonghui", "wild", 4)
+zhonghui.hidden = true
+zhonghui.total_hidden = true
 zhonghui:addCompanions("ld__jiangwei")
 local quanji = fk.CreateTriggerSkill{
   name = "ld__quanji",
