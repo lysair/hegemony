@@ -251,6 +251,63 @@ Fk:loadTranslationTable{
   ["~ty_heg__yanghu"] = "臣死之后，杜元凯可继之……",
 }
 
+
+local zongyu = General(extension, "ty_heg__zongyu", "shu", 3)
+local qiao = fk.CreateTriggerSkill{
+  name = "ty_heg__qiao",
+  anim_type = "control",
+  events = {fk.TargetConfirmed},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) and
+      not player.room:getPlayerById(data.from):isNude() and player:usedSkillTimes(self.name, Player.HistoryTurn) < 2
+      and not H.compareKingdomWith(data.from, player)
+  end,
+  on_cost = function(self, event, target, player, data)
+    return player.room:askForSkillInvoke(player, self.name, nil, "#ty_heg__qiao-invoke::"..data.from)
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local from = room:getPlayerById(data.from)
+    local id = room:askForCardChosen(player, from, "he", self.name)
+    room:throwCard({id}, self.name, from, player)
+    if not player:isNude() then
+      room:askForDiscard(player, 1, 1, true, self.name, false)
+    end
+  end,
+}
+local chengshang = fk.CreateTriggerSkill{
+  name = "ty_heg__chengshang",
+  anim_type = "drawcard",
+  events = {fk.CardUseFinished},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) and player.phase == Player.Play and data.tos and
+      table.find(TargetGroup:getRealTargets(data.tos), function(id) return not H.compareKingdomWith(Fk:currentRoom():getPlayerById(to_select), Self) end) 
+      and not data.damageDealt and data.card.suit ~= Card.NoSuit and player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
+  end,
+  on_cost = function(self, event, target, player, data)
+    return player.room:askForSkillInvoke(player, self.name, nil,
+      "#ty_heg__chengshang-invoke:::"..data.card:getSuitString()..":"..tostring(data.card.number))
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local cards = room:getCardsFromPileByRule(".|"..tostring(data.card.number).."|"..data.card:getSuitString())
+    if #cards > 0 then
+      room:moveCards({
+        ids = cards,
+        to = player.id,
+        toArea = Card.PlayerHand,
+        moveReason = fk.ReasonJustMove,
+        proposer = player.id,
+        skillName = self.name,
+      })
+    else
+      player:setSkillUseHistory(self.name, 0, Player.HistoryPhase)
+    end
+  end,
+}
+zongyu:addSkill(qiao)
+zongyu:addSkill(chengshang)
+
 Fk:loadTranslationTable{
   ["ty_heg__zongyu"] = "宗预",
   ["ty_heg__qiao"] = "气傲",
@@ -258,6 +315,15 @@ Fk:loadTranslationTable{
   ["ty_heg__chengshang"] = "承赏",
   [":ty_heg__chengshang"] = "出牌阶段限一次，当你使用指定其他势力为目标的牌结算后，若此牌没有造成伤害，你可以获得牌堆中所有与此牌花色点数相同的牌。"..
   "若你没有因此获得牌，此技能视为未发动过。",
+
+  ["#ty_heg__qiao-invoke"] = "气傲：你可以弃置 %dest 一张牌，然后你弃置一张牌",
+  ["#ty_heg__chengshang-invoke"] = "承赏：你可以获得牌堆中所有的%arg%arg2牌",
+
+  ["$ty_heg__qiao1"] = "吾六十何为不受兵邪？",
+  ["$ty_heg__qiao2"] = "芝性骄傲，吾独不为屈。",
+  ["$ty_heg__chengshang1"] = "嘉其抗直，甚爱待之。",
+  ["$ty_heg__chengshang2"] = "为国鞠躬，必受封赏。",
+  ["~ty_heg__zongyu"] = "吾年逾七十，唯少一死耳……",
 }
 
 local dengzhi = General(extension, "ty_heg__dengzhi", "shu", 3)
@@ -392,15 +458,191 @@ Fk:loadTranslationTable{
   ["~ty_heg__dengzhi"] = "伯约啊，我帮不了你了……",
 }
 
+local luyusheng = General(extension, "ty_heg__luyusheng", "wu", 3, 3, General.Female)
+local zhente = fk.CreateTriggerSkill{
+  name = "ty_heg__zhente",
+  anim_type = "defensive",
+  events = {fk.TargetConfirmed},
+  can_trigger = function(self, event, target, player, data)
+    if target == player and player:hasSkill(self.name) and player:usedSkillTimes(self.name) == 0 and data.from ~= player.id then
+      return data.card:isCommonTrick() or data.card.type == Card.TypeBasic and data.card.color == Card.Black
+    end
+  end,
+  on_cost = function(self, event, target, player, data)
+    if player.room:askForSkillInvoke(player, self.name, nil,
+    "#ty_heg__zhente-invoke:".. data.from .. "::" .. data.card:toLogString() .. ":" .. data.card:getColorString()) then
+      player.room:doIndicate(player.id, {data.from})
+      return true
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local to = room:getPlayerById(data.from)
+    local color = data.card:getColorString()
+    local choice = room:askForChoice(to, {
+      "ty_heg__zhente_negate::" .. tostring(player.id) .. ":" .. data.card.name,
+      "ty_heg__zhente_colorlimit:::" .. color
+    }, self.name)
+    if choice:startsWith("ty_heg__zhente_negate") then
+      table.insertIfNeed(data.nullifiedTargets, player.id)
+    else
+      local colorsRecorded = type(to:getMark("@ty_heg__zhente-turn")) == "table" and to:getMark("@ty_heg__zhente-turn") or {}
+      table.insertIfNeed(colorsRecorded, color)
+      room:setPlayerMark(to, "@ty_heg__zhente-turn", colorsRecorded)
+    end
+  end,
+}
+local zhente_prohibit = fk.CreateProhibitSkill{
+  name = "#ty_heg__zhente_prohibit",
+  prohibit_use = function(self, player, card)
+    local mark = player:getMark("@ty_heg__zhente-turn")
+    return type(mark) == "table" and table.contains(mark, card:getColorString())
+  end,
+}
+
+local zhiwei = fk.CreateTriggerSkill{
+  name = "ty_heg__zhiwei",
+  events = {fk.GeneralRevealed, fk.AfterCardsMove, fk.Damage, fk.Damaged},
+  mute = true,
+  can_trigger = function(self, event, target, player, data)
+    if player:hasSkill(self.name) then
+      if event == fk.GeneralRevealed then
+        return true
+      elseif event == fk.AfterCardsMove then
+        if player.phase ~= Player.Discard then return false end
+        local zhiwei_id = player:getMark(self.name)
+        if zhiwei_id == 0 then return false end
+        local room = player.room
+        local to = room:getPlayerById(zhiwei_id)
+        if to == nil or to.dead then return false end
+        for _, move in ipairs(data) do
+          if move.from == player.id and move.moveReason == fk.ReasonDiscard then
+            for _, info in ipairs(move.moveInfo) do
+              if (info.fromArea == Card.PlayerHand or info.fromArea == Card.PlayerEquip) and
+              room:getCardArea(info.cardId) == Card.DiscardPile then
+                return true
+              end
+            end
+          end
+        end
+      elseif event == fk.Damage then
+        return target ~= nil and not target.dead and player:getMark(self.name) == target.id
+      elseif event == fk.Damaged then
+        return target ~= nil and not target.dead and player:getMark(self.name) == target.id and not player:isKongcheng()
+      end
+    end
+  end,
+  on_cost = function(self, event, target, player, data)
+    if event == fk.GeneralRevealed then
+      local room = player.room
+      local targets = table.map(room:getOtherPlayers(player, false), function(p) return p.id end)
+      local to = room:askForChoosePlayers(player, targets, 1, 1, "#ty_heg__zhiwei-choose", self.name, true, true)
+      if #to > 0 then
+        self.cost_data = to[1]
+        return true
+      end
+      return false
+    end
+    return true
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    if event == fk.GeneralReveale then
+      room:notifySkillInvoked(player, self.name, "special")
+      player:broadcastSkillInvoke(self.name)
+      local targets = table.map(room:getOtherPlayers(player, false), function(p) return p.id end)
+      if #targets == 0 then return false end
+      local to = room:askForChoosePlayers(player, targets, 1, 1, "#ty_heg__zhiwei-choose", self.name, false, true)
+      if #to > 0 then
+        room:setPlayerMark(player, self.name, to[1])
+      end
+    elseif event == fk.AfterCardsMove then
+      local zhiwei_id = player:getMark(self.name)
+      if zhiwei_id == 0 then return false end
+      local to = room:getPlayerById(zhiwei_id)
+      if to == nil or to.dead then return false end
+      local cards = {}
+      for _, move in ipairs(data) do
+        if move.from == player.id and move.moveReason == fk.ReasonDiscard then
+          for _, info in ipairs(move.moveInfo) do
+            if (info.fromArea == Card.PlayerHand or info.fromArea == Card.PlayerEquip) and
+            room:getCardArea(info.cardId) == Card.DiscardPile then
+              table.insertIfNeed(cards, info.cardId)
+            end
+          end
+        end
+      end
+      if #cards > 0 then
+        room:notifySkillInvoked(player, self.name, "support")
+        player:broadcastSkillInvoke(self.name)
+        room:setPlayerMark(player, "@zhiwei", to.general)
+        room:moveCards({
+        ids = cards,
+        to = zhiwei_id,
+        toArea = Card.PlayerHand,
+        moveReason = fk.ReasonPrey,
+        proposer = player.id,
+        skillName = self.name,
+      })
+      end
+    elseif event == fk.Damage then
+      room:notifySkillInvoked(player, self.name, "drawcard")
+      player:broadcastSkillInvoke(self.name)
+      room:setPlayerMark(player, "@zhiwei", target.general)
+      room:drawCards(player, 1, self.name)
+    elseif event == fk.Damaged then
+      local cards = player:getCardIds(Player.Hand)
+      if #cards > 0 then
+        room:notifySkillInvoked(player, self.name, "negative")
+        player:broadcastSkillInvoke(self.name)
+        room:setPlayerMark(player, "@zhiwei", target.general)
+        room:throwCard(table.random(cards, 1), self.name, player, player)
+      end
+    end
+  end,
+
+  refresh_events = {fk.BuryVictim},
+  can_refresh = function(self, event, target, player, data)
+    return player:getMark(self.name) == target.id
+  end,
+  on_refresh = function(self, event, target, player, data)
+    local room = player.room
+    room:setPlayerMark(player, self.name, 0)
+    room:setPlayerMark(player, "@zhiwei", 0)
+    local isDeputy = H.inGeneralSkills(player, self.name)
+      if isDeputy then
+        isDeputy = isDeputy == "d"
+        player:hideGeneral(isDeputy)
+      end
+  end,
+}
+zhente:addRelatedSkill(zhente_prohibit)
+luyusheng:addSkill(zhente)
+luyusheng:addSkill(zhiwei)
+
 Fk:loadTranslationTable{
   ["ty_heg__luyusheng"] = "陆郁生",
   ["ty_heg__zhente"] = "贞特",
-  [":ty_heg__zhente"] = "每名角色的回合限一次，当你成为其他角色使用基本牌或普通锦囊牌的目标后，你可令使用者选择一项：1.本回合不能再使用此颜色的牌；"..
+  [":ty_heg__zhente"] = "每回合限一次，当你成为其他角色使用黑色基本牌或黑色普通锦囊牌的目标后，你可令使用者选择一项：1.本回合不能使用黑色牌；"..
   "2.此牌对你无效",
   ["ty_heg__zhiwei"] = "至微",
   [":ty_heg__zhiwei"] = "当你明置此武将牌时，你可以选择一名其他角色：该角色造成伤害后，你摸一张牌；该角色受到伤害后，你随机弃置一张手牌；"..
   "你弃牌阶段弃置的牌均被该角色获得；该角色死亡时，你暗置此武将牌。",
+
+  ["#ty_heg__zhente-invoke"] = "是否使用贞特，令%src选择令【%arg】对你无效或不能再使用%arg2牌",
+  ["ty_heg__zhente_negate"] = "令【%arg】对%dest无效",
+  ["ty_heg__zhente_colorlimit"] = "本回合不能再使用%arg牌",
+  ["@ty_heg__zhente-turn"] = "贞特",
+  ["#ty_heg__zhiwei-choose"] = "至微：选择一名其他角色",
+  ["@ty_heg__zhiwei"] = "至微",
+
+  ["$ty_heg__zhente1"] = "抗声昭节，义形于色。",
+  ["$ty_heg__zhente2"] = "少履贞特之行，三从四德。",
+  ["$ty_heg__zhiwei1"] = "体信贯于神明，送终以礼。",
+  ["$ty_heg__zhiwei2"] = "昭德以行，生不能侍奉二主。",
+  ["~ty_heg__luyusheng"] = "父亲，郁生甚是想念……",
 }
+
 
 local fengxiw = General(extension, "ty_heg__fengxiw", "wu", 3)
 local yusui = fk.CreateTriggerSkill{
