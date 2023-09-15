@@ -500,7 +500,7 @@ local heg_rule = fk.CreateTriggerSkill{
           else
             choice = room:askForChoice(player, choices, self.name, "#wild-choose", false, all_choices)
           end
-        elseif table.contains({"wei", "shu", "wu", "qun", "jin", "unknown"}, player.role) then
+        elseif table.contains({"wei", "shu", "wu", "qun", "jin", "unknown", "hidden"}, player.role) then
           choice = room:askForChoice(player, choices, self.name, "#wild-choose", false, all_choices)
         end
         player.role = choice
