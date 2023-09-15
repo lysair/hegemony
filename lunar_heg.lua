@@ -554,6 +554,7 @@ local qianzheng_trigger = fk.CreateTriggerSkill{
 }
 
 qianzheng:addRelatedSkill(qianzheng_trigger)
+xianglang:addCompanions("ld__masu")
 xianglang:addSkill(kanji)
 xianglang:addSkill(qianzheng)
 Fk:loadTranslationTable{
