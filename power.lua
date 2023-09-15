@@ -752,7 +752,7 @@ lukang:addSkill(keshou)
 zhuwei:addRelatedSkill(zhuwei_targetmod)
 zhuwei:addRelatedSkill(zhuwei_maxcards)
 lukang:addSkill(zhuwei)
-
+lukang:addCompanions("hs__luxun")
 Fk:loadTranslationTable{
   ["ld__lukang"] = "陆抗",
   ["ld__keshou"] = "恪守",
