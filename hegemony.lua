@@ -488,7 +488,7 @@ local heg_rule = fk.CreateTriggerSkill{
       end
     elseif event == fk.GeneralRevealed then
       if player.kingdom == "wild" then
-        local choice = "hidden"
+        local choice
         local all_choices = table.clone(wildKingdoms)
         local choices = table.clone(all_choices)
         for _, p in ipairs(room.players) do
@@ -503,15 +503,17 @@ local heg_rule = fk.CreateTriggerSkill{
         elseif table.contains({"wei", "shu", "wu", "qun", "jin", "unknown", "hidden"}, player.role) then
           choice = room:askForChoice(player, choices, self.name, "#wild-choose", false, all_choices)
         end
-        player.role = choice
-        player.role_shown = true
-        room:broadcastProperty(player, "role")
-        room:sendLog{
-          type = "#WildChooseKingdom",
-          from = player.id,
-          arg = choice,
-          arg2 = "wild",
-        }
+        if choice then
+          player.role = choice
+          player.role_shown = true
+          room:broadcastProperty(player, "role")
+          room:sendLog{
+            type = "#WildChooseKingdom",
+            from = player.id,
+            arg = choice,
+            arg2 = "wild",
+          }
+        end
       else
         player.role = player.kingdom
       end

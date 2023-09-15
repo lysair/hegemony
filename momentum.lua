@@ -169,7 +169,7 @@ local yongjue = fk.CreateTriggerSkill{
     if player:hasSkill(self.name) and H.compareKingdomWith(target, player) and not target.dead and data.card.trueName == "slash" then
       local events = target.room.logic:getEventsOfScope(GameEvent.UseCard, 1, function(e) 
         local use = e.data[1]
-        return use.from == target.id and use.card.trueName == "slash" 
+        return use.from == target.id
       end, Player.HistoryTurn)
       if #events == 1 and events[1].id == target.room.logic:getCurrentEvent().id then
         local cards = Card:getIdList(data.card)

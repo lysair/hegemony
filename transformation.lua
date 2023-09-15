@@ -209,7 +209,7 @@ local diancai = fk.CreateTriggerSkill{
           end
         end
       end
-    end, Player.HistoryTurn)
+    end, Player.HistoryPhase)
     return num >= player.hp
   end,
   on_use = function(self, event, target, player, data)
