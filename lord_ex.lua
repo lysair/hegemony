@@ -123,10 +123,8 @@ Fk:loadTranslationTable{
   ["$zaoyun2"] = "兵精粮足，胜局已定！",
   ["~ld__dongzhao"] = "一生无愧，又何惧身后之议……",
 }
---[[
+
 local zhonghui = General(extension, "ld__zhonghui", "wild", 4)
-zhonghui.hidden = true
-zhonghui.total_hidden = true
 zhonghui:addCompanions("ld__jiangwei")
 local quanji = fk.CreateTriggerSkill{
   name = "ld__quanji",
@@ -218,5 +216,5 @@ Fk:loadTranslationTable{
   ["$ld__paiyi2"] = "非吾友，则必敌也！",
   ["~ld__zhonghui"] = "吾机关算尽，却还是棋错一着……",
 }
---]]
+
 return extension
