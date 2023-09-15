@@ -646,21 +646,130 @@ Fk:loadTranslationTable{
   ["~ld__fazheng"] = "汉室复兴，我，是看不到了……",
 }
 
---[[
-Fk:loadTranslationTable{
-  ["ld__lukang"] = "陆抗", -- 手杀版
-  ["keshou"] = "恪守",
-  [":keshou"] = "当你受到伤害时，你可发动此技能，你可弃置两张颜色相同的手牌，令此伤害值-1。若没有与你势力相同的其他角色，你判定，若结果为红色，你摸一张牌。",
-  ["zhuwei"] = "筑围",
-  [":zhuwei"] = "当你进行的判定结果确定后，你可获得此牌，然后你可令当前回合角色手牌上限和使用【杀】的次数上限于此回合内+1。",
-
-  ["$keshou1"] = "城固兵足，无所忧患。",
-  ["$keshou2"] = "攻城易之，守城难矣。",
-  ["$zhuwei1"] = "不筑，必将有盗。",
-  ["$zhuwei2"] = "缮完城围，葺其墙屋。",
-  ["~ld__lukang"] = "吾即亡矣，吴又能存几时……",
+local lukang = General(extension, "ld__lukang", "wu", 3, 3, General.Male)
+local keshou_filter = fk.CreateActiveSkill{
+  name = "#ld__keshou_filter",
+  min_card_num = 2,
+  max_card_num = 2,
+  card_filter = function(self, to_select, selected)
+    return table.every(selected, function(id)
+      return Fk:getCardById(to_select).color == Fk:getCardById(id).color
+    end)
+  end,
+  target_filter = function (self, to_select, selected)
+    return false
+  end,
 }
-]]
+Fk:addSkill(keshou_filter)
+local keshou = fk.CreateTriggerSkill{
+  name = "ld__keshou",
+  anim_type = "defensive",
+  events = {fk.DamageInflicted},
+  
+  can_trigger = function (self, event, target, player, data)
+    return player:hasSkill(self.name) and player == target
+  end,
+  on_cost = function(self, event, target, player, data)
+    local room = player.room
+    local result, dat = room:askForUseActiveSkill(player, "#ld__keshou_filter", "@ld__keshou", true)
+    if result then
+      self.cost_data = dat.cards
+      return true
+    end
+    
+  end,
+  on_use = function (self, event, target, player, data)
+    local room = player.room 
+    room:throwCard(self.cost_data, self.name, player, player)
+    room:notifySkillInvoked(player, self.name, "defensive")
+    data.damage = data.damage - 1
+    if player and #table.map(table.filter(room.alive_players, function(p)
+      return H.compareKingdomWith(p, player, true) end), function(p) return p.id end) == 1 then
+        local judge = {
+          who = player,
+          reason = self.name,
+          pattern = ".|.|heart,diamond|.|.|.",
+        }
+        room:judge(judge)
+        if judge.card.suit == Card.Heart or judge.card.suit == Card.Diamond then
+           player:drawCards(1, self.name)
+        end
+      end
+  end,
+}
+
+local zhuwei = fk.CreateTriggerSkill{
+  name = "ld__zhuwei",
+  anim_type = "drawcard",
+  events = {fk.FinishJudge},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) 
+     and player.room:getCardArea(data.card) == Card.Processing
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    room:obtainCard(player.id, data.card, true, fk.ReasonJustMove)
+    local current = room.current
+    local choices = {"ld__zhuwei_ask::" .. current.id, "Cancel"}
+    if room:askForChoice(player, choices, self.name) ~= "Cancel" then
+      if current:getMark("@ld__zhuwei_buff") == 0 then
+        room:setPlayerMark(current, "@ld__zhuwei_buff", 1)
+      else
+        room:setPlayerMark(current, "@ld__zhuwei_buff", current:getMark("@ld__zhuwei_buff") + 1)
+      end
+    end
+  end,
+
+  refresh_events ={fk.TurnEnd},
+  can_refresh = function(self, event, target, player, data)
+    local current = player.room.current
+    return target == current and current:getMark("@ld__zhuwei_buff") > 0
+  end,
+  on_refresh = function(self, event, target, player, data)
+    local current = player.room.current
+    player.room:setPlayerMark(current, "@ld__zhuwei_buff", 0)
+  end,
+}
+
+local zhuwei_maxcards = fk.CreateMaxCardsSkill{
+  name = "#ld__zhuwei_maxcards",
+  correct_func = function(self, player)
+    return player:getMark("@ld__zhuwei_buff")
+  end,
+}
+
+local zhuwei_targetmod = fk.CreateTargetModSkill{
+  name = "#ld__zhuwei_targetmod",
+  residue_func = function(self, player, skill, scope)
+    if skill.trueName == "slash_skill" and player:getMark("@ld__zhuwei_buff") > 0 and scope == Player.HistoryPhase then
+      return player:getMark("@ld__zhuwei_buff")
+    end
+  end,
+}
+
+
+lukang:addSkill(keshou)
+zhuwei:addRelatedSkill(zhuwei_targetmod)
+zhuwei:addRelatedSkill(zhuwei_maxcards)
+lukang:addSkill(zhuwei)
+
+Fk:loadTranslationTable{
+  ["ld__lukang"] = "陆抗",
+  ["ld__keshou"] = "恪守",
+  [":ld__keshou"] = "当你受到伤害时，你可弃置两张颜色相同的牌，令此伤害值-1，然后若没有与你势力相同的其他角色，你判定，若结果为红色，你摸一张牌。",
+  ["@ld__keshou"] = "恪守：是否弃置两张牌，令你受到的伤害-1",
+  ["ld__zhuwei"] = "筑围",
+  [":ld__zhuwei"] = "当你进行的判定结果确定后，你可获得此牌，然后你可令当前回合角色手牌上限和使用【杀】的次数上限于此回合内+1。",
+  ["ld__zhuwei_ask"] = "令当前回合角色手牌上限和使用【杀】的次数上限于此回合内+1",
+  ["@ld__zhuwei_buff"] = "筑围",
+
+  ["$ld__keshou1"] = "仁以待民，自处不败之势。",
+  ["$ld__keshou2"] = "宽济百姓，则得战前养备之机。",
+  ["$ld__zhuwei1"] = "背水一战，只为破敌。",
+  ["$ld__zhuwei2"] = "全线并进，连战克晋。",
+  ["~ld__ld__lukang"] = "抗仅以君子之交待叔子，未有半分背国之念啊。",
+}
+
 local wuguotai = General(extension, "ld__wuguotai", "wu", 3, 3, General.Female)
 local buyi = fk.CreateTriggerSkill{
   name = "ld__buyi",
