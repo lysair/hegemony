@@ -260,7 +260,7 @@ local qiao = fk.CreateTriggerSkill{
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(self.name) and
       not player.room:getPlayerById(data.from):isNude() and player:usedSkillTimes(self.name, Player.HistoryTurn) < 2
-      and not H.compareKingdomWith(data.from, player)
+      and not H.compareKingdomWith(player.room:getPlayerById(data.from), player)
   end,
   on_cost = function(self, event, target, player, data)
     return player.room:askForSkillInvoke(player, self.name, nil, "#ty_heg__qiao-invoke::"..data.from)
