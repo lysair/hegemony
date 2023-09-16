@@ -665,9 +665,8 @@ local keshou = fk.CreateTriggerSkill{
   name = "ld__keshou",
   anim_type = "defensive",
   events = {fk.DamageInflicted},
-  
   can_trigger = function (self, event, target, player, data)
-    return player:hasSkill(self.name) and player == target
+    return player:hasSkill(self.name) and player == target and #target:getCardIds("he") > 1
   end,
   on_cost = function(self, event, target, player, data)
     local room = player.room
@@ -681,17 +680,15 @@ local keshou = fk.CreateTriggerSkill{
   on_use = function (self, event, target, player, data)
     local room = player.room 
     room:throwCard(self.cost_data, self.name, player, player)
-    room:notifySkillInvoked(player, self.name, "defensive")
     data.damage = data.damage - 1
-    if player and #table.map(table.filter(room.alive_players, function(p)
-      return H.compareKingdomWith(p, player, true) end), function(p) return p.id end) == 1 then
+    if player and #table.filter(room.alive_players, function(p) return H.compareKingdomWith(p, player, true) end) == 1 then
         local judge = {
           who = player,
           reason = self.name,
           pattern = ".|.|heart,diamond|.|.|.",
         }
         room:judge(judge)
-        if judge.card.suit == Card.Heart or judge.card.suit == Card.Diamond then
+        if judge.card.suit == Card.Red then
            player:drawCards(1, self.name)
         end
       end
@@ -712,37 +709,27 @@ local zhuwei = fk.CreateTriggerSkill{
     local current = room.current
     local choices = {"ld__zhuwei_ask::" .. current.id, "Cancel"}
     if room:askForChoice(player, choices, self.name) ~= "Cancel" then
-      if current:getMark("@ld__zhuwei_buff") == 0 then
-        room:setPlayerMark(current, "@ld__zhuwei_buff", 1)
+      if current:getMark("@ld__zhuwei_buff-turn") == 0 then
+        room:addPlayerMark(current, "@ld__zhuwei_buff-turn", 1)
       else
-        room:setPlayerMark(current, "@ld__zhuwei_buff", current:getMark("@ld__zhuwei_buff") + 1)
+        room:setPlayerMark(current, "@ld__zhuwei_buff-turn", current:getMark("@ld__zhuwei_buff-turn") + 1)
       end
     end
-  end,
-
-  refresh_events ={fk.TurnEnd},
-  can_refresh = function(self, event, target, player, data)
-    local current = player.room.current
-    return target == current and current:getMark("@ld__zhuwei_buff") > 0
-  end,
-  on_refresh = function(self, event, target, player, data)
-    local current = player.room.current
-    player.room:setPlayerMark(current, "@ld__zhuwei_buff", 0)
   end,
 }
 
 local zhuwei_maxcards = fk.CreateMaxCardsSkill{
   name = "#ld__zhuwei_maxcards",
   correct_func = function(self, player)
-    return player:getMark("@ld__zhuwei_buff")
+    return player:getMark("@ld__zhuwei_buff-turn")
   end,
 }
 
 local zhuwei_targetmod = fk.CreateTargetModSkill{
   name = "#ld__zhuwei_targetmod",
   residue_func = function(self, player, skill, scope)
-    if skill.trueName == "slash_skill" and player:getMark("@ld__zhuwei_buff") > 0 and scope == Player.HistoryPhase then
-      return player:getMark("@ld__zhuwei_buff")
+    if skill.trueName == "slash_skill" and player:getMark("@ld__zhuwei_buff-turn") > 0 and scope == Player.HistoryPhase then
+      return player:getMark("@ld__zhuwei_buff-turn")
     end
   end,
 }
