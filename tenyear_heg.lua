@@ -465,7 +465,7 @@ local zhente = fk.CreateTriggerSkill{
   events = {fk.TargetConfirmed},
   can_trigger = function(self, event, target, player, data)
     if target == player and player:hasSkill(self.name) and player:usedSkillTimes(self.name) == 0 and data.from ~= player.id then
-      return data.card:isCommonTrick() or data.card.type == Card.TypeBasic and data.card.color == Card.Black
+      return (data.card:isCommonTrick() or data.card.type == Card.TypeBasic) and data.card.color == Card.Black
     end
   end,
   on_cost = function(self, event, target, player, data)
@@ -506,7 +506,7 @@ local zhiwei = fk.CreateTriggerSkill{
   mute = true,
   can_trigger = function(self, event, target, player, data)
     if player:hasSkill(self.name) then
-      if event == fk.GeneralRevealed then
+      if event == fk.GeneralRevealed and data == "ty_heg__luyusheng" then
         return true
       elseif event == fk.AfterCardsMove then
         if player.phase ~= Player.Discard then return false end
@@ -533,21 +533,11 @@ local zhiwei = fk.CreateTriggerSkill{
     end
   end,
   on_cost = function(self, event, target, player, data)
-    if event == fk.GeneralRevealed then
-      local room = player.room
-      local targets = table.map(room:getOtherPlayers(player, false), function(p) return p.id end)
-      local to = room:askForChoosePlayers(player, targets, 1, 1, "#ty_heg__zhiwei-choose", self.name, true, true)
-      if #to > 0 then
-        self.cost_data = to[1]
-        return true
-      end
-      return false
-    end
     return true
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    if event == fk.GeneralReveale then
+    if event == fk.GeneralRevealed then
       room:notifySkillInvoked(player, self.name, "special")
       player:broadcastSkillInvoke(self.name)
       local targets = table.map(room:getOtherPlayers(player, false), function(p) return p.id end)
@@ -642,7 +632,6 @@ Fk:loadTranslationTable{
   ["$ty_heg__zhiwei2"] = "昭德以行，生不能侍奉二主。",
   ["~ty_heg__luyusheng"] = "父亲，郁生甚是想念……",
 }
-
 
 local fengxiw = General(extension, "ty_heg__fengxiw", "wu", 3)
 local yusui = fk.CreateTriggerSkill{
