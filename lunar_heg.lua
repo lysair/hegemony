@@ -575,4 +575,82 @@ Fk:loadTranslationTable{
   ["~fk_heg__xianglang"] = "识文重义而徇私，恨也……",
 }
 
+local guyong = General(extension, "fk_heg__guyong", "wu", 3)
+local bingyi = fk.CreateTriggerSkill{
+  name = "fk_heg__bingyi",
+  anim_type = "defensive",
+  events = {fk.AfterCardsMove},
+  can_trigger = function(self, event, target, player, data)
+    if player:hasSkill(self.name) and player:usedSkillTimes(self.name, Player.HistoryTurn) < 1 and not player:isKongcheng() then
+      local currentplayer = player.room.current
+      for _, move in ipairs(data) do
+        if move.from == player.id and move.moveReason == fk.ReasonDiscard then
+          for _, info in ipairs(move.moveInfo) do
+            if info.fromArea == Card.PlayerHand then
+              return true
+            end
+          end
+        end
+      end
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local cards = player.player_cards[Player.Hand]
+    player:showCards(cards)
+    if #cards > 1 then
+      for _, id in ipairs(cards) do
+        if Fk:getCardById(id).color == Card.NoColor or Fk:getCardById(id).color ~= Fk:getCardById(cards[1]).color then
+          return false
+        end
+      end
+    end
+    local tos = room:askForChoosePlayers(player, table.map(room:getOtherPlayers(player, false), function(p)
+      return p.id end), 1, #cards, "#fk_heg__bingyi-choose:::"..#cards, self.name, true)
+    table.insert(tos, player.id)
+    room:sortPlayersByAction(tos)
+    for _, pid in ipairs(tos) do
+      local p = room:getPlayerById(pid)
+      if not p.dead and p ~= player then
+        room:drawCards(p, 1, self.name)
+      end
+    end
+  end,
+}
+
+local shenxing = fk.CreateActiveSkill{
+  name = "fk_heg__shenxing",
+  anim_type = "drawcard",
+  card_num = 2,
+  target_num = 0,
+  can_use = function(self, player)
+    return not player:isNude() and player:usedSkillTimes(self.name, Player.HistoryPhase) < 4
+  end,
+  card_filter = function(self, to_select, selected)
+    return #selected < 2
+  end,
+  on_use = function(self, room, effect)
+    local player = room:getPlayerById(effect.from)
+    room:throwCard(effect.cards, self.name, player, player)
+    player:drawCards(1, self.name)
+  end
+}
+
+guyong:addSkill(shenxing)
+guyong:addSkill(bingyi)
+Fk:loadTranslationTable{
+  ["fk_heg__guyong"] = "顾雍",
+  ["fk_heg__bingyi"] = "秉壹",
+  [":fk_heg__bingyi"] = "每回合限一次，当你的手牌被弃置后，你可以展示所有手牌，若颜色均相同，你令至多X名其他角色各摸一张牌（X为你的手牌数）。",
+  ["#fk_heg__bingyi-choose"] = "秉壹：你可以与至多%arg名其他角色各摸一张牌",
+  ["fk_heg__shenxing"] = "慎行",
+  [":fk_heg__shenxing"] = "出牌阶段限四次，你可以弃置两张牌，然后摸一张牌。",
+
+  ["$fk_heg__guyong1"] = "上兵伐谋，三思而行。",
+  ["$fk_heg__guyong2"] = "精益求精，慎之再慎。",
+  ["$fk_heg__bingyi1"] = "秉直进谏，勿藏私心！",
+  ["$fk_heg__bingyi2"] = "秉公守一，不负圣恩！",
+  ["~fk_heg__guyong"] = "此番患疾，吾必不起……",
+}
+
 return extension
