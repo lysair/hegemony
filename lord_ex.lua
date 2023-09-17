@@ -124,6 +124,70 @@ Fk:loadTranslationTable{
   ["~ld__dongzhao"] = "一生无愧，又何惧身后之议……",
 }
 
+
+local xushu = General(extension, "ld__xushu", "shu", 4)
+xushu.deputyMaxHpAdjustedValue = -1
+local qiance = fk.CreateTriggerSkill{
+  name = "ld__qiance",
+  anim_type = "control",
+  events = {fk.TargetSpecified},
+  can_trigger = function (self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) and data.card:isCommonTrick()
+  end,
+  on_cost = function (self, event, target, player, data)
+    return player.room:askForSkillInvoke(player, self.name, nil, "#ld__qiance-ask") 
+  end,
+  on_use = function (self, event, target, player, data)
+    local room = player.room
+    local targets = table.filter(room.alive_players, function(p) return H.isBigKingdomPlayer(p) end)
+    if #targets > 0 then
+      data.disresponsiveList = data.disresponsiveList or {}
+      for _, p in ipairs(targets) do
+        table.insertIfNeed(data.disresponsiveList, p.id)
+      end
+    end
+  end,
+}
+
+local jujian = fk.CreateTriggerSkill{
+  name = "ld__jujian",
+  anim_type = "defensive",
+  relate_to_place = "d",
+  events = {fk.DamageInflicted},
+  can_trigger = function (self, event, target, player, data)
+    return player:hasSkill(self.name) and H.compareKingdomWith(player, data.to)
+     and data.damage >= data.to.hp
+  end,
+  on_cost = function (self, event, target, player, data)
+    return player.room:askForSkillInvoke(player, self.name, nil, "#ld__jujian-ask") 
+  end,
+  on_use = function (self, event, target, player, data)
+    data.damage = 0
+    H.transformGeneral(player.room, player)
+  end,
+}
+
+xushu:addSkill(qiance)
+xushu:addSkill(jujian)
+
+Fk:loadTranslationTable{
+  ["ld__xushu"] = "徐庶",
+  ["ld__qiance"] = "谦策",
+  [":ld__qiance"] = "当你使用锦囊牌指定目标后，你可令所有大势力角色不能响应此牌。",
+  ["ld__jujian"] = "举荐",
+  [":ld__jujian"] = "副将技，此武将减少半个阴阳鱼。与你势力相同的角色受到伤害时，若伤害值不小于其体力值，你可以防止之，然后你变更此武将牌。",
+
+  ["#ld__qiance-ask"] = "谦策：是否令所有大势力角色不能响应此牌",
+  ["#ld__jujian-ask"] = "举荐：是否防止此伤害，然后你变更此武将牌",
+
+  ["$ld__qiance1"] = "开言纳谏，社稷之福。",
+  ["$ld__qiance2"] = "如此如此，敌军自破。",
+  ["$ld__jujian1"] = "千金易得，贤才难求。",
+  ["$ld__jujian2"] = "愿与将军共图王之霸业。",
+  ["~ld__xushu"] = "大义无言，虽死无怨。",
+}
+
+
 local zhonghui = General(extension, "ld__zhonghui", "wild", 4)
 zhonghui:addCompanions("ld__jiangwei")
 local quanji = fk.CreateTriggerSkill{
@@ -216,5 +280,98 @@ Fk:loadTranslationTable{
   ["$ld__paiyi2"] = "非吾友，则必敌也！",
   ["~ld__zhonghui"] = "吾机关算尽，却还是棋错一着……",
 }
+
+local gongsunyuan = General(extension, "ld__gongsunyuan", "wild", 4)
+local huaiyi = fk.CreateActiveSkill{
+  name = "ld__huaiyi",
+  anim_type = "control",
+  card_num = 0,
+  target_num = 0,
+  can_use = function(self, player)
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and not player:isKongcheng()
+  end,
+  card_filter = function()
+    return false
+  end,
+  on_use = function(self, room, effect)
+    local player = room:getPlayerById(effect.from)
+    local cards = player.player_cards[Player.Hand]
+    player:showCards(cards)
+    local colors = {}
+    for _, id in ipairs(cards) do
+      table.insertIfNeed(colors, Fk:getCardById(id):getColorString())
+    end
+    if #colors < 2 then return end
+    local color = room:askForChoice(player, colors, self.name)
+    local throw = {}
+    for _, id in ipairs(cards) do
+      if Fk:getCardById(id):getColorString() == color then
+        table.insert(throw, id)
+      end
+    end
+    room:throwCard(throw, self.name, player, player)
+    local targets = room:askForChoosePlayers(player, table.map(table.filter(room:getOtherPlayers(player), function(p)
+      return (not p:isNude()) end), function(p) return p.id end), 1, #throw, "#ld__huaiyi-choose:::"..tostring(#throw), self.name, true)
+    if #targets > 0 then
+      local get = {}
+      for _, p in ipairs(targets) do
+        local id = room:askForCardChosen(player, room:getPlayerById(p), "he", self.name)
+        table.insert(get, id)
+      end
+      for _, id in ipairs(get) do
+        room:obtainCard(player, id, false, fk.ReasonPrey)
+        if Fk:getCardById(id).type == Card.TypeEquip then
+          player:addToPile("ld__gongsunyuan_infidelity", Fk:getCardById(id), true, self.name)
+        end
+      end
+    end
+  end,
+}
+
+local zisui = fk.CreateTriggerSkill{
+  name = "ld__zisui",
+  anim_type = "drawcard",
+  frequency = Skill.Compulsory,
+  events = {fk.DrawNCards, fk.EventPhaseStart},
+  can_trigger = function(self, event, target, player, data)
+    if event == fk.DrawNCards and player:hasSkill(self.name) and #player:getPile("ld__gongsunyuan_infidelity") > 0 then
+      return true
+    elseif event == fk.EventPhaseStart and player.phase == Player.Finish and #player:getPile("ld__gongsunyuan_infidelity") > player.maxHp then
+      return true
+    end
+  end,
+  on_cost = function(self, event, target, player, data)
+    return true
+  end,
+  on_use = function(self, event, target, player, data)
+    if event == fk.DrawNCards then
+      data.n = data.n + #player:getPile("ld__gongsunyuan_infidelity")
+    elseif fk.EventPhaseStart then
+      player.room:killPlayer({who = player.id})
+    end
+  end,
+}
+
+gongsunyuan:addSkill(huaiyi)
+gongsunyuan:addSkill(zisui)
+
+Fk:loadTranslationTable{
+  ["ld__gongsunyuan"] = "公孙渊",
+  ["ld__huaiyi"] = "怀异",
+  [":ld__huaiyi"] = "出牌阶段限一次，你可以展示所有手牌，若其中包含两种颜色，则你弃置其中一种颜色的牌，然后获得至多X名角色的各一张牌"..
+  "（X为你以此法弃置的手牌数）。你将以此法获得的装备牌置于武将牌上，称为“异”。",
+  ["#ld__huaiyi-choose"] = "怀异：你可以获得至多%arg名角色各一张牌",
+  ["ld__gongsunyuan_infidelity"] = "异",
+
+  ["ld__zisui"] = "恣睢",
+  [":ld__zisui"] = "锁定技，摸牌阶段，你多摸“异”数量的牌。结束阶段，若“异”数量大于你的体力上限，你死亡。",
+
+  ["$ld__huaiyi1"] = "魏隔山，吴隔海，想活，照我意思做。",
+  ["$ld__huaiyi2"] = "我已给出条件，要钱，要命，由你说。",
+  ["$ld__zisui1"] = "北风吹醒群狼日，丈夫复兴辽东时。",
+  ["$ld__zisui2"] = "你可知道，我公孙家等了几个世代。",
+  ["~ld__gongsunyuan"] = "说我公孙家是反贼，司马家有忠臣吗，呃啊啊...",
+}
+
 
 return extension
