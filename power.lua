@@ -432,7 +432,7 @@ local kuangguXH = fk.CreateTriggerSkill{
   anim_type = "drawcard",
   events = {fk.Damage},
   can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self.name) and target == player and (data.extra_data or {}).kuanggucheak
+    return player:hasSkill(self.name) and target == player and (data.extra_data or {}).kuanggucheck
   end,
   on_trigger = function(self, event, target, player, data)
     self.cancel_cost = false
@@ -470,7 +470,7 @@ local kuangguXH = fk.CreateTriggerSkill{
   end,
   on_refresh = function(self, event, target, player, data)
     data.damageEvent.extra_data = data.damageEvent.extra_data or {}
-    data.damageEvent.extra_data.kuanggucheak = true
+    data.damageEvent.extra_data.kuanggucheck = true
   end,
 }
 local xuanhuo = fk.CreateTriggerSkill{

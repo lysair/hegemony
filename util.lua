@@ -111,7 +111,7 @@ end
 ---@param player ServerPlayer
 ---@return players ServerPlayer[]|nil @ 队列中的角色
 H.getFormationRelation = function(player)
-  local players = Fk:currentRoom():getAlivePlayers()
+  local players = Fk:currentRoom().alive_players
   local index = table.indexOf(players, player) -- ABCDEF, C
   local targets = table.slice(players, index)
   table.insertTable(targets, table.slice(players, 1, index)) -- CDEFAB

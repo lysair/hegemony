@@ -603,6 +603,7 @@ local imperialOrder = fk.CreateTrickCard{
   skill = imperialOrderSkill,
   suit = Card.Club,
   number = 3,
+  multiple_targets = true,
 }
 extension:addCard(imperialOrder)
 
