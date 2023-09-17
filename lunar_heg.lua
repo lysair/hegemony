@@ -642,7 +642,7 @@ Fk:loadTranslationTable{
   ["fk_heg__guyong"] = "顾雍",
   ["fk_heg__bingyi"] = "秉壹",
   [":fk_heg__bingyi"] = "每回合限一次，当你的手牌被弃置后，你可以展示所有手牌，若颜色均相同，你令至多X名其他角色各摸一张牌（X为你的手牌数）。",
-  ["#fk_heg__bingyi-choose"] = "秉壹：你可以与至多%arg名其他角色各摸一张牌",
+  ["#fk_heg__bingyi-choose"] = "秉壹：你可以令至多%arg名其他角色各摸一张牌",
   ["fk_heg__shenxing"] = "慎行",
   [":fk_heg__shenxing"] = "出牌阶段限四次，你可以弃置两张牌，然后摸一张牌。",
 
