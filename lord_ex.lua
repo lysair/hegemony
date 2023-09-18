@@ -281,6 +281,244 @@ Fk:loadTranslationTable{
   ["~ld__zhonghui"] = "吾机关算尽，却还是棋错一着……",
 }
 
+local function swapHandCards(room, from, to1, to2, skillname)
+  local target1 = room:getPlayerById(to1)
+  local target2 = room:getPlayerById(to2)
+  local cards1 = table.clone(target1.player_cards[Player.Hand])
+  local cards2 = table.clone(target2.player_cards[Player.Hand])
+  local moveInfos = {}
+  if #cards1 > 0 then
+    table.insert(moveInfos, {
+      from = to1,
+      ids = cards1,
+      toArea = Card.Processing,
+      moveReason = fk.ReasonExchange,
+      proposer = from,
+      skillName = skillname,
+    })
+  end
+  if #cards2 > 0 then
+    table.insert(moveInfos, {
+      from = to2,
+      ids = cards2,
+      toArea = Card.Processing,
+      moveReason = fk.ReasonExchange,
+      proposer = from,
+      skillName = skillname,
+    })
+  end
+  if #moveInfos > 0 then
+    room:moveCards(table.unpack(moveInfos))
+  end
+  moveInfos = {}
+  if not target2.dead then
+    local to_ex_cards1 = table.filter(cards1, function (id)
+      return room:getCardArea(id) == Card.Processing
+    end)
+    if #to_ex_cards1 > 0 then
+      table.insert(moveInfos, {
+        ids = to_ex_cards1,
+        fromArea = Card.Processing,
+        to = to2,
+        toArea = Card.PlayerHand,
+        moveReason = fk.ReasonExchange,
+        proposer = from,
+        skillName = skillname,
+      })
+    end
+  end
+  if not target1.dead then
+    local to_ex_cards2 = table.filter(cards2, function (id)
+      return room:getCardArea(id) == Card.Processing
+    end)
+    if #to_ex_cards2 > 0 then
+      table.insert(moveInfos, {
+        ids = to_ex_cards2,
+        fromArea = Card.Processing,
+        to = to1,
+        toArea = Card.PlayerHand,
+        moveReason = fk.ReasonExchange,
+        proposer = from,
+        skillName = skillname,
+      })
+    end
+  end
+  if #moveInfos > 0 then
+    room:moveCards(table.unpack(moveInfos))
+  end
+  table.insertTable(cards1, cards2)
+  local dis_cards = table.filter(cards1, function (id)
+    return room:getCardArea(id) == Card.Processing
+  end)
+  if #dis_cards > 0 then
+    local dummy = Fk:cloneCard("dilu")
+    dummy:addSubcards(dis_cards)
+    room:moveCardTo(dummy, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, skillname)
+  end
+end
+
+local simazhao = General(extension, "ld__simazhao", "wei", 3)
+local zhaoxin = fk.CreateTriggerSkill{
+  name = "ld__zhaoxin",
+  anim_type = "control",
+  events = {fk.Damaged},
+  can_trigger = function(self, event, target, player, data)
+    return player:hasSkill(self.name) and #player:getCardIds("h") > 0 and not player.dead and player == target
+  end,
+  on_cost = function(self, event, target, player, data)
+    return player.room:askForSkillInvoke(player, self.name, nil, "#ld__zhaoxin-ask") 
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local cards = player.player_cards[Player.Hand]
+    player:showCards(cards)
+    local targets = table.map(room.alive_players, function(p) return p.id end)
+    if #targets > 0 then
+      local to = room:getPlayerById(room:askForChoosePlayers(player, targets, 1, 1, nil, self.name, true)[1])
+
+      swapHandCards(room, player.id, player.id, to.id, self.name)
+    end
+  end,
+}
+
+local suzhi = fk.CreateTriggerSkill{
+  name = "ld__suzhi",
+  anim_type = "offensive",
+  mute = true,
+  frequency = Skill.Compulsory,
+  events = {fk.CardUsing, fk.DamageCaused, fk.AfterCardsMove, fk.EventPhaseChanging},
+  can_trigger = function(self, event, target, player, data)
+    if player:getMark("@ld__suzhi-turn") < 3 and player.room.current == player then
+      if event == fk.EventPhaseChanging then
+        return (data.to == player.NotActive or data.from == player.NotActive) and player == target and player:hasSkill(self.name)
+      end
+
+      if event == fk.CardUsing then
+        return target == player and player:hasSkill(self.name) and data.card:isCommonTrick() and
+        (not data.card:isVirtual() or #data.card.subcards == 0)
+      end
+      if event == fk.DamageCaused then
+        return target == player and player:hasSkill(self.name) and
+        not data.chain and data.card and (data.card.trueName == "slash" or data.card.name == "duel")
+      end
+      if event == fk.AfterCardsMove and player:hasSkill(self.name) then
+        for _, move in ipairs(data) do
+          if move.from ~= player.id and move.moveReason == fk.ReasonDiscard then
+            for _, info in ipairs(move.moveInfo) do
+              if info.fromArea == Card.PlayerHand or info.fromArea == Card.PlayerEquip then
+                self.cost_data = move.from
+                return true
+              end
+            end
+          end
+        end
+      end
+    end
+  end,
+
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    if event == fk.CardUsing then
+      player:drawCards(1, self.name)
+      room:setPlayerMark(player, "@ld__suzhi-turn", player:getMark("@ld__suzhi-turn") + 1)
+      if player:getMark("@ld__suzhi-turn") >= 3 then
+        room:handleAddLoseSkills(player, "-#ld__suzhi_target", nil)
+      end
+    elseif event == fk.DamageCaused then
+      data.damage = data.damage + 1
+      room:setPlayerMark(player, "@ld__suzhi-turn", player:getMark("@ld__suzhi-turn") + 1)
+      if player:getMark("@ld__suzhi-turn") >= 3 then
+        room:handleAddLoseSkills(player, "-#ld__suzhi_target", nil)
+      end
+    elseif event == fk.AfterCardsMove then
+      local card = room:askForCardChosen(player, room:getPlayerById(self.cost_data), "he", self.name)
+      room:obtainCard(player.id, card, false, fk.ReasonPrey)
+      room:setPlayerMark(player, "@ld__suzhi-turn", player:getMark("@ld__suzhi-turn") + 1)
+      if player:getMark("@ld__suzhi-turn") >= 3 then
+        room:handleAddLoseSkills(player, "-#ld__suzhi_target", nil)
+      end
+    elseif event == fk.EventPhaseChanging then
+      if data.from == player.NotActive then
+        if player:getMark("@ld__fankui_simazhao") > 0 then
+          room:setPlayerMark(player, "@ld__fankui_simazhao", 0)
+          room:handleAddLoseSkills(player, "-fankui-simazhao", nil)
+        end
+        room:handleAddLoseSkills(player, "#ld__suzhi_target", nil)
+      elseif data.to == player.NotActive then
+        room:setPlayerMark(player, "@ld__fankui_simazhao", 1)
+        room:handleAddLoseSkills(player, "fankui-simazhao", nil)
+        if player:getMark("@ld__suzhi-turn") < 3 then
+          room:handleAddLoseSkills(player, "-#ld__suzhi_target", nil)
+        end
+      end
+    end
+  end,
+}
+
+local fankui_simazhao = fk.CreateTriggerSkill{
+  name = "fankui-simazhao",
+  anim_type = "masochism",
+  events = {fk.Damaged},
+  can_trigger = function(self, event, target, player, data)
+    if target == player and player:hasSkill(self.name) and data.from and not data.from.dead then
+      if data.from == player then
+        return #player.player_cards[Player.Equip] > 0
+      else
+        return not data.from:isNude()
+      end
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local from = data.from
+    local flag =  from == player and "e" or "he"
+    local card = room:askForCardChosen(player, from, flag, self.name)
+    room:obtainCard(player.id, card, false, fk.ReasonPrey)
+  end
+}
+
+local suzhi_target = fk.CreateTargetModSkill{
+  name = "#ld__suzhi_target",
+  frequency = Skill.Compulsory,
+  bypass_distances = function(self, player, skill, card)
+    return player:hasSkill(self.name) and card and card.type == Card.TypeTrick
+  end,
+}
+
+Fk:addSkill(fankui_simazhao)
+Fk:addSkill(suzhi_target)
+simazhao:addSkill(zhaoxin)
+simazhao:addSkill(suzhi)
+Fk:loadTranslationTable{
+  ["ld__simazhao"] = "司马昭",
+  ["ld__zhaoxin"] = "昭心",
+  [":ld__zhaoxin"] = "当你受到伤害后，你可以展示所有手牌，然后与一名手牌数不大于你的角色交换手牌",
+  ["#ld__zhaoxin-ask"] = "昭心：你可以展示所有手牌，然后与一名手牌数不大于你的角色交换手牌",
+  
+  ["ld__suzhi"] = "夙智",
+  [":ld__suzhi"] = "锁定技，你的回合内：1.你执行【杀】或【决斗】的效果而造成伤害时，此伤害+1；2.你使用普通锦囊牌时摸一张牌且无距离限制；3.其他角色的牌被弃置后，你获得其一张牌"..
+    "当你于一回合内触发上述效果三次后，此技能于此回合内失效。回合结束时，你获得“反馈”直至回合开始。",
+  ["@ld__suzhi-turn"] = "夙智",
+  ["@ld__fankui_simazhao"] = "拥有 反馈",
+
+  ["fankui-simazhao"] = "反馈",
+
+  ["$ld__zhaoxin1"] = "向你摊牌吧，我只有这个想法。",
+  ["$ld__zhaoxin2"] = "大局已定，你要投降，还是投死？",
+  ["$ld__suzhi1"] = "想封侯？给你一剑封喉！",
+  ["$ld__suzhi2"] = "弱者，只怨别人强大，自己反省一下。",
+  ["$ld__suzhi3"] = "孙家跨不过的槛，孔明翻不过的山，都不在我眼内。",
+  ["$ld__suzhi4"] = "有人说我为国开疆太操心，这心呐，不操不行。",
+  ["$ld__suzhi5"] = "弃子，也有它的作用",
+  ["$ld__suzhi6"] = "人在绝望时，突然捞他一把，也许还你三代。",
+  
+  ["$fankui-simazhao1"] = "小小试探，紧张个啥？",
+  ["$fankui-simazhao2"] = "事不过三，你懂的",
+
+  ["~ld__simazhao"] = "刘公嗣你投个降也太能了！改名叫刘能！哈！哈哈哈...呃...啊！",
+}
+
+
 local gongsunyuan = General(extension, "ld__gongsunyuan", "wild", 4)
 local huaiyi = fk.CreateActiveSkill{
   name = "ld__huaiyi",
@@ -376,233 +614,3 @@ Fk:loadTranslationTable{
 
 return extension
 
--- note: 以下为司马昭，但由于鲁肃的swapHandCards函数会爆栈，故在此注释掉，具体问题在昭心475行
--- local function swapHandCards(room, from, to1, to2, skillname)
---   local target1 = room:getPlayerById(to1)
---   local target2 = room:getPlayerById(to2)
---   local cards1 = table.clone(target1.player_cards[Player.Hand])
---   local cards2 = table.clone(target2.player_cards[Player.Hand])
---   local moveInfos = {}
---   if #cards1 > 0 then
---     table.insert(moveInfos, {
---       from = to1,
---       ids = cards1,
---       toArea = Card.Processing,
---       moveReason = fk.ReasonExchange,
---       proposer = from,
---       skillName = skillname,
---     })
---   end
---   if #cards2 > 0 then
---     table.insert(moveInfos, {
---       from = to2,
---       ids = cards2,
---       toArea = Card.Processing,
---       moveReason = fk.ReasonExchange,
---       proposer = from,
---       skillName = skillname,
---     })
---   end
---   if #moveInfos > 0 then
---     room:moveCards(table.unpack(moveInfos))
---   end
---   moveInfos = {}
---   if not target2.dead then
---     local to_ex_cards1 = table.filter(cards1, function (id)
---       return room:getCardArea(id) == Card.Processing
---     end)
---     if #to_ex_cards1 > 0 then
---       table.insert(moveInfos, {
---         ids = to_ex_cards1,
---         fromArea = Card.Processing,
---         to = to2,
---         toArea = Card.PlayerHand,
---         moveReason = fk.ReasonExchange,
---         proposer = from,
---         skillName = skillname,
---       })
---     end
---   end
---   if not target1.dead then
---     local to_ex_cards2 = table.filter(cards2, function (id)
---       return room:getCardArea(id) == Card.Processing
---     end)
---     if #to_ex_cards2 > 0 then
---       table.insert(moveInfos, {
---         ids = to_ex_cards2,
---         fromArea = Card.Processing,
---         to = to1,
---         toArea = Card.PlayerHand,
---         moveReason = fk.ReasonExchange,
---         proposer = from,
---         skillName = skillname,
---       })
---     end
---   end
---   if #moveInfos > 0 then
---     room:moveCards(table.unpack(moveInfos))
---   end
---   table.insertTable(cards1, cards2)
---   local dis_cards = table.filter(cards1, function (id)
---     return room:getCardArea(id) == Card.Processing
---   end)
---   if #dis_cards > 0 then
---     local dummy = Fk:cloneCard("dilu")
---     dummy:addSubcards(dis_cards)
---     room:moveCardTo(dummy, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, skillname)
---   end
--- end
-
--- -- local simazhao = General(extension, "ld__simazhao", "wei", 3)
--- local zhaoxin = fk.CreateTriggerSkill{
---   name = "ld__zhaoxin",
---   anim_type = "control",
---   events = {fk.Damaged},
---   can_trigger = function(self, event, target, player, data)
---     return player:hasSkill(self.name) and #player:getCardIds("h") > 0 and not player.dead and player == target
---   end,
---   on_cost = function(self, event, target, player, data)
---     return player.room:askForSkillInvoke(player, self.name, nil, "#ld__zhaoxin-ask") 
---   end,
---   on_use = function(self, event, target, player, data)
---     local room = player.room
---     local cards = player.player_cards[Player.Hand]
---     player:showCards(cards)
---     local targets = table.map(room.alive_players, function(p) return p.id end)
---     if #targets > 0 then
---       local to = room:getPlayerById(room:askForChoosePlayers(player, targets, 1, 1, nil, self.name, true)[1])
-
---       -- swapHandCards(room, player, player.id, to.id, self.name)
---       -- stack overflow, 不过不是我的问题，坐等心变佬改swap
---     end
---   end,
--- }
-
--- local suzhi = fk.CreateTriggerSkill{
---   name = "ld__suzhi",
---   anim_type = "offensive",
---   mute = true,
---   frequency = Skill.Compulsory,
---   events = {fk.CardUsing, fk.DamageCaused, fk.AfterCardsMove, fk.EventPhaseChanging},
---   can_trigger = function(self, event, target, player, data)
---     if player:getMark("@ld__suzhi-turn") < 3 and player.room.current == player then
---       if event == fk.EventPhaseChanging then
---         return (data.to == player.NotActive or data.from == player.NotActive) and player == target and player:hasSkill(self.name)
---       end
-
---       if event == fk.CardUsing then
---         return target == player and player:hasSkill(self.name) and data.card:isCommonTrick() and
---         (not data.card:isVirtual() or #data.card.subcards == 0)
---       end
---       if event == fk.DamageCaused then
---         return target == player and player:hasSkill(self.name) and
---         not data.chain and data.card and (data.card.trueName == "slash" or data.card.name == "duel")
---       end
---       if event == fk.AfterCardsMove and player:hasSkill(self.name) then
---         for _, move in ipairs(data) do
---           if move.from ~= player.id and move.moveReason == fk.ReasonDiscard then
---             for _, info in ipairs(move.moveInfo) do
---               if info.fromArea == Card.PlayerHand or info.fromArea == Card.PlayerEquip then
---                 self.cost_data = move.from
---                 return true
---               end
---             end
---           end
---         end
---       end
---     end
---   end,
-
---   on_use = function(self, event, target, player, data)
---     local room = player.room
---     if event == fk.CardUsing then
---       player:drawCards(1, self.name)
---       room:setPlayerMark(player, "@ld__suzhi-turn", player:getMark("@ld__suzhi-turn") + 1)
---       if player:getMark("@ld__suzhi-turn") >= 3 then
---         room:handleAddLoseSkills(player, "-#ld__suzhi_target", nil)
---       end
---     elseif event == fk.DamageCaused then
---       data.damage = data.damage + 1
---       room:setPlayerMark(player, "@ld__suzhi-turn", player:getMark("@ld__suzhi-turn") + 1)
---       if player:getMark("@ld__suzhi-turn") >= 3 then
---         room:handleAddLoseSkills(player, "-#ld__suzhi_target", nil)
---       end
---     elseif event == fk.AfterCardsMove then
---       local card = room:askForCardChosen(player, room:getPlayerById(self.cost_data), "he", self.name)
---       room:obtainCard(player.id, card, false, fk.ReasonPrey)
---       room:setPlayerMark(player, "@ld__suzhi-turn", player:getMark("@ld__suzhi-turn") + 1)
---       if player:getMark("@ld__suzhi-turn") >= 3 then
---         room:handleAddLoseSkills(player, "-#ld__suzhi_target", nil)
---       end
---     elseif event == fk.EventPhaseChanging then
---       if data.from == player.NotActive then
---         if player:getMark("@ld__fankui_simazhao") > 0 then
---           room:setPlayerMark(player, "@ld__fankui_simazhao", 0)
---           room:handleAddLoseSkills(player, "-fankui-simazhao", nil)
---         end
---         room:handleAddLoseSkills(player, "#ld__suzhi_target", nil)
---       elseif data.to == player.NotActive then
---         room:setPlayerMark(player, "@ld__fankui_simazhao", 1)
---         room:handleAddLoseSkills(player, "fankui-simazhao", nil)
---         if player:getMark("@ld__suzhi-turn") < 3 then
---           room:handleAddLoseSkills(player, "-#ld__suzhi_target", nil)
---         end
---       end
---     end
---   end,
--- }
-
--- local fankui_simazhao = fk.CreateTriggerSkill{
---   name = "fankui-simazhao",
---   anim_type = "masochism",
---   events = {fk.Damaged},
---   can_trigger = function(self, event, target, player, data)
---     if target == player and player:hasSkill(self.name) and data.from and not data.from.dead then
---       if data.from == player then
---         return #player.player_cards[Player.Equip] > 0
---       else
---         return not data.from:isNude()
---       end
---     end
---   end,
---   on_use = function(self, event, target, player, data)
---     local room = player.room
---     local from = data.from
---     local flag =  from == player and "e" or "he"
---     local card = room:askForCardChosen(player, from, flag, self.name)
---     room:obtainCard(player.id, card, false, fk.ReasonPrey)
---   end
--- }
-
--- local suzhi_target = fk.CreateTargetModSkill{
---   name = "#ld__suzhi_target",
---   frequency = Skill.Compulsory,
---   bypass_distances = function(self, player, skill, card)
---     return player:hasSkill(self.name) and card and card.type == Card.TypeTrick
---   end,
--- }
-
--- Fk:addSkill(fankui_simazhao)
--- Fk:addSkill(suzhi_target)
--- simazhao:addSkill(zhaoxin)
--- simazhao:addSkill(suzhi)
--- Fk:loadTranslationTable{
---   ["ld__simazhao"] = "司马昭",
---   ["ld__zhaoxin"] = "昭心",
---   [":ld__zhaoxin"] = "当你受到伤害后，你可以展示所有手牌，然后与一名手牌数不大于你的角色交换手牌",
---   ["#ld__zhaoxin-ask"] = "昭心：你可以展示所有手牌，然后与一名手牌数不大于你的角色交换手牌",
-  
---   ["ld__suzhi"] = "夙智",
---   [":ld__suzhi"] = "锁定技，你的回合内：1.你执行【杀】或【决斗】的效果而造成伤害时，此伤害+1；2.你使用普通锦囊牌时摸一张牌且无距离限制；3.其他角色的牌被弃置后，你获得其一张牌"..
---     "当你于一回合内触发上述效果三次后，此技能于此回合内失效。回合结束时，你获得“反馈”直至回合开始。",
---   ["@ld__suzhi-turn"] = "夙智",
---   ["@ld__fankui_simazhao"] = "反馈",
-
---   ["fankui-simazhao"] = "反馈",
-
---   ["$ld__zhaoxin1"] = "",
---   ["$ld__zhaoxin2"] = "",
---   ["$ld__suzhi1"] = "",
---   ["$ld__suzhi2"] = "",
---   ["~ld__simazhao"] = "",
--- }
