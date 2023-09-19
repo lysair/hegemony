@@ -418,26 +418,7 @@ local suzhi = fk.CreateTriggerSkill{
 
   on_use = function(self, event, target, player, data)
     local room = player.room
-    if event == fk.CardUsing then
-      player:drawCards(1, self.name)
-      room:setPlayerMark(player, "@ld__suzhi-turn", player:getMark("@ld__suzhi-turn") + 1)
-      if player:getMark("@ld__suzhi-turn") >= 3 then
-        room:handleAddLoseSkills(player, "-#ld__suzhi_target", nil)
-      end
-    elseif event == fk.DamageCaused then
-      data.damage = data.damage + 1
-      room:setPlayerMark(player, "@ld__suzhi-turn", player:getMark("@ld__suzhi-turn") + 1)
-      if player:getMark("@ld__suzhi-turn") >= 3 then
-        room:handleAddLoseSkills(player, "-#ld__suzhi_target", nil)
-      end
-    elseif event == fk.AfterCardsMove then
-      local card = room:askForCardChosen(player, room:getPlayerById(self.cost_data), "he", self.name)
-      room:obtainCard(player.id, card, false, fk.ReasonPrey)
-      room:setPlayerMark(player, "@ld__suzhi-turn", player:getMark("@ld__suzhi-turn") + 1)
-      if player:getMark("@ld__suzhi-turn") >= 3 then
-        room:handleAddLoseSkills(player, "-#ld__suzhi_target", nil)
-      end
-    elseif event == fk.EventPhaseChanging then
+    if event == fk.EventPhaseChanging then
       if data.from == player.NotActive then
         if player:getMark("@ld__fankui_simazhao") > 0 then
           room:setPlayerMark(player, "@ld__fankui_simazhao", 0)
@@ -450,6 +431,19 @@ local suzhi = fk.CreateTriggerSkill{
         if player:getMark("@ld__suzhi-turn") < 3 then
           room:handleAddLoseSkills(player, "-#ld__suzhi_target", nil)
         end
+      end
+    elseif event == fk.CardUsing or event == fk.DamageCaused or event == fk.AfterCardsMove then
+      if event == fk.CardUsing then
+        player:drawCards(1, self.name)
+      elseif event == fk.DamageCaused then
+        data.damage = data.damage + 1
+      elseif event == fk.AfterCardsMove then
+        local card = room:askForCardChosen(player, room:getPlayerById(self.cost_data), "he", self.name)
+        room:obtainCard(player.id, card, false, fk.ReasonPrey)
+      end
+      room:setPlayerMark(player, "@ld__suzhi-turn", player:getMark("@ld__suzhi-turn") + 1)
+      if player:getMark("@ld__suzhi-turn") >= 3 then
+        room:handleAddLoseSkills(player, "-#ld__suzhi_target", nil)
       end
     end
   end,
