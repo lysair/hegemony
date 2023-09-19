@@ -280,13 +280,13 @@ local chengshang = fk.CreateTriggerSkill{
   anim_type = "drawcard",
   events = {fk.CardUseFinished},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and player.phase == Player.Play and data.tos and
-      table.find(TargetGroup:getRealTargets(data.tos), function(id) return not H.compareKingdomWith(Fk:currentRoom():getPlayerById(to_select), Self) end) 
+    return target == player and player:hasSkill(self.name) and player.phase == Player.Play and data.tos and data.card.type ~= Card.TypeEquip and -- FIXME
+      table.find(TargetGroup:getRealTargets(data.tos), function(id) return not H.compareKingdomWith(Fk:currentRoom():getPlayerById(id), Self) end) 
       and not data.damageDealt and data.card.suit ~= Card.NoSuit and player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
   end,
   on_cost = function(self, event, target, player, data)
     return player.room:askForSkillInvoke(player, self.name, nil,
-      "#ty_heg__chengshang-invoke:::"..data.card:getSuitString()..":"..tostring(data.card.number))
+      "#ty_heg__chengshang-invoke:::"..data.card:getSuitCompletedString(true))
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
@@ -313,11 +313,11 @@ Fk:loadTranslationTable{
   ["ty_heg__qiao"] = "气傲",
   [":ty_heg__qiao"] = "每回合限两次，当你成为其他势力角色使用牌的目标后，你可弃置其一张牌，然后你弃置一张牌。",
   ["ty_heg__chengshang"] = "承赏",
-  [":ty_heg__chengshang"] = "出牌阶段限一次，当你使用指定其他势力为目标的牌结算后，若此牌没有造成伤害，你可以获得牌堆中所有与此牌花色点数相同的牌。"..
-  "若你没有因此获得牌，此技能视为未发动过。",
+  [":ty_heg__chengshang"] = "当你使用指定有其他势力角色为目标的牌结算后，若此时为你的出牌阶段且你未发动过此技能，且若此牌没有造成伤害，你可以获得牌堆中所有与此牌花色点数相同的牌。"..
+  "若你没有因此获得牌，此技能视为此阶段未发动过。",
 
   ["#ty_heg__qiao-invoke"] = "气傲：你可以弃置 %dest 一张牌，然后你弃置一张牌",
-  ["#ty_heg__chengshang-invoke"] = "承赏：你可以获得牌堆中所有的%arg%arg2牌",
+  ["#ty_heg__chengshang-invoke"] = "承赏：你可以获得牌堆中所有的 %arg 牌",
 
   ["$ty_heg__qiao1"] = "吾六十何为不受兵邪？",
   ["$ty_heg__qiao2"] = "芝性骄傲，吾独不为屈。",
@@ -600,10 +600,10 @@ local zhiwei = fk.CreateTriggerSkill{
     room:setPlayerMark(player, self.name, 0)
     room:setPlayerMark(player, "@zhiwei", 0)
     local isDeputy = H.inGeneralSkills(player, self.name)
-      if isDeputy then
-        isDeputy = isDeputy == "d"
-        player:hideGeneral(isDeputy)
-      end
+    if isDeputy then
+      isDeputy = isDeputy == "d"
+      player:hideGeneral(isDeputy)
+    end
   end,
 }
 zhente:addRelatedSkill(zhente_prohibit)

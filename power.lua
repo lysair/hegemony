@@ -688,8 +688,8 @@ local keshou = fk.CreateTriggerSkill{
           pattern = ".|.|heart,diamond|.|.|.",
         }
         room:judge(judge)
-        if judge.card.suit == Card.Red then
-           player:drawCards(1, self.name)
+        if judge.card.color == Card.Red then
+          player:drawCards(1, self.name)
         end
       end
   end,

@@ -121,7 +121,7 @@ local burningCampsSkill = fk.CreateActiveSkill{
   name = "burning_camps_skill",
   mod_target_filter = function(self, to_select, selected, user, card, distance_limited)
     local prev = Fk:currentRoom():getPlayerById(user):getNextAlive()
-    return prev.id ~= user and (to_select == prev.id or table.contains(H.getFormationRelation(prev), Fk:currentRoom():getPlayerById(to_select)))
+    return prev.id ~= user and (to_select == prev.id or H.inFormationRelation(prev, Fk:currentRoom():getPlayerById(to_select)))
   end,
   can_use = function(self, player, card)
     return not player:isProhibited(player:getNextAlive(), card) and player:getNextAlive() ~= player

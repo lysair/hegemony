@@ -217,6 +217,7 @@ end
 function HegLogic:chooseGenerals()
   local room = self.room
   local generalNum = math.max(room.settings.generalNum, 5)
+  room:doBroadcastNotify("ShowToast", Fk:translate("#nos_heg__InitialNotice"))
 
   local lord = room:getLord()
   room.current = lord
@@ -347,6 +348,7 @@ function HegLogic:attachSkillToPlayers()
   end
 
   room:setTag("SkipNormalDeathProcess", true)
+  room:doBroadcastNotify("ShowToast", Fk:translate("#nos_heg__InitialNotice"))
 end
 
 local heg_getlogic = function()
@@ -461,6 +463,7 @@ heg = fk.CreateGameMode{
     "overseas_heg",
     "lunar_heg",
     "lord_ex",
+    "formation_cards",
   },
 }
 
@@ -472,6 +475,7 @@ Fk:loadTranslationTable{
   ["revealMain"] = "明置主将",
   ["revealDeputy"] = "明置副将",
   ["revealAll"] = "背水：全部明置",
+  ["#nos_heg__InitialNotice"] = "提示：经典版国战<b>较不完善</b>，建议选择<b>新国战</b>模式",
 }
 
 return heg
