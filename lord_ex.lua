@@ -372,10 +372,10 @@ local zhaoxin = fk.CreateTriggerSkill{
     local room = player.room
     local cards = player.player_cards[Player.Hand]
     player:showCards(cards)
-    local targets = table.map(room.alive_players, function(p) return p.id end)
+    local targets = table.map(table.filter(room:getOtherPlayers(player), function(p)
+      return (p:getHandcardNum() <= player:getHandcardNum()) end), function(p) return p.id end)
     if #targets > 0 then
       local to = room:getPlayerById(room:askForChoosePlayers(player, targets, 1, 1, nil, self.name, true)[1])
-
       swapHandCards(room, player.id, player.id, to.id, self.name)
     end
   end,
@@ -515,7 +515,7 @@ Fk:loadTranslationTable{
   ["$fankui-simazhao1"] = "小小试探，紧张个啥？",
   ["$fankui-simazhao2"] = "事不过三，你懂的",
 
-  ["~ld__simazhao"] = "刘公嗣你投个降也太能了！改名叫刘能！哈！哈哈哈...呃...啊！",
+  ["~ld__simazhao"] = "志虽弥坚，也难挡众口铄金...",
 }
 
 
