@@ -370,8 +370,7 @@ local zhaoxin = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    local cards = player.player_cards[Player.Hand]
-    player:showCards(cards)
+    player:showCards(player.player_cards[Player.Hand])
     local targets = table.map(table.filter(room:getOtherPlayers(player), function(p)
       return (p:getHandcardNum() <= player:getHandcardNum()) end), function(p) return p.id end)
     if #targets > 0 then
@@ -547,13 +546,17 @@ local huaiyi = fk.CreateActiveSkill{
     if #targets > 0 then
       local get = {}
       for _, p in ipairs(targets) do
-        local id = room:askForCardChosen(player, room:getPlayerById(p), "he", self.name)
-        table.insert(get, id)
-      end
-      for _, id in ipairs(get) do
-        room:obtainCard(player, id, false, fk.ReasonPrey)
-        if Fk:getCardById(id).type == Card.TypeEquip then
-          player:addToPile("ld__gongsunyuan_infidelity", Fk:getCardById(id), true, self.name)
+        if target.dead or target:isNude() then
+        else
+          if player.dead then
+            break
+          end
+          local id = room:askForCardChosen(player, room:getPlayerById(p), "he", self.name)
+          if Fk:getCardById(id).type == Card.TypeEquip then
+            player:addToPile("ld__gongsunyuan_infidelity", Fk:getCardById(id), true, self.name)
+          else
+            room:obtainCard(player, id, false, fk.ReasonPrey)
+          end
         end
       end
     end
