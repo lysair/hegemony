@@ -451,5 +451,15 @@ Fk:loadTranslationTable{
   ['$baoling2'] = '待吾大开杀戒，哈哈哈哈！',
   ['~ld__dongzhuo'] = '为何人人……皆与我为敌？',
 }
+--[[
+local extension_card = Package("momentum_cards", Package.CardPack)
 
+Fk:loadTranslationTable{
+  ["momentum_cards"] = "君临天下·势卡牌",
+}
+Fk:loadTranslationTable{
+  ["peace_spell"] = "太平要术",
+	[":peace_spell"] = "装备牌·防具<br /><b>防具技能</b>：锁定技，①当你受到属性伤害时，你防止此伤害。②你的手牌上限+X（X为与你势力相同的角色数）。③当你失去装备区里的【太平要术】后，若你的体力值大于1，你失去1点体力，然后摸两张牌。",
+}
+--]]
 return extension

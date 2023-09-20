@@ -139,6 +139,18 @@ H.getFormationRelation = function(player)
   return players
 end
 
+--- 确认与某角色是否处于队列中
+---@param player ServerPlayer
+---@param target ServerPlayer
+---@return bool
+H.inFormationRelation = function(player, target)
+  if target == player then
+    return #H.getFormationRelation(player) > 0
+  else
+    return table.contains(H.getFormationRelation(player), target)
+  end
+end
+
 --- 确认与某角色是否处于围攻关系
 ---@param player ServerPlayer @ 围攻角色1
 ---@param target ServerPlayer @ 围攻角色2
@@ -740,6 +752,18 @@ H.allianceCards = {}
 H.addCardToAllianceCards = function(card)
   assert(card.class:isSubclassOf(Card))
   table.insertIfNeed(H.allianceCards, card)
+end
+
+-- 卡牌替换
+
+H.convertCards = {}
+
+---@param card Card @ 要替换的卡牌
+---@param convert string @ 要被替换的卡牌名
+H.addCardToConvertCards = function(card, convert)
+  assert(card.class:isSubclassOf(Card))
+  H.convertCards[convert] = H.convertCards[convert] or {}
+  table.insert(H.convertCards[convert], card)
 end
 
 -- 大势力

@@ -241,7 +241,9 @@ function HegLogic:prepareDrawPile()
 
   for i = #allCardIds, 1, -1 do
     local card = Fk:getCardById(allCardIds[i])
-    if card.is_derived then
+    if card.is_derived or (H.convertCards[card.name] and table.find(H.convertCards[card.name], function(c)
+        return table.contains(allCardIds, c.id)
+      end)) then
       local id = allCardIds[i]
       table.removeOne(allCardIds, id)
       table.insert(room.void, id)
@@ -474,7 +476,7 @@ local heg_rule = fk.CreateTriggerSkill{
       local damage = data.damage
       if damage and damage.from then
         local killer = damage.from
-        if killer.kingdom == "unknown" then return end
+        if killer.kingdom == "unknown" or killer.dead then return end
         if killer.kingdom == "wild" then
           killer:drawCards(3, "kill")
         elseif killer.kingdom == player.kingdom then
@@ -590,6 +592,7 @@ heg = fk.CreateGameMode{
     "overseas_heg",
     "lunar_heg",
     "lord_ex",
+    "formation_cards",
   },
   winner_getter = function(self, victim)
     local room = victim.room

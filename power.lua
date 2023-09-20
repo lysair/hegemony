@@ -689,7 +689,7 @@ local keshou = fk.CreateTriggerSkill{
         }
         room:judge(judge)
         if judge.card.color == Card.Red then
-           player:drawCards(1, self.name)
+          player:drawCards(1, self.name)
         end
       end
   end,

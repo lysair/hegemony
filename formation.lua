@@ -136,15 +136,14 @@ local tianfuTrig = fk.CreateTriggerSkill{ -- FIXME
   name = '#tianfu_trigger',
   visible = false,
   frequency = Skill.Compulsory,
-  refresh_events = {fk.RoundStart, fk.GeneralRevealed, fk.EventAcquireSkill, "fk.RemoveStateChanged", fk.EventLoseSkill, fk.GeneralHidden},
+  refresh_events = {fk.TurnStart, fk.GeneralRevealed, fk.EventAcquireSkill, "fk.RemoveStateChanged", fk.EventLoseSkill, fk.GeneralHidden},
   can_refresh = function(self, event, target, player, data)
     if event == fk.EventLoseSkill then return data == tianfu
     else return H.hasShownSkill(player, self.name, true, true) end
   end,
   on_refresh = function(self, event, target, player, data)
     local room = player.room
-    local formation = H.getFormationRelation(target)
-    local ret = (table.contains(formation, player) or (target == player and #formation > 0)) and #room.alive_players > 3 and player:hasSkill(self.name)
+    local ret = H.inFormationRelation(room.current, player) and #room.alive_players > 3 and player:hasSkill(self.name)
     room:handleAddLoseSkills(player, ret and 'ld__kanpo' or "-ld__kanpo", nil, false, true)
   end,
 }
@@ -482,4 +481,65 @@ Fk:loadTranslationTable{
   ["~ld__hetaihou"] = "你们男人造的孽，非要说什么红颜祸水……",
 }
 
-return extension
+local extension_card = Package("formation_cards", Package.CardPack)
+
+Fk:loadTranslationTable{
+  ["formation_cards"] = "君临天下·阵卡牌",
+}
+
+local dragonPhoenixSkill = fk.CreateTriggerSkill{
+  name = "#dragon_phoenix_skill",
+  attached_equip = "dragon_phoenix",
+  events = {fk.TargetSpecified, fk.EnterDying},
+  can_trigger = function(self, event, target, player, data)
+    if not player:hasSkill(self.name) then return end
+    if event == fk.TargetSpecified then
+      if target == player and data.card and data.card.trueName == "slash" then
+        return not player.room:getPlayerById(data.to):isNude()
+      end
+    else
+      return data.damage and data.damage.from == player and data.damage.card and data.damage.card.trueName == "slash" and not target:isKongcheng()
+    end
+  end,
+  on_cost = function(self, event, target, player, data)
+    local prompt = event == fk.TargetSpecified and "#dragon_phoenix-slash::" .. data.to or "#dragon_phoenix-dying::" .. target.id
+    return player.room:askForSkillInvoke(player, self.name, data, prompt)
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    room:notifySkillInvoked(player, "dragon_phoenix", "control")
+    -- room:setEmotion(player, "./packages/hegemony/image/anim/dragon_phoenix")
+    if event == fk.TargetSpecified then
+      local to = player.room:getPlayerById(data.to)
+      room:askForDiscard(to, 1, 1, true, self.name, false, ".", "#dragon_phoenix-invoke")
+    else
+      local card = room:askForCardChosen(player, target, "h", self.name)
+      room:obtainCard(player, card, false, fk.ReasonPrey)
+    end
+  end,
+}
+Fk:addSkill(dragonPhoenixSkill)
+
+local dragonPhoenix = fk.CreateWeapon{
+  name = "dragon_phoenix",
+  suit = Card.Spade,
+  number = 2,
+  attack_range = 2,
+  equip_skill = dragonPhoenixSkill,
+}
+H.addCardToConvertCards(dragonPhoenix, "double_swords")
+extension_card:addCard(dragonPhoenix)
+
+Fk:loadTranslationTable{
+  ["dragon_phoenix"] = "飞龙夺凤",
+  [":dragon_phoenix"] = "装备牌·武器<br/><b>攻击范围</b>：２ <br/><b>武器技能</b>：①当你使用【杀】指定目标后，你可令目标弃置一张牌。②当一名角色因执行你使用的【杀】的效果而受到你造成的伤害而进入濒死状态后，你可获得其一张手牌。",
+  ["#dragon_phoenix_skill"] = "飞龙夺凤",
+  ["#dragon_phoenix-slash"] = "飞龙夺凤：你可令 %dest 弃置一张牌",
+  ["#dragon_phoenix-dying"] = "飞龙夺凤：你可获得 %dest 一张手牌",
+  ["#dragon_phoenix-invoke"] = "受到“飞龙夺凤”影响，你需弃置一张牌",
+}
+
+return {
+  extension,
+  extension_card,
+}
