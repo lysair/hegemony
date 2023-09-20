@@ -705,15 +705,17 @@ local halberdDelay = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     local room = player.room
     local e = room.logic:getCurrentEvent():findParent(GameEvent.UseCard)
-    room:sendLog{
-      type = "#HalberdNullified",
-      from = target.id,
-      -- to = {player.id},
-      arg = "sa__halberd",
-      arg2 = data.card:toLogString(),
-    }
     local use = e.data[1]
-    use.nullifiedTargets = TargetGroup:getRealTargets(use.tos)
+    if #TargetGroup:getRealTargets(use.tos) > 0 then
+      room:sendLog{
+        type = "#HalberdNullified",
+        from = target.id,
+        -- to = {player.id},
+        arg = "sa__halberd",
+        arg2 = data.card:toLogString(),
+      }
+      use.nullifiedTargets = TargetGroup:getRealTargets(use.tos)
+    end
   end,
 }
 local halberdSkill = fk.CreateTriggerSkill{
@@ -740,6 +742,13 @@ local halberdSkill = fk.CreateTriggerSkill{
     room:setEmotion(player, "./packages/standard_cards/image/anim/halberd")
     room:doIndicate(player.id, self.cost_data)
     data.card.skillName = "sa__halberd"
+    room:sendLog{
+      type = "#HalberdTargets",
+      from = player.id,
+      to = self.cost_data,
+      arg = "sa__halberd",
+      card = Card:getIdList(data.card),
+    }
     table.forEach(self.cost_data, function (id)
       table.insert(data.tos, {id})
     end)
@@ -766,6 +775,7 @@ Fk:loadTranslationTable{
   ["#sa__halberd_targets"] = "方天画戟",
   ["#sa__halberd-ask"] = "你可发动【方天画戟】，令任意名势力各不相同且与已选择的目标势力均不相同的角色和任意名没有势力的角色也成为目标",
   ["#sa__halberd_delay"] = "方天画戟",
+  ["#HalberdTargets"] = "%from 发动了 “%arg” ，令 %to 也成为 %card 的目标",
   ["#HalberdNullified"] = "由于 “%arg” 的效果，%from 对所有剩余目标使用的 %arg2 无效",
 }
 

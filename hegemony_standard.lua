@@ -262,8 +262,10 @@ local jushou = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     local room = player.room
     local num = 0
-    for k, v in pairs(H.getKingdomPlayersNum(room)) do
-      num = num + 1
+    for _, v in pairs(H.getKingdomPlayersNum(room)) do
+      if v > 0 then
+        num = num + 1
+      end
     end
     room:drawCards(player, num, self.name)
     if player.dead then return false end

@@ -482,6 +482,8 @@ Fk:loadTranslationTable{
 }
 
 local extension_card = Package("formation_cards", Package.CardPack)
+extension_card.extensionName = "hegemony"
+extension_card.game_modes_whitelist = { 'nos_heg_mode', 'new_heg_mode' }
 
 Fk:loadTranslationTable{
   ["formation_cards"] = "君临天下·阵卡牌",

@@ -3,7 +3,7 @@ local H = {}
 -- 势力相关
 
 --- 获取势力（野心家为role）
----@param player ServerPlayer
+---@param player Player
 ---@return string
 H.getKingdom = function(player)
   local ret = player.kingdom
@@ -33,16 +33,57 @@ H.compareKingdomWith = function(from, to, diff)
   return ret
 end
 
+--- from明置后与to势力是否会相同
+---
+--- diff为false为相同，true为不同
+---@param from Player @ 将明置的角色
+---@param to Player @ 另一角色
+---@param diff bool @ 是否为不同势力
+---@return bool
+H.compareExpectedKingdomWith = function(from, to, diff)
+  local room = Fk:currentRoom()
+  if from == to then
+    return not diff
+  end
+
+  if H.compareKingdomWith(from, to) then
+    return not diff
+  end
+  if to.kingdom == "unknown" then
+    return not diff
+  end
+  if from.kingdom == "unknown" then
+    local kingdom = Fk.generals[H.getActualGeneral(from, false)].kingdom -- 双势力？
+    local i = 1
+    -- 君主……
+
+    for _, p in ipairs(room.players) do
+      if H.getKingdom(p) == kingdom then
+        i = i + 1
+      end
+    end
+
+    if i > #room.players // 2 then
+      return diff
+    elseif kingdom == H.getKingdom(to) then
+      return not diff
+    end
+  end
+  return diff
+end
+
 --- 获取势力角色数列表
----@param room Room
-H.getKingdomPlayersNum = function(room)
+---@param room Room @ 房间
+---@param include_dead bool @ 包括死人
+H.getKingdomPlayersNum = function(room, include_dead)
   local kingdomMapper = {}
-  for _, p in ipairs(room.alive_players) do
+  for _, p in ipairs(include_dead and room.players or room.alive_players) do
     local kingdom = H.getKingdom(p)
     if kingdom ~= "unknown" then
       kingdomMapper[kingdom] = (kingdomMapper[kingdom] or 0) + 1
     end
   end
+  kingdomMapper["unknown"] = 0 -- 麻了
   return kingdomMapper
 end
 
@@ -140,8 +181,8 @@ H.getFormationRelation = function(player)
 end
 
 --- 确认与某角色是否处于队列中
----@param player ServerPlayer
----@param target ServerPlayer
+---@param player ServerPlayer @ 角色1
+---@param target ServerPlayer @ 角色2，若为 player 即 player 是否处于某一队列
 ---@return bool
 H.inFormationRelation = function(player, target)
   if target == player then
@@ -153,17 +194,17 @@ end
 
 --- 确认与某角色是否处于围攻关系
 ---@param player ServerPlayer @ 围攻角色1
----@param target ServerPlayer @ 围攻角色2
+---@param target ServerPlayer @ 围攻角色2，可填 player
 ---@param victim ServerPlayer @ 被围攻角色
 ---@return bool
 H.inSiegeRelation = function(player, target, victim)
   if H.compareKingdomWith(player, victim) or not H.compareKingdomWith(player, target) or victim.kingdom == "unknown" then return false end
   if player == target then
     return (player:getNextAlive() == victim and H.getNextNAlive(player, 2) ~= player and H.compareKingdomWith(H.getNextNAlive(player, 2), player))
-    or (H.getLastNAlive(player) == victim and H.getLastNAlive(player, 2) ~= player and H.compareKingdomWith(H.getLastNAlive(player, 2), player))
+    or (victim:getNextAlive() == player and H.getLastNAlive(player, 2) ~= player and H.compareKingdomWith(H.getLastNAlive(player, 2), player))
   else
-    return (player:getNextAlive() == victim and H.getNextNAlive(player, 2) == target)
-    or (H.getLastNAlive(player) == victim and H.getLastNAlive(player, 2) == target)
+    return (player:getNextAlive() == victim and victim:getNextAlive() == target) -- P V T
+    or (victim:getNextAlive() == player and target:getNextAlive() == victim) -- T V P
   end
 end
 
@@ -246,6 +287,7 @@ local function readActiveSpecToSkill(skill, spec)
     })
   end
 end
+
 ---@class ActiveSkillSpec: ActiveSkill
 
 ---@class ArraySummonSkill: ActiveSkillSpec
@@ -262,12 +304,13 @@ H.CreateArraySummonSkill = function(spec)
   skill.arrayType = spec.array_type
 
   skill.canUse = function(curSkill, player, card)
+    local room = Fk:currentRoom()
     local ret = curSkill:isEffectable(player) and player:usedSkillTimes(curSkill.name, Player.HistoryPhase) == 0 and player.kingdom ~= "wild"
-    and (table.contains(Fk.generals[player.general]:getSkillNameList(), curSkill.name) or table.contains(Fk.generals[player.deputyGeneral]:getSkillNameList(), curSkill.name))
-    and table.find(Fk:currentRoom().alive_players, function(p) return p.kingdom == "unknown" end)
+      and H.inGeneralSkills(player, curSkill.name) and table.find(room.alive_players, function(p) return p.kingdom == "unknown" end)
+      and H.getKingdomPlayersNum(room, true)[H.getKingdom(player)] < #room.players // 2
     if not ret then return false end
     local pattern = curSkill.arrayType
-    if pattern == "formation" then
+    if pattern == "formation" then -- 队列
       local p = player
       while true do
         p = p:getNextAlive()
@@ -285,7 +328,9 @@ H.CreateArraySummonSkill = function(spec)
           else break end
         end
       end
-    else -- 围攻
+    elseif pattern == "siege" then -- 围攻
+      if H.compareKingdomWith(player:getNextAlive(), player, true) and H.getNextNAlive(player, 2).kingdom == "unknown" then return true end
+      if H.compareKingdomWith(H.getLastNAlive(player), player, true) and H.getLastNAlive(player, 2).kingdom == "unknown" then return true end
     end
     return false
   end
@@ -293,26 +338,36 @@ H.CreateArraySummonSkill = function(spec)
   skill.onUse = function(curSkill, room, effect)
     local player = room:getPlayerById(effect.from)
     local pattern = curSkill.arrayType
+    local kingdom = H.getKingdom(player)
+    local function ArraySummonAskForReveal(kingdom, to, skill_name)
+      local main = Fk.generals[to:getMark("__heg_general")].kingdom == kingdom
+      local deputy = Fk.generals[to:getMark("__heg_deputy")].kingdom == kingdom
+      return H.askForRevealGenerals(room, to, skill_name, main, deputy)
+    end
     if pattern == "formation" then
-      local kingdom = H.getKingdom(player)
       for i = 1, 2 do
         local p = player
         while true do
-          if H.getKingdomPlayersNum(room)[kingdom] >= #room.players // 2 then break end
+          if H.getKingdomPlayersNum(room, true)[kingdom] >= #room.players // 2 then break end
           p = i == 1 and p:getNextAlive() or H.getLastNAlive(p)
           if p == player then break end
           if not H.compareKingdomWith(p, player) then
             if p.kingdom == "unknown" then
-              local main = Fk.generals[p:getMark("__heg_general")].kingdom == kingdom
-              local deputy = Fk.generals[p:getMark("__heg_deputy")].kingdom == kingdom
-              if not H.askForRevealGenerals(room, p, curSkill.name, main, deputy) then
-                break
-              end
+              if not ArraySummonAskForReveal(kingdom, p, curSkill.name) then break end
             else break end
           end
         end
       end
-    else -- 围攻
+    elseif pattern == "siege" then -- 围攻
+      local p
+      if H.compareKingdomWith(player:getNextAlive(), player, true) then
+        p = H.getNextNAlive(player, 2)
+      elseif H.compareKingdomWith(H.getLastNAlive(player), player, true) and H.getKingdomPlayersNum(room, true)[kingdom] < #room.players // 2 then
+        p = H.getLastNAlive(player, 2)
+      end
+      if p.kingdom == "unknown" then
+        ArraySummonAskForReveal(kingdom, p, curSkill.name)
+      end
     end
   end
 
@@ -563,7 +618,7 @@ end
 --- 获得真正的主将/副将（而非暗将）
 ---@param player ServerPlayer
 ---@param isDeputy bool
----@return string
+---@return generalName string
 H.getActualGeneral = function(player, isDeputy)
   if isDeputy then
     return player.deputyGeneral == "anjiang" and player:getMark("__heg_deputy") or player.deputyGeneral or ""

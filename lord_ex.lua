@@ -508,7 +508,7 @@ Fk:loadTranslationTable{
   ["$fankui-simazhao1"] = "小小试探，紧张个啥？",
   ["$fankui-simazhao2"] = "事不过三，你懂的",
 
-  ["~ld__simazhao"] = "志虽弥坚，也难挡众口铄金...",
+  ["~ld__simazhao"] = "志虽弥坚，也难挡众口铄金……",
 }
 
 

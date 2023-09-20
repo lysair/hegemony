@@ -451,15 +451,141 @@ Fk:loadTranslationTable{
   ['$baoling2'] = '待吾大开杀戒，哈哈哈哈！',
   ['~ld__dongzhuo'] = '为何人人……皆与我为敌？',
 }
---[[
+
+local zhangren = General(extension, "ld__zhangren", "qun", 4)
+
+local chuanxin = fk.CreateTriggerSkill{
+  name = "chuanxin",
+  anim_type = "offensive",
+  events = {fk.DamageCaused},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and target:hasSkill(self.name) and player.phase == Player.Play and data.card and table.contains({"slash", "duel"}, data.card.trueName) and not data.chain
+      and H.compareExpectedKingdomWith(player, data.to, true) and H.hasGeneral(data.to, true)
+  end,
+  on_cost = function(self, event, target, player, data)
+    return player.room:askForSkillInvoke(player, self.name, data, "#chuanxin-ask::" .. data.to.id)
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local target = data.to
+    local all_choices = {"chuanxin_discard", "removeDeputy"}
+    local choices = table.clone(all_choices)
+    if #data.to:getCardIds(Player.Equip) == 0 then table.remove(choices, 1) end
+    local choice = room:askForChoice(target, choices, self.name, nil, false, all_choices)
+    if choice == "removeDeputy" then
+      H.removeGeneral(room, target, true)
+    else
+      target:throwAllCards("e")
+      if not target.dead then
+        room:loseHp(target, 1, self.name)
+      end
+    end
+    return true
+  end,
+}
+
+local fengshi = H.CreateArraySummonSkill{
+  name = "fengshi",
+  array_type = "siege",
+}
+local fengshiTrigger = fk.CreateTriggerSkill{
+  name = "#fengshi_trigger",
+  visible = false,
+  events = {fk.TargetSpecified},
+  can_trigger = function(self, event, target, player, data)
+    return player:hasSkill(self.name) and data.card.trueName == "slash" and H.inSiegeRelation(target, player, player.room:getPlayerById(data.to)) 
+      and #player.room.alive_players > 3 and #player.room:getPlayerById(data.to):getCardIds(Player.Equip) > 0
+  end,
+  on_cost = Util.TrueFunc,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    room:notifySkillInvoked(player, "fengshi", "control")
+    player:broadcastSkillInvoke("fengshi")
+    room:askForDiscard(room:getPlayerById(data.to), 1, 1, true, self.name, false, ".|.|.|equip", "#fengshi-discard")
+  end
+}
+fengshi:addRelatedSkill(fengshiTrigger)
+
+zhangren:addSkill(chuanxin)
+zhangren:addSkill(fengshi)
+
+Fk:loadTranslationTable{
+  ['ld__zhangren'] = '张任',
+  ['chuanxin'] = '穿心',
+  [':chuanxin'] = '当你于出牌阶段内使用【杀】或【决斗】对目标角色造成伤害时，若其与你势力不同，且其有副将，你可防止此伤害，令其选择一项：1. 弃置装备区里的所有牌，失去1点体力；2. 移除副将。',
+  ['fengshi'] = '锋矢',
+  [':fengshi'] = '阵法技，当【杀】指定目标后，若你是围攻角色，且使用者为你或另一名围攻角色，且目标角色是被围攻角色，你令目标角色弃置装备区里的一张牌。',
+
+  ["chuanxin_discard"] = "弃置装备区里的所有牌，失去1点体力",
+  ["removeDeputy"] = "移除副将",
+  ["#chuanxin-ask"] = "你可防止此伤害，对 %dest 发动“穿心”",
+  ["#fengshi_trigger"] = "锋矢",
+  ["#fengshi-discard"] = "锋矢：弃置装备区里的一张牌",
+
+  ['$chuanxin1'] = '一箭穿心，哪里可逃？',
+  ['$chuanxin2'] = '穿心之痛，细细品吧，哈哈哈哈！',
+  ['$fengshi1'] = '大军压境，还不卸甲受降！',
+  ['$fengshi2'] = '放下兵器，饶你不死！',
+  ['~ld__zhangren'] = '本将军败于诸葛，无憾……',
+}
+
 local extension_card = Package("momentum_cards", Package.CardPack)
+extension_card.extensionName = "hegemony"
+extension_card.game_modes_whitelist = { 'nos_heg_mode', 'new_heg_mode' }
+
+local peaceSpellSkill = fk.CreateTriggerSkill{
+  name = "#peace_spell_skill",
+  attached_equip = "peace_spell",
+  frequency = Skill.Compulsory,
+  events = {fk.DamageInflicted},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) and data.damageType ~= fk.NormalDamage
+  end,
+  on_use = function(self, event, target, player, data)
+    player.room:notifySkillInvoked(player, "peace_spell", "defensive")
+    return true
+  end,
+}
+local peace_spell_maxcards = fk.CreateMaxCardsSkill{
+  name = "#peace_spell_maxcards",
+  correct_func = function(self, player)
+    if player:hasSkill("#peace_spell_skill") then
+      return player.kingdom == "unknown" and 1 or H.getKingdomPlayersNum(Fk:currentRoom())[H.getKingdom(player)]
+    else
+      return 0
+    end
+  end,
+}
+peaceSpellSkill:addRelatedSkill(peace_spell_maxcards)
+Fk:addSkill(peaceSpellSkill)
+local peace_spell = fk.CreateArmor{
+  name = "peace_spell",
+  suit = Card.Heart,
+  number = 3,
+  equip_skill = peaceSpellSkill,
+  on_uninstall = function(self, room, player)
+    Armor.onUninstall(self, room, player)
+    if not player.dead and self.equip_skill:isEffectable(player) then
+      room:notifySkillInvoked(player, "peace_spell", "drawcard")
+      player:drawCards(2, self.name)
+      if player.hp > 1 then
+        room:loseHp(player, 1, self.name)
+      end
+    end
+  end,
+}
+H.addCardToConvertCards(peace_spell, "jingfan")
+extension_card:addCard(peace_spell)
 
 Fk:loadTranslationTable{
   ["momentum_cards"] = "君临天下·势卡牌",
 }
 Fk:loadTranslationTable{
   ["peace_spell"] = "太平要术",
-	[":peace_spell"] = "装备牌·防具<br /><b>防具技能</b>：锁定技，①当你受到属性伤害时，你防止此伤害。②你的手牌上限+X（X为与你势力相同的角色数）。③当你失去装备区里的【太平要术】后，若你的体力值大于1，你失去1点体力，然后摸两张牌。",
+	[":peace_spell"] = "装备牌·防具<br /><b>防具技能</b>：锁定技，①当你受到属性伤害时，你防止此伤害。②你的手牌上限+X（X为与你势力相同的角色数）。③当你失去装备区里的【太平要术】后，你摸两张牌，然后若你的体力值大于1，你失去1点体力。",
 }
---]]
-return extension
+
+return {
+  extension,
+  extension_card,
+}

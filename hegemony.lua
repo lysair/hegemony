@@ -442,7 +442,7 @@ local heg_rule = fk.CreateTriggerSkill{
       -- 鏖战
       if #room.alive_players < (#room.players > 6 and 5 or 4) and not room:getTag("BattleRoyalMode") then
         local ret = true
-        for k, v in pairs(H.getKingdomPlayersNum(room)) do
+        for _, v in pairs(H.getKingdomPlayersNum(room)) do
           if v > 1 then
             ret = false
             break
@@ -450,6 +450,9 @@ local heg_rule = fk.CreateTriggerSkill{
         end
         if ret then
           room:doBroadcastNotify("ShowToast", Fk:translate("#EnterBattleRoyalMode"))
+          room:sendLog{
+            type = "#EnterBattleRoyalModeLog",
+          }
           room:setTag("BattleRoyalMode", true) 
           for _, p in ipairs(room.alive_players) do
             -- p:addFakeSkill("battle_royal&")
@@ -593,6 +596,7 @@ heg = fk.CreateGameMode{
     "lunar_heg",
     "lord_ex",
     "formation_cards",
+    "momentum_cards",
   },
   winner_getter = function(self, victim)
     local room = victim.room
@@ -606,14 +610,25 @@ heg = fk.CreateGameMode{
       return p.role
     end
 
-    local winner = alive[1]
-    local kingdom = H.getKingdom(winner)
-    if kingdom == "unknown" then return "" end
+    local winner -- = alive[1]
     for _, p in ipairs(alive) do
-      if not H.compareKingdomWith(p, winner) then -- willBeFriendWith!!!
-        return ""
+      if p.kingdom ~= "unknown" then
+        winner = p
+        break
       end
     end
+    if not winner then return "" end
+    local kingdom = H.getKingdom(winner)
+    local i = H.getKingdomPlayersNum(room, true)[kingdom]
+    for _, p in ipairs(alive) do
+      if not H.compareExpectedKingdomWith(p, winner) then
+        return ""
+      end
+      if p.kingdom == "unknown" then
+        i = i + 1
+      end
+    end
+    if i > #room.players // 2 then return "" end
     return kingdom
   end,
   surrender_func = function(self, playedTime)
@@ -643,6 +658,7 @@ Fk:loadTranslationTable{
   ["revealAll"] = "背水：全部明置",
   ["#EnterBattleRoyalMode"] = "游戏进入 <font color=\"red\"><b>鏖战模式</b></font>，所有的【<font color=\"#3598E8\"><b>桃</b></font>】"..
   "只能当【<font color=\"#3598E8\"><b>杀</b></font>】或【<font color=\"#3598E8\"><b>闪</b></font>】使用或打出，不能用于回复体力",
+  ["#EnterBattleRoyalModeLog"] = "游戏进入 <font color=\"#CC3131\"><b>鏖战模式</b></font>",
   ["#wild-choose"] = "野心家建国：选择你要成为的势力！",
   ["heg_qin"] = "秦",
   ["heg_qi"] = "齐", 

@@ -464,6 +464,7 @@ heg = fk.CreateGameMode{
     "lunar_heg",
     "lord_ex",
     "formation_cards",
+    "momentum_cards",
   },
 }
 
