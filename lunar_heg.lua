@@ -57,187 +57,6 @@ Fk:loadTranslationTable{
   ["fk_heg__wangyi"] = "王异",
 }
 
-local maliang = General(extension, "fk_heg__maliang", "shu", 3)
-maliang:addCompanions("ld__masu")
-maliang:addSkill("xiemu")
-maliang:addSkill("naman")
-Fk:loadTranslationTable{
-  ["fk_heg__maliang"] = "马良",
-  ["~fk_heg__maliang"] = "皇叔为何不听我之言？",
-}
-
-local yijik = General(extension, "fk_heg__yijik", "shu", 3)
-yijik:addSkill("jijie")
-local jiyuan = fk.CreateTriggerSkill{
-  name = "fk_heg__jiyuan",
-  anim_type = "support",
-  events = {fk.EnterDying},
-  can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self.name)
-  end,
-  on_cost = function(self, event, target, player, data)
-    return player.room:askForSkillInvoke(player, self.name, nil, "#jiyuan-trigger::" .. target.id)
-  end,
-  on_use = function(self, event, target, player, data)
-    player.room:doIndicate(player.id, {target.id})
-    target:drawCards(1, self.name)
-  end,
-}
-yijik:addSkill(jiyuan)
-
-Fk:loadTranslationTable{
-  ["fk_heg__yijik"] = "伊籍",
-  ["fk_heg__jiyuan"] = "急援",
-  [":fk_heg__jiyuan"] = "当一名角色进入濒死时，你可令其摸一张牌。",
-}
-
-local mazhong = General(extension, "fk_heg__mazhong", "shu", 4)
-mazhong:addSkill("fuman")
-Fk:loadTranslationTable{
-  ['fk_heg__mazhong'] = '马忠',
-}
-
-local jianyong = General(extension, "fk_heg__jianyong", "shu", 3)
-jianyong:addSkill("qiaoshui")
-jianyong:addSkill("zongshij")
-Fk:loadTranslationTable{
-  ["fk_heg__jianyong"] = "简雍",
-}
-
-local handang = General(extension, "fk_heg__handang", "wu", 4)
-handang:addSkill("gongqi")
-handang:addSkill("jiefan")
-Fk:loadTranslationTable{
-  ["fk_heg__handang"] = "韩当",
-}
-
-local panma = General(extension, "fk_heg__panzhangmazhong", "wu", 4)
-panma:addSkill("duodao")
-panma:addSkill("anjian")
-Fk:loadTranslationTable{
-  ['fk_heg__panzhangmazhong'] = '潘璋马忠',
-}
-
-local zhuzhi = General(extension, "fk_heg__zhuzhi", "wu", 4)
-zhuzhi:addSkill("nos__anguo")
-Fk:loadTranslationTable{
-  ['fk_heg__zhuzhi'] = '朱治',
-}
-
-local zhuhuan = General(extension, "fk_heg__zhuhuan", "wu", 4)
-zhuhuan:addSkill("youdi")
-Fk:loadTranslationTable{
-  ['fk_heg__zhuhuan'] = '朱桓',
-}
-
-local hjls = General(extension, "fk_heg__huangjinleishi", "qun", 3, 3, General.Female)
-hjls:addSkill("fulu")
-hjls:addSkill("zhuji")
-hjls:addCompanions("hs__zhangjiao")
-Fk:loadTranslationTable{
-  ["fk_heg__huangjinleishi"] = "黄巾雷使",
-  ["~fk_heg__huangjinleishi"] = "速报大贤良师……大事已泄……",
-}
-
-local chengui = General(extension, "fk_heg__chengui", "qun", 3)
-local yingtu = fk.CreateTriggerSkill{
-  name = "fk_heg__yingtu",
-  anim_type = "control",
-  events = {fk.AfterCardsMove},
-  can_trigger = function(self, event, target, player, data)
-    if player:hasSkill(self.name) and player:usedSkillTimes(self.name, Player.HistoryRound) == 0 then
-      for _, move in ipairs(data) do
-        if move.to ~= nil and move.toArea == Card.PlayerHand then
-          local p = player.room:getPlayerById(move.to)
-          if p.phase ~= Player.Draw and (p:getNextAlive() == player or player:getNextAlive() == p) and not p:isKongcheng() then
-            return true
-          end
-        end
-      end
-    end
-  end,
-  on_cost = function(self, event, target, player, data)
-    local room = player.room
-    local targets = {}
-    for _, move in ipairs(data) do
-      if move.to ~= nil and move.toArea == Card.PlayerHand then
-        local p = player.room:getPlayerById(move.to)
-        if p.phase ~= Player.Draw and (p:getNextAlive() == player or player:getNextAlive() == p) and not p:isKongcheng() then
-          table.insertIfNeed(targets, move.to)
-        end
-      end
-    end
-    if #targets == 1 then
-      if room:askForSkillInvoke(player, self.name, nil, "#yingtu-invoke::"..targets[1]) then
-        self.cost_data = targets[1]
-        return true
-      end
-    elseif #targets > 1 then
-      local tos = room:askForChoosePlayers(player, targets, 1, 1, "#yingtu-invoke-multi", self.name, true)
-      if #tos > 0 then
-        self.cost_data = tos[1]
-        return true
-      end
-    end
-  end,
-  on_use = function(self, event, target, player, data)
-    local room = player.room
-    local from = room:getPlayerById(self.cost_data)
-    local card = room:askForCardChosen(player, from, "he", self.name)
-    room:obtainCard(player.id, card, false, fk.ReasonPrey)
-    local to = player:getNextAlive() == from and H.getLastNAlive(player) or player:getNextAlive()
-    if not to or to == player then return false end
-    local id = room:askForCard(player, 1, 1, true, self.name, false, ".", "#yingtu-choose::"..to.id)[1]
-    room:obtainCard(to, id, false, fk.ReasonGive)
-    local to_use = Fk:getCardById(id)
-    if to_use.type == Card.TypeEquip and not to.dead and room:getCardOwner(id) == to and room:getCardArea(id) == Card.PlayerHand and
-        not to:prohibitUse(to_use) then
-      --FIXME: stupid 赠物 and 废除装备栏
-      room:useCard({
-        from = to.id,
-        tos = {{to.id}},
-        card = to_use,
-      })
-    end
-  end,
-}
-local congshi = fk.CreateTriggerSkill{
-  name = "fk_heg__congshi",
-  anim_type = "drawcard",
-  frequency = Skill.Compulsory,
-  events = {fk.CardUseFinished},
-  can_trigger = function(self, event, target, player, data)
-    return not target.dead and H.isBigKingdomPlayer(target) and player:hasSkill(self.name) and data.card.type == Card.TypeEquip and table.every(player.room.alive_players, function(p)
-      return #target.player_cards[Player.Equip] >= #p.player_cards[Player.Equip]
-    end)
-  end,
-  on_use = function(self, event, target, player, data)
-    player:drawCards(1, self.name)
-  end,
-}
-chengui:addSkill(yingtu)
-chengui:addSkill(congshi)
-Fk:loadTranslationTable{
-  ["fk_heg__chengui"] = "陈珪",
-  ["fk_heg__yingtu"] = "营图",
-  [":fk_heg__yingtu"] = "每轮限一次，当一名角色于其摸牌阶段外获得牌后，若其是你的上家或下家，你可以获得该角色的一张牌，然后交给你的下家或上家一张牌。若以此法给出的牌为装备牌，获得牌的角色使用之。",
-  ["fk_heg__congshi"] = "从势",
-  [":fk_heg__congshi"] = "锁定技，当大势力角色使用一张装备牌结算结束后，若其装备区里的牌数为全场最多的，你摸一张牌。",
-
-  ["$fk_heg__yingtu1"] = "不过略施小计，聊戏莽夫耳。",
-  ["$fk_heg__yingtu2"] = "栖虎狼之侧，安能不图存身？",
-  ["$fk_heg__congshi1"] = "阁下奉天子以令诸侯，珪自当相从。",
-  ["$fk_heg__congshi2"] = "将军率六师以伐不臣，珪何敢相抗？",
-  ["~fk_heg__chengui"] = "终日戏虎，竟为虎所噬。",
-}
-
-local gongsunzan = General(extension, "fk_heg__gongsunzan", "qun", 4)
-gongsunzan:addSkill("yicong")
-gongsunzan:addSkill("qiaomeng")
-Fk:loadTranslationTable{
-  ["fk_heg__gongsunzan"] = "公孙瓒",
-}
-
 local zhouxuan = General(extension, "fk_heg__zhouxuan", "wei", 3)
 local wumei = fk.CreateTriggerSkill{
   name = "fk_heg__wumei",
@@ -466,6 +285,47 @@ Fk:loadTranslationTable{
   ["~fk_heg__zhouxuan"] = "人生如梦，假时亦真。",
 }
 
+local maliang = General(extension, "fk_heg__maliang", "shu", 3)
+maliang:addCompanions("ld__masu")
+maliang:addSkill("xiemu")
+maliang:addSkill("naman")
+Fk:loadTranslationTable{
+  ["fk_heg__maliang"] = "马良",
+  ["~fk_heg__maliang"] = "皇叔为何不听我之言？",
+}
+
+local yijik = General(extension, "fk_heg__yijik", "shu", 3)
+yijik:addSkill("jijie")
+local jiyuan = fk.CreateTriggerSkill{
+  name = "fk_heg__jiyuan",
+  anim_type = "support",
+  events = {fk.EnterDying},
+  can_trigger = function(self, event, target, player, data)
+    return player:hasSkill(self.name)
+  end,
+  on_cost = function(self, event, target, player, data)
+    return player.room:askForSkillInvoke(player, self.name, nil, "#jiyuan-trigger::" .. target.id)
+  end,
+  on_use = function(self, event, target, player, data)
+    player.room:doIndicate(player.id, {target.id})
+    target:drawCards(1, self.name)
+  end,
+}
+yijik:addSkill(jiyuan)
+
+Fk:loadTranslationTable{
+  ["fk_heg__yijik"] = "伊籍",
+  ["fk_heg__jiyuan"] = "急援",
+  [":fk_heg__jiyuan"] = "当一名角色进入濒死时，你可令其摸一张牌。",
+}
+
+local mazhong = General(extension, "fk_heg__mazhong", "shu", 4)
+mazhong:addSkill("fuman")
+Fk:loadTranslationTable{
+  ['fk_heg__mazhong'] = '马忠',
+}
+
+
 local xianglang = General(extension, "fk_heg__xianglang", "shu", 3)
 local kanji = fk.CreateActiveSkill{
   name = "fk_heg__kanji",
@@ -562,7 +422,7 @@ Fk:loadTranslationTable{
   ["fk_heg__kanji"] = "勘集",
   [":fk_heg__kanji"] = "出牌阶段限一次，你可以展示所有手牌，若花色均不同，你摸两张牌，然后若因此使手牌包含四种花色，则你本回合手牌上限+2。",
   ["fk_heg__qianzheng"] = "愆正",
-  [":fk_heg__qianzheng"] = "每回合限一次，当你成为其他角色使用普通锦囊牌或【杀】的目标时，你可以重铸两张牌，若这两张牌与使用牌类型均不同，"..
+  [":fk_heg__qianzheng"] = "每回合限一次，当你成为其他角色使用普通锦囊牌或【杀】的目标唯一目标时，你可以重铸两张牌，若这两张牌与使用牌类型均不同，"..
   "此牌结算后进入弃牌堆时你可以获得之。",
   ["#fk_heg__qianzheng1-card"] = "愆正：你可以重铸两张牌，若均不为%arg，结算后获得%arg2",
   ["#fk_heg__qianzheng2-card"] = "愆正：你可以重铸两张牌",
@@ -574,5 +434,224 @@ Fk:loadTranslationTable{
   ["$fk_heg__qianzheng2"] = "罪臣怀咎难辞，有愧国恩。",
   ["~fk_heg__xianglang"] = "识文重义而徇私，恨也……",
 }
+
+local jianyong = General(extension, "fk_heg__jianyong", "shu", 3)
+jianyong:addSkill("qiaoshui")
+jianyong:addSkill("zongshij")
+Fk:loadTranslationTable{
+  ["fk_heg__jianyong"] = "简雍",
+}
+
+local handang = General(extension, "fk_heg__handang", "wu", 4)
+handang:addSkill("gongqi")
+handang:addSkill("jiefan")
+Fk:loadTranslationTable{
+  ["fk_heg__handang"] = "韩当",
+}
+
+local panma = General(extension, "fk_heg__panzhangmazhong", "wu", 4)
+panma:addSkill("duodao")
+panma:addSkill("anjian")
+Fk:loadTranslationTable{
+  ['fk_heg__panzhangmazhong'] = '潘璋马忠',
+}
+
+local zhuzhi = General(extension, "fk_heg__zhuzhi", "wu", 4)
+zhuzhi:addSkill("nos__anguo")
+Fk:loadTranslationTable{
+  ['fk_heg__zhuzhi'] = '朱治',
+}
+
+local zhuhuan = General(extension, "fk_heg__zhuhuan", "wu", 4)
+zhuhuan:addSkill("youdi")
+Fk:loadTranslationTable{
+  ['fk_heg__zhuhuan'] = '朱桓',
+}
+
+local guyong = General(extension, "fk_heg__guyong", "wu", 3)
+local bingyi = fk.CreateTriggerSkill{
+  name = "fk_heg__bingyi",
+  anim_type = "defensive",
+  events = {fk.AfterCardsMove},
+  can_trigger = function(self, event, target, player, data)
+    if player:hasSkill(self.name) and player:usedSkillTimes(self.name, Player.HistoryTurn) < 1 and not player:isKongcheng() then
+      for _, move in ipairs(data) do
+        if move.from == player.id and move.moveReason == fk.ReasonDiscard then
+          for _, info in ipairs(move.moveInfo) do
+            if info.fromArea == Card.PlayerHand then
+              return true
+            end
+          end
+        end
+      end
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local cards = player.player_cards[Player.Hand]
+    player:showCards(cards)
+    if #cards > 1 then
+      for _, id in ipairs(cards) do
+        if Fk:getCardById(id).color == Card.NoColor or Fk:getCardById(id).color ~= Fk:getCardById(cards[1]).color then
+          return false
+        end
+      end
+    end
+    local tos = room:askForChoosePlayers(player, table.map(room:getOtherPlayers(player, false), function(p)
+      return p.id end), 1, #cards, "#fk_heg__bingyi-choose:::"..#cards, self.name, true)
+    table.insert(tos, player.id)
+    room:sortPlayersByAction(tos)
+    for _, pid in ipairs(tos) do
+      local p = room:getPlayerById(pid)
+      if not p.dead and p ~= player then
+        room:drawCards(p, 1, self.name)
+      end
+    end
+  end,
+}
+
+local shenxing = fk.CreateActiveSkill{
+  name = "fk_heg__shenxing",
+  anim_type = "drawcard",
+  card_num = 2,
+  target_num = 0,
+  can_use = function(self, player)
+    return not player:isNude() and player:usedSkillTimes(self.name, Player.HistoryPhase) < 4
+  end,
+  card_filter = function(self, to_select, selected)
+    return #selected < 2 and not Self:prohibitDiscard(to_select)
+  end,
+  on_use = function(self, room, effect)
+    local player = room:getPlayerById(effect.from)
+    room:throwCard(effect.cards, self.name, player, player)
+    player:drawCards(1, self.name)
+  end
+}
+
+guyong:addSkill(shenxing)
+guyong:addSkill(bingyi)
+Fk:loadTranslationTable{
+  ["fk_heg__guyong"] = "顾雍",
+  ["fk_heg__bingyi"] = "秉壹",
+  [":fk_heg__bingyi"] = "每回合限一次，当你的手牌被弃置后，你可以展示所有手牌，若颜色均相同，你令至多X名其他角色各摸一张牌（X为你的手牌数）。",
+  ["#fk_heg__bingyi-choose"] = "秉壹：你可以令至多%arg名其他角色各摸一张牌",
+  ["fk_heg__shenxing"] = "慎行",
+  [":fk_heg__shenxing"] = "出牌阶段限四次，你可以弃置两张牌，然后摸一张牌。",
+
+  ["$fk_heg__guyong1"] = "上兵伐谋，三思而行。",
+  ["$fk_heg__guyong2"] = "精益求精，慎之再慎。",
+  ["$fk_heg__bingyi1"] = "秉直进谏，勿藏私心！",
+  ["$fk_heg__bingyi2"] = "秉公守一，不负圣恩！",
+  ["~fk_heg__guyong"] = "此番患疾，吾必不起……",
+}
+
+local hjls = General(extension, "fk_heg__huangjinleishi", "qun", 3, 3, General.Female)
+hjls:addSkill("fulu")
+hjls:addSkill("zhuji")
+hjls:addCompanions("hs__zhangjiao")
+Fk:loadTranslationTable{
+  ["fk_heg__huangjinleishi"] = "黄巾雷使",
+  ["~fk_heg__huangjinleishi"] = "速报大贤良师……大事已泄……",
+}
+
+local chengui = General(extension, "fk_heg__chengui", "qun", 3)
+local yingtu = fk.CreateTriggerSkill{
+  name = "fk_heg__yingtu",
+  anim_type = "control",
+  events = {fk.AfterCardsMove},
+  can_trigger = function(self, event, target, player, data)
+    if player:hasSkill(self.name) and player:usedSkillTimes(self.name, Player.HistoryRound) == 0 then
+      for _, move in ipairs(data) do
+        if move.to ~= nil and move.toArea == Card.PlayerHand then
+          local p = player.room:getPlayerById(move.to)
+          if p.phase ~= Player.Draw and (p:getNextAlive() == player or player:getNextAlive() == p) and not p:isKongcheng() then
+            return true
+          end
+        end
+      end
+    end
+  end,
+  on_cost = function(self, event, target, player, data)
+    local room = player.room
+    local targets = {}
+    for _, move in ipairs(data) do
+      if move.to ~= nil and move.toArea == Card.PlayerHand then
+        local p = player.room:getPlayerById(move.to)
+        if p.phase ~= Player.Draw and (p:getNextAlive() == player or player:getNextAlive() == p) and not p:isKongcheng() then
+          table.insertIfNeed(targets, move.to)
+        end
+      end
+    end
+    if #targets == 1 then
+      if room:askForSkillInvoke(player, self.name, nil, "#yingtu-invoke::"..targets[1]) then
+        self.cost_data = targets[1]
+        return true
+      end
+    elseif #targets > 1 then
+      local tos = room:askForChoosePlayers(player, targets, 1, 1, "#yingtu-invoke-multi", self.name, true)
+      if #tos > 0 then
+        self.cost_data = tos[1]
+        return true
+      end
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local from = room:getPlayerById(self.cost_data)
+    local card = room:askForCardChosen(player, from, "he", self.name)
+    room:obtainCard(player.id, card, false, fk.ReasonPrey)
+    local to = player:getNextAlive() == from and H.getLastNAlive(player) or player:getNextAlive()
+    if not to or to == player then return false end
+    local id = room:askForCard(player, 1, 1, true, self.name, false, ".", "#yingtu-choose::"..to.id)[1]
+    room:obtainCard(to, id, false, fk.ReasonGive)
+    local to_use = Fk:getCardById(id)
+    if to_use.type == Card.TypeEquip and not to.dead and room:getCardOwner(id) == to and room:getCardArea(id) == Card.PlayerHand and
+        not to:prohibitUse(to_use) then
+      --FIXME: stupid 赠物 and 废除装备栏
+      room:useCard({
+        from = to.id,
+        tos = {{to.id}},
+        card = to_use,
+      })
+    end
+  end,
+}
+local congshi = fk.CreateTriggerSkill{
+  name = "fk_heg__congshi",
+  anim_type = "drawcard",
+  frequency = Skill.Compulsory,
+  events = {fk.CardUseFinished},
+  can_trigger = function(self, event, target, player, data)
+    return not target.dead and H.isBigKingdomPlayer(target) and player:hasSkill(self.name) and data.card.type == Card.TypeEquip and table.every(player.room.alive_players, function(p)
+      return #target.player_cards[Player.Equip] >= #p.player_cards[Player.Equip]
+    end)
+  end,
+  on_use = function(self, event, target, player, data)
+    player:drawCards(1, self.name)
+  end,
+}
+chengui:addSkill(yingtu)
+chengui:addSkill(congshi)
+Fk:loadTranslationTable{
+  ["fk_heg__chengui"] = "陈珪",
+  ["fk_heg__yingtu"] = "营图",
+  [":fk_heg__yingtu"] = "每轮限一次，当一名角色于其摸牌阶段外获得牌后，若其是你的上家或下家，你可以获得该角色的一张牌，然后交给你的下家或上家一张牌。若以此法给出的牌为装备牌，获得牌的角色使用之。",
+  ["fk_heg__congshi"] = "从势",
+  [":fk_heg__congshi"] = "锁定技，当大势力角色使用一张装备牌结算结束后，若其装备区里的牌数为全场最多的，你摸一张牌。",
+
+  ["$fk_heg__yingtu1"] = "不过略施小计，聊戏莽夫耳。",
+  ["$fk_heg__yingtu2"] = "栖虎狼之侧，安能不图存身？",
+  ["$fk_heg__congshi1"] = "阁下奉天子以令诸侯，珪自当相从。",
+  ["$fk_heg__congshi2"] = "将军率六师以伐不臣，珪何敢相抗？",
+  ["~fk_heg__chengui"] = "终日戏虎，竟为虎所噬。",
+}
+
+local gongsunzan = General(extension, "fk_heg__gongsunzan", "qun", 4)
+gongsunzan:addSkill("yicong")
+gongsunzan:addSkill("qiaomeng")
+Fk:loadTranslationTable{
+  ["fk_heg__gongsunzan"] = "公孙瓒",
+}
+
 
 return extension
