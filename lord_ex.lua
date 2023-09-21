@@ -132,7 +132,7 @@ local qiance = fk.CreateTriggerSkill{
   anim_type = "control",
   events = {fk.TargetSpecified},
   can_trigger = function (self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and data.card:isCommonTrick()
+    return target == player and player:hasSkill(self.name) and data.card:isCommonTrick() and data.firstTarget
   end,
   on_cost = function (self, event, target, player, data)
     return player.room:askForSkillInvoke(player, self.name, nil, "#ld__qiance-ask") 
