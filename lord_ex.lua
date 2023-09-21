@@ -485,6 +485,8 @@ suzhi:addRelatedSkill(suzhi_target)
 simazhao:addSkill(zhaoxin)
 simazhao:addSkill(suzhi)
 simazhao:addRelatedSkill(fankui)
+simazhao:addCompanions("hs__simayi")
+
 Fk:loadTranslationTable{
   ["ld__simazhao"] = "司马昭",
   ["ld__zhaoxin"] = "昭心",
