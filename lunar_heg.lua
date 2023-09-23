@@ -1059,7 +1059,7 @@ local huagui = fk.CreateActiveSkill{
     for _, id in ipairs(targets) do
       local target = room:getPlayerById(id)
       if not target:isNude() then
-        local card1 = room:askForCard(target, 1, 1, true, self.name, false, ".", "#fk_heg__huagui-give::"..player.id)
+        local card1 = room:askForCard(target, 1, 1, true, self.name, false, ".", "#fk_heg__huagui-give:"..player.id)
         local dummy1 = Fk:cloneCard("dilu")
         dummy1:addSubcards(card1)
         room:obtainCard(player, dummy1, false, fk.ReasonGive)
