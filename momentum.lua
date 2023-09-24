@@ -330,6 +330,14 @@ Fk:loadTranslationTable{
 
   ["yingyang_plus3"] = "令你的拼点牌点数+3",
   ["yingyang_sub3"] = "令你的拼点牌点数-3",
+
+  ["$yingyang1"] = "此战，我必取胜！",
+  ["$yingyang2"] = "相斗之趣，吾常胜之。",
+  ["$heg_sunce__yingzi1"] = "公瑾，助我决一死战。",
+  ["$heg_sunce__yingzi2"] = "尔等看好了！",
+  ["$heg_sunce__yinghun1"] = "父亲，助我背水一战。",
+  ["$heg_sunce__yinghun2"] = "孙氏英烈，魂佑江东！",
+  ["~ld__sunce"] = "内事不决问张昭，外事不决问周瑜……",
 }
 
 local chengdong = General(extension, "ld__chenwudongxi", "wu", 4)

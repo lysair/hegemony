@@ -79,7 +79,7 @@ Fk:loadTranslationTable{
 
   ["$ld__jieyue1"] = "杀我？你做不到！",
   ["$ld__jieyue2"] = "阳关大道，你不选吗？",
-  ["~ld__yujin"] = "晚节不保……",
+  ["~ld__yujin"] = "此役一败，晚节不保啊……",
 }
 
 local wangping = General(extension, "ld__wangping", "shu", 4)
