@@ -270,10 +270,10 @@ function HegLogic:chooseGenerals()
   room.current = lord
   lord.role = "hidden"
 
-  local nonlord = room.players
-  local generals = Fk:getGeneralsRandomly(#nonlord * generalNum)
+  local players = room.players
+  local generals = Fk:getGeneralsRandomly(#players * generalNum)
   -- table.shuffle(generals)
-  for _, p in ipairs(nonlord) do
+  for _, p in ipairs(players) do
     local arg = { map = table.map }
     for i = 1, generalNum do
       table.insert(arg, table.remove(generals, 1))
@@ -291,9 +291,9 @@ function HegLogic:chooseGenerals()
     p.request_data = json.encode({ arg, 2, false, true })
   end
 
-  room:notifyMoveFocus(nonlord, "AskForGeneral")
-  room:doBroadcastRequest("AskForGeneral", nonlord)
-  for _, p in ipairs(nonlord) do
+  room:notifyMoveFocus(players, "AskForGeneral")
+  room:doBroadcastRequest("AskForGeneral", players)
+  for _, p in ipairs(players) do
     local general, deputy
     if p.general == "" and p.reply_ready then
       local generals = json.decode(p.client_reply)
@@ -429,6 +429,8 @@ local heg_invalid = fk.CreateInvaliditySkill{
 
 local wildKingdoms = {"heg_qin", "heg_qi", "heg_chu", "heg_yan", "heg_zhao", "heg_hanr", "heg_jin", "heg_han", "heg_xia", "heg_shang", "heg_zhou", "heg_liang"} -- hanr 韩
 
+local kingdomMapper = { ["ld__zhonghui"] = "heg_han", ["ld__simazhao"] = "heg_jin", ["ld__gongsunyuan"] = "heg_yan", ["ld__sunchen"] = "heg_chu" }
+
 local heg_rule = fk.CreateTriggerSkill{
   name = "#heg_rule",
   priority = 0.001,
@@ -499,9 +501,9 @@ local heg_rule = fk.CreateTriggerSkill{
         for _, p in ipairs(room.players) do
           table.removeOne(choices, p.role)
         end
-        if player.general == "ld__zhonghui" and data == "ld__zhonghui" and player.role ~= "heg_han" then -- 野心家钦定
-          if table.contains(choices, "heg_han") then
-            choice = "heg_han"
+        if player.general == data and kingdomMapper[data] and kingdomMapper[data] ~= player.role then -- 野心家钦定
+          if table.contains(choices, kingdomMapper[data]) then
+            choice = kingdomMapper[data]
           else
             choice = room:askForChoice(player, choices, self.name, "#wild-choose", false, all_choices)
           end

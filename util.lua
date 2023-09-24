@@ -764,11 +764,17 @@ H.transformGeneral = function(room, player, isMain)
   if orig == "anjiang" then player:revealGeneral(not isMain, true) end
   local existingGenerals = {}
   for _, p in ipairs(room.players) do
-    table.insert(existingGenerals, p.general == "anjiang" and p:getMark("__heg_general") or p.general)
-    table.insert(existingGenerals, p.deputyGeneral == "anjiang" and p:getMark("__heg_deputy") or p.deputyGeneral)
+    table.insert(existingGenerals, H.getActualGeneral(p, false))
+    table.insert(existingGenerals, H.getActualGeneral(p, true))
   end
   room.logic:trigger("fk.GeneralTransforming", player, orig)
-  local generals = table.map(Fk:getGeneralsRandomly(3, Fk:getAllGenerals(), existingGenerals, function(p) return (p.kingdom ~= player.kingdom) end), Util.NameMapper)
+  local generals
+  if Fk.generals[H.getActualGeneral(player, false)].kingdom == "wild" then
+    generals = Fk:getGeneralsRandomly(3, Fk:getAllGenerals(), existingGenerals, function(p) return p.kingdom == "wild" end)
+  else
+    generals = Fk:getGeneralsRandomly(3, Fk:getAllGenerals(), existingGenerals, function(p) return p.kingdom ~= player.kingdom end)
+  end
+  generals = table.map(generals, Util.NameMapper)
   local general = room:askForGeneral(player, generals, 1, true)
   room:changeHero(player, general, false, not isMain, true, false)
 end

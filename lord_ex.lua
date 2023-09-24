@@ -155,8 +155,7 @@ local jujian = fk.CreateTriggerSkill{
   relate_to_place = "d",
   events = {fk.DamageInflicted},
   can_trigger = function (self, event, target, player, data)
-    return player:hasSkill(self.name) and H.compareKingdomWith(player, data.to)
-     and data.damage >= data.to.hp
+    return player:hasSkill(self.name) and H.compareKingdomWith(player, data.to) and data.damage >= data.to.hp
   end,
   on_cost = function (self, event, target, player, data)
     return player.room:askForSkillInvoke(player, self.name, nil, "#ld__jujian-ask") 
@@ -187,7 +186,12 @@ Fk:loadTranslationTable{
   ["~ld__xushu"] = "大义无言，虽死无怨。",
 }
 
+local liuqi = General(extension, "ld__liuqi", "qun", 4)
+liuqi.subkingdom = "shu"
 
+Fk:loadTranslationTable{
+  ["ld__liuqi"] = "刘琦",
+}
 local zhonghui = General(extension, "ld__zhonghui", "wild", 4)
 zhonghui:addCompanions("ld__jiangwei")
 local quanji = fk.CreateTriggerSkill{
@@ -358,6 +362,7 @@ local function swapHandCards(room, from, to1, to2, skillname)
 end
 
 local simazhao = General(extension, "ld__simazhao", "wild", 3)
+simazhao:addCompanions("hs__simayi")
 local zhaoxin = fk.CreateTriggerSkill{
   name = "ld__zhaoxin",
   anim_type = "control",
