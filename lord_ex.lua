@@ -188,13 +188,15 @@ Fk:loadTranslationTable{
   ["$ld__jujian2"] = "愿与将军共图王之霸业。",
   ["~ld__xushu"] = "大义无言，虽死无怨。",
 }
-
+--[[
 local liuqi = General(extension, "ld__liuqi", "qun", 4)
 liuqi.subkingdom = "shu"
 
 Fk:loadTranslationTable{
   ["ld__liuqi"] = "刘琦",
 }
+]]
+
 local zhonghui = General(extension, "ld__zhonghui", "wild", 4)
 zhonghui:addCompanions("ld__jiangwei")
 local quanji = fk.CreateTriggerSkill{
@@ -431,6 +433,7 @@ Fk:loadTranslationTable{
   ["@@ld__fankui_simazhao"] = "夙智 反馈",
 
   ["ld__simazhao__fankui"] = "反馈",
+  [":ld__simazhao__fankui"] = "当你受到伤害后，你可获得来源的一张牌。",
 
   ["$ld__zhaoxin1"] = "行明动正，何惧他人讥毁。",
   ["$ld__zhaoxin2"] = "大业之举，岂因宵小而动？",
