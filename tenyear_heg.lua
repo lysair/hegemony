@@ -1039,6 +1039,7 @@ Fk:loadTranslationTable{
 
 local lvlingqi = General(extension, "ty_heg__lvlingqi", "qun", 4,4,General.Female)
 lvlingqi.mainMaxHpAdjustedValue = -1
+
 local guowu = fk.CreateTriggerSkill{
   name = "ty_heg__guowu",
   anim_type = "offensive",
@@ -1073,6 +1074,7 @@ local guowu = fk.CreateTriggerSkill{
     end
   end,
 }
+
 local function getUseExtraTargets(room, data, bypass_distances)
   if not (data.card.type == Card.TypeBasic or data.card:isCommonTrick()) then return {} end
   if data.card.skill:getMinTargetNum() > 1 then return {} end --stupid collateral
@@ -1087,6 +1089,7 @@ local function getUseExtraTargets(room, data, bypass_distances)
   end
   return tos
 end
+
 local guowu_delay = fk.CreateTriggerSkill{
   name = "#ty_heg__guowu_delay",
   anim_type = "offensive",
@@ -1126,7 +1129,6 @@ local wushuangZR = fk.CreateTriggerSkill{
     if not player:hasSkill(self.name) then
       return false
     end
-
     if event == fk.TargetSpecified then
       return target == player and table.contains({ "slash", "duel" }, data.card.trueName)
     else
@@ -1176,9 +1178,7 @@ local zhuangrong_refresh = fk.CreateTriggerSkill{
     local room = player.room
     room:handleAddLoseSkills(player, "-ty_heg__zhuanrong_hs_wushuang", nil)
     room:setPlayerMark(player, "@@ty_heg__zhuanrong_hs_wushuang", 0)
-    
   end,
-
 }
   
  local shenwei = fk.CreateTriggerSkill{
@@ -1234,12 +1234,8 @@ Fk:loadTranslationTable{
   ["$ty_heg__guowu2"] = "武姬青丝利，巾帼女儿红。",
   ["$ty_heg__zhuangrong1"] = "锋镝鸣手中，锐戟映秋霜。",
   ["$ty_heg__zhuangrong2"] = "红妆非我愿，学武觅封侯。",
-  
   ["$ty_heg__shenwei1"] = "继父神威，无坚不摧！",
   ["$ty_heg__shenwei2"] = "我乃温侯吕奉先之女！",
-  
-
-  
   ["$ty_heg__zhuanrong_hs_wushuang1"] = "猛将策良骥，长戟破敌营。",
   ["$ty_heg__zhuanrong_hs_wushuang2"] = "杀气腾剑戟，严风卷戎装。",
   ["~ty_heg__lvlingqi"] = "父亲，女儿好累……",
