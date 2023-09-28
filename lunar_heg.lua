@@ -628,9 +628,12 @@ local mingzheng = fk.CreateTriggerSkill{
   events = {fk.GeneralRevealed},
   can_trigger = function (self, event, target, player, data)
     if player:hasSkill(self.name) and H.compareKingdomWith(target, player) and not target.dead then
-      return true
-    end
-        
+      if H.getGeneralsRevealedNum(target) == 2 then
+        return #player.room:canMoveCardInBoard() > 0
+      else
+        return true
+      end
+    end 
   end,
   on_cost = function (self, event, target, player, data)
     return target.room:askForSkillInvoke(target, self.name, nil, "#fk_heg__mingzheng-invoke")
@@ -674,14 +677,12 @@ local yujian = fk.CreateTriggerSkill{
       elseif event == fk.TurnEnd then
         return player:getMark("@fk_heg__yujian-turn") > 0
       end
-    
   end,
   on_cost = function (self, event, target, player, data)
     if (event == fk.Damage and player:getMark("@fk_heg__yujian-turn") > 0 and not (player:getMark("@fk_heg__yujian_change-turn") > 0)) or event == fk.TurnEnd then
       return true
     else
       return player.room:askForSkillInvoke(player, self.name, nil, "#fk_heg__yujian-invoke")
-      
     end
   end,
   on_use = function (self, event, target, player, data)
@@ -723,10 +724,10 @@ luotong:addSkill(yujian)
 Fk:loadTranslationTable{
   ["fk_heg__luotong"] = "骆统",
   ["fk_heg__mingzheng"] = "明政",
-  [":fk_heg__mingzheng"] = "与你势力相同的角色明置武将牌后，若其武将牌：仅明置一张，其可以移动场上一张牌；均明置，其可以复原武将牌，然后摸一张牌",
+  [":fk_heg__mingzheng"] = "与你势力相同的角色明置武将牌后，若其武将牌：仅明置一张，其可以移动场上一张牌；均明置，其可以复原武将牌，然后摸一张牌。",
   ["fk_heg__yujian"] = "御谏",
   [":fk_heg__yujian"] = "其他角色于其出牌阶段内首次造成伤害后，你可以与其交换手牌，然后若其武将牌均明置，你可以暗置其一张武将牌且直至本回合结束不能明置之。"..
-  "若如此做，此回合结束时，你与其交换手牌，且若其于此回合内再次造成过伤害，你变更副将",
+  "若如此做，此回合结束时，你与其交换手牌，且若其于此回合内再次造成过伤害，你变更副将（可多次变更）。",
 
   ["#fk_heg__mingzheng-invoke"] = "明政：是否根据已明置的武将牌数执行对应操作",
   ["#fk_heg__mingzheng-move"] = "明政：请移动场上的一张牌",
@@ -1041,7 +1042,7 @@ local huagui = fk.CreateActiveSkill{
   card_num = 0,
   min_target_num = 1,
   can_use = function(self, player)
-    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and not player:isNude()
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
   end,
   card_filter = function(self, to_select, selected)
     return false
@@ -1058,17 +1059,16 @@ local huagui = fk.CreateActiveSkill{
     room:sortPlayersByAction(targets)
     for _, id in ipairs(targets) do
       local target = room:getPlayerById(id)
-      if not target:isNude() then
+      if not target.dead then
         local card1 = room:askForCard(target, 1, 1, true, self.name, false, ".", "#fk_heg__huagui-give:"..player.id)
         local dummy1 = Fk:cloneCard("dilu")
         dummy1:addSubcards(card1)
         room:obtainCard(player, dummy1, false, fk.ReasonGive)
-        
       end
     end
     for _, id in ipairs(targets) do
       local target = room:getPlayerById(id)
-      if not player:isNude() then
+      if not player.dead then
         local card2 = room:askForCard(player, 1, 1, true, self.name, false, ".", "#fk_heg__huagui-give:"..target.id)
         local dummy2 = Fk:cloneCard("dilu")
         dummy2:addSubcards(card2)
@@ -1089,7 +1089,6 @@ Fk:loadTranslationTable{
 
   ["@@fk_heg__chongwang"] = "崇望",
   ["#fk_heg__chongwang-invoke"] = "崇望：你可以令此牌无效",
-
   ["fk_heg__chongwang-invalid"] = "此牌无效",
   
   ["#fk_heg__huagui-give"] = "化归：将一张牌交给 %src",
