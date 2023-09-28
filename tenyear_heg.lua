@@ -1097,9 +1097,6 @@ local guowu_delay = fk.CreateTriggerSkill{
     return target == player and player:getMark("guowu3-phase") > 0 and not player.dead and
       (data.card.trueName == "slash") and #getUseExtraTargets(player.room, data) > 0
   end,
-  can_use = function(self, player)
-    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 
-  end,
   on_use = function(self, event, target, player, data)
     local room = player.room
     local targets = getUseExtraTargets(room, data)
@@ -1158,7 +1155,7 @@ local zhuangrong = fk.CreateActiveSkill{
   end,
   card_filter = function(self, to_select, selected)
     local card = Fk:getCardById(to_select)
-    return #selected == 0 and card.type == Card.TypeTrick
+    return #selected == 0 and card.type == Card.TypeTrick and not Self:prohibitDiscard(to_select)
   end,
   on_use = function(self, room, effect)
     local from = room:getPlayerById(effect.from)
@@ -1202,7 +1199,7 @@ local zhuangrong_refresh = fk.CreateTriggerSkill{
 local shenwei_maxcards = fk.CreateMaxCardsSkill{
   name = "#ty_heg__shenwei_maxcards",
   fixed_func = function(self, player)
-    if player:hasSkill(self.name) then
+    if player:hasSkill(shenwei.name) then
       return player.hp + 2
     end
   end
