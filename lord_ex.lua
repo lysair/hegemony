@@ -291,7 +291,6 @@ Fk:loadTranslationTable{
 }
 
 local simazhao = General(extension, "ld__simazhao", "wild", 3)
-simazhao:addCompanions("hs__simayi")
 local zhaoxin = fk.CreateTriggerSkill{
   name = "ld__zhaoxin",
   anim_type = "control",
@@ -455,16 +454,16 @@ Fk:loadTranslationTable{
 
 Fk:loadTranslationTable{
   ["ld__sunchen"] = "孙綝",
-  ["shilus"] = "嗜戮",
-  [":shilus"] = "当一名角色死亡后，你可将其所有武将牌置于你的武将牌旁，称为“戮”，若你为来源，你从剩余武将牌堆额外获得两张“戮”。"..
+  ["shiluk"] = "嗜戮",
+  [":shiluk"] = "当一名角色死亡后，你可将其所有武将牌置于你的武将牌旁，称为“戮”，若你为来源，你从剩余武将牌堆额外获得两张“戮”。"..
   "准备阶段，你可以弃置至多X张牌（X为“戮”数），摸等量的牌。",
   ["xiongnve"] = "凶虐",
   [":xiongnve"] = "出牌阶段开始时，你可以移去一张“戮”，令你本回合对此“戮”势力角色获得下列效果中的一项："..
   "1.对其造成伤害时，令此伤害+1；2.对其造成伤害时，你获得其一张牌；3.对其使用牌无次数限制。"..
   "出牌阶段结束时，你可以移去两张“戮”，然后直到你的下回合，其他角色对你造成的伤害-1。",
 
-  ["$shilus1"] = "以杀立威，谁敢反我？",
-  ["$shilus2"] = "将这些乱臣贼子，尽皆诛之！",
+  ["$shiluk1"] = "以杀立威，谁敢反我？",
+  ["$shiluk2"] = "将这些乱臣贼子，尽皆诛之！",
   ["$xiongnve1"] = "当今天子乃我所立，他敢怎样？",
   ["$xiongnve2"] = "我兄弟三人同掌禁军，有何所惧？",
   ["~ld__sunchen"] = "愿陛下念臣昔日之功，陛下？陛下！！",

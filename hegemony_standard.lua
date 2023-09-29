@@ -984,15 +984,24 @@ local zhiheng = fk.CreateActiveSkill{
   target_num = 0,
   min_card_num = 1,
   max_card_num = function()
-    return Self.maxHp
+    return table.find(Self:getEquipments(Card.SubtypeTreasure), function(cid)
+      return Fk:getCardById(cid).name == "luminous_pearl"
+    end) and 998 or Self.maxHp
   end,
   card_filter = function(self, to_select, selected)
-    return #selected < Self.maxHp
+    if #selected >= Self.maxHp then
+      return table.find(Self:getEquipments(Card.SubtypeTreasure), function(cid)
+        return Fk:getCardById(cid).name == "luminous_pearl" and not table.contains(selected, cid) and to_select ~= cid
+      end)
+    end
+    return #selected < Self.maxHp and not Self:prohibitDiscard(to_select)
   end,
   on_use = function(self, room, effect)
     local from = room:getPlayerById(effect.from)
     room:throwCard(effect.cards, self.name, from, from)
-    from:drawCards(#effect.cards, self.name)
+    if not from.dead then
+      from:drawCards(#effect.cards, self.name)
+    end
   end
 }
 

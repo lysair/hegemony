@@ -427,4 +427,69 @@ Fk:loadTranslationTable{
   ["~ld__lijueguosi"] = "异心相争，兵败战损……",
 }
 
-return extension
+local extension_card = Package("transformation_cards", Package.CardPack)
+extension_card.extensionName = "hegemony"
+extension_card.game_modes_whitelist = { 'nos_heg_mode', 'new_heg_mode' }
+
+Fk:loadTranslationTable{
+  ["transformation_cards"] = "君临天下·变卡牌",
+}
+
+local luminousPearlSkill = fk.CreateActiveSkill{
+  name = "luminous_pearl_skill",
+  attached_equip = "luminous_pearl",
+  can_use = function(self, player)
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
+  end,
+  target_num = 0,
+  min_card_num = 1,
+  max_card_num = function()
+    return Self.maxHp
+  end,
+  card_filter = function(self, to_select, selected)
+    return #selected < Self.maxHp and not Self:prohibitDiscard(to_select) and Fk:getCardById(to_select).name ~= "luminous_pearl"
+  end,
+  on_use = function(self, room, effect)
+    local from = room:getPlayerById(effect.from)
+    room:notifySkillInvoked(from, "luminous_pearl", "drawcard")
+    room:throwCard(effect.cards, self.name, from, from)
+    if not from.dead then
+      from:drawCards(#effect.cards, self.name)
+    end
+  end
+}
+local luminousPearlTrig = fk.CreateTriggerSkill{
+  name = "#luminous_pearl_trigger",
+  refresh_events = {fk.EventAcquireSkill, fk.EventLoseSkill},
+  can_refresh = function(self, event, target, player, data)
+    return player == target and data == Fk.skills["hs__zhiheng"] and table.find(player:getEquipments(Card.SubtypeTreasure), function(cid)
+      return Fk:getCardById(cid).name == "luminous_pearl"
+    end)
+  end,
+  on_refresh = function(self, event, target, player, data)
+    player.room:handleAddLoseSkills(player, event == fk.EventAcquireSkill and "-luminous_pearl_skill" or "luminous_pearl_skill", nil, false, true)
+  end,
+}
+luminousPearlSkill:addRelatedSkill(luminousPearlTrig)
+Fk:addSkill(luminousPearlSkill)
+
+local luminousPearl = fk.CreateTreasure{
+  name = "luminous_pearl",
+  suit = Card.Diamond,
+  number = 6,
+  equip_skill = luminousPearlSkill,
+}
+H.addCardToConvertCards(luminousPearl, "six_swords")
+extension_card:addCard(luminousPearl)
+
+Fk:loadTranslationTable{
+  ["luminous_pearl"] = "定澜夜明珠",
+  [":luminous_pearl"] = "装备牌·宝物<br/><b>宝物技能</b>：锁定技，若你没有〖制衡〗，你视为拥有〖制衡〗；若你有〖制衡〗，将你的〖制衡〗改为{出牌阶段限一次，你可弃置至少一张牌，然后你摸等量的牌}。",
+  ["luminous_pearl_skill"] = "制衡",
+  [":luminous_pearl_skill"] = "出牌阶段限一次，你可弃置至多X张牌（X为你的体力上限），然后你摸等量的牌。",
+}
+
+return {
+  extension,
+  extension_card,
+}
