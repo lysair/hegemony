@@ -1037,4 +1037,208 @@ Fk:loadTranslationTable{
   ["~ty_heg__jianggan"] = "丞相，再给我一次机会啊！",
 }
 
+local lvlingqi = General(extension, "ty_heg__lvlingqi", "qun", 4,4,General.Female)
+lvlingqi.mainMaxHpAdjustedValue = -1
+
+local guowu = fk.CreateTriggerSkill{
+  name = "ty_heg__guowu",
+  anim_type = "offensive",
+  events = {fk.EventPhaseStart},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) and player.phase == Player.Play and not player:isKongcheng()
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local cards = player.player_cards[Player.Hand]
+    player:showCards(cards)
+    local types = {}
+    for _, id in ipairs(cards) do
+      table.insertIfNeed(types, Fk:getCardById(id).type)
+    end
+    local card = room:getCardsFromPileByRule("slash", 1, "discardPile")
+    if #card > 0 then
+      room:moveCards({
+        ids = card,
+        to = player.id,
+        toArea = Card.PlayerHand,
+        moveReason = fk.ReasonJustMove,
+        proposer = player.id,
+        skillName = self.name,
+      })
+    end
+    if #types > 1 then
+      room:addPlayerMark(player, "guowu2-phase", 1)
+    end
+    if #types > 2 then
+      room:addPlayerMark(player, "guowu3-phase", 1)
+    end
+  end,
+}
+
+local function getUseExtraTargets(room, data, bypass_distances)
+  if not (data.card.type == Card.TypeBasic or data.card:isCommonTrick()) then return {} end
+  if data.card.skill:getMinTargetNum() > 1 then return {} end --stupid collateral
+  local tos = {}
+  local current_targets = TargetGroup:getRealTargets(data.tos)
+  for _, p in ipairs(room.alive_players) do
+    if not table.contains(current_targets, p.id) and not room:getPlayerById(data.from):isProhibited(p, data.card) then
+      if data.card.skill:modTargetFilter(p.id, {}, data.from, data.card, not bypass_distances) then
+        table.insert(tos, p.id)
+      end
+    end
+  end
+  return tos
+end
+
+local guowu_delay = fk.CreateTriggerSkill{
+  name = "#ty_heg__guowu_delay",
+  anim_type = "offensive",
+  frequency = Skill.Compulsory,
+  events = {fk.CardUsing},
+  mute = true,
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:getMark("guowu3-phase") > 0 and not player.dead and
+      (data.card.trueName == "slash") and #getUseExtraTargets(player.room, data) > 0
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local targets = getUseExtraTargets(room, data)
+    if #targets == 0 then return false end
+    local tos = room:askForChoosePlayers(player, targets, 1, 2, "#guowu-choose:::"..data.card:toLogString(), guowu.name, true)
+    if #tos > 0 then
+      table.forEach(tos, function (id)
+        table.insert(data.tos, {id})
+      end)
+      room:removePlayerMark(player, "guowu3-phase", 1)
+    end
+  end,
+}
+local guowu_targetmod = fk.CreateTargetModSkill{
+  name = "#ty_heg__guowu_targetmod",
+  bypass_distances =  function(self, player)
+    return player:getMark("guowu2-phase") > 0
+  end,
+}
+
+local wushuangZR = fk.CreateTriggerSkill{
+  name = "ty_heg__zhuanrong_hs_wushuang",
+  anim_type = "offensive",
+  frequency = Skill.Compulsory,
+  events = {fk.TargetSpecified, fk.TargetConfirmed},
+  can_trigger = function(self, event, target, player, data)
+    if not player:hasSkill(self.name) then
+      return false
+    end
+    if event == fk.TargetSpecified then
+      return target == player and table.contains({ "slash", "duel" }, data.card.trueName)
+    else
+      return data.to == player.id and data.card.trueName == "duel"
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    data.fixedResponseTimes = data.fixedResponseTimes or {}
+    if data.card.trueName == "slash" then
+      data.fixedResponseTimes["jink"] = 2
+    else
+      data.fixedResponseTimes["slash"] = 2
+      data.fixedAddTimesResponsors = data.fixedAddTimesResponsors or {}
+      table.insert(data.fixedAddTimesResponsors, (event == fk.TargetSpecified and data.to or data.from))
+    end
+  end,
+}
+
+local zhuangrong = fk.CreateActiveSkill{
+  name = "ty_heg__zhuangrong",
+  anim_type = "offensive",
+  card_num = 1,
+  target_num = 0,
+  can_use = function(self, player)
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and not player:isKongcheng()
+  end,
+  card_filter = function(self, to_select, selected)
+    local card = Fk:getCardById(to_select)
+    return #selected == 0 and card.type == Card.TypeTrick and not Self:prohibitDiscard(to_select)
+  end,
+  on_use = function(self, room, effect)
+    local from = room:getPlayerById(effect.from)
+    room:throwCard(effect.cards, self.name, from, from)
+    if from.dead then return end
+    room:setPlayerMark(from, "@@ty_heg__zhuanrong_hs_wushuang", 1)
+    room:handleAddLoseSkills(from, "ty_heg__zhuanrong_hs_wushuang", nil)
+  end,
+}
+
+local zhuangrong_refresh = fk.CreateTriggerSkill{
+  name = "#ty_heg__zhuangrong_refresh",
+  refresh_events = {fk.EventPhaseEnd},
+  can_refresh = function(self, event, target, player, data)
+    return target == player and player:hasSkill("ty_heg__zhuanrong_hs_wushuang", true, true)
+  end,
+  on_refresh = function(self, event, target, player, data)
+    local room = player.room
+    room:handleAddLoseSkills(player, "-ty_heg__zhuanrong_hs_wushuang", nil)
+    room:setPlayerMark(player, "@@ty_heg__zhuanrong_hs_wushuang", 0)
+  end,
+}
+  
+ local shenwei = fk.CreateTriggerSkill{
+  name = "ty_heg__shenwei",
+  relate_to_place = "m",
+  anim_type = "drawcard",
+  events = {fk.DrawNCards},
+  frequency = Skill.Compulsory,
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) and player.phase == Player.Draw and
+      table.every(player.room.alive_players, function(p) return player.hp >= p.hp end)
+  end,
+  on_use = function(self, event, target, player, data)
+    data.n = data.n + 2
+  end,
+}
+
+local shenwei_maxcards = fk.CreateMaxCardsSkill{
+  name = "#ty_heg__shenwei_maxcards",
+  fixed_func = function(self, player)
+    if player:hasSkill(shenwei.name) then
+      return player.hp + 2
+    end
+  end
+}
+
+
+guowu:addRelatedSkill(guowu_delay)
+guowu:addRelatedSkill(guowu_targetmod)
+lvlingqi:addSkill(guowu)
+lvlingqi:addRelatedSkill(wushuangZR)
+zhuangrong:addRelatedSkill(zhuangrong_refresh)
+lvlingqi:addSkill(zhuangrong)
+shenwei:addRelatedSkill(shenwei_maxcards)
+lvlingqi:addSkill(shenwei)
+
+Fk:loadTranslationTable{
+  ["ty_heg__lvlingqi"] = "吕玲绮",
+  ["ty_heg__guowu"] = "帼武",
+  ["#ty_heg__guowu_delay"] = "帼武",
+  [":ty_heg__guowu"] = "出牌阶段开始时，你可以展示所有手牌，若包含的类别数：不小于1，你从弃牌堆中获得一张【杀】；不小于2，你本阶段使用牌无距离限制；"..
+  "不小于3，你本阶段使用【杀】可以多指定两个目标（限一次）。",
+  ["ty_heg__zhuangrong"] = "妆戎",
+  [":ty_heg__zhuangrong"] = "出牌阶段限一次，你可以弃置一张锦囊牌，然后本阶段获得技能“无双”。",
+  ["ty_heg__shenwei"] = "神威",
+  [":ty_heg__shenwei"] = "主将技，此武将牌上的单独阴阳鱼个数-1。摸牌阶段，若你的体力值为全场最高，你可以多摸两张牌。你的手牌上限+2。",
+  ["ty_heg__zhuanrong_hs_wushuang"] = "无双",
+  ["@@ty_heg__zhuanrong_hs_wushuang"] = "无双",
+  [":ty_heg__zhuanrong_hs_wushuang"] = "锁定技，当你使用【杀】指定一个目标后，该角色需依次使用两张【闪】才能抵消此【杀】；当你使用【决斗】指定一个目标后，或成为一名角色使用【决斗】的目标后，该角色每次响应此【决斗】需依次打出两张【杀】。",
+  ["#ty_heg__guowu-choose"] = "帼武：你可以为%arg增加至多两个目标",
+
+  ["$ty_heg__guowu1"] = "方天映黛眉，赤兔牵红妆。",
+  ["$ty_heg__guowu2"] = "武姬青丝利，巾帼女儿红。",
+  ["$ty_heg__zhuangrong1"] = "锋镝鸣手中，锐戟映秋霜。",
+  ["$ty_heg__zhuangrong2"] = "红妆非我愿，学武觅封侯。",
+  ["$ty_heg__shenwei1"] = "继父神威，无坚不摧！",
+  ["$ty_heg__shenwei2"] = "我乃温侯吕奉先之女！",
+  ["$ty_heg__zhuanrong_hs_wushuang1"] = "猛将策良骥，长戟破敌营。",
+  ["$ty_heg__zhuanrong_hs_wushuang2"] = "杀气腾剑戟，严风卷戎装。",
+  ["~ty_heg__lvlingqi"] = "父亲，女儿好累……",
+}
+
 return extension
