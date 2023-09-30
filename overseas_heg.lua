@@ -190,7 +190,7 @@ local hongyuanTrigger = fk.CreateTriggerSkill{
     local room = player.room
     room:notifySkillInvoked(player, "os_heg__hongyuan", "support")
     player:broadcastSkillInvoke("os_heg__hongyuan")
-    -- data.player = room:getPlayerById(target) -- 没用
+    -- data.who = room:getPlayerById(target)
     room:getPlayerById(target):drawCards(data.num, self.name) -- 摆先
     return true
   end,

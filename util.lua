@@ -602,8 +602,8 @@ Fk:loadTranslationTable{
 ---@param general General
 ---@param deputy General
 ---@return boolean
-H.isCompanionWith = function(general, deputy) -- 缺君主
-  return table.contains(general.companions, deputy.name) or table.contains(deputy.companions, general.name)
+H.isCompanionWith = function(general, deputy)
+  return table.contains(general.companions, deputy.name) or table.contains(deputy.companions, general.name) 
 end
 
 --- 判断有无主将/副将
@@ -637,6 +637,9 @@ H.getGeneralsRevealedNum = function(player)
   return num
 end
 
+-- 君主将。为了方便……
+H.lordGenerals = {}
+
 --- 询问亮将
 ---@param room Room
 ---@param player ServerPlayer
@@ -660,7 +663,47 @@ H.askForRevealGenerals = function(room, player, skill_name, main, deputy, all, c
   if cancelable then table.insert(choices, "Cancel") end
   if #choices == 0 then return false end
 
-  local choice = room:askForChoice(player, choices, skill_name, nil, false, all_choices)
+  local convert = false
+  if lord_convert and room:getTag("RoundCount") == 1 and player:getMark("hasShownMainGeneral") == 0 then
+    local lord = H.lordGenerals[player:getMark("__heg_general")]
+    if lord then
+      if not table.contains(room.disabled_packs, Fk.generals[lord].package.name) and not table.contains(room.disabled_generals, lord) then
+        convert = true
+      end
+    end
+  end
+
+  local choice = room:askForChoice(player, choices, skill_name, convert and "#HegPrepareConvertLord", false, all_choices)  
+
+  if convert and (choice == "revealMain" or choice == "revealAll") and room:askForChoice(player, {"ConvertToLord:::" .. H.lordGenerals[player:getMark("__heg_general")], "Cancel"}, skill_name, nil) ~= "Cancel" then
+    for _, s in ipairs(Fk.generals[player:getMark("__heg_general")]:getSkillNameList()) do
+      local skill = Fk.skills[s]
+      player:loseFakeSkill(skill)
+    end
+    room:setPlayerMark(player, "__heg_general", H.lordGenerals[player:getMark("__heg_general")])
+    local general = Fk.generals[player:getMark("__heg_general")]
+    local deputy = Fk.generals[player:getMark("__heg_deputy")]
+    local dmaxHp = deputy.maxHp + deputy.deputyMaxHpAdjustedValue
+    local gmaxHp = general.maxHp + general.mainMaxHpAdjustedValue
+    local maxHp = (dmaxHp + gmaxHp) // 2
+    local num = maxHp - player.maxHp
+    if num > 0 then
+      player.maxHp = maxHp
+      player.hp = player.hp + num
+      room:broadcastProperty(player, "maxHp")
+      room:broadcastProperty(player, "hp")
+    end
+    if (dmaxHp + gmaxHp) % 2 == 1 then -- 重新计算阴阳鱼
+      player:setMark("HalfMaxHpLeft", 1)
+      player:doNotify("SetPlayerMark", json.encode{ player.id, "HalfMaxHpLeft", 1})
+    else
+      player:setMark("HalfMaxHpLeft", 0)
+      player:doNotify("SetPlayerMark", json.encode{ player.id, "HalfMaxHpLeft", 0})
+    end
+    player:setMark("CompanionEffect", 1)
+    player:doNotify("SetPlayerMark", json.encode{ player.id, "CompanionEffect", 1})
+  end
+
   if choice == "revealMain" then player:revealGeneral(false)
   elseif choice == "revealDeputy" then player:revealGeneral(true)
   elseif choice == "revealAll" then
@@ -671,6 +714,11 @@ H.askForRevealGenerals = function(room, player, skill_name, main, deputy, all, c
   end
   return true
 end
+
+Fk:loadTranslationTable{
+  ["#HegPrepareConvertLord"] = "国战规则：请选择要明置的武将（仅本次明置主将可变身君主）",
+  ["ConvertToLord"] = "<b>变身为<font color='goldenrod'>%arg</font></b>！",
+}
 
 --- 暗置武将牌
 ---@param room Room

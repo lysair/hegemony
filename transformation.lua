@@ -426,7 +426,14 @@ Fk:loadTranslationTable{
   ["$xiongsuan2"] = "谋算计策，吾二人尚有险招。",
   ["~ld__lijueguosi"] = "异心相争，兵败战损……",
 }
-
+--[[
+local lordsunquan = General(extension, "ld__lordsunquan", "wu", 4)
+lordsunquan.hidden = true
+H.lordGenerals["hs__sunquan"] = "ld__lordsunquan"
+Fk:loadTranslationTable{
+  ["ld__lordsunquan"] = "君孙权",
+}
+]]
 local extension_card = Package("transformation_cards", Package.CardPack)
 extension_card.extensionName = "hegemony"
 extension_card.game_modes_whitelist = { 'nos_heg_mode', 'new_heg_mode' }

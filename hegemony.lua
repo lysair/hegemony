@@ -321,6 +321,40 @@ function HegLogic:chooseGenerals()
 
     p.default_reply = ""
   end
+
+  local choiceMap = {}
+  for _, p in ipairs(players) do
+    local allKingdoms = {"wei", "shu", "wu", "qun"}
+    local curGeneral = Fk.generals[p:getMark("__heg_general")]
+    local kingdoms = {curGeneral.kingdom, curGeneral.subkingdom}
+    curGeneral = Fk.generals[p:getMark("__heg_deputy")]
+    if kingdoms[1] == "wild" then
+      kingdoms = {curGeneral.kingdom, curGeneral.subkingdom}
+      room:setPlayerMark(p, "__heg_wild", 1)
+    else
+      kingdoms = table.filter(kingdoms, function(k) return curGeneral.kingdom == k or curGeneral.subkingdom == k end)
+    end
+
+    choiceMap[p.id] = kingdoms
+
+    local data = json.encode({ kingdoms, allKingdoms, "AskForKingdom", "#ChooseHegInitialKingdom" })
+    p.request_data = data
+  end
+
+  room:notifyMoveFocus(players, "AskForKingdom")
+  room:doBroadcastRequest("AskForChoice", players)
+
+  for _, p in ipairs(players) do
+    local kingdomChosen
+    if p.reply_ready then
+      kingdomChosen = p.client_reply
+    else
+      kingdomChosen = choiceMap[p.id][1]
+    end
+    room:setPlayerMark(p, "__heg_kingdom", kingdomChosen)
+    -- p.kingdom = kingdomChosen
+    --room:notifyProperty(p, p, "kingdom")
+  end
 end
 
 function HegLogic:broadcastGeneral()
@@ -346,7 +380,7 @@ function HegLogic:broadcastGeneral()
     room:broadcastProperty(p, "hp")
     room:broadcastProperty(p, "shield")
 
-    p.role = general.kingdom -- 为了死亡时log有势力提示
+    p.role = p:getMark("__heg_wild") == 1 and "wild" or p:getMark("__heg_kingdom") -- general.kingdom -- 为了死亡时log有势力提示
 
     if (dmaxHp + gmaxHp) % 2 == 1 then
       p:setMark("HalfMaxHpLeft", 1)
@@ -428,8 +462,35 @@ local heg_invalid = fk.CreateInvaliditySkill{
 }
 
 local wildKingdoms = {"heg_qin", "heg_qi", "heg_chu", "heg_yan", "heg_zhao", "heg_hanr", "heg_jin", "heg_han", "heg_xia", "heg_shang", "heg_zhou", "heg_liang"} -- hanr 韩
-
 local kingdomMapper = { ["ld__zhonghui"] = "heg_han", ["ld__simazhao"] = "heg_jin", ["ld__gongsunyuan"] = "heg_yan", ["ld__sunchen"] = "heg_chu" }
+local function wildChooseKingdom(room, player, generalName)
+  local choice
+  local all_choices = table.clone(wildKingdoms)
+  local choices = table.clone(all_choices)
+  for _, p in ipairs(room.players) do
+    table.removeOne(choices, p.role)
+  end
+  if player.general == generalName and kingdomMapper[generalName] and kingdomMapper[generalName] ~= player.role then -- 野心家钦定
+    if table.contains(choices, kingdomMapper[generalName]) then
+      choice = kingdomMapper[generalName]
+    else
+      choice = room:askForChoice(player, choices, "#heg_rule", "#wild-choose", false, all_choices)
+    end
+  elseif table.contains({"wei", "shu", "wu", "qun", "jin", "unknown", "hidden"}, player.role) then
+    choice = room:askForChoice(player, choices, "#heg_rule", "#wild-choose", false, all_choices)
+  end
+  if choice then
+    player.role = choice
+    player.role_shown = true
+    room:broadcastProperty(player, "role")
+    room:sendLog{
+      type = "#WildChooseKingdom",
+      from = player.id,
+      arg = choice,
+      arg2 = "wild",
+    }
+  end
+end  
 
 local heg_rule = fk.CreateTriggerSkill{
   name = "#heg_rule",
@@ -463,7 +524,7 @@ local heg_rule = fk.CreateTriggerSkill{
           end
         end
       end
-      H.askForRevealGenerals(room, player, self.name) -- lord
+      H.askForRevealGenerals(room, player, self.name, true, true, true, true, true) -- lord
     elseif event == fk.GameOverJudge then
       player:revealGeneral(false)
       player:revealGeneral(true)
@@ -481,54 +542,49 @@ local heg_rule = fk.CreateTriggerSkill{
       local damage = data.damage
       if damage and damage.from then
         local killer = damage.from
-        if killer.kingdom == "unknown" or killer.dead then return end
-        if killer.kingdom == "wild" then
-          killer:drawCards(3, "kill")
-        elseif killer.kingdom == player.kingdom then
-          killer:throwAllCards("he")
-        else
-          killer:drawCards(player.kingdom == "wild" and 1 or
-          #table.filter(room.alive_players, function(p)
-            return p.kingdom == player.kingdom
-          end) + 1, "kill")
+        if killer.kingdom ~= "unknown" and not killer.dead then
+          if killer.kingdom == "wild" then
+            killer:drawCards(3, "kill")
+          elseif killer.kingdom == player.kingdom then
+            killer:throwAllCards("he")
+          else
+            killer:drawCards(player.kingdom == "wild" and 1 or
+            #table.filter(room.alive_players, function(p)
+              return p.kingdom == player.kingdom
+            end) + 1, "kill")
+          end
+        end
+      end
+      if string.find(player.general, "lord") then
+        local players = table.map(table.filter(room.players, function(p) return
+          (p:getMark("__heg_kingdom") == player.kingdom or (p.dead and p.kingdom == player.kingdom)) and p ~= player and p.kingdom ~= "wild"
+        end), Util.IdMapper)
+        room:sortPlayersByAction(players)
+        for _, pid in ipairs(players) do
+          local p = room:getPlayerById(pid)
+          local oldKingdom = p.kingdom
+          room:setPlayerMark(p, "__heg_kingdom", "wild")
+          if oldKingdom ~= "unknown" then
+            room:setPlayerProperty(p, "kingdom", "wild")
+            if not p.dead then wildChooseKingdom(room, p, p.general) end
+          end
         end
       end
     elseif event == fk.GeneralRevealed then
-      if player.kingdom == "wild" then
-        local choice
-        local all_choices = table.clone(wildKingdoms)
-        local choices = table.clone(all_choices)
+      if string.find(data, "lord") then
+        local kingdom = player:getMark("__heg_kingdom")
         for _, p in ipairs(room.players) do
-          table.removeOne(choices, p.role)
-        end
-        if player.general == data and kingdomMapper[data] and kingdomMapper[data] ~= player.role then -- 野心家钦定
-          if table.contains(choices, kingdomMapper[data]) then
-            choice = kingdomMapper[data]
-          else
-            choice = room:askForChoice(player, choices, self.name, "#wild-choose", false, all_choices)
+          if p:getMark("__heg_kingdom") == kingdom and p.kingdom == "wild" and p:getMark("__heg_wild") == 0 then
+            room:setPlayerProperty(p, "kingdom", kingdom)
+            p.role_shown = false
+            room:setPlayerProperty(p, "role", kingdom)
           end
-        elseif table.contains({"wei", "shu", "wu", "qun", "jin", "unknown", "hidden"}, player.role) then
-          choice = room:askForChoice(player, choices, self.name, "#wild-choose", false, all_choices)
         end
-        if choice then
-          player.role = choice
-          player.role_shown = true
-          room:broadcastProperty(player, "role")
-          room:sendLog{
-            type = "#WildChooseKingdom",
-            from = player.id,
-            arg = choice,
-            arg2 = "wild",
-          }
-        end
+      end
+      if player.kingdom == "wild" then
+        wildChooseKingdom(room, player, data)
       else
         player.role = player.kingdom
-      end
-      if player.general == "anjiang" then -- FIXME!
-        local gender
-        local ret = Fk.generals[player.deputyGeneral].gender
-        if ret ~= General.Agender then gender = ret end
-        if gender then room:setPlayerProperty(player, "gender", gender) end
       end
       if not room:getTag("TheFirstToShowRewarded") then
         room:setTag("TheFirstToShowRewarded", player.id)
@@ -536,12 +592,14 @@ local heg_rule = fk.CreateTriggerSkill{
         player:addFakeSkill("vanguard_skill&")
         -- room:handleAddLoseSkills(player, "vanguard_skill&", nil, false, true)
       end
-      if Fk.generals[data].kingdom == "wild" and player:getMark("hasShownMainGeneral") == 0 then -- 摆
+      if player:getMark("hasShownMainGeneral") == 0 and player.general ~= "anjiang" then -- 首次亮主将
         room:setPlayerMark(player, "hasShownMainGeneral", 1)
-        room:addPlayerMark(player, "@!wild", 1)
-        player:addFakeSkill("wild_draw&")
-        player:addFakeSkill("wild_peach&")
-        player:prelightSkill("wild_draw&", true)
+        if Fk.generals[data].kingdom == "wild" then
+          room:addPlayerMark(player, "@!wild", 1)
+          player:addFakeSkill("wild_draw&")
+          player:addFakeSkill("wild_peach&")
+          player:prelightSkill("wild_draw&", true)
+        end
       end
       if player.general == "anjiang" or player.deputyGeneral == "anjiang" then return false end
       if player:getMark("HalfMaxHpLeft") > 0 then
@@ -654,6 +712,7 @@ heg = fk.CreateGameMode{
 Fk:loadTranslationTable{
   ["new_heg_mode"] = "新国战",
   [":new_heg_mode"] = heg_description,
+  ["#ChooseHegInitialKingdom"] = "国战规则：选择你的初始势力",
   ["wild"] = "野心家",
   ["#heg_rule"] = "国战规则",
   ["revealMain"] = "明置主将",

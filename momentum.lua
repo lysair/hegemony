@@ -536,7 +536,14 @@ Fk:loadTranslationTable{
   ['$fengshi2'] = '放下兵器，饶你不死！',
   ['~ld__zhangren'] = '本将军败于诸葛，无憾……',
 }
-
+--[[
+local lordzhangjiao = General(extension, "ld__lordzhangjiao", "qun", 4)
+lordzhangjiao.hidden = true
+H.lordGenerals["hs__zhangjiao"] = "ld__lordzhangjiao"
+Fk:loadTranslationTable{
+  ["ld__lordzhangjiao"] = "君张角",
+}
+--]]
 local extension_card = Package("momentum_cards", Package.CardPack)
 extension_card.extensionName = "hegemony"
 extension_card.game_modes_whitelist = { 'nos_heg_mode', 'new_heg_mode' }

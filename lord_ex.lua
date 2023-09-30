@@ -189,13 +189,78 @@ Fk:loadTranslationTable{
   ["~ld__xushu"] = "大义无言，虽死无怨。",
 }
 --[[
+local mengda = General(extension, "ld__mengda", "wei", 4)
+mengda.subkingdom = "shu"
+Fk:loadTranslationTable{
+  ["ld__mengda"] = "孟达",
+}
+
+local zhanglu = General(extension, "ld__zhanglu", "qun", 3)
+zhanglu.subkingdom = "wei"
+Fk:loadTranslationTable{
+  ["ld__zhanglu"] = "张鲁",
+}
+
+local mf = General(extension, "ld__mifangfushiren", "shu", 4)
+mf.subkingdom = "wu"
+Fk:loadTranslationTable{
+  ["ld__mifangfushiren"] = "糜芳傅士仁",
+}
+
+local shixie = General(extension, "ld__shixie", "qun", 3)
+shixie.subkingdom = "wu"
+Fk:loadTranslationTable{
+  ["ld__shixie"] = "士燮",
+}
+
 local liuqi = General(extension, "ld__liuqi", "qun", 4)
 liuqi.subkingdom = "shu"
-
 Fk:loadTranslationTable{
   ["ld__liuqi"] = "刘琦",
 }
-]]
+
+local tangzi = General(extension, "ld__tangzi", "wei", 4)
+tangzi.subkingdom = "wu"
+Fk:loadTranslationTable{
+  ["ld__tangzi"] = "唐咨",
+}
+
+local xiahouba = General(extension, "ld__xiahouba", "shu", 4)
+xiahouba.subkingdom = "wei"
+Fk:loadTranslationTable{
+  ["ld__xiahouba"] = "夏侯霸",
+}
+
+local panjun = General(extension, "ld__panjun", "wu", 3)
+panjun.subkingdom = "shu"
+Fk:loadTranslationTable{
+  ["ld__panjun"] = "潘濬",
+}
+
+local wenqin = General(extension, "ld__wenqin", "wei", 4)
+wenqin.subkingdom = "wu"
+Fk:loadTranslationTable{
+  ["ld__wenqin"] = "文钦",
+}
+
+local sufei = General(extension, "ld__sufei", "wu", 4)
+sufei.subkingdom = "qun"
+Fk:loadTranslationTable{
+  ["ld__sufei"] = "苏飞",
+}
+
+local xuyou = General(extension, "ld__xuyou", "qun", 3)
+xuyou.subkingdom = "wei"
+Fk:loadTranslationTable{
+  ["ld__xuyou"] = "许攸",
+}
+
+local pengyang = General(extension, "ld__pengyang", "shu", 3)
+pengyang.subkingdom = "qun"
+Fk:loadTranslationTable{
+  ["ld__pengyang"] = "彭羕",
+}
+--]]
 
 local zhonghui = General(extension, "ld__zhonghui", "wild", 4)
 zhonghui:addCompanions("ld__jiangwei")

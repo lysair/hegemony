@@ -1049,5 +1049,12 @@ Fk:loadTranslationTable{
 	['$ld__fudi2'] = '绣虽有降心，奈何贵营难容。',
 	['~ld__zhangxiu'] = '若失文和，吾将何归？',
 }
-
+--[[
+local lordcaocao = General(extension, "ld__lordcaocao", "wei", 4)
+lordcaocao.hidden = true
+H.lordGenerals["hs__caocao"] = "ld__lordcaocao"
+Fk:loadTranslationTable{
+  ["ld__lordcaocao"] = "君曹操",
+}
+]]
 return extension

@@ -480,7 +480,14 @@ Fk:loadTranslationTable{
   ["ld__hetaihou"] = "何太后",
   ["~ld__hetaihou"] = "你们男人造的孽，非要说什么红颜祸水……",
 }
-
+--[[
+local lordliubei = General(extension, "ld__lordliubei", "shu", 4)
+lordliubei.hidden = true
+H.lordGenerals["hs__liubei"] = "ld__lordliubei"
+Fk:loadTranslationTable{
+  ["ld__lordliubei"] = "君刘备",
+}
+--]]
 local extension_card = Package("formation_cards", Package.CardPack)
 extension_card.extensionName = "hegemony"
 extension_card.game_modes_whitelist = { 'nos_heg_mode', 'new_heg_mode' }

@@ -2767,7 +2767,7 @@ Fk:addSkill(battleRoyalVS)
 Fk:loadTranslationTable{
   ["battle_royal&"] = "鏖战",
   [":battle_royal&"] = "非转化的【桃】只能当【杀】或【闪】使用或打出。",
-  ["battle_royal_prohibit&"] = "鏖战",
+  ["#battle_royal_prohibit&"] = "鏖战",
 }
 
 return extension
