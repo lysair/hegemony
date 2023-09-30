@@ -970,6 +970,7 @@ Fk:loadTranslationTable{
   ["fk_heg__gongsunzan"] = "公孙瓒",
 }
 
+--[==[
 local wanglie = General(extension, "fk_heg__wanglie", "qun", 3)
 local chongwang = fk.CreateTriggerSkill{
   name = "fk_heg__chongwang",
@@ -1099,6 +1100,7 @@ Fk:loadTranslationTable{
   ["$fk_heg__huagui2"] = "一身风雨，难坐高堂。",
   ["~fk_heg__wanglie"] = "烈尚不能自断，何断人乎？",
 }
+--]==]
 
 local liru = General(extension, "fk_heg__liru", "qun", 3)
 local fencheng = fk.CreateActiveSkill{
