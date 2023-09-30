@@ -640,6 +640,15 @@ end
 -- 君主将。为了方便……
 H.lordGenerals = {}
 
+--- 获取君主，可能为nil
+---@param room Room
+---@param player ServerPlayer
+---@return ServerPlayer | nil @ 主公
+H.getHegLord = function(room, player)
+  local kingdom = H.getKingdom(player)
+  return table.find(room.alive_players, function(p) return p.kingdom == kingdom and string.find(p.general, "lord") end)
+end
+
 --- 询问亮将
 ---@param room Room
 ---@param player ServerPlayer
@@ -663,6 +672,7 @@ H.askForRevealGenerals = function(room, player, skill_name, main, deputy, all, c
   if cancelable then table.insert(choices, "Cancel") end
   if #choices == 0 then return false end
 
+  -- 能否变身君主
   local convert = false
   if lord_convert and room:getTag("RoundCount") == 1 and player:getMark("hasShownMainGeneral") == 0 then
     local lord = H.lordGenerals[player:getMark("__heg_general")]
@@ -675,6 +685,7 @@ H.askForRevealGenerals = function(room, player, skill_name, main, deputy, all, c
 
   local choice = room:askForChoice(player, choices, skill_name, convert and "#HegPrepareConvertLord", false, all_choices)  
 
+  -- 先变身君主
   if convert and (choice == "revealMain" or choice == "revealAll") and room:askForChoice(player, {"ConvertToLord:::" .. H.lordGenerals[player:getMark("__heg_general")], "Cancel"}, skill_name, nil) ~= "Cancel" then
     for _, s in ipairs(Fk.generals[player:getMark("__heg_general")]:getSkillNameList()) do
       local skill = Fk.skills[s]
@@ -886,27 +897,7 @@ H.BigKingdomSkill = StatusSkill:subclass("BigKingdomSkill")
 function H.BigKingdomSkill:getFixed(player)
   return false
 end
---[[
-local function readCommonSpecToSkill(skill, spec)
-  skill.mute = spec.mute
-  skill.anim_type = spec.anim_type
 
-  if spec.attached_equip then
-    assert(type(spec.attached_equip) == "string")
-    skill.attached_equip = spec.attached_equip
-  end
-
-  if spec.switch_skill_name then
-    assert(type(spec.switch_skill_name) == "string")
-    skill.switchSkillName = spec.switch_skill_name
-  end
-
-  if spec.relate_to_place then
-    assert(type(spec.relate_to_place) == "string")
-    skill.relate_to_place = spec.relate_to_place
-  end
-end
-]]
 local function readStatusSpecToSkill(skill, spec)
   readCommonSpecToSkill(skill, spec)
   if spec.global then

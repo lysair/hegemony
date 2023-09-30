@@ -485,6 +485,10 @@ local luminousPearl = fk.CreateTreasure{
   suit = Card.Diamond,
   number = 6,
   equip_skill = luminousPearlSkill,
+  on_install = function(self, room, player)
+    Treasure.onInstall(self, room, player)
+    if player:hasSkill("hs__zhiheng") then room:handleAddLoseSkills(player, "-luminous_pearl_skill", nil, false, true) end
+  end,
 }
 H.addCardToConvertCards(luminousPearl, "six_swords")
 extension_card:addCard(luminousPearl)
@@ -493,7 +497,7 @@ Fk:loadTranslationTable{
   ["luminous_pearl"] = "定澜夜明珠",
   [":luminous_pearl"] = "装备牌·宝物<br/><b>宝物技能</b>：锁定技，若你没有〖制衡〗，你视为拥有〖制衡〗；若你有〖制衡〗，将你的〖制衡〗改为{出牌阶段限一次，你可弃置至少一张牌，然后你摸等量的牌}。",
   ["luminous_pearl_skill"] = "制衡",
-  [":luminous_pearl_skill"] = "出牌阶段限一次，你可弃置至多X张牌（X为你的体力上限），然后你摸等量的牌。",
+  [":luminous_pearl_skill"] = "出牌阶段限一次，你可弃置至多X张牌（X为你的体力上限），然后你摸等量的牌。<font color='grey'>此为【制衡（定澜夜明珠）】</font>",
 }
 
 return {

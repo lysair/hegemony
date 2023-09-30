@@ -139,6 +139,7 @@ local tianfuTrig = fk.CreateTriggerSkill{ -- FIXME
   refresh_events = {fk.TurnStart, fk.GeneralRevealed, fk.EventAcquireSkill, "fk.RemoveStateChanged", fk.EventLoseSkill, fk.GeneralHidden},
   can_refresh = function(self, event, target, player, data)
     if event == fk.EventLoseSkill then return data == tianfu
+    elseif event == fk.GeneralHidden then return data == target 
     else return H.hasShownSkill(player, self.name, true, true) end
   end,
   on_refresh = function(self, event, target, player, data)
@@ -181,12 +182,8 @@ local yizhi = fk.CreateTriggerSkill{
         break
       end
     end
-    local room = player.room
-    if H.hasShownSkill(player, self.name) and not (has_head_guanxing and player.general ~= "anjiang") then
-      room:handleAddLoseSkills(player, "ld__guanxing", nil, false, true)
-    else
-      room:handleAddLoseSkills(player, "-ld__guanxing", nil, false, true)
-    end
+    local ret = H.hasShownSkill(player, self.name) and not (has_head_guanxing and player.general ~= "anjiang")
+    player.room:handleAddLoseSkills(player, ret and "ld__guanxing" or "-ld__guanxing", nil, false, true)
   end
 }
 local guanxing = fk.CreateTriggerSkill{

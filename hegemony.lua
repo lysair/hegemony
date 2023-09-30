@@ -495,7 +495,7 @@ end
 local heg_rule = fk.CreateTriggerSkill{
   name = "#heg_rule",
   priority = 0.001,
-  events = {fk.TurnStart, fk.GameOverJudge, fk.Deathed, fk.GeneralRevealed, fk.EventPhaseChanging, fk.GeneralHidden},
+  events = {fk.TurnStart, fk.GameOverJudge, fk.Deathed, fk.GeneralRevealed, fk.EventPhaseChanging},
   can_trigger = function(self, event, target, player, data)
     return target == player
   end,
@@ -621,13 +621,6 @@ local heg_rule = fk.CreateTriggerSkill{
         player:addFakeSkill("alliance&")
       elseif data.from == Player.Play then
         player:loseFakeSkill("alliance&")
-      end
-    elseif event == fk.GeneralHidden then
-      if player.general == "anjiang" then -- FIXME!
-        local gender
-        local ret = Fk.generals[player.deputyGeneral].gender
-        if ret ~= General.Agender then gender = ret end
-        if gender then room:setPlayerProperty(player, "gender", gender) end
       end
     end
   end,
