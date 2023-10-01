@@ -72,7 +72,7 @@ H.compareExpectedKingdomWith = function(from, to, diff)
   return diff
 end
 
---- 获取势力角色数列表
+--- 获取势力角色数列表，注意键unknown的值为nil
 ---@param room Room @ 房间
 ---@param include_dead bool @ 包括死人
 H.getKingdomPlayersNum = function(room, include_dead)
@@ -83,7 +83,6 @@ H.getKingdomPlayersNum = function(room, include_dead)
       kingdomMapper[kingdom] = (kingdomMapper[kingdom] or 0) + 1
     end
   end
-  kingdomMapper["unknown"] = 0 -- 麻了
   return kingdomMapper
 end
 
@@ -642,10 +641,10 @@ H.lordGenerals = {}
 
 --- 获取君主，可能为nil
 ---@param room Room
----@param player ServerPlayer
----@return ServerPlayer | nil @ 主公
+---@param player Player
+---@return lord ServerPlayer | nil @ 主公
 H.getHegLord = function(room, player)
-  local kingdom = H.getKingdom(player)
+  local kingdom = player.kingdom
   return table.find(room.alive_players, function(p) return p.kingdom == kingdom and string.find(p.general, "lord") end)
 end
 
@@ -740,7 +739,7 @@ Fk:loadTranslationTable{
 H.doHideGeneral = function(room, player, target, skill_name)
   if player.dead or target.dead then return end
   local choices = {}
-  if target.general ~= "anjiang" and not target.general:startsWith("blank_") then  -- 君主 还要再处理
+  if target.general ~= "anjiang" and not target.general:startsWith("blank_") and not string.find(target.general, "lord") then
     table.insert(choices, target.general)
   end
   if target.deputyGeneral and target.deputyGeneral ~= "anjiang" and not target.deputyGeneral:startsWith("blank_") then

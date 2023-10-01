@@ -139,7 +139,7 @@ local tianfuTrig = fk.CreateTriggerSkill{ -- FIXME
   refresh_events = {fk.TurnStart, fk.GeneralRevealed, fk.EventAcquireSkill, "fk.RemoveStateChanged", fk.EventLoseSkill, fk.GeneralHidden},
   can_refresh = function(self, event, target, player, data)
     if event == fk.EventLoseSkill then return data == tianfu
-    elseif event == fk.GeneralHidden then return data == target 
+    elseif event == fk.GeneralHidden then return player == target 
     else return H.hasShownSkill(player, self.name, true, true) end
   end,
   on_refresh = function(self, event, target, player, data)
@@ -477,14 +477,155 @@ Fk:loadTranslationTable{
   ["ld__hetaihou"] = "何太后",
   ["~ld__hetaihou"] = "你们男人造的孽，非要说什么红颜祸水……",
 }
---[[
+
 local lordliubei = General(extension, "ld__lordliubei", "shu", 4)
 lordliubei.hidden = true
 H.lordGenerals["hs__liubei"] = "ld__lordliubei"
+
+local zhangwu = fk.CreateTriggerSkill{
+  name = "zhangwu",
+  anim_type = 'drawcard',
+  events = {fk.BeforeCardsMove, fk.AfterCardsMove},
+  frequency = Skill.Compulsory,
+  can_trigger = function(self, event, target, player, data)
+    if not player:hasSkill(self.name) then return false end
+    if event == fk.BeforeCardsMove then
+      for _, move in ipairs(data) do
+        if move.from == player.id and move.moveReason ~= fk.ReasonUse and (move.to ~= player.id or (move.toArea ~= Card.PlayerEquip and move.toArea ~= Card.PlayerHand)) then
+          for _, info in ipairs(move.moveInfo) do
+            if (info.fromArea == Card.PlayerEquip or info.fromArea == Card.PlayerHand) and Fk:getCardById(info.cardId).name == "dragon_phoenix" then
+              return true
+            end
+          end
+        end
+      end
+    else
+      for _, move in ipairs(data) do
+        if move.to ~= player.id and (move.toArea == Card.PlayerEquip or move.toArea == Card.DiscardPile) then
+          for _, info in ipairs(move.moveInfo) do
+            if Fk:getCardById(info.cardId).name == "dragon_phoenix" then
+              return true
+            end
+          end
+        end
+      end
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local ids = {}
+    if event == fk.BeforeCardsMove then
+      local mirror_moves = {}
+      for _, move in ipairs(data) do
+        if move.from == player.id and move.moveReason ~= fk.ReasonUse and (move.to ~= player.id or (move.toArea ~= Card.PlayerEquip and move.toArea ~= Card.PlayerHand)) then
+          local move_info = {}
+          local mirror_info = {}
+          for _, info in ipairs(move.moveInfo) do
+            local id = info.cardId
+            if (info.fromArea == Card.PlayerEquip or info.fromArea == Card.PlayerHand) and Fk:getCardById(info.cardId).name == "dragon_phoenix" then
+              table.insert(ids, id)
+              table.insert(mirror_info, info)
+            else
+              table.insert(move_info, info)
+            end
+          end
+          if #mirror_info > 0 then
+            move.moveInfo = move_info
+            local mirror_move = table.clone(move)
+            mirror_move.to = nil
+            mirror_move.toArea = Card.DrawPile
+            mirror_move.drawPilePosition = -1
+            mirror_move.moveInfo = mirror_info
+            table.insert(mirror_moves, mirror_move)
+          end
+        end
+      end
+      player:showCards(ids)
+      table.insertTable(data, mirror_moves)
+      if not player.dead then
+        player:drawCards(2, self.name) -- 大摆特摆
+      end
+    else
+      for _, move in ipairs(data) do
+        if move.to ~= player.id and (move.toArea == Card.PlayerEquip or move.toArea == Card.DiscardPile) then
+          for _, info in ipairs(move.moveInfo) do
+            if Fk:getCardById(info.cardId).name == "dragon_phoenix" then
+              table.insert(ids, id)
+            end
+          end
+        end
+      end
+      local dummy = Fk:cloneCard("dilu")
+      dummy:addSubcards(ids)
+      player.room:obtainCard(player, dummy, true, self.name)
+    end
+  end,
+}
+
+local shouyue = fk.CreateTriggerSkill{
+  name = "shouyue",
+  anim_type = "support",
+  events = {fk.GeneralRevealed},
+  frequency = Skill.Compulsory,
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) and table.contains(Fk.generals[data]:getSkillNameList(), self.name)
+  end,
+}
+
+local jizhao = fk.CreateTriggerSkill{
+  name = "jizhao",
+  anim_type = "support",
+  frequency = Skill.Limited,
+  events = {fk.AskForPeaches},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) and player.dying and player:usedSkillTimes(self.name, Player.HistoryGame) == 0
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    if player:getHandcardNum() < player.maxHp then
+      room:drawCards(player, player.maxHp - player:getHandcardNum(), self.name)
+    end
+    if player.hp < 2 then
+      room:recover({
+        who = player,
+        num = 2 - player.hp,
+        recoverBy = player,
+        skillName = self.name,
+      })
+    end
+    room:handleAddLoseSkills(player, "-shouyue|ex__rende", nil) -- 乐
+  end,
+}
+
+lordliubei:addSkill(zhangwu)
+lordliubei:addSkill(shouyue)
+lordliubei:addSkill(jizhao)
+lordliubei:addRelatedSkill("ex__rende")
+
 Fk:loadTranslationTable{
   ["ld__lordliubei"] = "君刘备",
+  ["zhangwu"] = "章武",
+  [":zhangwu"] = "锁定技，①当【飞龙夺凤】移至弃牌堆或其他角色的装备区后，你获得此【飞龙夺凤】；②当你非因使用而失去【飞龙夺凤】前，你展示此【飞龙夺凤】，将此【飞龙夺凤】的此次移动的目标区域改为牌堆底，摸两张牌。",
+  ["shouyue"] = "授钺",
+  [":shouyue"] = "<b><font color='goldenrod'>君主技</font></b>，你拥有“五虎将大旗”。<br>" ..
+  "#<b>五虎将大旗</b>：存活的蜀势力角色拥有的〖武圣〗、〖咆哮〗、〖龙胆〗、〖铁骑〗和〖烈弓〗分别按以下规则修改：<br>" ..
+  "〖武圣〗：将“红色牌”改为“任意牌”；<br>"..
+  "〖咆哮〗：增加描述“你使用的【杀】无视其他角色的防具”；<br>"..
+  "〖龙胆〗：增加描述“当你使用/打出因〖龙胆〗转化的普【杀】或【闪】时，你摸一张牌”；<br>"..
+  "〖铁骑〗：将“一张明置的武将牌的非锁定技失效”改为“所有明置的武将牌的非锁定技失效”；<br>"..
+  "〖烈弓〗：增加描述“你的攻击范围+1”。",
+  ["jizhao"] = "激诏",
+  [":jizhao"] = "限定技，当你处于濒死状态时，你可将手牌摸至X张（X为你的体力上限），将体力回复至2点，失去〖授钺〗并获得〖仁德〗。",
+
+  ["$shouyue"] = "布德而昭仁，见旗如见朕!",
+  ["$zhangwu1"] = "遁剑归一，有凤来仪。",
+  ["$zhangwu2"] = "剑气化龙，听朕雷动！",
+  ["$jizhao1"] = "仇未报，汉未兴，朕志犹在！",
+  ["$jizhao2"] = "王业不偏安，起师再兴汉！",
+  ["$ex__rende_ld__lordliubei1"] = "勿以恶小而为之，勿以善小而不为。",
+  ["$ex__rende_ld__lordliubei2"] = "君才十倍于丕，必能安国成事。",
+  ["~ld__lordliubei"] = "若嗣子可辅，辅之。如其不才，君可自取……",
 }
---]]
+
 local extension_card = Package("formation_cards", Package.CardPack)
 extension_card.extensionName = "hegemony"
 extension_card.game_modes_whitelist = { 'nos_heg_mode', 'new_heg_mode' }

@@ -127,7 +127,7 @@ local guixiu = fk.CreateTriggerSkill{
   anim_type = "drawcard",
   events = {fk.GeneralRevealed, "fk.GeneralRemoved"},
   can_trigger = function(self, event, target, player, data)
-    return target == player and data == "ld__mifuren" and ((event == "fk.GeneralRemoved" and player:isWounded()) or player:hasSkill(self.name))
+    return target == player and table.contains(Fk.generals[data]:getSkillNameList(), self.name) and ((event == "fk.GeneralRemoved" and player:isWounded()) or player:hasSkill(self.name))
   end,
   on_cost = function(self, event, target, player, data)
     return player.room:askForSkillInvoke(player, self.name, nil, "#guixiu-" .. (event == fk.GeneralRevealed and "draw" or "recover"))

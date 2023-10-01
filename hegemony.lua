@@ -506,7 +506,7 @@ local heg_rule = fk.CreateTriggerSkill{
       if #room.alive_players < (#room.players > 6 and 5 or 4) and not room:getTag("BattleRoyalMode") then
         local ret = true
         for _, v in pairs(H.getKingdomPlayersNum(room)) do
-          if v > 1 then
+          if v and v > 1 then
             ret = false
             break
           end
@@ -585,6 +585,19 @@ local heg_rule = fk.CreateTriggerSkill{
         wildChooseKingdom(room, player, data)
       else
         player.role = player.kingdom
+      end
+      for _, v in pairs(H.getKingdomPlayersNum(room)) do
+        if v == #room.alive_players then
+          local winner = Fk.game_modes[room.settings.gameMode]:getWinner(player)
+          for _, p in ipairs(room.alive_players) do
+            if p.general == "anjiang" then p:revealGeneral(false) end
+            if p.deputyGeneral == "anjiang" then p:revealGeneral(true) end
+          end
+          room:gameOver(winner)
+          return true
+        else
+          break
+        end
       end
       if not room:getTag("TheFirstToShowRewarded") then
         room:setTag("TheFirstToShowRewarded", player.id)
@@ -682,7 +695,7 @@ heg = fk.CreateGameMode{
         i = i + 1
       end
     end
-    if i > #room.players // 2 then return "" end
+    if i > #room.players // 2 and not H.getHegLord(room, winner) then return "" end
     return kingdom
   end,
   surrender_func = function(self, playedTime)
@@ -731,7 +744,7 @@ Fk:loadTranslationTable{
   ["heg: besieged on all sides"] = "四面楚歌，被同一势力围观",
   ["@@alliance"] = "合",
 
-  ["#InitialNotice"] = "提示：<b><font color='purple'>暴露野心</font></b>、<b><font color='goldenrod'>君主</font></b><b>暂无</b>",
+  ["#InitialNotice"] = "提示：<b><font color='purple'>暴露野心</font></b><b>暂无</b><br><b><font color='red'>君刘备</font></b>已登场！<b><font color='goldenrod'>君主</font></b>必须选择对应普通武将为主将，并在首个回合亮将才能变身",
 }
 
 return heg

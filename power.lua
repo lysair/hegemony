@@ -96,7 +96,7 @@ local jianglue = fk.CreateActiveSkill{
     local player = room:getPlayerById(effect.from)
     local index = H.startCommand(player, self.name)
     local kingdom = H.getKingdom(player)
-    for _, p in ipairs(room:getAlivePlayers()) do -- 双势力，君主……
+    for _, p in ipairs(room:getAlivePlayers()) do
       if p.kingdom == "unknown" and not p.dead then
         if H.getKingdomPlayersNum(room)[kingdom] >= #room.players // 2 then break end
         local main = Fk.generals[p:getMark("__heg_general")].kingdom == kingdom
@@ -205,7 +205,7 @@ local wushengXH = fk.CreateViewAsSkill{
   pattern = "slash",
   card_filter = function(self, to_select, selected)
     if #selected == 1 then return false end
-    return Fk:getCardById(to_select).color == Card.Red
+    return (H.getHegLord(Fk:currentRoom(), Self) and H.getHegLord(Fk:currentRoom(), Self):hasSkill("shouyue")) or Fk:getCardById(to_select).color == Card.Red
   end,
   view_as = function(self, cards)
     if #cards ~= 1 then
@@ -235,19 +235,44 @@ local paoxiaoTriggerXH = fk.CreateTriggerSkill{
     player:drawCards(1, self.name)
   end,
 
-  refresh_events = {fk.CardUsing},
+  refresh_events = {fk.CardUsing, fk.TargetSpecified, fk.CardUseFinished},
   can_refresh = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and
-      data.card.trueName == "slash" and
-      player:usedCardTimes("slash") > 1
+    if player ~= target then return false end -- 摆一下
+    if event == fk.CardUsing then
+      return player:hasSkill(self.name) and data.card.trueName == "slash" and player:usedCardTimes("slash") > 1
+    else
+      local room = player.room
+      if not H.getHegLord(room, player) or not H.getHegLord(room, player):hasSkill("shouyue") then return false end
+      if event == fk.CardUseFinished then
+        return (data.extra_data or {}).hsPaoxiaoNullifiled
+      else
+        return data.card.trueName == "slash" and player:hasSkill("hs__paoxiao") and room:getPlayerById(data.to):isAlive()
+      end
+    end
   end,
   on_refresh = function(self, event, target, player, data)
-    player:broadcastSkillInvoke("hs__paoxiao")
-    player.room:doAnimate("InvokeSkill", {
-      name = "paoxiao",
-      player = player.id,
-      skill_type = "offensive",
-    })
+    local room = player.room
+    if event == fk.CardUsing then
+      player:broadcastSkillInvoke("hs__paoxiao")
+      room:doAnimate("InvokeSkill", {
+        name = "paoxiao",
+        player = player.id,
+        skill_type = "offensive",
+      })
+    elseif event == fk.CardUseFinished then
+      for key, num in pairs(data.extra_data.hsPaoxiaoNullifiled) do
+        local p = room:getPlayerById(tonumber(key))
+        if p:getMark(fk.MarkArmorNullified) > 0 then
+          room:removePlayerMark(p, fk.MarkArmorNullified, num)
+        end
+      end
+      data.hsPaoxiaoNullifiled = nil
+    else
+      room:addPlayerMark(room:getPlayerById(data.to), fk.MarkArmorNullified)
+      data.extra_data = data.extra_data or {}
+      data.extra_data.hsPaoxiaoNullifiled = data.extra_data.hsPaoxiaoNullifiled or {}
+      data.extra_data.hsPaoxiaoNullifiled[tostring(data.to)] = (data.extra_data.hsPaoxiaoNullifiled[tostring(data.to)] or 0) + 1
+    end
   end,
 }
 local paoxiaoXH = fk.CreateTargetModSkill{
@@ -297,59 +322,72 @@ local longdanAfterXH = fk.CreateTriggerSkill{
   name = "#xuanhuo__longdan_after",
   anim_type = "offensive",
   visible = false,
-  events = {fk.CardEffectCancelledOut},
+  events = {fk.CardEffectCancelledOut, fk.CardUsing, fk.CardResponding},
   can_trigger = function(self, event, target, player, data)
-    if data.card.trueName ~= "slash" then return false end
-    if target == player then -- 龙胆杀
-      return table.contains(data.card.skillNames, "hs__longdan")
-    elseif data.to == player.id then -- 龙胆闪
-      for _, card in ipairs(data.cardsResponded) do
-        if card.name == "jink" and table.contains(card.skillNames, "hs__longdan") then
-          return true
+    if event == fk.CardEffectCancelledOut then
+      if data.card.trueName ~= "slash" then return false end
+      if target == player then -- 龙胆杀
+        return table.contains(data.card.skillNames, "hs__longdan")
+      elseif data.to == player.id then -- 龙胆闪
+        for _, card in ipairs(data.cardsResponded) do
+          if card.name == "jink" and table.contains(card.skillNames, "hs__longdan") then
+            return true
+          end
         end
       end
+    else
+      local room = player.room
+      return player == target and H.getHegLord(room, player) and table.contains(data.card.skillNames, "hs__longdan") and H.getHegLord(room, player):hasSkill("shouyue")
     end
   end,
   on_cost = function(self, event, target, player, data)
     local room = player.room
-    if target == player then
-      local targets = table.map(room:getOtherPlayers(room:getPlayerById(data.to)), Util.IdMapper)
-      if #targets == 0 then return false end
-      local target = room:askForChoosePlayers(player, targets, 1, 1, "#longdan_slash-ask::" .. data.to, self.name, true)
-      if #target > 0 then
-        self.cost_data = target[1]
-        return true
+    if event == fk.CardEffectCancelledOut then
+      if target == player then
+        local targets = table.map(room:getOtherPlayers(room:getPlayerById(data.to)), Util.IdMapper)
+        if #targets == 0 then return false end
+        local target = room:askForChoosePlayers(player, targets, 1, 1, "#longdan_slash-ask::" .. data.to, self.name, true)
+        if #target > 0 then
+          self.cost_data = target[1]
+          return true
+        end
+        return false
+      else
+        local targets = table.map(table.filter(room:getOtherPlayers(target), function(p) return
+          p ~= player and p:isWounded()
+        end), Util.IdMapper)
+        if #targets == 0 then return false end
+        local target = room:askForChoosePlayers(player, targets, 1, 1, "#longdan_jink-ask::" .. target.id , self.name, true)
+        if #target > 0 then
+          self.cost_data = target[1]
+          return true
+        end
       end
-      return false
     else
-      local targets = table.map(table.filter(room:getOtherPlayers(target), function(p) return
-        p ~= player and p:isWounded()
-      end), Util.IdMapper)
-      if #targets == 0 then return false end
-      local target = room:askForChoosePlayers(player, targets, 1, 1, "#longdan_jink-ask::" .. target.id , self.name, true)
-      if #target > 0 then
-        self.cost_data = target[1]
-        return true
-      end
+      return true
     end
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
     local to = room:getPlayerById(self.cost_data)
-    if target == player then
-      room:damage{
-        from = player,
-        to = to,
-        damage = 1,
-        skillName = self.name,
-      }
+    if event == fk.CardEffectCancelledOut then
+      if target == player then
+        room:damage{
+          from = player,
+          to = to,
+          damage = 1,
+          skillName = self.name,
+        }
+      else
+        room:recover({
+          who = to,
+          num = 1,
+          recoverBy = player,
+          skillName = self.name,
+        })
+      end
     else
-      room:recover({
-        who = to,
-        num = 1,
-        recoverBy = player,
-        skillName = self.name,
-      })
+      player:drawCards(1, self.name)
     end
   end,
 }
@@ -378,17 +416,24 @@ local tieqiXH = fk.CreateTriggerSkill{
       table.insert(choices, to.deputyGeneral)
     end
     if #choices > 0 then
-      local choice = room:askForChoice(player, choices, self.name, "#hs__tieqi-ask::" .. to.id)
-      local record = type(to:getMark("@hs__tieqi-turn")) == "table" and to:getMark("@hs__tieqi-turn") or {}
-      table.insertIfNeed(record, choice)
-      room:setPlayerMark(to, "@hs__tieqi-turn", record)
-      local mark = type(to:getMark("_hs__tieqi-turn")) == "table" and to:getMark("_hs__tieqi-turn") or {}
-      for _, skill_name in ipairs(Fk.generals[choice]:getSkillNameList()) do
-        if Fk.skills[skill_name].frequency ~= Skill.Compulsory then
-          table.insertIfNeed(mark, skill_name)
-        end
+      local choice
+      if H.getHegLord(room, player) and #choices > 1 and H.getHegLord(room, player):hasSkill("shouyue") then
+        choice = choices
+      else
+        choice = {room:askForChoice(player, choices, self.name, "#hs__tieqi-ask::" .. to.id)}
       end
-      room:setPlayerMark(to, "_hs__tieqi-turn", mark)
+      local record = type(to:getMark("@hs__tieqi-turn")) == "table" and to:getMark("@hs__tieqi-turn") or {}
+      for _, c in ipairs(choice) do
+        table.insertIfNeed(record, c)
+        room:setPlayerMark(to, "@hs__tieqi-turn", record)
+        local mark = type(to:getMark("_hs__tieqi-turn")) == "table" and to:getMark("_hs__tieqi-turn") or {}
+        for _, skill_name in ipairs(Fk.generals[c]:getSkillNameList()) do
+          if Fk.skills[skill_name].frequency ~= Skill.Compulsory then
+            table.insertIfNeed(mark, skill_name)
+          end
+        end
+        room:setPlayerMark(to, "_hs__tieqi-turn", mark)
+      end
     end
     room:judge(judge)
     if judge.card.suit ~= nil then
@@ -427,6 +472,20 @@ local liegongXH = fk.CreateTriggerSkill{
     table.insert(data.disresponsiveList, data.to)
   end,
 }
+local liegongXHAR = fk.CreateAttackRangeSkill{
+  name = "#xuanhuo__hs__liegongAR",
+  correct_func = function(self, from, to)
+    if from:hasSkill("xuanhuo__hs__liegong") then
+      for _, p in ipairs(Fk:currentRoom().alive_players) do
+        if string.find(p.general, "lord") and p:hasSkill("shouyue") and p.kingdom == from.kingdom then
+          return 1
+        end
+      end
+    end
+    return 0
+  end,
+}
+liegongXH:addRelatedSkill(liegongXHAR)
 local kuangguXH = fk.CreateTriggerSkill{
   name = "xuanhuo__hs__kuanggu",
   anim_type = "drawcard",
