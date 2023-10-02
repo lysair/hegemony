@@ -435,6 +435,137 @@ Fk:loadTranslationTable{
   ["~fk_heg__xianglang"] = "识文重义而徇私，恨也……",
 }
 
+local dongyun = General(extension, "fk_heg__dongyun", "shu", 3, 3, General.Male)
+local yizan = fk.CreateTriggerSkill{
+  name = "fk_heg__yizan",
+  anim_type = "drawcard",
+  events = {fk.EventPhaseStart, fk.EventPhaseEnd},
+  can_trigger = function (self, event, target, player, data)
+    if event == fk.EventPhaseStart then
+      return player:hasSkill(self.name) and player.phase == Player.Discard
+    else
+      return player:hasSkill(self.name) and player.phase == Player.Discard and player:getMark("fk_heg__yizan-phase")
+    end
+  end,
+  on_cost = function (self, event, target, player, data)
+    local room = player.room
+    if event == fk.EventPhaseStart then
+      if player.room:askForSkillInvoke(player, self.name, nil, "#fk_heg__yizan-invoke") then
+        local targets = table.map(table.filter(room:getOtherPlayers(player), function(p)
+          return (p:getHandcardNum() < player:getHandcardNum()) end), function(p) return p.id end)
+        if #targets > 0 then
+          local to = room:askForChoosePlayers(player, targets, 1, 1, "#fk_heg__yizan-choose", self.name, true)
+          self.cost_data = to[1]
+          if #to > 0 then
+            return true
+          end
+        end
+      end
+    else
+      return true
+    end
+  end,
+  on_use = function (self, event, target, player, data)
+    local room = player.room
+    local to = room:getPlayerById(self.cost_data)
+    if event == fk.EventPhaseStart then
+      to:drawCards(math.min(player:getHandcardNum() - #to.player_cards[Player.Hand], 5), self.name)
+      room:setPlayerMark(player, "fk_heg__yizan-phase", player:getHandcardNum())
+    elseif player:getMark("fk_heg__yizan-phase") > player:getMaxCards() then
+      local throw_num = #to.player_cards[Player.Hand] - to.maxHp
+      if throw_num > 0 then
+        room:askForDiscard(to, throw_num, throw_num, false, self.name, false)
+      end
+    end
+  end,
+}
+
+local juanshe = fk.CreateTriggerSkill{
+  name = "fk_heg__juanshe",
+  anim_type = "recover",
+  events = {fk.EventPhaseStart},
+  can_trigger = function (self, event, target, player, data)
+    -- local current = player.room.current
+    local events = target.room.logic:getEventsOfScope(GameEvent.UseCard, 999, function(e) 
+      local use = e.data[1]
+      return use.from == target.id 
+    end, Player.HistoryTurn)
+    return #events < target:getMaxCards() and H.compareKingdomWith(player, target) 
+     and target.phase == Player.Finish and player:hasSkill(self.name) and not target:isKongcheng()
+  end,
+  on_cost = function (self, event, target, player, data)
+    return player.room:askForSkillInvoke(player, self.name, nil, "#fk_heg__juanshe-invoke")
+  end,
+  on_use = function (self, event, target, player, data)
+    local room = player.room
+    room:askForDiscard(target, 1, 1, false, self.name, false)
+    if target:isWounded() then
+      room:recover({
+        who = target,
+        num = 1,
+        recoverBy = player,
+        skillName = self.name,
+      })
+    end
+    room:setPlayerMark(target, "fk_heg__juanshe", 1)
+  end,
+
+  refresh_events = {fk.EventPhaseChanging, fk.BuryVictim, fk.Damaged},
+  can_refresh = function(self, event, target, player, data)
+    if event == fk.EventPhaseChanging then
+      return player.room.current:getMark("fk_heg__juanshe") > 0 and data.from == Player.NotActive
+    elseif event == fk.BuryVictim or event == fk.Damaged then
+      return player == target and player:hasSkill(self.name)
+    end
+  end,
+  on_refresh = function(self, event, target, player, data)
+    if event == fk.EventPhaseChanging then
+      player.room:setPlayerMark(player.room.current, "fk_heg__juanshe", 0)
+    elseif event == fk.BuryVictim or event == fk.Damaged then
+      for _, p in ipairs(player.room.alive_players) do
+        if p:getMark("fk_heg__juanshe") > 0 then
+          player.room:setPlayerMark(p, "fk_heg__juanshe", 0)
+        end
+      end
+    end
+  end,
+}
+
+local juanshe_prohibit = fk.CreateProhibitSkill{
+  name = "#fk_heg__yizan_prohibit",
+  prohibit_use = function(self, player, card)
+    if player:getMark("fk_heg__juanshe") == 0 then return false end 
+    local subcards = Card:getIdList(card)
+    return #subcards > 0 and table.every(subcards, function(id)
+      return table.contains(player:getCardIds(Player.Hand), id)
+    end)
+  end,
+}
+
+dongyun:addCompanions("ld__jianwanfeiyi")
+juanshe:addRelatedSkill(juanshe_prohibit)
+dongyun:addSkill(yizan)
+dongyun:addSkill(juanshe)
+Fk:loadTranslationTable{
+  ["fk_heg__dongyun"] = "董允",
+  ["fk_heg__yizan"] = "翼赞",
+  [":fk_heg__lingxie"] = "弃牌阶段开始时，你可以令一名手牌数小于你的角色将手牌摸至与你相同（至多摸五张），然后此阶段结束时，若你于此阶段内弃置过牌，其将手牌弃至体力上限。",
+  ["fk_heg__juanshe"] = "蠲奢",
+  [":fk_heg__juanshe"] = "与你势力相同角色的结束阶段，若其本回合使用牌数小于其手牌上限，你可以令其弃置一张手牌并回复1点体力，然后直至其回合开始或你受到伤害，其不能使用手牌。",
+
+  ["#fk_heg__yizan-invoke"] = "翼赞：是否令一名手牌数小于你的角色将手牌摸至与你相同，然后其根据你的弃牌情况执行对应操作。",
+  ["#fk_heg__yizan-choose"] = "翼赞：选择一名手牌数小于你的角色，令其将手牌摸至与你相同。",
+  ["#fk_heg__juanshe-invoke"] = "蠲奢：是否令当前回合角色弃置一张手牌，然后其回复1点体力。",
+
+  ["$fk_heg__yizan1"] = "还是改日吧。",
+  ["$fk_heg__yizan2"] = "今日之宴，恕某不能奉陪。",
+
+  ["$fk_heg__juanshe1"] = "自古，就是邪不胜正！。",
+  ["$fk_heg__juanshe2"] = "主公面前，岂容小人搬弄是非。",
+
+  ["~fk_heg__dongyun"] = "大汉，要亡于宦官之手了...",
+}
+
 local jianyong = General(extension, "fk_heg__jianyong", "shu", 3)
 jianyong:addSkill("qiaoshui")
 jianyong:addSkill("zongshij")
@@ -627,31 +758,54 @@ local mingzheng = fk.CreateTriggerSkill{
   anim_type = "drawcard",
   events = {fk.GeneralRevealed},
   can_trigger = function (self, event, target, player, data)
-    if player:hasSkill(self.name) and H.compareKingdomWith(target, player) and not target.dead then
-      if H.getGeneralsRevealedNum(target) == 2 then
-        return #player.room:canMoveCardInBoard() > 0
-      else
-        return true
-      end
-    end 
+    return player:hasSkill(self.name) and H.compareKingdomWith(target, player) and not target.dead
   end,
   on_cost = function (self, event, target, player, data)
-    return target.room:askForSkillInvoke(target, self.name, nil, "#fk_heg__mingzheng-invoke")
+    if H.getGeneralsRevealedNum(target) == 2 then
+      return target.room:askForSkillInvoke(target, self.name, nil, "#fk_heg__mingzheng-invoke")
+    else
+      return true
+    end
   end,
   on_use = function (self, event, target, player, data)
-    if H.getGeneralsRevealedNum(target) == 1 and not target.dead then
+    local room = player.room
+    local targets = table.map(table.filter(room.alive_players, function(p) return H.compareKingdomWith(p, player) end), Util.IdMapper)
+    for _, pid in ipairs(targets) do
+      local p = room:getPlayerById(pid)
+      for _, pidd in ipairs(targets) do
+        local pd = room:getPlayerById(pidd)
+        if not p.dead and not pd.dead then 
+          p:addBuddy(pd)
+        end
+      end
+    end
+    if H.getGeneralsRevealedNum(target) == 2 then
       if not target.faceup then
         target:turnOver()
       end
       if target.chained then
         target:setChainState(false)
       end
-      target:drawCards(1, self.name)
-    elseif H.getGeneralsRevealedNum(target) == 2 and not target.dead then
-      local targets = target.room:askForChooseToMoveCardInBoard(target, "#fk_heg__mingzheng-move", self.name, true, nil)
-      if #targets ~= 0 then
-        targets = table.map(targets, function(id) return player.room:getPlayerById(id) end)
-        target.room:askForMoveCardInBoard(target, targets[1], targets[2], self.name)
+      player.room:addPlayerMark(target, "@!yinyangfish", 1)
+      target:addFakeSkill("yinyangfish_skill&")
+      target:prelightSkill("yinyangfish_skill&", true)
+    end
+  end,
+
+  refresh_events = {fk.Death},
+  can_refresh = function (self, event, target, player, data)
+    return player:hasSkill(self.name)
+  end,
+  on_refresh = function (self, event, target, player, data)
+    local room = player.room
+    local targets = table.map(table.filter(room.alive_players, function(p) return H.compareKingdomWith(p, player) end), Util.IdMapper)
+    for _, pid in ipairs(targets) do
+      local p = room:getPlayerById(pid)
+      for _, pidd in ipairs(targets) do
+        local pd = room:getPlayerById(pidd)
+        if not p.dead and not pd.dead then 
+          p:removeBuddy(pd)
+        end
       end
     end
   end,
@@ -663,40 +817,44 @@ local yujian = fk.CreateTriggerSkill{
   events = {fk.Damage, fk.TurnEnd},
   can_trigger = function (self, event, target, player, data)
     if event == fk.Damage then
-      local current = player.room.current
-      if player:getMark("@fk_heg__yujian-turn") > 0 and not (player:getMark("@fk_heg__yujian_change-turn") > 0) and data.from == target then
-        return true
+      if player:getMark("fk_heg__yujian-turn") == 0 and data.from == player.room.current then
+        
+        return not target.dead and player:hasSkill(self.name) and target ~= player and target.phase == Player.Play
       end
-      if not (player:hasSkill(self.name) and current ~= player and current.phase == Player.Play) then 
-        return false
+      if player:getMark("fk_heg__yujian-turn") > 0 and data.from == player.room.current then
+        if player:getMark("@fk_heg__yujian_exchange-turn") > 0 and player:getMark("@fk_heg__yujian_hide-turn") > 0 then
+          return true
+        end
       end
-      local events = player.room.logic:getEventsOfScope(GameEvent.Damage, 1, function(e) 
-          return e.data[1].from == target
-        end, Player.HistoryTurn)
-      return #events == 1 and events[1].id == player.room.logic:getCurrentEvent().id
-      elseif event == fk.TurnEnd then
-        return player:getMark("@fk_heg__yujian-turn") > 0
-      end
+    elseif event == fk.TurnEnd then
+      return player:getMark("@fk_heg__yujian_exchange-turn") > 0
+    end
   end,
   on_cost = function (self, event, target, player, data)
-    if (event == fk.Damage and player:getMark("@fk_heg__yujian-turn") > 0 and not (player:getMark("@fk_heg__yujian_change-turn") > 0)) or event == fk.TurnEnd then
-      return true
+    if event == fk.Damage then
+      if player:getMark("fk_heg__yujian-turn") == 0 then
+        player.room:setPlayerMark(player, "fk_heg__yujian-turn", 1)
+        self.cost_data = player.room:askForSkillInvoke(player, self.name, nil, "#fk_heg__yujian-invoke")
+        return self.cost_data
+      else
+        return true
+      end
     else
-      return player.room:askForSkillInvoke(player, self.name, nil, "#fk_heg__yujian-invoke")
+      return true
     end
   end,
   on_use = function (self, event, target, player, data)
-    
     local room = player.room
     local current = room.current
     if event == fk.Damage then
-      if player:getMark("@fk_heg__yujian-turn") > 0 then
+      if player:getMark("@fk_heg__yujian_exchange-turn") > 0 and player:getMark("@fk_heg__yujian_hide-turn") > 0 then
         room:addPlayerMark(player, "@fk_heg__yujian_change-turn", 1)
-      else
-        swapHandCards(room, player.id, player.id, current.id, self.name)
-        room:addPlayerMark(player, "@fk_heg__yujian-turn", 1)
-        if H.getGeneralsRevealedNum(target) == 2
-          and room:askForChoice(player, {"fk_heg__yujian_hide::" .. target.id, "Cancel"}, self.name) ~= "Cancel" then
+      elseif self.cost_data then
+        if target.hp <= player.hp then
+          swapHandCards(room, player.id, player.id, current.id, self.name)
+          room:setPlayerMark(player, "@fk_heg__yujian_exchange-turn", 1)
+        end
+        if H.getGeneralsRevealedNum(target) == 2 and room:askForChoice(player, {"fk_heg__yujian_hide::" .. target.id, "Cancel"}, self.name) ~= "Cancel" then
           for _, p in ipairs({target}) do
             local isDeputy = H.doHideGeneral(room, player, p, self.name)
             room:setPlayerMark(p, "@fk_heg__yujian_reveal-turn", H.getActualGeneral(p, isDeputy))
@@ -704,15 +862,20 @@ local yujian = fk.CreateTriggerSkill{
             table.insert(record, isDeputy and "d" or "m")
             room:setPlayerMark(p, MarkEnum.RevealProhibited .. "-turn", record)
           end
+          room:setPlayerMark(player, "@fk_heg__yujian_hide-turn", 1)
         end
-      end  
+      end
     end
     if event == fk.TurnEnd then
-      if player:getMark("@fk_heg__yujian-turn") > 0 then
+      if player:getMark("@fk_heg__yujian_exchange-turn") > 0 then
         swapHandCards(room, player.id, player.id, current.id, self.name)
       end
       if player:getMark("@fk_heg__yujian_change-turn") > 0 then
-        H.transformGeneral(room, player)
+        if player.general == "fk_heg__luotong" then
+          H.transformGeneral(room, player, true)
+        else
+          H.transformGeneral(room, player, false)
+        end
       end
     end
   end,
@@ -724,15 +887,18 @@ luotong:addSkill(yujian)
 Fk:loadTranslationTable{
   ["fk_heg__luotong"] = "骆统",
   ["fk_heg__mingzheng"] = "明政",
-  [":fk_heg__mingzheng"] = "与你势力相同的角色明置武将牌后，若其武将牌：仅明置一张，其可以移动场上一张牌；均明置，其可以复原武将牌，然后摸一张牌。",
+  [":fk_heg__mingzheng"] = "与你势力相同的角色明置武将牌后，若其武将牌均明置，其可以复原武将牌，然后获得一个“阴阳鱼”标记。与你势力相同的角色的手牌互相可见。",
   ["fk_heg__yujian"] = "御谏",
-  [":fk_heg__yujian"] = "其他角色于其出牌阶段内首次造成伤害后，你可以与其交换手牌，然后若其武将牌均明置，你可以暗置其一张武将牌且直至本回合结束不能明置之。"..
-  "若如此做，此回合结束时，你与其交换手牌，且若其于此回合内再次造成过伤害，你变更副将（可多次变更）。",
+  [":fk_heg__yujian"] = "其他角色于其出牌阶段内首次造成伤害后，你可以依次执行任意项：1.若其体力值不大于你，你可以与其交换手牌，若如此做，此回合结束时，你与其交换手牌；"..
+  "2.若其武将牌均明置，你可以暗置其一张武将牌且直至本回合结束不能明置之；若你执行两项且其于此回合内再次造成伤害，你于此回合结束时变更此武将牌。",
 
   ["#fk_heg__mingzheng-invoke"] = "明政：是否根据已明置的武将牌数执行对应操作",
   ["#fk_heg__mingzheng-move"] = "明政：请移动场上的一张牌",
 
-  ["@fk_heg__yujian-turn"] = "御谏 交换手牌",
+  ["fk_heg__yujian_hide"] = "暗置%dest一张武将牌且本回合不能明置",
+
+  ["@fk_heg__yujian_exchange-turn"] = "御谏 交换手牌",
+  ["@fk_heg__yujian_hide-turn"] = "御谏 暗置武将",
   ["@fk_heg__yujian_change-turn"] = "御谏 变更副将",
 
   ["#fk_heg__yujian-invoke"] = "御谏：是否与当前回合角色交换手牌",
