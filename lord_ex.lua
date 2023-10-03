@@ -339,7 +339,7 @@ local midao = fk.CreateTriggerSkill{
     if event == fk.GeneralRevealed then
       return true
     elseif event == fk.AskForRetrial then
-      local card = player.room:askForCard(player, 1, 1, false, self.name, true, ".|.|.|ld__midao_rice", "#ld__midao_retrial", "ld__midao_rice")
+      local card = player.room:askForResponse(player, self.name, ".|.|.|ld__midao_rice", "#ld__midao-ask::" .. target.id .. ":" .. data.reason, true)
       if #card > 0 then
         self.cost_data = card[1]
         return true
@@ -365,8 +365,7 @@ local midao = fk.CreateTriggerSkill{
   end,
 }
 
-
-
+H.CreateClearSkill(midao, "ld__midao_rice")
 zhanglu:addSkill(bushi)
 zhanglu:addSkill(midao)
 Fk:loadTranslationTable{
@@ -384,7 +383,7 @@ Fk:loadTranslationTable{
   ["#ld__bushi_discard"] = "布施：你可以移去一张“米”，视为使用一张【五谷丰登】。",
   ["#ld__bushi"] = "布施：你可以将一张牌置于张鲁武将牌上，称为“米”。",
 
-  ["#ld__midao_retrial"] = "米道：你可以打出一张“米”，替换此判定牌。",
+  ["#ld__midao-ask"] = "米道：你可打出一张牌替换 %dest 的 %arg 判定",   
   ["#ld__midao"] = "米道：请将两张牌置于武将牌上，称为“米”。",
 
   ["ld__midao_rice"] = "米",
@@ -913,6 +912,8 @@ local paiyi = fk.CreateActiveSkill{
   end,
 }
 
+
+H.CreateClearSkill(quanji, "ld__zhonghui_power")
 zhonghui:addSkill(quanji)
 zhonghui:addSkill(paiyi)
 
@@ -1188,6 +1189,7 @@ local zisui = fk.CreateTriggerSkill{
   end,
 }
 
+H.CreateClearSkill(huaiyi, "ld__gongsunyuan_infidelity")
 gongsunyuan:addSkill(huaiyi)
 gongsunyuan:addSkill(zisui)
 
