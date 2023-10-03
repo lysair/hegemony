@@ -247,7 +247,7 @@ local qingyin = fk.CreateActiveSkill{
     })
     for _, pid in ipairs(targets) do
       local p = room:getPlayerById(pid)
-      if not p.dead then
+      if not p.dead and p:isWounded() then
         room:recover({
           who = p,
           num = p.maxHp - p.hp,
@@ -282,8 +282,8 @@ Fk:loadTranslationTable{
 --   ["ld__mengda"] = "孟达",
 -- }
 
-local zhanglu = General(extension, "ld__zhanglu", "wei", 3)
-zhanglu.subkingdom = "qun"
+local zhanglu = General(extension, "ld__zhanglu", "qun", 3)
+zhanglu.subkingdom = "wei"
 local bushi = fk.CreateTriggerSkill{
   name = "ld__bushi",
   anim_type = "defensive",
@@ -529,7 +529,7 @@ local congcha_delay = fk.CreateTriggerSkill{
   end,
   on_cost = Util.TrueFunc,
   on_use = function (self, event, target, player, data)
-    if H.compareKingdomWith(player, target) then
+    if H.compareKingdomWith(player, target) and not player.dead and not target.dead then
       player:drawCards(2, self.name)
       target:drawCards(2, self.name)
       player.room:setPlayerMark(target, "@@ld__congcha_delay", 0)
@@ -827,7 +827,7 @@ Fk:loadTranslationTable{
   ["ld__tongling_damage-phase"] = "通令",
 
   ["ld__jinxian"] = "近陷",
-  [":ld__jinxian"] = "当你明置此武将牌后，你令所有你计算距离为1的角色执行：若其武将牌均明置，暗置一张武将牌（若为你则改为此阶段结束时暗置）；若其武将牌仅明置一张或均暗置，其弃置两张牌。",
+  [":ld__jinxian"] = "当你明置此武将牌后，你令所有你计算距离不大于1的角色执行：若其武将牌均明置，暗置一张武将牌（若为你则改为此阶段结束时暗置）；若其武将牌仅明置一张或均暗置，其弃置两张牌。",
 
   ["ld__jinxian-phase"] = "近陷",
   
