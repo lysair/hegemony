@@ -599,10 +599,8 @@ local jinfa = fk.CreateActiveSkill{
         room:useVirtualCard("slash", nil, target, player)
       end
     else
-      local card2 = room:askForCardsChosen(player, target, 1, 1, "he", self.name)
-      local dummy2 = Fk:cloneCard("dilu")
-      dummy2:addSubcards(card2)
-      room:obtainCard(player, dummy2, false, fk.ReasonPrey)
+      local card2 = room:askForCardChosen(player, target, "he", self.name)
+      room:obtainCard(player, card2, false, fk.ReasonPrey)
     end
   end,
 }
