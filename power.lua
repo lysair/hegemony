@@ -809,6 +809,8 @@ Fk:loadTranslationTable{
   ["ld__zhuwei_ask"] = "令当前回合角色手牌上限和使用【杀】的次数上限于此回合内+1",
   ["@ld__zhuwei_buff-turn"] = "筑围",
 
+  ["#ld__keshou_filter"] = "",
+
   ["$ld__keshou1"] = "仁以待民，自处不败之势。",
   ["$ld__keshou2"] = "宽济百姓，则得战前养备之机。",
   ["$ld__zhuwei1"] = "背水一战，只为破敌。",
