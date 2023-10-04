@@ -388,7 +388,7 @@ Fk:loadTranslationTable{
 
   ["ld__midao_rice"] = "米",
 
-  ["~ld__zhanglu"] = "唉，义不敌武，道难御兵...",
+  ["~ld__zhanglu"] = "唉，义不敌武，道难御兵……",
 }
 
 
@@ -398,8 +398,8 @@ Fk:loadTranslationTable{
 --   ["ld__mifangfushiren"] = "糜芳傅士仁",
 -- }
 
-local shixie = General(extension, "hs__shixie", "wu", 3)
-shixie.subkingdom = "qun"
+local shixie = General(extension, "hs__shixie", "qun", 3)
+shixie.subkingdom = "wu"
 local biluan = fk.CreateDistanceSkill{
   name = "hs__biluan",
   anim_type = "defensive",
@@ -461,7 +461,7 @@ Fk:loadTranslationTable{
   ["$hs__lixia1"] = "将军真乃国之栋梁。",
   ["$hs__lixia2"] = "英雄可安身立命与交州之地。",
 
-  ["~hs__shixie"] = "我这一生，足矣...",
+  ["~hs__shixie"] = "我这一生，足矣……",
 }
 
 -- local liuqi = General(extension, "ld__liuqi", "qun", 4)
@@ -566,7 +566,7 @@ Fk:loadTranslationTable{
   ["$ld__congca1"] = "窥一斑而知全豹。",
   ["$ld__congca2"] = "问一事则明其心。",
 
-  ["~ld__panjun"] = "密谋既现，难处奸贼啊...",
+  ["~ld__panjun"] = "密谋既现，难处奸贼啊……",
 }
 
 local wenqin = General(extension, "ld__wenqin", "wei", 4)
@@ -616,7 +616,7 @@ Fk:loadTranslationTable{
   ["$ld__jinfa1"] = "居功者，当自矜，为将者，当善伐。",
   ["$ld__jinfa2"] = "此战伐敌所获，皆我之功。",
   
-  ["~ld__wenqin"] = "公休，汝这是何意，呃...",
+  ["~ld__wenqin"] = "公休，汝这是何意，呃……",
 
 }
 
@@ -674,7 +674,7 @@ Fk:loadTranslationTable{
   ["$ld__zhengjian1"] = "需持续投入，方有回报。",
   ["$ld__zhengjian2"] = "心无旁骛，断而敢行。",
 
-  ["~ld__sufei"] = "恐不能再与兴霸兄，并肩作战了...",
+  ["~ld__sufei"] = "恐不能再与兴霸兄，并肩作战了……",
 }
 
 -- local xuyou = General(extension, "ld__xuyou", "qun", 3)
@@ -834,7 +834,7 @@ Fk:loadTranslationTable{
   ["$ld__jinxian1"] = "如此荒辈之徒为主，成何用也。",
   ["$ld__jinxian2"] = "公既如此，恕在下诚难留之。",
 
-  ["~ld__pengyang"] = "人言我心大志寡，难可保安，果然如此，唉...",
+  ["~ld__pengyang"] = "人言我心大志寡，难可保安，果然如此，唉……",
 }
 
 
@@ -909,9 +909,6 @@ local paiyi = fk.CreateActiveSkill{
     end
   end,
 }
-
-
-H.CreateClearSkill(quanji, "ld__zhonghui_power")
 zhonghui:addSkill(quanji)
 zhonghui:addSkill(paiyi)
 

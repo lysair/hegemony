@@ -549,14 +549,14 @@ local zhangwu = fk.CreateTriggerSkill{
         if move.to ~= player.id and (move.toArea == Card.PlayerEquip or move.toArea == Card.DiscardPile) then
           for _, info in ipairs(move.moveInfo) do
             if Fk:getCardById(info.cardId).name == "dragon_phoenix" then
-              table.insert(ids, id)
+              table.insert(ids, info.cardId)
             end
           end
         end
       end
       local dummy = Fk:cloneCard("dilu")
       dummy:addSubcards(ids)
-      player.room:obtainCard(player, dummy, true, self.name)
+      player.room:obtainCard(player, dummy, true, fk.ReasonPrey)
     end
   end,
 }
