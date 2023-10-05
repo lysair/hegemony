@@ -244,9 +244,9 @@ local paoxiaoTriggerXH = fk.CreateTriggerSkill{
       local room = player.room
       if not H.getHegLord(room, player) or not H.getHegLord(room, player):hasSkill("shouyue") then return false end
       if event == fk.CardUseFinished then
-        return (data.extra_data or {}).hsPaoxiaoNullifiled
+        return (data.extra_data or {}).xhHsPaoxiaoNullifiled
       else
-        return data.card.trueName == "slash" and player:hasSkill("hs__paoxiao") and room:getPlayerById(data.to):isAlive()
+        return data.card.trueName == "slash" and player:hasSkill("xuanhuo__hs__paoxiao") and room:getPlayerById(data.to):isAlive()
       end
     end
   end,
@@ -260,18 +260,18 @@ local paoxiaoTriggerXH = fk.CreateTriggerSkill{
         skill_type = "offensive",
       })
     elseif event == fk.CardUseFinished then
-      for key, num in pairs(data.extra_data.hsPaoxiaoNullifiled) do
+      for key, num in pairs(data.extra_data.xhHsPaoxiaoNullifiled) do
         local p = room:getPlayerById(tonumber(key))
         if p:getMark(fk.MarkArmorNullified) > 0 then
           room:removePlayerMark(p, fk.MarkArmorNullified, num)
         end
       end
-      data.hsPaoxiaoNullifiled = nil
+      data.xhHsPaoxiaoNullifiled = nil
     else
       room:addPlayerMark(room:getPlayerById(data.to), fk.MarkArmorNullified)
       data.extra_data = data.extra_data or {}
-      data.extra_data.hsPaoxiaoNullifiled = data.extra_data.hsPaoxiaoNullifiled or {}
-      data.extra_data.hsPaoxiaoNullifiled[tostring(data.to)] = (data.extra_data.hsPaoxiaoNullifiled[tostring(data.to)] or 0) + 1
+      data.extra_data.xhHsPaoxiaoNullifiled = data.extra_data.xhHsPaoxiaoNullifiled or {}
+      data.extra_data.xhHsPaoxiaoNullifiled[tostring(data.to)] = (data.extra_data.xhHsPaoxiaoNullifiled[tostring(data.to)] or 0) + 1
     end
   end,
 }
@@ -327,17 +327,17 @@ local longdanAfterXH = fk.CreateTriggerSkill{
     if event == fk.CardEffectCancelledOut then
       if data.card.trueName ~= "slash" then return false end
       if target == player then -- 龙胆杀
-        return table.contains(data.card.skillNames, "hs__longdan")
+        return table.contains(data.card.skillNames, "xuanhuo__hs__longdan")
       elseif data.to == player.id then -- 龙胆闪
         for _, card in ipairs(data.cardsResponded) do
-          if card.name == "jink" and table.contains(card.skillNames, "hs__longdan") then
+          if card.name == "jink" and table.contains(card.skillNames, "xuanhuo__hs__longdan") then
             return true
           end
         end
       end
     else
       local room = player.room
-      return player == target and H.getHegLord(room, player) and table.contains(data.card.skillNames, "hs__longdan") and H.getHegLord(room, player):hasSkill("shouyue")
+      return player == target and H.getHegLord(room, player) and table.contains(data.card.skillNames, "xuanhuo__hs__longdan") and H.getHegLord(room, player):hasSkill("shouyue")
     end
   end,
   on_cost = function(self, event, target, player, data)

@@ -639,7 +639,7 @@ end
 -- 君主将。为了方便……
 H.lordGenerals = {}
 
---- 获取君主，可能为nil
+--- 获取所属势力的君主，可能为nil
 ---@param room Room
 ---@param player Player
 ---@return lord ServerPlayer | nil @ 主公

@@ -482,10 +482,10 @@ local baolie = fk.CreateTriggerSkill{
   name = "ld__baolie",
   anim_type = "offensive",
   events = {fk.EventPhaseStart},
+  frequency = Skill.Compulsory,
   can_trigger = function (self, event, target, player, data)
     return player == target and player:hasSkill(self.name) and player.phase == Player.Play
   end,
-  on_cost = Util.TrueFunc,
   on_use = function (self, event, target, player, data)
     local room = player.room
     local targets = table.map(table.filter(room:getOtherPlayers(player), function(p)
@@ -493,7 +493,7 @@ local baolie = fk.CreateTriggerSkill{
     if #targets > 0 then
       for _, p in ipairs(targets) do
         local to = room:getPlayerById(p)
-        local use = room:askForUseCard(to, "slash", "slash", "#baolie-use", true, {must_targets = {player.id}})
+        local use = room:askForUseCard(to, "slash", "slash", "#baolie-use", true, {exclusive_targets = {player.id}})
         if use then
           room:useCard(use)
         else
@@ -509,7 +509,6 @@ local baolie = fk.CreateTriggerSkill{
 
 local baolie_targetmod = fk.CreateTargetModSkill{
   name = "#baolie_targetmod",
-  frequency = Skill.Compulsory,
   bypass_times = function(self, player, skill, scope, card, to)
     return player:hasSkill(self.name) and to.hp >= player.hp and skill.trueName == "slash_skill"
   end,
@@ -543,10 +542,10 @@ local congcha = fk.CreateTriggerSkill{
   can_trigger = function (self, event, target, player, data)
     if event == fk.EventPhaseStart then
       return target == player and player:hasSkill(self.name) and player.phase == Player.Start and
-       not table.every(player.room:getOtherPlayers(player), function(p) return H.getGeneralsRevealedNum(p) > 0 end)
+        not table.every(player.room:getOtherPlayers(player), function(p) return H.getGeneralsRevealedNum(p) > 0 end)
     else
       return target == player and player:hasSkill(self.name) and player.phase == Player.Draw and
-       table.every(player.room:getOtherPlayers(player), function(p) return H.getGeneralsRevealedNum(p) > 0 end)
+        table.every(player.room:getOtherPlayers(player), function(p) return H.getGeneralsRevealedNum(p) > 0 end)
     end
   end,
   on_use = function (self, event, target, player, data)
@@ -782,10 +781,6 @@ local shicai = fk.CreateTriggerSkill{
   anim_type = "drawcard",
   frequency = Skill.Compulsory,
   events = {fk.Damaged},
-  can_trigger = function (self, event, target, player, data)
-    return player:hasSkill(self.name) and player == target
-  end,
-  on_cost = Util.TrueFunc,
   on_use = function (self, event, target, player, data)
     if data.damage == 1 then
       player:drawCards(1, self.name)
