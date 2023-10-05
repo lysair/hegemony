@@ -135,7 +135,7 @@ local qiance = fk.CreateTriggerSkill{
   anim_type = "control",
   events = {fk.TargetSpecified},
   can_trigger = function (self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and data.card:isCommonTrick() and data.firstTarget
+    return H.compareKingdomWith(target, player) and player:hasSkill(self.name) and data.card:isCommonTrick() and data.firstTarget
   end,
   on_cost = function (self, event, target, player, data)
     return player.room:askForSkillInvoke(player, self.name, nil, "#ld__qiance-ask") 
@@ -175,7 +175,7 @@ xushu:addSkill(jujian)
 Fk:loadTranslationTable{
   ["ld__xushu"] = "徐庶",
   ["ld__qiance"] = "谦策",
-  [":ld__qiance"] = "当你使用锦囊牌指定目标后，你可令所有大势力角色不能响应此牌。",
+  [":ld__qiance"] = "与你势力相同的角色使用锦囊牌指定目标后，你可令所有大势力角色不能响应此牌。",
   ["ld__jujian"] = "举荐",
   [":ld__jujian"] = "副将技，此武将减少半个阴阳鱼。与你势力相同的角色受到伤害时，若伤害值不小于其体力值，你可以防止之，然后你变更此武将牌。",
 
@@ -476,11 +476,62 @@ Fk:loadTranslationTable{
 --   ["ld__tangzi"] = "唐咨",
 -- }
 
--- local xiahouba = General(extension, "ld__xiahouba", "shu", 4)
--- xiahouba.subkingdom = "wei"
--- Fk:loadTranslationTable{
---   ["ld__xiahouba"] = "夏侯霸",
--- }
+local xiahouba = General(extension, "ld__xiahouba", "shu", 4)
+xiahouba.subkingdom = "wei"
+local baolie = fk.CreateTriggerSkill{
+  name = "ld__baolie",
+  anim_type = "offensive",
+  events = {fk.EventPhaseStart},
+  can_trigger = function (self, event, target, player, data)
+    return player == target and player:hasSkill(self.name) and player.phase == Player.Play
+  end,
+  on_cost = Util.TrueFunc,
+  on_use = function (self, event, target, player, data)
+    local room = player.room
+    local targets = table.map(table.filter(room:getOtherPlayers(player), function(p)
+      return H.compareKingdomWith(p, player, true) and p:inMyAttackRange(player) end), function(p) return p.id end)
+    if #targets > 0 then
+      for _, p in ipairs(targets) do
+        local to = room:getPlayerById(p)
+        local use = room:askForUseCard(to, "slash", "slash", "#baolie-use", true, {must_targets = {player.id}})
+        if use then
+          room:useCard(use)
+        else
+          if not to:isNude() then
+            local card = room:askForCardChosen(player, to, "he", self.name)
+            room:throwCard({card}, self.name, to, player)
+          end
+        end
+      end
+    end
+  end,
+}
+
+local baolie_targetmod = fk.CreateTargetModSkill{
+  name = "#baolie_targetmod",
+  frequency = Skill.Compulsory,
+  bypass_times = function(self, player, skill, scope, card, to)
+    return player:hasSkill(self.name) and to.hp >= player.hp and skill.trueName == "slash_skill"
+  end,
+  bypass_distances =  function(self, player, skill, card, to)
+    return player:hasSkill(self.name) and to.hp >= player.hp and skill.trueName == "slash_skill"
+  end,
+}
+
+baolie:addRelatedSkill(baolie_targetmod)
+xiahouba:addSkill(baolie)
+
+Fk:loadTranslationTable{
+  ["ld__xiahouba"] = "夏侯霸",
+  ["ld__baolie"] = "豹烈",
+  [":ld__baolie"] = "锁定技，出牌阶段开始时，你令所有与你势力不同且攻击范围内含有你的角色依次对你使用一张【杀】，否则你弃置其一张牌。你对体力值不小于你的角色使用【杀】无距离与次数限制。",
+
+  ["#baolie-use"] = "豹烈：对夏侯霸使用一张【杀】，否则其弃置你一张牌",
+
+  ["$ld__baolie1"] = "废话少说，受死吧，喝！。",
+  ["$ld__baolie2"] = "当今曹营之将，一个能打的都没有！",
+  ["~ld__xiahouba"] = "不好，有埋伏！呃！",
+}
 
 local panjun = General(extension, "ld__panjun", "wu", 3)
 panjun.subkingdom = "shu"
@@ -561,12 +612,10 @@ Fk:loadTranslationTable{
   ["ld__congcha"] = "聪察",
   [":ld__congcha"] = "准备阶段，你可以选择一名未确定势力的角色，若如此做，当其明置武将牌后，若其确定势力且势力与你：相同，你与其各摸两张牌；不同，其失去1点体力；摸牌阶段，若场上不存在未确定势力的角色，你可以多摸两张牌。",
 
-
   ["@@ld__congcha_delay"] = "聪察",
   ["$ld__congca1"] = "窥一斑而知全豹。",
   ["$ld__congca2"] = "问一事则明其心。",
 
-  ["~ld__panjun"] = "密谋既现，难处奸贼啊……",
 }
 
 local wenqin = General(extension, "ld__wenqin", "wei", 4)
@@ -677,11 +726,91 @@ Fk:loadTranslationTable{
   ["~ld__sufei"] = "恐不能再与兴霸兄，并肩作战了……",
 }
 
--- local xuyou = General(extension, "ld__xuyou", "qun", 3)
--- xuyou.subkingdom = "wei"
--- Fk:loadTranslationTable{
---   ["ld__xuyou"] = "许攸",
--- }
+local xuyou = General(extension, "ld__xuyou", "qun", 3)
+xuyou.subkingdom = "wei"
+local chenglue = fk.CreateTriggerSkill{
+  name = "ld__chenglue",
+  anim_type = "drawcard",
+  events = {fk.TargetSpecified, fk.Damaged, fk.CardUseFinished},
+  can_trigger = function (self, event, target, player, data)
+    if event == fk.TargetSpecified then
+      return player:hasSkill(self.name) and H.compareKingdomWith(target, player) 
+       and #AimGroup:getAllTargets(data.tos) > 1 and data.firstTarget
+    elseif event == fk.Damaged then
+      return player:hasSkill(self.name) and player == target and data.card and player:getMark("ld__chenglue_detect") > 0
+    elseif event == fk.CardUseFinished then
+      return player:hasSkill(self.name) and player:getMark("ld__chenglue_addmark") > 0
+    end
+  end,
+  on_cost = function (self, event, target, player, data)
+    if event == fk.TargetSpecified then
+      return player.room:askForSkillInvoke(player, self.name, nil, "#ld__chenglue-ask")
+    else
+      return true
+    end
+  end,
+  on_use = function (self, event, target, player, data)
+    local room = player.room
+    if event == fk.TargetSpecified then
+      target:drawCards(1, self.name)
+      room:setPlayerMark(player, "ld__chenglue_detect", 1)
+    elseif event == fk.Damaged then
+      room:setPlayerMark(player, "ld__chenglue_detect", 0)
+      room:setPlayerMark(player, "ld__chenglue_addmark", 1)
+    else
+      room:setPlayerMark(player, "ld__chenglue_addmark", 0)
+      local targets = table.map(table.filter(room.alive_players, function(p)
+        return H.compareKingdomWith(p, player) and H.getGeneralsRevealedNum(p) == 2 
+        and player:getMark("@!yinyangfish") == 0 and player:getMark("@!companion") == 0 
+        and player:getMark("@!wild") == 0 and player:getMark("@!vanguard") == 0
+      end), function(p) return p.id end)
+      if #targets > 0 then
+        local to = room:askForChoosePlayers(player, targets, 1, 1, nil, self.name, true)
+        if #to > 0 then
+          local target = room:getPlayerById(to[1])
+          room:addPlayerMark(target, "@!yinyangfish", 1)
+          target:addFakeSkill("yinyangfish_skill&")
+          target:prelightSkill("yinyangfish_skill&", true)
+        end
+      end
+    end
+  end,
+}
+
+local shicai = fk.CreateTriggerSkill{
+  name = "ld__shicai",
+  anim_type = "drawcard",
+  frequency = Skill.Compulsory,
+  events = {fk.Damaged},
+  can_trigger = function (self, event, target, player, data)
+    return player:hasSkill(self.name) and player == target
+  end,
+  on_cost = Util.TrueFunc,
+  on_use = function (self, event, target, player, data)
+    if data.damage == 1 then
+      player:drawCards(1, self.name)
+    else
+      player.room:throwCard(player:getCardIds("h"), self.name, player, player)
+    end
+  end,
+}
+
+xuyou:addSkill(chenglue)
+xuyou:addSkill(shicai)
+
+Fk:loadTranslationTable{
+  ["ld__xuyou"] = "许攸",
+  ["ld__chenglue"] = "成略",
+  [":ld__chenglue"] = "与你势力相同的角色使用牌指定目标后，若此牌的目标数大于1，你可以令其摸一张牌，若如此做，此牌结算完成后，若你受到过此牌造成的伤害，你可以令一名与你势力相同且没有国战标记的角色获得一个“阴阳鱼”标记。",
+  ["ld__shicai"] = "恃才",
+  [":ld__shicai"] = "锁定技，当你受到伤害后，若此伤害为1点，你摸一张牌，否则你弃置所有手牌。",
+
+  ["$ld__chenglue"] = "阿瞒，苦思之事，我早有良策。",
+  ["$ld__chenglue2"] = "策略已有，按部就班即可得胜。",
+  ["$ld__shicai1"] = "如此大胜，皆由我一人谋划。",
+  ["$ld__shicai2"] = "画谋定计，谁堪与我比较。",
+  ["~ld__xuyou"] = "阿瞒，你竟忘恩负义！！",
+}
 
 local pengyang = General(extension, "ld__pengyang", "shu", 3)
 pengyang.subkingdom = "qun"
