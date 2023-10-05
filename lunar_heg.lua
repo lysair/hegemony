@@ -676,6 +676,7 @@ Fk:loadTranslationTable{
   ["~fk_heg__guyong"] = "此番患疾，吾必不起……",
 }
 
+--[====[
 local function swapHandCards(room, from, to1, to2, skillname)
   local target1 = room:getPlayerById(to1)
   local target2 = room:getPlayerById(to2)
@@ -1036,6 +1037,7 @@ Fk:loadTranslationTable{
   ["fk_heg__huangjinleishi"] = "黄巾雷使",
   ["~fk_heg__huangjinleishi"] = "速报大贤良师……大事已泄……",
 }
+--]====]
 
 local chengui = General(extension, "fk_heg__chengui", "qun", 3)
 local yingtu = fk.CreateTriggerSkill{
