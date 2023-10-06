@@ -295,6 +295,185 @@ Fk:loadTranslationTable{
   ["~ld__liuba"] = "家国将逢巨变，奈何此身先陨。",
 }
 
+local zhugeke = General(extension, "ld__zhugeke", "wu", 3)
+zhugeke:addCompanions("hs__dingfeng")
+local aocai = fk.CreateTriggerSkill{
+  name = "ld_aocai",
+  anim_type = "defensive",
+  events = {fk.AskForCardUse, fk.AskForCardResponse},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) and player.phase == Player.NotActive and
+      ((data.cardName and Fk:cloneCard(data.cardName).type == Card.TypeBasic) or
+      (data.pattern and Exppattern:Parse(data.pattern):matchExp(".|.|.|.|.|basic")))
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local ids = room:getNCards(2)
+    local fakemove = {
+      toArea = Card.PlayerHand,
+      to = player.id,
+      moveInfo = table.map(ids, function(id) return {cardId = id, fromArea = Card.Void} end),
+      moveReason = fk.ReasonJustMove,
+    }
+    room:notifyMoveCards({player}, {fakemove})
+    local availableCards = {}
+    for _, id in ipairs(ids) do
+      local card = Fk:getCardById(id)
+      if card.type == Card.TypeBasic then
+        if data.pattern then
+          if Exppattern:Parse(data.pattern):match(card) then
+            table.insertIfNeed(availableCards, id)
+          end
+        else
+          if player:canUse(card) then
+            table.insertIfNeed(availableCards, id)
+          end
+        end
+      end
+    end
+    room:setPlayerMark(player, "ld_aocai_cards", availableCards)
+    local success, dat
+    if event == fk.AskForCardUse then
+      success, dat = room:askForUseActiveSkill(player, "ld_aocai_use", "#ld_aocai-use", true)
+    else
+      success, dat = room:askForUseActiveSkill(player, "ld_aocai_response", "#ld_aocai-response", true)
+    end
+    room:setPlayerMark(player, "ld_aocai_cards", 0)
+    fakemove = {
+      from = player.id,
+      toArea = Card.Void,
+      moveInfo = table.map(ids, function(id) return {cardId = id, fromArea = Card.PlayerHand} end),
+      moveReason = fk.ReasonJustMove,
+    }
+    room:notifyMoveCards({player}, {fakemove})
+    for i = #ids, 1, -1 do
+      table.insert(room.draw_pile, 1, ids[i])
+    end
+    if success then
+      if event == fk.AskForCardUse then
+        local card = Fk.skills["ld_aocai_use"]:viewAs(dat.cards)
+        data.result = {
+          from = player.id,
+          card = card,
+        }
+        data.result.card.skillName = self.name
+        if data.eventData then
+          data.result.toCard = data.eventData.toCard
+          data.result.responseToEvent = data.eventData.responseToEvent
+        end
+      else
+        local card =  Fk:getCardById(dat.cards[1])
+        data.result = card
+        data.result.skillName = self.name
+      end
+    end
+    return true
+  end
+}
+
+local aocai_use = fk.CreateViewAsSkill{
+  name = "#ld_aocai_use",
+  card_filter = function(self, to_select, selected)
+    if #selected == 0 then
+      local ids = Self:getMark("ld_aocai_cards")
+      return type(ids) == "table" and table.contains(ids, to_select)
+    end
+  end,
+  view_as = function(self, cards)
+    if #cards == 1 then
+      return Fk:getCardById(cards[1])
+    end
+  end,
+}
+
+local aocai_response = fk.CreateActiveSkill{
+  name = "#ld_aocai_response",
+  card_num = 1,
+  target_num = 0,
+  card_filter = function(self, to_select, selected)
+    if #selected == 0 then
+      local ids = Self:getMark("ld_aocai_cards")
+      return type(ids) == "table" and table.contains(ids, to_select)
+    end
+  end,
+}
+
+local duwu = fk.CreateActiveSkill{
+  name =  "ld__duwu",
+  frequency = Skill.Limited,
+  anim_type = "support",
+  can_use = function(self, player)
+    return player:usedSkillTimes(self.name, Player.HistoryGame) == 0
+  end,
+  card_filter = Util.FalseFunc,
+  on_use = function (self, room, effect)
+    local player = room:getPlayerById(effect.from)
+    local index = H.startCommand(player, self.name)
+    local targets = table.map(table.filter(room.alive_players, function(p) return not H.compareKingdomWith(player, p) and player:inMyAttackRange(p)  end), Util.IdMapper)
+    if #targets > 0 then
+      room:handleAddLoseSkills(player, "#ld__duwu_trigger", nil)
+      room:doIndicate(player.id, targets)
+      room:sortPlayersByAction(targets)
+      for _, pid in ipairs(targets) do
+        local p = room:getPlayerById(pid)
+        if player.dead then break end
+        if not p.dead and not H.doCommand(p, self.name, index, player) then
+          room:damage{
+            from = player,
+            to = p,
+            damage = 1,
+            skillName = self.name,
+          }
+          player:drawCards(1, self.name)
+        end
+      end
+      room:handleAddLoseSkills(player, "-#ld__duwu_trigger", nil)
+      if #table.filter(room.alive_players, function(p) return p:getMark("ld__duwu_delay-phase") == 1 end) > 0 then
+        room:loseHp(player, 1, self.name)
+      end
+    end 
+  end,
+}
+
+local duwu_trigger = fk.CreateTriggerSkill{
+  name = "#ld__duwu_trigger",
+  mute = true,
+  events = {fk.AfterDying},
+  can_trigger = function(self, event, target, player, data)
+    return player:hasSkill(self.name) and not player.dead and not target.dead
+  end,
+  on_cost = Util.TrueFunc,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    room:setPlayerMark(target, "ld__duwu_delay-phase", 1)
+  end,
+}
+
+aocai:addRelatedSkill(aocai_use)
+aocai:addRelatedSkill(aocai_response)
+zhugeke:addSkill(aocai)
+Fk:addSkill(duwu_trigger)
+zhugeke:addSkill(duwu)
+
+Fk:loadTranslationTable{
+  ["ld__zhugeke"] = "诸葛恪",
+  ["ld_aocai"] = "傲才",
+  [":ld_aocai"] = "当你于回合外需要使用或打出一张基本牌时，你可以观看牌堆顶的两张牌，若你观看的牌中有此牌，你可以使用或打出之。",
+  ["ld__duwu"] = "黩武",
+  [":ld__duwu"] = "出牌阶段，你可以令你攻击范围内的所有其他势力角色造成执行军令，若其不执行，你对其造成1点伤害并摸一张牌。"..
+  "若其因此进入濒死状态且被救回，则军令结算后你失去1点体力。",
+  ["ld_aocai_use"] = "傲才",
+  ["ld_aocai_response"] = "傲才",
+  ["#ld_aocai-use"] = "傲才：你可以使用其中你需要的牌",
+  ["#ld_aocai-response"] = "傲才：你可以打出其中你需要的牌",
+
+  ["$ld_aocai1"] = "哼，易如反掌。",
+  ["$ld_aocai2"] = "吾主圣明，泽披臣属。",
+  ["$ld__duwu1"] = "破曹大功，正在今朝！",
+  ["$ld__duwu2"] = "全力攻城！言退者，斩！",
+  ["~ld__zhugeke"] = "重权震主，是我疏忽了……",
+}
+
 -- 
 -- local mengda = General(extension, "ld__mengda", "wei", 4)
 -- mengda.subkingdom = "shu"
@@ -775,8 +954,9 @@ local chenglue = fk.CreateTriggerSkill{
       room:setPlayerMark(player, "ld__chenglue_detect", 1)
     elseif event == fk.Damaged then
       room:setPlayerMark(player, "ld__chenglue_detect", 0)
-      room:setPlayerMark(player, "ld__chenglue_addmark", 1)
-    else
+      room:setPlayerMark(player, "ld__chenglue_addmark", data.card.id)
+    elseif event == fk.CardUseFinished and data.card.id == player:getMark("ld__chenglue_addmark") then
+      room:setPlayerMark(player, "ld__chenglue_detect", 0)
       room:setPlayerMark(player, "ld__chenglue_addmark", 0)
       local targets = table.map(table.filter(room.alive_players, function(p)
         return H.compareKingdomWith(p, player) and H.getGeneralsRevealedNum(p) == 2 
