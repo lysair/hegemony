@@ -9,26 +9,7 @@ Fk:loadTranslationTable{
 }
 
 local guohuai = General(extension, "fk_heg__guohuai", "wei", 4)
-local jingce = fk.CreateTriggerSkill{
-  name = "fk_heg__jingce",
-  anim_type = "drawcard",
-  events = {fk.EventPhaseEnd},
-  can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and player.phase == Player.Play and player:getMark("jingce-turn") >= player.hp
-  end,
-  on_use = function(self, event, target, player, data)
-    player:drawCards(2, self.name)
-  end,
-
-  refresh_events = {fk.CardUsing},
-  can_refresh = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and player.phase < Player.Discard
-  end,
-  on_refresh = function(self, event, target, player, data)
-    player.room:addPlayerMark(player, "jingce-turn", 1)
-  end,
-}
-guohuai:addSkill(jingce)
+guohuai:addSkill("jingce")
 guohuai:addCompanions { "hs__zhanghe", "hs__xiahouyuan" }
 Fk:loadTranslationTable{
   ["fk_heg__guohuai"] = "郭淮",

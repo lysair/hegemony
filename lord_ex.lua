@@ -189,91 +189,111 @@ Fk:loadTranslationTable{
   ["~ld__xushu"] = "大义无言，虽死无怨。",
 }
 
--- local liuba = General(extension, "ld__liuba", "shu", 3)
--- local tongdu = fk.CreateTriggerSkill{
---   name = "ld_tongdu",
---   anim_type = "control",
---   events = {fk.EventPhaseStart},
---   can_trigger = function (self, event, target, player, data)
---     return H.compareKingdomWith(player, target) and target.phase == Player.Finish and player:hasSkill(self.name) and target:getMark("tongdu-turn") > 0
---   end,
---   on_cost = function(self, event, target, player, data)
---     if table.every(player.room:getOtherPlayers(player), function (p) return p:isNude() end) then return end
---     return target.room:askForSkillInvoke(target, self.name)
---   end,
---   on_use = function (self, event, target, player, data)
---     target:drawCards(target:getMark("tongdu-turn", self.name))
---   end,
+local liuba = General(extension, "ld__liuba", "shu", 3)
+local tongdu = fk.CreateTriggerSkill{
+  name = "ld__tongdu",
+  anim_type = "control",
+  events = {fk.EventPhaseStart},
+  can_trigger = function (self, event, target, player, data)
+    if target.phase ~= Player.Finish or not H.compareKingdomWith(player, target) or not player:hasSkill(self.name) then return false end
+    local room = player.room
+    local discard_ids = {}
+    room.logic:getEventsOfScope(GameEvent.Phase, 1, function (e)
+      if e.data[2] == Player.Discard then
+        table.insert(discard_ids, {e.id, e.end_id})
+      end
+      return false
+    end, Player.HistoryTurn)
+    if #discard_ids > 0 then
+      local num = 0
+      room.logic:getEventsOfScope(GameEvent.MoveCards, 1, function (e)
+        local in_discard = false
+        for _, ids in ipairs(discard_ids) do
+          if #ids == 2 and e.id > ids[1] and e.id < ids[2] then
+            in_discard = true
+            break
+          end
+        end
+        if in_discard then
+          for _, move in ipairs(e.data) do
+            if move.from == target.id and move.moveReason == fk.ReasonDiscard then
+              for _, info in ipairs(move.moveInfo) do
+                if info.fromArea == Card.PlayerHand or info.fromArea == Card.PlayerEquip then
+                  num = num + 1
+                end
+              end
+            end
+          end
+        end
+        return false
+      end, Player.HistoryTurn) 
+      if num > 0 then
+        self.cost_data = math.min(3, num)
+        return true
+      end
+    end
+  end,
+  on_cost = function(self, event, target, player, data)
+    return target.room:askForSkillInvoke(target, self.name, nil, "#ld__tongdu-ask:" .. player.id .. "::" .. self.cost_data)
+  end,
+  on_use = function (self, event, target, player, data)
+    target:drawCards(self.cost_data, self.name)
+  end,
+}
 
---   refresh_events = {fk.AfterCardsMove},
---   can_refresh = function(self, event, target, player, data)
---     local current = player.room.current
---     return player:hasSkill(self.name) and current.phase == Player.Discard and H.compareKingdomWith(player, current)
---   end,
---   on_refresh = function(self, event, target, player, data)
---     local current = player.room.current
---     for _, move in ipairs(data) do
---       if move.moveReason == fk.ReasonDiscard and move.from == current.id then
---         for _, info in ipairs(move.moveInfo) do
---           if info.fromArea == Card.PlayerHand then
---             if current:getMark("tongdu-turn") < 3 then
---               player.room:addPlayerMark(current, "tongdu-turn", 1)
---             end
---           end
---         end
---       end
---     end
---   end,
--- }
+local qingyin = fk.CreateActiveSkill{
+  name = "ld__qingyin",
+  anim_type = "support",
+  frequency = Skill.Limited,
+  can_use = function(self, player)
+    return player:usedSkillTimes(self.name, Player.HistoryGame) == 0
+  end,
+  card_filter = Util.FalseFunc,
+  on_use = function(self, room, effect)
+    local player = room:getPlayerById(effect.from)
+    local isDeputy = H.inGeneralSkills(player, self.name)
+    if isDeputy then
+      H.removeGeneral(room, player, isDeputy == "d")
+    end
+    local targets = table.map(table.filter(room.alive_players, function(p) return H.compareKingdomWith(p, player) end), Util.IdMapper)
+    room:sortPlayersByAction(targets)
+    room:recover({
+      who = player,
+      num = player.maxHp - player.hp,
+      recoverBy = player,
+      skillName = self.name
+    })
+    for _, pid in ipairs(targets) do
+      local p = room:getPlayerById(pid)
+      if not p.dead and p:isWounded() then
+        room:recover({
+          who = p,
+          num = p.maxHp - p.hp,
+          recoverBy = player,
+          skillName = self.name,
+        })
+      end
+    end
+  end,
+}
+liuba:addSkill(tongdu)
+liuba:addSkill(qingyin)
 
--- local qingyin = fk.CreateActiveSkill{
---   name = "ld_qingyin",
---   anim_type = "support",
---   frequency = Skill.Limited,
---   can_use = function(self, player)
---     return player:usedSkillTimes(self.name, Player.HistoryGame) == 0
---   end,
---   card_filter = Util.FalseFunc,
---   on_use = function(self, room, effect)
---     local player = room:getPlayerById(effect.from)
---     H.removeGeneral(room, player, player.deputyGeneral == "ld__liuba")
---     local targets = table.map(table.filter(room.alive_players, function(p) return H.compareKingdomWith(p, player) end), Util.IdMapper)
---     room:sortPlayersByAction(targets)
---     room:recover({
---       who = player,
---       num = player.maxHp - player.hp,
---       recoverBy = player,
---       skillName = self.name
---     })
---     for _, pid in ipairs(targets) do
---       local p = room:getPlayerById(pid)
---       if not p.dead and p:isWounded() then
---         room:recover({
---           who = p,
---           num = p.maxHp - p.hp,
---           recoverBy = player,
---           skillName = self.name,
---         })
---       end
---     end
---   end,
--- }
--- liuba:addSkill(tongdu)
--- liuba:addSkill(qingyin)
+Fk:loadTranslationTable{
+  ["ld__liuba"] = "刘巴",
+  ["ld__tongdu"] = "统度",
+  [":ld__tongdu"] = "与你势力相同的角色结束阶段，其可以摸X张牌（X为其于弃牌阶段弃置的牌数且至多为3）",
+  ["ld__qingyin"] = "清隐",
+  [":ld__qingyin"] = "限定技，出牌阶段，你可以移除此武将牌，然后与你势力相同的角色将体力回复至体力上限。",
 
--- Fk:loadTranslationTable{
---   ["ld__liuba"] = "刘巴",
---   ["ld_tongdu"] = "统度",
---   [":ld_tongdu"] = "与你势力相同的角色结束阶段，其可以摸X张牌（X为其于弃牌阶段弃置的牌数且至多为3）",
---   ["ld_qingyin"] = "清隐",
---   [":ld_qingyin"] = "限定技，出牌阶段，你可以移除此武将牌，然后与你势力相同的角色将体力回复至体力上限。",
-  
---   ["$ld__tongdu1"] = "统荆益二州诸物之价，以为民生国祚之大计。",
---   ["$ld__tongdu2"] = "铸直百之钱，可平物价，定军民之心。",
---   ["$ld_qingyin1"] = "功成身退，再不问世间诸事。",
---   ["$ld_qingyin2"] = "天下既定，我亦当遁迹匿踪，颐养天年矣。",
---   ["~ld__liuba"] = "家国将逢巨变，奈何此身先陨。",
--- }
+  ["#ld__tongdu-ask"] = "你可发动%src的“统度”，摸 %arg 张牌",
+
+  ["$ld__tongdu1"] = "统荆益二州诸物之价，以为民生国祚之大计。",
+  ["$ld__tongdu2"] = "铸直百之钱，可平物价，定军民之心。",
+  ["$ld__qingyin1"] = "功成身退，再不问世间诸事。",
+  ["$ld__qingyin2"] = "天下既定，我亦当遁迹匿踪，颐养天年矣。",
+  ["~ld__liuba"] = "家国将逢巨变，奈何此身先陨。",
+}
 
 -- 
 -- local mengda = General(extension, "ld__mengda", "wei", 4)
