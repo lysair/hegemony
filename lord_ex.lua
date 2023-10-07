@@ -1410,24 +1410,237 @@ Fk:loadTranslationTable{
   ["~ld__simazhao"] = "千里之功，只差一步了……",
 }
 
---local sunchen = General(extension, "ld__sunchen", "wild", 4)
+local sunchen = General(extension, "ld__sunchen", "wild", 4)
+local shilus = fk.CreateTriggerSkill{
+  name = "shilus",
+  anim_type = "drawcard",
+  events = {fk.Deathed, fk.EventPhaseStart},
+  can_trigger = function(self, event, target, player, data)
+    if not player:hasSkill(self.name) then return false end
+    if event == fk.EventPhaseStart then
+      return player == target and player.phase == Player.Start and type(player:getMark("@&massacre")) == "table" and #player:getMark("@&massacre") > 0
+    elseif event == fk.Deathed then
+      return true
+    end
+  end,
+  on_cost = function(self, event, target, player, data)
+    local room = player.room
+    if event == fk.EventPhaseStart then
+      local x = #player:getMark("@&massacre")
+      local cards = room:askForDiscard(player, 1, x, true, self.name, true, ".", "#shilus-cost:::" .. tostring(x), true)
+      if #cards > 0 then
+        self.cost_data = cards
+        return true
+      end
+    else
+      if room:askForSkillInvoke(player, self.name, nil, "#shilus-invoke::"..target.id) then
+        room:doIndicate(player.id, {target.id})
+        return true
+      end
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    if event == fk.EventPhaseStart then
+      room:throwCard(self.cost_data, self.name, player, player)
+      if not player.dead then
+        room:drawCards(player, #self.cost_data, self.name)
+      end
+    elseif event == fk.Deathed then
+      local cards = {}
+      if not target.general:startsWith("blank_") and target.general ~= "anjiang" then
+        room:findGeneral(target.general)
+        table.insert(cards, target.general)
+      end
+      if target.deputyGeneral and target.deputyGeneral ~= "" and not target.deputyGeneral:startsWith("blank_") and target.deputyGeneral ~= "anjiang" then
+        room:findGeneral(target.deputyGeneral)
+        table.insert(cards, target.deputyGeneral)
+      end
+      if data.damage and data.damage.from == player then
+        table.insertTableIfNeed(cards, room:getNGenerals(2))
+      end
+      if #cards > 0 then
+        local generals = player:getMark("@&massacre")
+        if generals == 0 then generals = {} end
+        table.insertTableIfNeed(generals, cards)
+        room:setPlayerMark(player, "@&massacre", generals)
+      end
+    end
+  end,
+}
+local xiongnve = fk.CreateTriggerSkill{
+  name = "xiongnve",
+  anim_type = "drawcard",
+  events = {fk.EventPhaseStart, fk.EventPhaseEnd},
+  mute = true,
+  can_trigger = function(self, event, target, player, data)
+    if player == target and player:hasSkill(self.name) and player.phase == Player.Play then
+      local x = type(player:getMark("@&massacre")) == "table" and #player:getMark("@&massacre") or 0
+      return x > 1 or (event == fk.EventPhaseStart and x == 1)
+    end
+  end,
+  on_cost = function(self, event, target, player, data)
+    if event == fk.EventPhaseStart then
+      local result = player.room:askForCustomDialog(player, self.name,
+        "packages/utility/qml/ChooseGeneralsAndChoiceBox.qml", {
+          player:getMark("@&massacre"),
+          {"xiongnve_choice1", "xiongnve_choice2", "xiongnve_choice3"},
+          "#xiongnve-chooose",
+          {"Cancel"}
+        })
+      if result ~= "" then
+        local reply = json.decode(result)
+        if reply.choice ~= "Cancel" then
+          self.cost_data = {reply.cards, reply.choice}
+          return true
+        end
+      end
+    else
+      local result = player.room:askForCustomDialog(player, self.name,
+      "packages/utility/qml/ChooseGeneralsAndChoiceBox.qml", {
+        player:getMark("@&massacre"),
+        {"OK"},
+        "#xiongnve-defence",
+        {"Cancel"},
+        2,
+        2
+      })
+      if result ~= "" then
+        local reply = json.decode(result)
+        if reply.choice == "OK" then
+          self.cost_data = {reply.cards}
+          return true
+        end
+      end
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    player:broadcastSkillInvoke(self.name)
+    if event == fk.EventPhaseStart then
+      room:notifySkillInvoked(player, self.name, self.cost_data[2] == "xiongnve_choice2" and "control" or "offensive")
+    else
+      room:notifySkillInvoked(player, self.name, "defensive")
+    end
+    room:returnToGeneralPile(self.cost_data[1])
+    local generals = player:getMark("@&massacre")
+    if generals == 0 then generals = {} end
+    for _, name in ipairs(self.cost_data[1]) do
+      table.removeOne(generals, name)
+    end
+    room:setPlayerMark(player, "@&massacre", generals)
+    if event == fk.EventPhaseStart then
+      room:setPlayerMark(player, "@xiongnve_choice-phase", "xiongnve_effect" .. string.sub(self.cost_data[2], 16, 16))
+      local general = Fk.generals[self.cost_data[1][1]]
+      local kingdoms = {general.kingdom}
+      if general.subkingdom then
+        table.insert(kingdoms, general.subkingdom)
+      end
+      room:setPlayerMark(player, "@xiongnve_kindom-phase", kingdoms)
+    elseif event == fk.EventPhaseEnd then
+      room:setPlayerMark(player, "@xiongnve_choice", "xiongnve_defence")
+    end
+  end,
 
+  refresh_events = {fk.TurnStart},
+  can_refresh = function(self, event, target, player, data)
+    return target == player and player:getMark("@xiongnve_choice") ~= 0
+  end,
+  on_refresh = function(self, event, target, player, data)
+    player.room:setPlayerMark(player, "@xiongnve_choice", 0)
+  end,
+}
 
+local function compareXiongNveKingdom(player, target)
+  --FIXME:不知道野心家角色是怎么判定的，等Nyu神出手
+  local mark = player:getMark("@xiongnve_kindom-phase")
+  return type(mark) == "table" and table.contains(mark, target.kingdom)
+end
 
-
+local xiongnve_delay = fk.CreateTriggerSkill{
+  name = "#xiongnve_delay",
+  events = {fk.DamageCaused, fk.DamageInflicted},
+  mute = true,
+  can_trigger = function(self, event, target, player, data)
+    if player.dead or player ~= target then return false end
+    if event == fk.DamageCaused then
+      if not data.to.dead and compareXiongNveKingdom(player, data.to) then
+        local effect_name = player:getMark("@xiongnve_choice-phase")
+        if effect_name == "xiongnve_effect1" then
+          return true
+        elseif effect_name == "xiongnve_effect2" then
+          return #data.to.player_cards[Player.Equip] > 0 or (not data.to:isKongcheng() and data.to ~= player)
+        end
+      end
+    else
+      return player:getMark("@xiongnve_choice") == "xiongnve_defence" and data.from and data.from ~= player
+    end
+  end,
+  on_cost = Util.TrueFunc,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    player:broadcastSkillInvoke("xiongnve")
+    if event == fk.DamageCaused then
+      room:doIndicate(player.id, {data.to.id})
+      local effect_name = player:getMark("@xiongnve_choice-phase")
+      if effect_name == "xiongnve_effect1" then
+        room:notifySkillInvoked(player, self.name, "offensive")
+        data.damage = data.damage + 1
+      elseif effect_name == "xiongnve_effect2" then
+        room:notifySkillInvoked(player, self.name, "control")
+        local flag =  data.to == player and "e" or "he"
+        local card = room:askForCardChosen(player, data.to, flag, self.name)
+        room:obtainCard(player.id, card, false, fk.ReasonPrey)
+      end
+    else
+      room:notifySkillInvoked(player, self.name, "defensive")
+      data.damage = data.damage - 1
+    end
+  end,
+}
+local xiongnve_targetmod = fk.CreateTargetModSkill{
+  name = "#xiongnve_targetmod",
+  bypass_times = function(self, player, skill, scope, card, to)
+    return to and player:getMark("@xiongnve_choice-phase") == "xiongnve_effect3" and compareXiongNveKingdom(player, to)
+  end,
+}
+xiongnve:addRelatedSkill(xiongnve_delay)
+xiongnve:addRelatedSkill(xiongnve_targetmod)
+sunchen:addSkill(shilus)
+sunchen:addSkill(xiongnve)
 
 Fk:loadTranslationTable{
   ["ld__sunchen"] = "孙綝",
-  ["shiluk"] = "嗜戮",
-  [":shiluk"] = "当一名角色死亡后，你可将其所有武将牌置于你的武将牌旁，称为“戮”，若你为来源，你从剩余武将牌堆额外获得两张“戮”。"..
+  ["shilus"] = "嗜戮",
+  [":shilus"] = "当一名角色死亡后，你可将其所有武将牌置于你的武将牌旁，称为“戮”，若你为来源，你从剩余武将牌堆额外获得两张“戮”。"..
   "准备阶段，你可以弃置至多X张牌（X为“戮”数），摸等量的牌。",
   ["xiongnve"] = "凶虐",
   [":xiongnve"] = "出牌阶段开始时，你可以移去一张“戮”，令你本回合对此“戮”势力角色获得下列效果中的一项："..
   "1.对其造成伤害时，令此伤害+1；2.对其造成伤害时，你获得其一张牌；3.对其使用牌无次数限制。"..
   "出牌阶段结束时，你可以移去两张“戮”，然后直到你的下回合，其他角色对你造成的伤害-1。",
 
-  ["$shiluk1"] = "以杀立威，谁敢反我？",
-  ["$shiluk2"] = "将这些乱臣贼子，尽皆诛之！",
+  ["@&massacre"] = "戮",
+  ["#shilus-cost"] = "发动 嗜戮，弃置至多%arg张牌并摸等量的牌",
+  ["#shilus-invoke"] = "发动 嗜戮，获得%dest的武将牌作为“戮”",
+
+  ["#xiongnve-chooose"] = "发动 凶虐，弃置一张“戮”，获得一项效果",
+  ["xiongnve_choice1"] = "增加伤害",
+  ["xiongnve_choice2"] = "造成伤害时拿牌",
+  ["xiongnve_choice3"] = "用牌无次数限制",
+  ["#xiongnve-defence"] = "发动 凶虐，弃置两张“戮”，直到下回合，受到伤害-1",
+
+  ["@xiongnve_choice-phase"] = "凶虐",
+  ["@xiongnve_kindom-phase"] = "凶虐",
+  ["@xiongnve_choice"] = "凶虐",
+  ["xiongnve_defence"] = "减少伤害",
+  ["xiongnve_effect1"] = "增加伤害",
+  ["xiongnve_effect2"] = "造伤拿牌",
+  ["xiongnve_effect3"] = "无限用牌",
+  
+  ["#xiongnve_delay"] = "凶虐",
+
+  ["$shilus1"] = "以杀立威，谁敢反我？",
+  ["$shilus2"] = "将这些乱臣贼子，尽皆诛之！",
   ["$xiongnve1"] = "当今天子乃我所立，他敢怎样？",
   ["$xiongnve2"] = "我兄弟三人同掌禁军，有何所惧？",
   ["~ld__sunchen"] = "愿陛下念臣昔日之功，陛下？陛下！！",
