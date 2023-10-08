@@ -23,6 +23,7 @@ Fk:loadTranslationTable{
   ["fk_heg__caozhang"] = "曹彰",
 }
 
+--[[
 local caoang = General(extension, "fk_heg__caoang", "wei", 4)
 caoang:addSkill("kangkai")
 caoang:addCompanions("hs__dianwei")
@@ -30,6 +31,7 @@ Fk:loadTranslationTable{
   ["fk_heg__caoang"] = "曹昂",
   ["~fk_heg__caoang"] = "典将军，还是你赢了……",
 }
+--]]
 
 local wangyi = General(extension, "fk_heg__wangyi", "wei", 3, 3, General.Female)
 wangyi:addSkill("zhenlie")
@@ -307,6 +309,7 @@ Fk:loadTranslationTable{
 }
 
 
+--[===[
 local xianglang = General(extension, "fk_heg__xianglang", "shu", 3)
 local kanji = fk.CreateActiveSkill{
   name = "fk_heg__kanji",
@@ -415,6 +418,7 @@ Fk:loadTranslationTable{
   ["$fk_heg__qianzheng2"] = "罪臣怀咎难辞，有愧国恩。",
   ["~fk_heg__xianglang"] = "识文重义而徇私，恨也……",
 }
+--]===]
 
 -- local dongyun = General(extension, "fk_heg__dongyun", "shu", 3, 3, General.Male)
 -- local yizan = fk.CreateTriggerSkill{

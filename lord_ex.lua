@@ -677,6 +677,7 @@ Fk:loadTranslationTable{
 
 local xiahouba = General(extension, "ld__xiahouba", "shu", 4)
 xiahouba.subkingdom = "wei"
+xiahouba:addCompanions("ld__jiangwei")
 local baolie = fk.CreateTriggerSkill{
   name = "ld__baolie",
   anim_type = "offensive",
