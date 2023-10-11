@@ -558,7 +558,7 @@ local xuanhuo = fk.CreateTriggerSkill{
       xuanhuo_map[p] = will_attach
     end
     for p, v in pairs(xuanhuo_map) do
-      if v ~= player:hasSkill("ld__xuanhuo_other&") then
+      if v ~= p:hasSkill("ld__xuanhuo_other&") then
         room:handleAddLoseSkills(p, v and "ld__xuanhuo_other&" or "-ld__xuanhuo_other&", nil, false, true)
       end
     end
@@ -710,6 +710,7 @@ local keshou_filter = fk.CreateActiveSkill{
   name = "#ld__keshou_filter",
   min_card_num = 2,
   max_card_num = 2,
+  visible = false,
   card_filter = function(self, to_select, selected)
     return table.every(selected, function(id)
       return Fk:getCardById(to_select).color == Fk:getCardById(id).color
@@ -718,8 +719,8 @@ local keshou_filter = fk.CreateActiveSkill{
   target_filter = function (self, to_select, selected)
     return false
   end,
+  can_use = Util.FalseFunc,
 }
-Fk:addSkill(keshou_filter)
 local keshou = fk.CreateTriggerSkill{
   name = "ld__keshou",
   anim_type = "defensive",
@@ -729,30 +730,30 @@ local keshou = fk.CreateTriggerSkill{
   end,
   on_cost = function(self, event, target, player, data)
     local room = player.room
-    local result, dat = room:askForUseActiveSkill(player, "#ld__keshou_filter", "@ld__keshou", true)
+    local result, dat = room:askForUseActiveSkill(player, "#ld__keshou_filter", "#ld__keshou:::" .. data.damage, true)
     if result then
       self.cost_data = dat.cards
       return true
     end
-    
   end,
   on_use = function (self, event, target, player, data)
     local room = player.room 
     room:throwCard(self.cost_data, self.name, player, player)
     data.damage = data.damage - 1
-    if player and #table.filter(room.alive_players, function(p) return H.compareKingdomWith(p, player, true) end) == 1 then
-        local judge = {
-          who = player,
-          reason = self.name,
-          pattern = ".|.|heart,diamond|.|.|.",
-        }
-        room:judge(judge)
-        if judge.card.color == Card.Red then
-          player:drawCards(1, self.name)
-        end
+    if player and H.getKingdomPlayersNum(room)[H.getKingdom(player)] == 1 then
+      local judge = {
+        who = player,
+        reason = self.name,
+        pattern = ".|.|heart,diamond|.|.|.",
+      }
+      room:judge(judge)
+      if judge.card.color == Card.Red then
+        player:drawCards(1, self.name)
       end
+    end
   end,
 }
+keshou:addRelatedSkill(keshou_filter)
 
 local zhuwei = fk.CreateTriggerSkill{
   name = "ld__zhuwei",
@@ -760,7 +761,7 @@ local zhuwei = fk.CreateTriggerSkill{
   events = {fk.FinishJudge},
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(self.name) 
-     and player.room:getCardArea(data.card) == Card.Processing
+      and player.room:getCardArea(data.card) == Card.Processing
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
@@ -768,19 +769,9 @@ local zhuwei = fk.CreateTriggerSkill{
     local current = room.current
     local choices = {"ld__zhuwei_ask::" .. current.id, "Cancel"}
     if room:askForChoice(player, choices, self.name) ~= "Cancel" then
-      if current:getMark("@ld__zhuwei_buff-turn") == 0 then
-        room:addPlayerMark(current, "@ld__zhuwei_buff-turn", 1)
-      else
-        room:setPlayerMark(current, "@ld__zhuwei_buff-turn", current:getMark("@ld__zhuwei_buff-turn") + 1)
-      end
+      room:addPlayerMark(current, "@ld__zhuwei_buff-turn", 1)
+      room:addPlayerMark(current, MarkEnum.AddMaxCardsInTurn, 1)
     end
-  end,
-}
-
-local zhuwei_maxcards = fk.CreateMaxCardsSkill{
-  name = "#ld__zhuwei_maxcards",
-  correct_func = function(self, player)
-    return player:getMark("@ld__zhuwei_buff-turn")
   end,
 }
 
@@ -793,20 +784,18 @@ local zhuwei_targetmod = fk.CreateTargetModSkill{
   end,
 }
 
-
 lukang:addSkill(keshou)
 zhuwei:addRelatedSkill(zhuwei_targetmod)
-zhuwei:addRelatedSkill(zhuwei_maxcards)
 lukang:addSkill(zhuwei)
 lukang:addCompanions("hs__luxun")
 Fk:loadTranslationTable{
   ["ld__lukang"] = "陆抗",
   ["ld__keshou"] = "恪守",
   [":ld__keshou"] = "当你受到伤害时，你可弃置两张颜色相同的牌，令此伤害值-1，然后若没有与你势力相同的其他角色，你判定，若结果为红色，你摸一张牌。",
-  ["@ld__keshou"] = "恪守：是否弃置两张牌，令你受到的伤害-1",
+  ["#ld__keshou"] = "恪守：是否弃置两张颜色相同的牌，令你受到的%arg点伤害-1",
   ["ld__zhuwei"] = "筑围",
   [":ld__zhuwei"] = "当你进行的判定结果确定后，你可获得此牌，然后你可令当前回合角色手牌上限和使用【杀】的次数上限于此回合内+1。",
-  ["ld__zhuwei_ask"] = "令当前回合角色手牌上限和使用【杀】的次数上限于此回合内+1",
+  ["ld__zhuwei_ask"] = "令%dest手牌上限和使用【杀】的次数上限于此回合内+1",
   ["@ld__zhuwei_buff-turn"] = "筑围",
 
   ["#ld__keshou_filter"] = "",

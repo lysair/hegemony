@@ -98,8 +98,7 @@ local dangxian = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     if event == fk.GeneralRevealed then
-      player.room:addPlayerMark(player, "@!vanguard", 1)
-      player:addFakeSkill("vanguard_skill&")
+      H.addHegMark(player.room, player, "vanguard")
     else
       player:gainAnExtraPhase(Player.Play)
     end

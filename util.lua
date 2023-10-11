@@ -862,6 +862,32 @@ H.inGeneralSkills = function(player, skill)
   return nil
 end
 
+-- 国战标记
+
+--- 添加国战标记
+---@param room Room
+---@param player ServerPlayer
+---@param markName string @ 值为vanguard|yinyangfish|companion|wild
+H.addHegMark = function(room, player, markName)
+  if markName == "vanguard" then
+    room:addPlayerMark(player, "@!vanguard", 1)
+    player:addFakeSkill("vanguard_skill&")
+  elseif markName == "yinyangfish" then
+    room:addPlayerMark(player, "@!yinyangfish", 1)
+    player:addFakeSkill("yinyangfish_skill&")
+    player:prelightSkill("yinyangfish_skill&", true)
+  elseif markName == "companion" then
+    room:addPlayerMark(player, "@!companion", 1)
+    player:addFakeSkill("companion_skill&")
+    player:addFakeSkill("companion_peach&")
+  elseif markName == "wild" then
+    room:addPlayerMark(player, "@!wild", 1)
+    player:addFakeSkill("wild_draw&")
+    player:addFakeSkill("wild_peach&")
+    player:prelightSkill("wild_draw&", true)
+  end
+end
+
 -- 合纵
 
 H.allianceCards = {}

@@ -479,12 +479,11 @@ local paoxiaoTrigger = fk.CreateTriggerSkill{
     if event == fk.CardUsing then
       return player:hasSkill(self.name) and data.card.trueName == "slash" and player:usedCardTimes("slash") > 1
     else
-      local room = player.room
-      if not H.getHegLord(room, player) or not H.getHegLord(room, player):hasSkill("shouyue") then return false end
       if event == fk.CardUseFinished then
         return (data.extra_data or {}).hsPaoxiaoNullifiled
       else
-        return data.card.trueName == "slash" and player:hasSkill("hs__paoxiao") and room:getPlayerById(data.to):isAlive()
+        local room = player.room
+        return data.card.trueName == "slash" and player:hasSkill("hs__paoxiao") and H.getHegLord(room, player) and H.getHegLord(room, player):hasSkill("shouyue") and room:getPlayerById(data.to):isAlive()
       end
     end
   end,

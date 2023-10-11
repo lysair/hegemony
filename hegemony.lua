@@ -601,33 +601,22 @@ local heg_rule = fk.CreateTriggerSkill{
       end
       if not room:getTag("TheFirstToShowRewarded") then
         room:setTag("TheFirstToShowRewarded", player.id)
-        room:addPlayerMark(player, "@!vanguard", 1)
-        player:addFakeSkill("vanguard_skill&")
-        -- room:handleAddLoseSkills(player, "vanguard_skill&", nil, false, true)
+        H.addHegMark(room, player, "vanguard")
       end
       if player:getMark("hasShownMainGeneral") == 0 and player.general ~= "anjiang" then -- 首次亮主将
         room:setPlayerMark(player, "hasShownMainGeneral", 1)
         if Fk.generals[data].kingdom == "wild" then
-          room:addPlayerMark(player, "@!wild", 1)
-          player:addFakeSkill("wild_draw&")
-          player:addFakeSkill("wild_peach&")
-          player:prelightSkill("wild_draw&", true)
+          H.addHegMark(room, player, "wild")
         end
       end
       if player.general == "anjiang" or player.deputyGeneral == "anjiang" then return false end
       if player:getMark("HalfMaxHpLeft") > 0 then
         room:setPlayerMark(player, "HalfMaxHpLeft", 0)
-        room:addPlayerMark(player, "@!yinyangfish", 1)
-        player:addFakeSkill("yinyangfish_skill&")
-        player:prelightSkill("yinyangfish_skill&", true)
-        -- room:handleAddLoseSkills(player, "yinyangfish_skill&", nil, false, true)
+        H.addHegMark(room, player, "yinyangfish")
       end
       if player:getMark("CompanionEffect") > 0 then
         room:setPlayerMark(player, "CompanionEffect", 0)
-        room:addPlayerMark(player, "@!companion", 1)
-        player:addFakeSkill("companion_skill&")
-        player:addFakeSkill("companion_peach&")
-        -- room:handleAddLoseSkills(player, "companion_skill&|companion_peach&", nil, false, true)
+        H.addHegMark(room, player, "companion")
       end
     elseif event == fk.EventPhaseChanging then
       if data.to == Player.Play then

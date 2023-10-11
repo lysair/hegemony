@@ -943,7 +943,7 @@ local chenglue = fk.CreateTriggerSkill{
   end,
   on_cost = function (self, event, target, player, data)
     if event == fk.TargetSpecified then
-      return player.room:askForSkillInvoke(player, self.name, nil, "#ld__chenglue-ask")
+      return player.room:askForSkillInvoke(player, self.name, nil, "#ld__chenglue-ask:" .. target.id)
     else
       return true
     end
@@ -968,9 +968,7 @@ local chenglue = fk.CreateTriggerSkill{
         local to = room:askForChoosePlayers(player, targets, 1, 1, nil, self.name, true)
         if #to > 0 then
           local target = room:getPlayerById(to[1])
-          room:addPlayerMark(target, "@!yinyangfish", 1)
-          target:addFakeSkill("yinyangfish_skill&")
-          target:prelightSkill("yinyangfish_skill&", true)
+          H.addHegMark(room, target, "yinyangfish")
         end
       end
     end
@@ -1000,6 +998,8 @@ Fk:loadTranslationTable{
   [":ld__chenglue"] = "与你势力相同的角色使用牌指定目标后，若此牌的目标数大于1，你可以令其摸一张牌，若如此做，此牌结算完成后，若你受到过此牌造成的伤害，你可以令一名与你势力相同且没有国战标记的角色获得一个“阴阳鱼”标记。",
   ["ld__shicai"] = "恃才",
   [":ld__shicai"] = "锁定技，当你受到伤害后，若此伤害为1点，你摸一张牌，否则你弃置所有手牌。",
+
+  ["#ld__chenglue-ask"] = "成略：你可令 %src 摸一张牌",
 
   ["$ld__chenglue"] = "阿瞒，苦思之事，我早有良策。",
   ["$ld__chenglue2"] = "策略已有，按部就班即可得胜。",
