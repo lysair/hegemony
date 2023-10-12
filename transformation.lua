@@ -439,7 +439,6 @@ local jiahe = fk.CreateTriggerSkill{
   can_trigger = function (self, event, target, player, data)
     return player:hasSkill(self.name) and data == "ld__lordsunquan"
   end,
-  on_cost = Util.TrueFunc,
   on_use = function (self, event, target, player, data)
     player.room:handleAddLoseSkills(player, '#fenghuotu')
   end,
@@ -522,11 +521,7 @@ local fenghuotu = fk.CreateTriggerSkill{
           room:handleAddLoseSkills(target, '-ld__lordsunquan_duoshi')
         end)
       end
-      if #player:getPile("lord_fenghuo") >= 5 then
-        table.insert(choices_twice, "ld__choiceTwice")
-      end
-      table.insert(choices_twice, "Cancel")
-      if #choices_twice > 0 then
+      if true then
         local choice_twice = room:askForChoice(target, choices_twice, self.name)
 
         if choice_twice:startsWith("ld__choiceTwice") then
@@ -629,7 +624,7 @@ local jiaheOther = fk.CreateActiveSkill{
   target_num = 0,
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
-    local targets = table.filter(room.alive_players, function(p) return table.contains(p.player_skills, fenghuotu) and H.compareKingdomWith(p, player) end)
+    local targets = table.filter(room.alive_players, function(p) return table.contains(p.player_skills, fenghuotu) and H.getHegLord(p) end)
     if #targets == 0 then return false end
     local to
     if #targets == 1 then
@@ -830,7 +825,7 @@ local lianzi = fk.CreateActiveSkill{
   anim_type = "drawcard",
   card_num = 1,
   target_num = 0,
-  prompt = "#ld__lianzi",
+  prompt = "#lianzi",
   can_use = function(self, player)
     return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and not player:isKongcheng()
   end,
@@ -925,7 +920,6 @@ local jubao = fk.CreateTriggerSkill{
       end)
     end)
   end,
-  on_cost = Util.TrueFunc,
   on_use = function(self, event, target, player, data)
     local room = player.room
     player:drawCards(1, self.name)
@@ -1057,7 +1051,8 @@ Fk:loadTranslationTable{
   ["ld__lordsunquan_haoshi"] = "好施",
   ["ld__lordsunquan_shelie"] = "涉猎",
   ["ld__lordsunquan_duoshi"] = "度势",
-  ["ld__choiceTwice"] = "选择第二项",
+  
+  ["#lianzi"] = "敛资：你可以弃置一张手牌，然后亮出牌堆顶“烽火”数与吴势力角色装备区内牌数总和的牌，然后获得其中与你弃置的牌类型相同的牌",
 
   [":ld__lordsunquan_yingzi"] = "锁定技，摸牌阶段，你多摸一张牌。你的手牌上限为你的体力上限。 ",
   [":ld__lordsunquan_haoshi"] = "摸牌阶段，你可以多摸两张牌，若如此做，此阶段结束时，若你的手牌数大于5，你将一半的手牌（向下取整）交给一名手牌数最小的其他角色。",
@@ -1126,7 +1121,7 @@ local luminousPearl = fk.CreateTreasure{
   equip_skill = luminousPearlSkill,
   on_install = function(self, room, player)
     Treasure.onInstall(self, room, player)
-    if player:hasSkill("hs__zhiheng") then room:handleAddLoseSkills(player, "-luminous_pearl_skill", nil, false, true) end
+    if (player:hasSkill("hs__zhiheng") or player:hasSkill("ld__lordsunquan_zhiheng")) then room:handleAddLoseSkills(player, "-luminous_pearl_skill", nil, false, true) end
   end,
 }
 H.addCardToConvertCards(luminousPearl, "six_swords")
