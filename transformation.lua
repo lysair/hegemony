@@ -669,7 +669,6 @@ local ld__haoshi = fk.CreateTriggerSkill{
   events = {fk.DrawNCards},
   on_use = function(self, event, target, player, data)
     data.n = data.n + 2
-    player.room:setPlayerMark(player, "ld__lordsunquan_haoshi-phase", 1)
   end,
 }
 local ld__haoshi_active = fk.CreateActiveSkill{
@@ -711,7 +710,7 @@ local ld__haoshi_give = fk.CreateTriggerSkill{
   frequency = Skill.Compulsory,
   visible = false,
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:getMark("ld__lordsunquan_haoshi-phase") > 0 and player:getHandcardNum() > 5
+    return target == player and player:usedSkillTimes("ld__lordsunquan_haoshi", Player.HistoryPhase) > 0 and player:getHandcardNum() > 5
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
