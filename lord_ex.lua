@@ -788,17 +788,26 @@ local congcha_delay = fk.CreateTriggerSkill{
     end
   end,
 
-  refresh_events = {fk.BuryVictim},
+  refresh_events = {fk.BuryVictim, fk.TurnStart},
   can_refresh = function(self, event, target, player, data)
     if event == fk.BuryVictim then
       local mark = player:getMark("@@ld__congcha_delay")
       return type(mark) == "table" and table.every(player.room.alive_players, function (p)
         return not table.contains(mark, p.id)
       end)
+    elseif event == fk.TurnStart then
+      return player:hasSkill(self.name) and target == player
     end
   end,
   on_refresh = function(self, event, target, player, data)
-    player.room:setPlayerMark(target, "@@ld__congcha_delay", 0)
+    if event == fk.BuryVictim then
+      player.room:setPlayerMark(target, "@@ld__congcha_delay", 0)
+    elseif event == fk.TurnStart then
+      local targets = table.filter(room.alive_players, function(p) return p:getMark("@@ld__congcha_delay") == 1 end)
+      for _, p in ipairs(targets) do
+        player.room:setPlayerMark(p, "@@ld__congcha_delay", 0)
+      end
+    end
   end,
 }
 
