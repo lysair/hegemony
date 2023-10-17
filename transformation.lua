@@ -437,12 +437,13 @@ local jiahe = fk.CreateTriggerSkill{
   frequency = Skill.Compulsory,
   events = {fk.GeneralRevealed},
   can_trigger = function (self, event, target, player, data)
-    return player:hasSkill(self.name) and data == "ld__lordsunquan"
+    return target == player and player:hasSkill(self.name, true) and table.contains(Fk.generals[data]:getSkillNameList(), self.name)
   end,
   on_use = function (self, event, target, player, data)
     player.room:handleAddLoseSkills(player, '#fenghuotu')
   end,
 }
+H.CreateClearSkill(jiahe, "lord_fenghuo")
 
 local fenghuotu = fk.CreateTriggerSkill{
   name = "#fenghuotu",
@@ -453,7 +454,7 @@ local fenghuotu = fk.CreateTriggerSkill{
     if event == fk.EventPhaseStart then
       return H.compareKingdomWith(player, target) and player:hasSkill(self.name) and #player:getPile("lord_fenghuo") > 0 and target.phase == Player.Start
     else
-      return player == target and player:hasSkill(self.name) and data.card and #player:getPile("lord_fenghuo") > 0
+      return player == target and player:hasSkill(self.name) and data.card and #player:getPile("lord_fenghuo") > 0 and (data.card.type == Card.TypeTrick or data.card.trueName == "slash")
     end
   end,
   on_cost = function (self, event, target, player, data)
@@ -470,110 +471,19 @@ local fenghuotu = fk.CreateTriggerSkill{
   on_use = function (self, event, target, player, data)
     local room = player.room
     if event == fk.EventPhaseStart then
-      local choices1 = {}
-      local choices2 = {}
-      local choices_twice = {}
-      if #player:getPile("lord_fenghuo") >= 1 then
-        table.insert(choices1, "ld__yingzi")
-      end
-      if #player:getPile("lord_fenghuo") >= 2 then
-        table.insert(choices1, "ld__haoshi")
-      end
-      if #player:getPile("lord_fenghuo") >= 3 then
-        table.insert(choices1, "ld__shelie")
-      end
-      if #player:getPile("lord_fenghuo") >= 4 then
-        table.insert(choices1, "ld__duoshi")
-      end
-      table.insert(choices1, "Cancel")
-      if #choices1 == 1 then return false end
-      local choice1 = room:askForChoice(target, choices1, self.name)
-      if choice1:startsWith("ld__yingzi") then
-        room:handleAddLoseSkills(target, 'ld__lordsunquan_yingzi')
-        room:handleAddLoseSkills(target, '#ld__lordsunquan_yingzi_maxcards')
-        room.logic:getCurrentEvent():findParent(GameEvent.Turn):addExitFunc(function()
-          room:handleAddLoseSkills(target, '-ld__lordsunquan_yingzi')
+      local skills = {"ld__lordsunquan_yingzi", "ld__lordsunquan_haoshi", "ld__lordsunquan_shelie", "ld__lordsunquan_duoshi"}
+      local num = #player:getPile("lord_fenghuo") >= 5 and 2 or 1
+      local result = room:askForCustomDialog(target, self.name,
+      "packages/utility/qml/ChooseSkillBox.qml", {
+        table.slice(skills, 1, #player:getPile("lord_fenghuo") + 1), 0, num, "#fenghuotu-choose:::" .. num
+      })
+      if result == "" then return false end
+      local choice = json.decode(result)
+      if #choice > 0 then
+        room:handleAddLoseSkills(target, table.concat(choice, "|"), nil, true, false)
+        room.logic:getCurrentEvent():findParent(GameEvent.Turn):addCleaner(function()
+          room:handleAddLoseSkills(target, '-' .. table.concat(choice, "|-"), nil, true, false)
         end)
-        room.logic:getCurrentEvent():findParent(GameEvent.Turn):addExitFunc(function()
-          room:handleAddLoseSkills(target, '-#ld__lordsunquan_yingzi_maxcards')
-        end)
-      elseif choice1:startsWith("ld__haoshi") then
-        room:handleAddLoseSkills(target, 'ld__lordsunquan_haoshi')
-        room:handleAddLoseSkills(target, '#ld__lordsunquan_haoshi_active')
-        room:handleAddLoseSkills(target, '#ld__lordsunquan_haoshi_give')
-        room.logic:getCurrentEvent():findParent(GameEvent.Turn):addExitFunc(function()
-          room:handleAddLoseSkills(target, '-ld__lordsunquan_haoshi')
-        end)
-        room.logic:getCurrentEvent():findParent(GameEvent.Turn):addExitFunc(function()
-          room:handleAddLoseSkills(target, '-#ld__lordsunquan_haoshi_active')
-        end)
-        room.logic:getCurrentEvent():findParent(GameEvent.Turn):addExitFunc(function()
-          room:handleAddLoseSkills(target, '-#ld__lordsunquan_haoshi_give')   
-        end)
-      elseif choice1:startsWith("ld__shelie") then
-        room:handleAddLoseSkills(target, 'ld__lordsunquan_shelie')
-        room.logic:getCurrentEvent():findParent(GameEvent.Turn):addExitFunc(function()
-          room:handleAddLoseSkills(target, '-ld__lordsunquan_shelie')
-        end)
-      elseif choice1:startsWith("ld__duoshi") then
-        room:handleAddLoseSkills(target, 'ld__lordsunquan_duoshi')
-        room.logic:getCurrentEvent():findParent(GameEvent.Turn):addExitFunc(function()
-          room:handleAddLoseSkills(target, '-ld__lordsunquan_duoshi')
-        end)
-      end
-      if true then
-        local choice_twice = room:askForChoice(target, choices_twice, self.name)
-
-        if choice_twice:startsWith("ld__choiceTwice") then
-          if not choice1:startsWith("ld__yingzi") then
-            table.insert(choices2, "ld__yingzi")
-          end
-          if not choice1:startsWith("ld__haoshi") then
-            table.insert(choices2, "ld__haoshi")
-          end
-          if not choice1:startsWith("ld__shelie") then
-            table.insert(choices2, "ld__shelie")
-          end
-          if not choice1:startsWith("ld__duoshi") then
-            table.insert(choices2, "ld__duoshi")
-          end
-          table.insert(choices2, "Cancel")
-          if #choices2 == 0 then return false end
-          local choice2 = room:askForChoice(target, choices2, self.name)
-          if choice2:startsWith("ld__yingzi") then
-            room:handleAddLoseSkills(target, 'ld__lordsunquan_yingzi')
-            room:handleAddLoseSkills(target, '#ld__lordsunquan_yingzi_maxcards')
-            room.logic:getCurrentEvent():findParent(GameEvent.Turn):addExitFunc(function()
-              room:handleAddLoseSkills(target, '-ld__lordsunquan_yingzi')
-            end)
-            room.logic:getCurrentEvent():findParent(GameEvent.Turn):addExitFunc(function()
-              room:handleAddLoseSkills(target, '-#ld__lordsunquan_yingzi_maxcards')
-          end)
-          elseif choice2:startsWith("ld__haoshi") then
-            room:handleAddLoseSkills(target, 'ld__lordsunquan_haoshi')
-            room:handleAddLoseSkills(target, '#ld__lordsunquan_haoshi_active')
-            room:handleAddLoseSkills(target, '#ld__lordsunquan_haoshi_give')
-            room.logic:getCurrentEvent():findParent(GameEvent.Turn):addExitFunc(function()
-              room:handleAddLoseSkills(target, '-ld__lordsunquan_haoshi')
-            end)
-            room.logic:getCurrentEvent():findParent(GameEvent.Turn):addExitFunc(function()
-              room:handleAddLoseSkills(target, '-#ld__lordsunquan_haoshi_active')
-            end)
-            room.logic:getCurrentEvent():findParent(GameEvent.Turn):addExitFunc(function()
-              room:handleAddLoseSkills(target, '-#ld__lordsunquan_haoshi_give')   
-            end)
-          elseif choice2:startsWith("ld__shelie") then
-            room:handleAddLoseSkills(target, 'ld__lordsunquan_shelie')
-            room.logic:getCurrentEvent():findParent(GameEvent.Turn):addExitFunc(function()
-              room:handleAddLoseSkills(target, '-ld__lordsunquan_shelie')
-            end)
-          elseif choice2:startsWith("ld__duoshi") then
-            room:handleAddLoseSkills(target, 'ld__lordsunquan_duoshi')
-            room.logic:getCurrentEvent():findParent(GameEvent.Turn):addExitFunc(function()
-              room:handleAddLoseSkills(target, '-ld__lordsunquan_duoshi')
-            end)
-          end
-        end
       end
     else
       room:moveCardTo(self.cost_data, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, self.name, "lord_fenghuo", true, player.id)
@@ -603,7 +513,7 @@ local fenghuotu = fk.CreateTriggerSkill{
       jiahe_map[p] = will_attach
     end
     for p, v in pairs(jiahe_map) do
-      if v ~= player:hasSkill("ld__jiahe_other&") then
+      if v ~= p:hasSkill("ld__jiahe_other&") then
         room:handleAddLoseSkills(p, v and "ld__jiahe_other&" or "-ld__jiahe_other&", nil, false, true)
       end
     end
@@ -612,10 +522,12 @@ local fenghuotu = fk.CreateTriggerSkill{
 
 local jiaheOther = fk.CreateActiveSkill{
   name = "ld__jiahe_other&",
+  prompt = function()
+    local to = H.getHegLord(Fk:currentRoom(), Self)
+    return "#ld__jiahe_other:" .. to.id
+  end,
   can_use = function(self, player)
-    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and table.find(Fk:currentRoom().alive_players, function(p)
-      return table.contains(p.player_skills, fenghuotu) and H.compareKingdomWith(p, player)
-    end)
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and H.getHegLord(Fk:currentRoom(), player) and H.getHegLord(Fk:currentRoom(), player):hasSkill("jiahe")
   end,
   card_num = 1,
   card_filter = function(self, to_select, selected)
@@ -624,15 +536,10 @@ local jiaheOther = fk.CreateActiveSkill{
   target_num = 0,
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
-    local targets = table.filter(room.alive_players, function(p) return table.contains(p.player_skills, fenghuotu) and H.getHegLord(p) end)
-    if #targets == 0 then return false end
-    local to
-    if #targets == 1 then
-      to = targets[1]
-    else
-      to = room:getPlayerById(room:askForChoosePlayers(player, table.map(targets, function(p) return p.id end), 1, 1, nil, self.name, false)[1])
-    end
+    local to = H.getHegLord(room, player)
+    if to and to:hasSkill("jiahe") then
     to:addToPile("lord_fenghuo", effect.cards, true, self.name)
+    end
   end,
 }
 
@@ -657,7 +564,7 @@ local ld__yingzi = fk.CreateTriggerSkill{
 local ld__yingzi_maxcards = fk.CreateMaxCardsSkill{
   name = "#ld__lordsunquan_yingzi_maxcards",
   fixed_func = function(self, player)
-    if player:hasSkill(self.name) then
+    if player:hasSkill("ld__lordsunquan_yingzi") then
       return player.maxHp
     end
   end
@@ -824,7 +731,15 @@ local lianzi = fk.CreateActiveSkill{
   anim_type = "drawcard",
   card_num = 1,
   target_num = 0,
-  prompt = "#lianzi",
+  prompt = function()
+    local show_num = #Self:getPile("lord_fenghuo")
+    for _, p in ipairs(Fk:currentRoom().alive_players) do
+      if H.compareKingdomWith(p, Self) then
+        show_num = show_num + #p.player_cards[Player.Equip]
+      end
+    end
+    return "#lianzi:::" .. show_num
+  end,
   can_use = function(self, player)
     return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and not player:isKongcheng()
   end,
@@ -834,12 +749,13 @@ local lianzi = fk.CreateActiveSkill{
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
     room:throwCard(effect.cards, self.name, player)
-    local targets = table.filter(room.alive_players, function(p) return H.compareKingdomWith(p, player) end)
-    local show_num = 0
-    for _, p in ipairs(targets) do
-      show_num = show_num + #Fk:currentRoom():getPlayerById(p.id).player_cards[Player.Equip]
+    local show_num = #player:getPile("lord_fenghuo")
+    for _, p in ipairs(room.alive_players) do
+      if H.compareKingdomWith(p, player) then
+        show_num = show_num + #p.player_cards[Player.Equip]
     end
-    show_num = show_num + #player:getPile("lord_fenghuo")
+    end
+    if show_num == 0 then return end
     local get = room:getNCards(show_num)
     room:moveCards{
       ids = get,
@@ -850,9 +766,10 @@ local lianzi = fk.CreateActiveSkill{
     local dummy1 = Fk:cloneCard("dilu")
     local dummy2 = Fk:cloneCard("dilu")
     local final_get = 0
+    local cardType = Fk:getCardById(effect.cards[1]).type
     for i = 1, show_num, 1 do
       local card2 = Fk:getCardById(get[i], true)
-      if Fk:getCardById(effect.cards[1]).type == card2.type then
+      if cardType == card2.type then
         dummy1:addSubcard(get[i])
         final_get = final_get + 1
       else
@@ -862,11 +779,10 @@ local lianzi = fk.CreateActiveSkill{
     room:obtainCard(player.id, dummy1, true, fk.ReasonJustMove)
     player:showCards(dummy1)
     if final_get < show_num then
-      room:moveCardTo(dummy2, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, skillname)
+      room:moveCardTo(dummy2, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, self.name)
     end
     if final_get > 3 then
-      room:handleAddLoseSkills(player, "-lianzi", nil)
-      room:handleAddLoseSkills(player, "ld__lordsunquan_zhiheng", nil)
+      room:handleAddLoseSkills(player, "ld__lordsunquan_zhiheng|-lianzi", nil)
     end
   end,
 }
@@ -986,15 +902,16 @@ local jubao_move = fk.CreateTriggerSkill{
   end,
 }
 
+ld__yingzi:addRelatedSkill(ld__yingzi_maxcards)
+ld__haoshi:addRelatedSkill(ld__haoshi_active)
+ld__haoshi:addRelatedSkill(ld__haoshi_give)
+
 lordsunquan:addSkill(jiahe)
 Fk:addSkill(fenghuotu)
-Fk:addSkill(ld__yingzi)
-Fk:addSkill(ld__yingzi_maxcards)
-Fk:addSkill(ld__haoshi)
-Fk:addSkill(ld__haoshi_active)
-Fk:addSkill(ld__haoshi_give)
-Fk:addSkill(ld__shelie)
-Fk:addSkill(ld__duoshi)
+lordsunquan:addRelatedSkill(ld__yingzi)
+lordsunquan:addRelatedSkill(ld__haoshi)
+lordsunquan:addRelatedSkill(ld__shelie)
+lordsunquan:addRelatedSkill(ld__duoshi)
 Fk:addSkill(jiaheOther)
 
 lordsunquan:addSkill(lianzi)
@@ -1010,12 +927,12 @@ Fk:loadTranslationTable{
   [":jubao"] = "锁定技，①结束阶段，若弃牌堆或场上存在【定澜夜明珠】，你摸一张牌，然后获得拥有【定澜夜明珠】的角色的一张牌；②其他角色获得你装备区内的宝物牌时，取消之。",
   ["jiahe"] = "嘉禾",
   [":jiahe"] = "<b><font color='goldenrod'>君主技</font></b>，你拥有“缘江烽火图”。<br>" ..
-  "#<b>缘江烽火图</b>：吴势力角色出牌阶段限一次，其可以将一张装备牌置于“缘江烽火图”上，称为“烽火”。<br>" ..
-  "吴势力角色的准备阶段，其可以根据“烽火”数量选择获得对应的技能直至其回合结束：<br>"..
-  "不小于一，英姿；不小于二，好施；不小于三，涉猎；不小于四，度势；不小于五，可额外选择一项。<br>"..
-  "锁定技，当你受到【杀】或锦囊牌造成的伤害后，你将一张“烽火”置入弃牌堆。",
+  "#<b>缘江烽火图</b>：①吴势力角色出牌阶段限一次，其可以将一张装备牌置于“缘江烽火图”上，称为“烽火”。<br>" ..
+  "②吴势力角色的准备阶段，其可以根据“烽火”数量选择获得对应的技能直至其回合结束：<br>"..
+  "不小于一，〖英姿〗；不小于二，〖好施〗；不小于三，〖涉猎〗；不小于四，〖度势〗；不小于五，可额外选择一项。<br>"..
+  "③锁定技，当你受到【杀】或锦囊牌造成的伤害后，你将一张“烽火”置入弃牌堆。",
   ["lianzi"] = "敛资",
-  [":lianzi"] = "出牌阶段限一次，你可以弃置一张牌并展示牌堆顶X张牌（X为吴势力角色装备区内牌数与“烽火”数之和），你获得其中与你弃置的牌类型相同的牌，将其余牌置入弃牌堆，然后若你因此获得至少四张牌，你失去“敛资”，获得“制衡”。",
+  [":lianzi"] = "出牌阶段限一次，你可以弃置一张牌并展示牌堆顶X张牌（X为吴势力角色装备区内牌数与“烽火”数之和），你获得其中与你弃置的牌类型相同的牌，将其余牌置入弃牌堆，然后若你因此获得至少四张牌，你失去〖敛资〗，获得〖制衡〗。",
 
   ["$jiahe"] = "嘉禾生，大吴兴！",
   ["$jubao1"] = "四海之宝，孤之所爱。",
@@ -1024,7 +941,7 @@ Fk:loadTranslationTable{
   ["$lianzi2"] = "府库充盈，国家方能强盛！",
   ["$ld__lordsunquan_zhiheng1"] = "二宫并阙，孤之所愿。",
   ["$ld__lordsunquan_zhiheng2"] = "鲁王才兼文武，堪比太子。",
-  ["~ld__lordsunquan"] = "朕的江山，要倒下了么...",
+  ["~ld__lordsunquan"] = "朕的江山，要倒下了么……",
 
   ["$ld__lordsunquan_yingzi1"] = "大吴江山，儒将辈出。",
   ["$ld__lordsunquan_yingzi2"] = "千夫奉儒将，百兽伏麒麟",
@@ -1038,8 +955,13 @@ Fk:loadTranslationTable{
   ["$ld__lordsunquan_duoshi1"] = "广施方略，以观其变。",
   ["$ld__lordsunquan_duoshi2"] = "莫慌，观察好局势再做行动。",
 
+  ["#ld__jiahe_damaged"] = "缘江烽火图：将一张“烽火”置入弃牌堆",
   ["ld__jiahe_other&"] = "烽火图",
+  [":ld__jiahe_other&"] = "①出牌阶段限一次，你可以将一张装备牌置于“缘江烽火图”上，称为“烽火”。<br>" ..
+  "②准备阶段，你可以根据“烽火”数量选择获得对应的技能直至其回合结束：<br>"..
+  "不小于一，〖英姿〗；不小于二，〖好施〗；不小于三，〖涉猎〗；不小于四，〖度势〗；不小于五，可额外选择一项。",
   ["#fenghuotu"] = "缘江烽火图",
+  ["#ld__jiahe_other"] = "缘江烽火图：将一张装备牌置于%src的“缘江烽火图”上，称为“烽火”",
   ["lord_fenghuo"] = "烽火",
   ["$fenghuotu1"] = "保卫国家，人人有责。",
   ["$fenghuotu2"] = "连绵的烽火，就是对敌人最好的震慑！",
@@ -1051,17 +973,14 @@ Fk:loadTranslationTable{
   ["ld__lordsunquan_shelie"] = "涉猎",
   ["ld__lordsunquan_duoshi"] = "度势",
   
-  ["#lianzi"] = "敛资：你可以弃置一张手牌，然后亮出牌堆顶“烽火”数与吴势力角色装备区内牌数总和的牌，然后获得其中与你弃置的牌类型相同的牌",
+  ["#lianzi"] = "敛资：你可以弃置一张手牌，然后亮出牌堆顶%arg张牌，获得其中与你弃置的牌类型相同的牌",
 
   [":ld__lordsunquan_yingzi"] = "锁定技，摸牌阶段，你多摸一张牌。你的手牌上限为你的体力上限。 ",
   [":ld__lordsunquan_haoshi"] = "摸牌阶段，你可以多摸两张牌，若如此做，此阶段结束时，若你的手牌数大于5，你将一半的手牌（向下取整）交给一名手牌数最小的其他角色。",
   [":ld__lordsunquan_shelie"] = "摸牌阶段，你可以改为亮出牌堆顶的五张牌，获得其中每种花色的牌各一张。 ",
   [":ld__lordsunquan_duoshi"] = "出牌阶段限四次，你可将一张红色手牌当【以逸待劳】使用。 ",
 
-  ["ld__yingzi"] = "英姿",
-  ["ld__haoshi"] = "好施",
-  ["ld__shelie"] = "涉猎",
-  ["ld__duoshi"] = "度势",
+  ["#fenghuotu-choose"] = "缘江烽火图：你可选择此回合拥有至多%arg个技能",
 
   ["ld__lordsunquan_zhiheng"] = "制衡",
 }

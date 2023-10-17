@@ -565,7 +565,7 @@ local hongfa = fk.CreateTriggerSkill{
   frequency = Skill.Compulsory,
   mute = true,
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and table.contains(Fk.generals[data]:getSkillNameList(), self.name)
+    return target == player and player:hasSkill(self.name, true) and table.contains(Fk.generals[data]:getSkillNameList(), self.name)
   end,
   on_use = function(self, event, target, player, data)
     player:broadcastSkillInvoke(self.name, 1)
@@ -583,7 +583,7 @@ local hongfa = fk.CreateTriggerSkill{
     local room = player.room
     local players = room.alive_players
     local godzhangjiaos = table.filter(players, function(p) return table.contains(p.player_skills, self) end)
-    local xuanhuo_map = {}
+    local hongfa_map = {}
     for _, p in ipairs(players) do
       local will_attach = false
       for _, godzhangjiao in ipairs(godzhangjiaos) do
@@ -592,9 +592,9 @@ local hongfa = fk.CreateTriggerSkill{
           break
         end
       end
-      xuanhuo_map[p] = will_attach
+      hongfa_map[p] = will_attach
     end
-    for p, v in pairs(xuanhuo_map) do
+    for p, v in pairs(hongfa_map) do
       if v ~= p:hasSkill("heavenly_army_skill&") then
         room:handleAddLoseSkills(p, v and "heavenly_army_skill&" or "-heavenly_army_skill&", nil, false, true)
       end

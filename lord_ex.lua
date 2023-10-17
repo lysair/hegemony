@@ -841,7 +841,7 @@ local jinfa = fk.CreateActiveSkill{
   end,
   target_filter = function(self, to_select, selected, selected_cards)
     local target = Fk:currentRoom():getPlayerById(to_select)
-    return #selected == 0 and not target:isNude()
+    return #selected == 0 and not target:isNude() and to_select ~= Self.id
   end,
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
@@ -849,11 +849,12 @@ local jinfa = fk.CreateActiveSkill{
     room:throwCard(effect.cards, self.name, player, player)
     local card1 = room:askForCard(target, 1, 1, true, self.name, true, ".|.|.|.|.|equip", "ld__jinfa_give")
     if #card1 == 1 then
-      local dummy1 = Fk:cloneCard("dilu")
-      dummy1:addSubcards(card1)
-      room:obtainCard(player.id, dummy1, false, fk.ReasonGive)
+      room:obtainCard(player.id, card1[1], true, fk.ReasonGive)
       if Fk:getCardById(card1[1]).suit == Card.Spade then
-        room:useVirtualCard("slash", nil, target, player)
+        local card = Fk:cloneCard("slash")
+        if not (target:prohibitUse(card) or target:isProhibited(player, card)) then
+          room:useVirtualCard("slash", nil, target, player)
+        end
       end
     else
       local card2 = room:askForCardChosen(player, target, "he", self.name)
@@ -866,7 +867,7 @@ wenqin:addSkill(jinfa)
 Fk:loadTranslationTable{
   ["ld__wenqin"] = "文钦",
   ["ld__jinfa"] = "矜伐",
-  [":ld__jinfa"] = "出牌阶段限一次，你可以弃置一张牌并选择一名其他角色，令其选择一项：1.令你获得其一张牌；2.交给你一张装备牌，若此装备牌为黑桃，其视为对你使用一张【杀】。",
+  [":ld__jinfa"] = "出牌阶段限一次，你可以弃置一张牌并选择一名其他角色，令其选择一项：1.令你获得其一张牌；2.交给你一张装备牌，若此装备牌为♠，其视为对你使用一张【杀】。",
 
   ["ld__jinfa_give"] = "矜伐：交给文钦一张装备牌，否则文钦获得你的一张牌",
 

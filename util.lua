@@ -642,7 +642,7 @@ H.lordGenerals = {}
 --- 获取所属势力的君主，可能为nil
 ---@param room Room
 ---@param player Player
----@return lord ServerPlayer | nil @ 主公
+---@return lord ServerPlayer | nil @ 君主
 H.getHegLord = function(room, player)
   local kingdom = player.kingdom
   return table.find(room.alive_players, function(p) return p.kingdom == kingdom and string.find(p.general, "lord") end)
