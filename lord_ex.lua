@@ -733,38 +733,45 @@ local tunjiang = fk.CreateTriggerSkill{
   anim_type = "drawcard",
   events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and player.phase == Player.Finish and
-      player:getMark("tunjiang-turn") == 1 and not player.skipped_phases[Player.Play]
-  end,
-  on_use = function(self, event, target, player, data)
-    local kingdoms = {}
-    for _, p in ipairs(player.room.alive_players) do
-      table.insertIfNeed(kingdoms, p.kingdom)
-    end
-    player:drawCards(#kingdoms)
-  end,
-
-  refresh_events = {fk.TargetSpecified, fk.CardUsing},
-  can_refresh = function(self, event, target, player, data)
-    if event == fk.TargetSpecified then
-      return target == player and player:hasSkill(self.name) and player.phase == Player.Play and player:getMark("tunjiang-turn") == 1 and
-      data.firstTarget and data.card.type ~= Card.TypeEquip
-    else
-      return target == player and player:hasSkill(self.name) and player.phase == Player.Play and player:getMark("tunjiang-turn") == 0
-    end
-  end,
-  on_refresh = function(self, event, target, player, data)
-    if event == fk.TargetSpecified then
-      if #AimGroup:getAllTargets(data.tos) == 0 then return end
-      for _, id in ipairs(AimGroup:getAllTargets(data.tos)) do
-        if id ~= player.id then
-          player.room:setPlayerMark(player, "tunjiang-turn", 2)
+    if not (target == player and player:hasSkill(self.name) and player.phase == Player.Finish) then return false end
+    local targets, play_ids = {}, {}
+    local ret = false
+    local logic = player.room.logic
+    logic:getEventsOfScope(GameEvent.Phase, 1, function (e)
+      if e.data[2] == Player.Play then
+        table.insert(play_ids, {e.id, e.end_id})
+      end
+      return false
+    end, Player.HistoryTurn)
+    logic:getEventsOfScope(GameEvent.UseCard, 1, function (e)
+      local in_play = false
+      for _, ids in ipairs(play_ids) do
+        if #ids == 2 and e.id > ids[1] and e.id < ids[2] then
+          in_play = true
           break
         end
       end
-    else
-      player.room:setPlayerMark(player, "tunjiang-turn", 1)
+      if in_play then
+        local use = e.data[1]
+        if use.from == player.id then
+          ret = true
+          for _, id in ipairs(TargetGroup:getRealTargets(use.tos)) do
+            table.insertIfNeed(targets, id)
+          end
+          if #targets > 1 then return true end
+        end
+      end
+    end, Player.HistoryTurn)
+    return ret and (#targets == 0 or (#targets == 1 and targets[1] == player.id))
+  end,
+  on_use = function(self, event, target, player, data)
+    local num = 0
+    for _, v in pairs(H.getKingdomPlayersNum(player.room)) do
+      if v and v > 0 then
+        num = num + 1
+      end
     end
+    player:drawCards(num, self.name)
   end,
 }
 

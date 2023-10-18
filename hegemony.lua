@@ -271,40 +271,40 @@ function HegLogic:chooseGenerals()
   lord.role = "hidden"
 
   local players = room.players
-  local generals = Fk:getGeneralsRandomly(#players * generalNum)
-  -- table.shuffle(generals)
-  for _, p in ipairs(players) do
-    local arg = { map = table.map }
-    for i = 1, generalNum do
-      table.insert(arg, table.remove(generals, 1))
-    end
-    table.sort(arg, function(a, b) return a.kingdom > b.kingdom end)
+  local generals = room:getNGenerals(#players * generalNum) -- Fk:getGeneralsRandomly
+  table.shuffle(generals)
+  for k, p in ipairs(players) do
+    -- local arg = { map = table.map }
+    local arg = table.slice(generals, (k - 1) * generalNum + 1, k * generalNum + 1)
+    table.sort(arg, function(a, b) return Fk.generals[a].kingdom > Fk.generals[b].kingdom end)
 
     for idx, _ in ipairs(arg) do
-      if arg[idx].kingdom == arg[idx + 1].kingdom then
-        p.default_reply = { arg[idx].name, arg[idx + 1].name }
+      if Fk.generals[arg[idx]].kingdom == Fk.generals[arg[idx + 1]].kingdom then
+        p.default_reply = { arg[idx], arg[idx + 1] }
         break
       end
     end
 
-    arg = arg:map(function(g) return g.name end)
-    p.request_data = json.encode({ arg, 2, false, true })
+    p.request_data = json.encode{ arg, 2, false, true }
   end
 
   room:notifyMoveFocus(players, "AskForGeneral")
   room:doBroadcastRequest("AskForGeneral", players)
+
+  local selected = {}
   for _, p in ipairs(players) do
     local general, deputy
     if p.general == "" and p.reply_ready then
-      local generals = json.decode(p.client_reply)
-      general = generals[1]
-      deputy = generals[2]
+      local general_ret = json.decode(p.client_reply)
+      general = general_ret[1]
+      deputy = general_ret[2]
       room:setPlayerGeneral(p, general, true)
       room:setDeputyGeneral(p, deputy)
     else
       general = p.default_reply[1]
       deputy = p.default_reply[2]
     end
+    table.insertTableIfNeed(selected, {general, deputy})
 
 --[[ -- FIXME
     p:setMark("__heg_general", general) 
@@ -321,6 +321,9 @@ function HegLogic:chooseGenerals()
 
     p.default_reply = ""
   end
+
+  generals = table.filter(generals, function(g) return not table.contains(selected, g) end)
+  room:returnToGeneralPile(generals)
 
   local choiceMap = {}
   for _, p in ipairs(players) do

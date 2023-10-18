@@ -1301,14 +1301,24 @@ local youyan = fk.CreateTriggerSkill{
           final_get = final_get + 1
         end
       end
-      room:obtainCard(player.id, dummy1, true, fk.ReasonJustMove)
       room:delay(1000)
+      room:obtainCard(player.id, dummy1, true, fk.ReasonJustMove)
       if final_get < show_num then
         room:moveCardTo(dummy2, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, skillname)
       end
     end
   end,
 }
+
+---@param room Room
+---@param player ServerPlayer
+---@param add bool
+---@param isDamage bool
+local function handleZhuihuan(room, player, add, isDamage)
+  local mark_name = isDamage and "ty_heg__zhuihuan-damage" or "ty_heg__zhuihuan-discard"
+  room:setPlayerMark(player, "@@" .. mark_name, add and 1 or 0)
+  room:handleAddLoseSkills(player, add and "#" .. mark_name or "-#" .. mark_name, nil, false, true)
+end
 
 local zhuihuan = fk.CreateTriggerSkill{
   name = "ty_heg__zhuihuan",
@@ -1333,26 +1343,20 @@ local zhuihuan = fk.CreateTriggerSkill{
       local choice = room:askForChoice(player, choices, self.name)
       local target = room:getPlayerById(tos[1])
       if choice:startsWith("zhuihuan-damage") then
-        room:setPlayerMark(target, "@@ty_heg__zhuihuan-damage", 1)
-        room:handleAddLoseSkills(target, "ty_heg__zhuihuan-damage", nil)
+        handleZhuihuan(room, target, true, true)
       elseif choice:startsWith("zhuihuan-discard") then
-        room:setPlayerMark(target, "@@ty_heg__zhuihuan-discard", 1)
-        room:handleAddLoseSkills(target, "ty_heg__zhuihuan-discard", nil)
+        handleZhuihuan(room, target, true, false)
       end
     elseif #tos == 2 then
       local choice = room:askForChoice(player, choices, self.name)
       local target1 = room:getPlayerById(tos[1])
       local target2 = room:getPlayerById(tos[2])
       if choice:startsWith("zhuihuan-damage") then
-        room:setPlayerMark(target1, "@@ty_heg__zhuihuan-damage", 1)
-        room:handleAddLoseSkills(target1, "ty_heg__zhuihuan-damage", nil)
-        room:setPlayerMark(target2, "@@ty_heg__zhuihuan-discard", 1)
-        room:handleAddLoseSkills(target2, "ty_heg__zhuihuan-discard", nil)
+        handleZhuihuan(room, target1, true, true)
+        handleZhuihuan(room, target2, true, false)
       elseif choice:startsWith("zhuihuan-discard") then
-        room:setPlayerMark(target2, "@@ty_heg__zhuihuan-damage", 1)
-        room:handleAddLoseSkills(target2, "ty_heg__zhuihuan-damage", nil)
-        room:setPlayerMark(target1, "@@ty_heg__zhuihuan-discard", 1)
-        room:handleAddLoseSkills(target1, "ty_heg__zhuihuan-discard", nil)
+        handleZhuihuan(room, target2, true, true)
+        handleZhuihuan(room, target1, true, false)
       end
     end
   end,
@@ -1368,43 +1372,25 @@ local zhuihuan = fk.CreateTriggerSkill{
   end,
   on_refresh = function (self, event, target, player, data)
     local room = player.room
-    if event == fk.BuryVictim then
-      if player:hasSkill(self.name) and target == player then
-        local targets1 = table.filter(room.alive_players, function(p) return p:getMark("@@ty_heg__zhuihuan-damage") == 1 end)
-        for _, p in ipairs(targets1) do
-          room:setPlayerMark(p, "@@ty_heg__zhuihuan-damage", 0)
-          room:handleAddLoseSkills(p, "-ty_heg__zhuihuan-damage", nil)
+    if event == fk.TurnStart or (player:hasSkill(self.name) and target == player) then
+      for _, p in ipairs(room.alive_players) do
+        if p:getMark("@@ty_heg__zhuihuan-damage") == 1 then
+          handleZhuihuan(room, p, false, true)
         end
-        local targets2 = table.filter(room.alive_players, function(p) return p:getMark("@@ty_heg__zhuihuan-discard") == 1 end)
-        for _, p in ipairs(targets2) do
-          room:setPlayerMark(p, "@@ty_heg__zhuihuan-discard", 0)
-          room:handleAddLoseSkills(p, "-ty_heg__zhuihuan-discard", nil)
+        if p:getMark("@@ty_heg__zhuihuan-discard") == 1 then
+          handleZhuihuan(room, p, false, false)
         end
-      elseif target:getMark("@@ty_heg__zhuihuan-damage") == 1 then
-        room:setPlayerMark(player, "@@ty_heg__zhuihuan-damage", 0)
-        room:handleAddLoseSkills(player, "-ty_heg__zhuihuan-damage", nil)
-      elseif target:getMark("@@ty_heg__zhuihuan-discard") == 1 then
-        room:setPlayerMark(player, "@@ty_heg__zhuihuan-discard", 0)
-        room:handleAddLoseSkills(player, "-ty_heg__zhuihuan-discard", nil)
       end
-    end
-    if event == fk.TurnStart then
-      local targets1 = table.filter(room.alive_players, function(p) return p:getMark("@@ty_heg__zhuihuan-damage") == 1 end)
-      for _, p in ipairs(targets1) do
-        room:setPlayerMark(p, "@@ty_heg__zhuihuan-damage", 0)
-        room:handleAddLoseSkills(p, "-ty_heg__zhuihuan-damage", nil)
-      end
-      local targets2 = table.filter(room.alive_players, function(p) return p:getMark("@@ty_heg__zhuihuan-discard") == 1 end)
-      for _, p in ipairs(targets2) do
-        room:setPlayerMark(p, "@@ty_heg__zhuihuan-discard", 0)
-        room:handleAddLoseSkills(p, "-ty_heg__zhuihuan-discard", nil)
-      end
+    elseif target:getMark("@@ty_heg__zhuihuan-damage") == 1 then
+      handleZhuihuan(room, target, false, true)
+    elseif target:getMark("@@ty_heg__zhuihuan-discard") == 1 then
+      handleZhuihuan(room, target, false, false)
     end
   end,
 }
 
 local zhuihuan_damage = fk.CreateTriggerSkill{
-  name = "ty_heg__zhuihuan-damage",
+  name = "#ty_heg__zhuihuan-damage",
   anim_type = "offensive",
   events = {fk.Damaged},
   can_trigger = function(self, event, target, player, data)
@@ -1419,13 +1405,12 @@ local zhuihuan_damage = fk.CreateTriggerSkill{
       damage = 1,
       skillName = self.name,
     }
-    room:setPlayerMark(player, "@@ty_heg__zhuihuan-damage", 0)
-    room:handleAddLoseSkills(player, "-ty_heg__zhuihuan-damage", nil)
+    handleZhuihuan(room, target, false, true)
   end,
 }
 
 local zhuihuan_discard = fk.CreateTriggerSkill{
-  name = "ty_heg__zhuihuan-discard",
+  name = "#ty_heg__zhuihuan-discard",
   anim_type = "offensive",
   events = {fk.Damaged},
   can_trigger = function(self, event, target, player, data)
@@ -1437,8 +1422,7 @@ local zhuihuan_discard = fk.CreateTriggerSkill{
     local from = data.from
     local cards = from:getCardIds("h")
     room:askForDiscard(from, 2, 2, false, self.name, true)
-    room:setPlayerMark(player, "@@ty_heg__zhuihuan-discard", 0)
-    room:handleAddLoseSkills(player, "-ty_heg__zhuihuan-discard", nil)
+    handleZhuihuan(room, target, false, false)
   end,
 }
 
@@ -1459,7 +1443,8 @@ Fk:loadTranslationTable{
 
   ["@@ty_heg__zhuihuan-discard"] = "追还",
   ["@@ty_heg__zhuihuan-damage"] = "追还",
-
+  ["#ty_heg__zhuihuan-discard"] = "追还",
+  ["#ty_heg__zhuihuan-damage"] = "追还",
   ["zhuihuan-damage"] = "对 %dest 分配伤害效果",
   ["zhuihuan-discard"] = "对 %dest 分配弃牌效果",
   
