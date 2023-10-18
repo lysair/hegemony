@@ -505,11 +505,13 @@ local bushi = fk.CreateTriggerSkill{
     local card = room:askForCard(room.current, 1, 1, true, self.name, true, nil, "#ld__bushi")
     if #card > 0 then
       player:addToPile("ld__midao_rice", card, true, self.name)
+      room.current:drawCards(1, self.name)
     end
     if room.current ~= player then
       local card = room:askForCard(player, 1, 1, true, self.name, true, nil, "#ld__bushi")
       if #card > 0 then
         player:addToPile("ld__midao_rice", card, true, self.name)
+        player:drawCards(1, self.name)
       end
     end
   end,
@@ -538,7 +540,7 @@ local midao = fk.CreateTriggerSkill{
     if event == fk.GeneralRevealed then
       return true
     elseif event == fk.AskForRetrial then
-      local card = player.room:askForResponse(player, self.name, ".|.|.|ld__midao_rice", "#ld__midao-ask::" .. target.id .. ":" .. data.reason, true)
+      local card = player.room:askForCard(player, 1, 1, false, self.name, true, ".|.|.|ld__midao_rice", "#ld__midao-ask::" .. target.id .. ":" .. data.reason, "ld__midao_rice")
       if #card > 0 then
         self.cost_data = card[1]
         return true
@@ -570,7 +572,7 @@ zhanglu:addSkill(midao)
 Fk:loadTranslationTable{
   ["ld__zhanglu"] = "张鲁",
   ["ld__bushi"] = "布施",
-  [":ld__bushi"] = "一名角色的结束阶段，若你于此回合内造成或受到过伤害，你可以移去一张“米”，视为使用一张【五谷丰登】，然后其与你可以依次将一张牌置于你武将牌上，称为“米”。",
+  [":ld__bushi"] = "一名角色的结束阶段，若你于此回合内造成或受到过伤害，你可以移去一张“米”，视为使用一张【五谷丰登】，然后其与你可以依次将一张牌置于你武将牌上，称为“米”，然后摸一张牌。",
   ["ld__midao"] = "米道",
   [":ld__midao"] = "当你明置此武将牌后，你摸两张牌，然后将两张牌置于武将牌上，称为“米”；一名角色的判定牌生效前，你可以打出一张“米”替换之。",
 
@@ -663,11 +665,130 @@ Fk:loadTranslationTable{
   ["~hs__shixie"] = "我这一生，足矣……",
 }
 
--- local liuqi = General(extension, "ld__liuqi", "qun", 4)
--- liuqi.subkingdom = "shu"
--- Fk:loadTranslationTable{
---   ["ld__liuqi"] = "刘琦",
--- }
+local liuqi = General(extension, "ld__liuqi", "qun", 3)
+liuqi.subkingdom = "shu"
+local wenji = fk.CreateTriggerSkill{
+  name = "ld__wenji",
+  anim_type = "control",
+  events = {fk.EventPhaseStart},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) and player.phase == Player.Play and
+      not table.every(player.room:getOtherPlayers(player), function(p) return (p:isNude()) end)
+  end,
+  on_cost = function(self, event, target, player, data)
+    local room = player.room
+    local to = room:askForChoosePlayers(player, table.map(table.filter(room:getOtherPlayers(player), function(p)
+      return not p:isNude() end), Util.IdMapper), 1, 1, "#wenji-choose", self.name, true)
+    if #to > 0 then
+      self.cost_data = to[1]
+      return true
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local to = room:getPlayerById(self.cost_data)
+    local card = room:askForCard(to, 1, 1, true, self.name, false, ".", "#wenji-give::"..player.id)
+    if H.compareKingdomWith(player, to, true) then
+      if not player:isNude() then
+        room:obtainCard(player.id, card[1], false, fk.ReasonGive)
+        local card_back = room:askForCard(player, 1, 1, true, self.name, false, ".|.|.|.|.|.|^" .. card[1], "#wenji-give::"..to.id)
+        room:obtainCard(to.id, card_back[1], false, fk.ReasonGive)
+      end
+    else
+      room:obtainCard(player.id, card[1], false, fk.ReasonGive)
+      room:setPlayerMark(player, "ld__wenji-turn", card[1])
+    end
+  end,
+}
+
+local wenji_targetmod = fk.CreateTargetModSkill{
+  name = "#wenji_targetmod",
+  bypass_times = function(self, player, skill, scope, card, to)
+    return player:hasSkill(self.name) and card.id == player:getMark("ld__wenji-turn")
+  end,
+  bypass_distances =  function(self, player, skill, card, to)
+    return player:hasSkill(self.name) and card.id == player:getMark("ld__wenji-turn")
+  end,
+}
+
+local wenji_record = fk.CreateTriggerSkill{
+  name = "#ld__wenji_record",
+  mute = true,
+  events = {fk.CardUsing},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:usedSkillTimes("ld__wenji", Player.HistoryTurn) > 0 and player:getMark("ld__wenji-turn") ~= 0 and
+      player:getMark("wenji-turn") == data.card.id
+  end,
+  on_cost = Util.TrueFunc,
+  on_use = function(self, event, target, player, data)
+    data.disresponsiveList = data.disresponsiveList or {}
+    for _, p in ipairs(player.room:getOtherPlayers(player)) do
+      table.insertIfNeed(data.disresponsiveList, p.id)
+    end
+  end,
+}
+
+local tunjiang = fk.CreateTriggerSkill{
+  name = "ld__tunjiang",
+  anim_type = "drawcard",
+  events = {fk.EventPhaseStart},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) and player.phase == Player.Finish and
+      player:getMark("tunjiang-turn") == 1 and not player.skipped_phases[Player.Play]
+  end,
+  on_use = function(self, event, target, player, data)
+    local kingdoms = {}
+    for _, p in ipairs(player.room.alive_players) do
+      table.insertIfNeed(kingdoms, p.kingdom)
+    end
+    player:drawCards(#kingdoms)
+  end,
+
+  refresh_events = {fk.TargetSpecified, fk.CardUsing},
+  can_refresh = function(self, event, target, player, data)
+    if event == fk.TargetSpecified then
+      return target == player and player:hasSkill(self.name) and player.phase == Player.Play and player:getMark("tunjiang-turn") == 1 and
+      data.firstTarget and data.card.type ~= Card.TypeEquip
+    else
+      return target == player and player:hasSkill(self.name) and player.phase == Player.Play and player:getMark("tunjiang-turn") == 0
+    end
+  end,
+  on_refresh = function(self, event, target, player, data)
+    if event == fk.TargetSpecified then
+      if #AimGroup:getAllTargets(data.tos) == 0 then return end
+      for _, id in ipairs(AimGroup:getAllTargets(data.tos)) do
+        if id ~= player.id then
+          player.room:setPlayerMark(player, "tunjiang-turn", 2)
+          break
+        end
+      end
+    else
+      player.room:setPlayerMark(player, "tunjiang-turn", 1)
+    end
+  end,
+}
+
+wenji:addRelatedSkill(wenji_targetmod)
+wenji:addRelatedSkill(wenji_record)
+liuqi:addSkill(tunjiang)
+liuqi:addSkill(wenji)
+
+Fk:loadTranslationTable{
+  ["ld__liuqi"] = "刘琦",
+  ["ld__wenji"] = "问计",
+  [":ld__wenji"] = "出牌阶段开始时，你可以令一名角色交给你一张牌，然后若其：与你势力相同或未确定势力，你于此回合内使用此牌无距离与次数限制且不能被响应；与你势力不同，你交给其另一张牌。",
+  ["ld__tunjiang"] = "屯江",
+  [":ld__tunjiang"] = "结束阶段，若你于此回合的出牌阶段内使用过牌且未指定过其他角色为目标，你可以摸X张牌（X为场上势力数）。",
+
+  ["#wenji-choose"] = "问计：选择一名其他角色，令其交给你一张牌，然后根据其势力执行不同效果。",
+  ["#wenji-give"] = "问计：交给 %dest 一张牌",
+
+  ["$ld__wenji1"] = "言出子口，入于吾耳，可以言未？",
+  ["$ld__wenji2"] = "还望先生救我！。",
+  ["$ld__tunjiang1"] = "皇叔勿惊，吾与关将军已到。",
+  ["$ld__tunjiang2"] = "江夏冲要之地，孩儿愿往守之。",
+  ["~ld__liuqi"] = "父亲，孩儿来，见你了。",
+}
 
 -- local tangzi = General(extension, "ld__tangzi", "wei", 4)
 -- tangzi.subkingdom = "wu"

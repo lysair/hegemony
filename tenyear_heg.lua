@@ -1241,4 +1241,233 @@ Fk:loadTranslationTable{
   ["~ty_heg__lvlingqi"] = "父亲，女儿好累……",
 }
 
+local yangwan = General(extension, "ty_heg__yangwan", "shu", 3, 3,General.Female)
+
+local youyan = fk.CreateTriggerSkill{
+  name = "ty_heg__youyan",
+  anim_type = "drawCards",
+  events = {fk.AfterCardsMove},
+  can_trigger = function(self, event, target, player, data)
+    if player:hasSkill(self.name) and player:usedSkillTimes(self.name, Player.HistoryTurn) == 0 and player.room.current == player then
+      local suits = {"spade", "club", "heart", "diamond"}
+      local can_invoked = false
+      for _, move in ipairs(data) do
+        if move.toArea == Card.DiscardPile and move.moveReason == fk.ReasonDiscard then
+          if move.from == player.id then
+            for _, info in ipairs(move.moveInfo) do
+              if info.fromArea == Card.PlayerHand or info.fromArea == Card.PlayerEquip then
+                table.removeOne(suits, Fk:getCardById(info.cardId):getSuitString())
+                can_invoked = true
+              end
+            end
+          end
+        end
+      end
+      return can_invoked and #suits > 0
+    end
+  end,
+  on_use = function (self, event, target, player, data)
+    local room = player.room
+    local suits = {"spade", "club", "heart", "diamond"}
+    for _, move in ipairs(data) do
+      if move.toArea == Card.DiscardPile and move.moveReason == fk.ReasonDiscard then
+        if move.from == player.id then
+          for _, info in ipairs(move.moveInfo) do
+            if info.fromArea == Card.PlayerHand or info.fromArea == Card.PlayerEquip then
+              table.removeOne(suits, Fk:getCardById(info.cardId):getSuitString())
+            end
+          end
+        end
+      end
+    end
+    if #suits > 0 then
+      local show_num = 4
+      local get = room:getNCards(show_num)
+      room:moveCards{
+        ids = get,
+        toArea = Card.Processing,
+        moveReason = fk.ReasonJustMove,
+        skillName = self.name,
+      } 
+      local dummy1 = Fk:cloneCard("dilu")
+      local dummy2 = Fk:cloneCard("dilu")
+      local final_get = 0
+      for i = 1, show_num, 1 do
+        local card = Fk:getCardById(get[i], true)
+        if not table.contains(suits, card:getSuitString()) then
+          dummy2:addSubcard(get[i])
+        else
+          dummy1:addSubcard(get[i])
+          final_get = final_get + 1
+        end
+      end
+      room:obtainCard(player.id, dummy1, true, fk.ReasonJustMove)
+      room:delay(1000)
+      if final_get < show_num then
+        room:moveCardTo(dummy2, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, skillname)
+      end
+    end
+  end,
+}
+
+local zhuihuan = fk.CreateTriggerSkill{
+  name = "ty_heg__zhuihuan",
+  anim_type = "defensive",
+  events = {fk.EventPhaseStart},
+  can_trigger = function(self, event, target, player, data)
+    return player:hasSkill(self.name) and player.phase == Player.Finish
+  end,
+  on_cost = function(self, event, target, player, data)
+    local to = player.room:askForChoosePlayers(player, table.map(player.room:getAlivePlayers(), function(p)
+      return p.id end), 1, 2, "#ty_heg__zhuihuan-choose", self.name, true, true)
+    if #to > 0 then
+      self.cost_data = to
+      return true
+    end
+  end,
+  on_use = function (self, event, target, player, data)
+    local room = player.room
+    local tos = self.cost_data
+    local choices = {"zhuihuan-damage::" ..tos[1], "zhuihuan-discard::" ..tos[1]}
+    if #tos == 1 then
+      local choice = room:askForChoice(player, choices, self.name)
+      local target = room:getPlayerById(tos[1])
+      if choice:startsWith("zhuihuan-damage") then
+        room:setPlayerMark(target, "@@ty_heg__zhuihuan-damage", 1)
+        room:handleAddLoseSkills(target, "ty_heg__zhuihuan-damage", nil)
+      elseif choice:startsWith("zhuihuan-discard") then
+        room:setPlayerMark(target, "@@ty_heg__zhuihuan-discard", 1)
+        room:handleAddLoseSkills(target, "ty_heg__zhuihuan-discard", nil)
+      end
+    elseif #tos == 2 then
+      local choice = room:askForChoice(player, choices, self.name)
+      local target1 = room:getPlayerById(tos[1])
+      local target2 = room:getPlayerById(tos[2])
+      if choice:startsWith("zhuihuan-damage") then
+        room:setPlayerMark(target1, "@@ty_heg__zhuihuan-damage", 1)
+        room:handleAddLoseSkills(target1, "ty_heg__zhuihuan-damage", nil)
+        room:setPlayerMark(target2, "@@ty_heg__zhuihuan-discard", 1)
+        room:handleAddLoseSkills(target2, "ty_heg__zhuihuan-discard", nil)
+      elseif choice:startsWith("zhuihuan-discard") then
+        room:setPlayerMark(target2, "@@ty_heg__zhuihuan-damage", 1)
+        room:handleAddLoseSkills(target2, "ty_heg__zhuihuan-damage", nil)
+        room:setPlayerMark(target1, "@@ty_heg__zhuihuan-discard", 1)
+        room:handleAddLoseSkills(target1, "ty_heg__zhuihuan-discard", nil)
+      end
+    end
+  end,
+
+  refresh_events = {fk.BuryVictim, fk.TurnStart},
+  can_refresh = function (self, event, target, player, data)
+    if event == fk.BuryVictim then
+      return (player:hasSkill(self.name) and target == player) or target:getMark("@@ty_heg__zhuihuan-damage") == 1 or target:getMark("@@ty_heg__zhuihuan-discard") == 1
+    end
+    if event == fk.TurnStart then
+      return player:hasSkill(self.name) and target == player
+    end
+  end,
+  on_refresh = function (self, event, target, player, data)
+    local room = player.room
+    if event == fk.BuryVictim then
+      if player:hasSkill(self.name) and target == player then
+        local targets1 = table.filter(room.alive_players, function(p) return p:getMark("@@ty_heg__zhuihuan-damage") == 1 end)
+        for _, p in ipairs(targets1) do
+          room:setPlayerMark(p, "@@ty_heg__zhuihuan-damage", 0)
+          room:handleAddLoseSkills(p, "-ty_heg__zhuihuan-damage", nil)
+        end
+        local targets2 = table.filter(room.alive_players, function(p) return p:getMark("@@ty_heg__zhuihuan-discard") == 1 end)
+        for _, p in ipairs(targets2) do
+          room:setPlayerMark(p, "@@ty_heg__zhuihuan-discard", 0)
+          room:handleAddLoseSkills(p, "-ty_heg__zhuihuan-discard", nil)
+        end
+      elseif target:getMark("@@ty_heg__zhuihuan-damage") == 1 then
+        room:setPlayerMark(player, "@@ty_heg__zhuihuan-damage", 0)
+        room:handleAddLoseSkills(player, "-ty_heg__zhuihuan-damage", nil)
+      elseif target:getMark("@@ty_heg__zhuihuan-discard") == 1 then
+        room:setPlayerMark(player, "@@ty_heg__zhuihuan-discard", 0)
+        room:handleAddLoseSkills(player, "-ty_heg__zhuihuan-discard", nil)
+      end
+    end
+    if event == fk.TurnStart then
+      local targets1 = table.filter(room.alive_players, function(p) return p:getMark("@@ty_heg__zhuihuan-damage") == 1 end)
+      for _, p in ipairs(targets1) do
+        room:setPlayerMark(p, "@@ty_heg__zhuihuan-damage", 0)
+        room:handleAddLoseSkills(p, "-ty_heg__zhuihuan-damage", nil)
+      end
+      local targets2 = table.filter(room.alive_players, function(p) return p:getMark("@@ty_heg__zhuihuan-discard") == 1 end)
+      for _, p in ipairs(targets2) do
+        room:setPlayerMark(p, "@@ty_heg__zhuihuan-discard", 0)
+        room:handleAddLoseSkills(p, "-ty_heg__zhuihuan-discard", nil)
+      end
+    end
+  end,
+}
+
+local zhuihuan_damage = fk.CreateTriggerSkill{
+  name = "ty_heg__zhuihuan-damage",
+  anim_type = "offensive",
+  events = {fk.Damaged},
+  can_trigger = function(self, event, target, player, data)
+    return player:hasSkill(self.name) and data.from and not data.from.dead and not data.from:isNude() and player == target
+  end,
+  on_cost = Util.TrueFunc,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    room:damage{
+      from = player,
+      to = data.from,
+      damage = 1,
+      skillName = self.name,
+    }
+    room:setPlayerMark(player, "@@ty_heg__zhuihuan-damage", 0)
+    room:handleAddLoseSkills(player, "-ty_heg__zhuihuan-damage", nil)
+  end,
+}
+
+local zhuihuan_discard = fk.CreateTriggerSkill{
+  name = "ty_heg__zhuihuan-discard",
+  anim_type = "offensive",
+  events = {fk.Damaged},
+  can_trigger = function(self, event, target, player, data)
+    return player:hasSkill(self.name) and data.from and not data.from.dead and not data.from:isNude() and player == target
+  end,
+  on_cost = Util.TrueFunc,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local from = data.from
+    local cards = from:getCardIds("h")
+    room:askForDiscard(from, 2, 2, false, self.name, true)
+    room:setPlayerMark(player, "@@ty_heg__zhuihuan-discard", 0)
+    room:handleAddLoseSkills(player, "-ty_heg__zhuihuan-discard", nil)
+  end,
+}
+
+yangwan:addCompanions("hs__machao")
+yangwan:addSkill(youyan)
+yangwan:addSkill(zhuihuan)
+Fk:addSkill(zhuihuan_damage)
+Fk:addSkill(zhuihuan_discard)
+
+Fk:loadTranslationTable{
+  ["ty_heg__yangwan"] = "杨婉",
+  ["ty_heg__youyan"] = "诱言",
+  [":ty_heg__youyan"] = "你的回合内限一次，当你的牌因弃置而置入弃牌堆后，你可以展示牌堆顶四张牌，获得其中与此置入弃牌堆花色均不相同的牌。",
+  ["ty_heg__zhuihuan"] = "追还",
+  [":ty_heg__zhuihuan"] = "结束阶段，你可以选择分配以下效果给至多两名角色直至你下回合开始（限触发一次）："..
+  "1.受到伤害后，伤害来源弃置两张手牌；2.受到伤害后，对伤害来源造成1点伤害。",
+  ["#ty_heg__zhuihuan-choose"] = "追还：选择一至两名角色分配对应效果",
+
+  ["@@ty_heg__zhuihuan-discard"] = "追还",
+  ["@@ty_heg__zhuihuan-damage"] = "追还",
+
+  ["zhuihuan-damage"] = "对 %dest 分配伤害效果",
+  ["zhuihuan-discard"] = "对 %dest 分配弃牌效果",
+  
+  ["$ty_heg__youyan1"] = "诱言者，为人所不齿。",
+  ["$ty_heg__youyan2"] = "诱言之弊，不可不慎。",
+  ["$ty_heg__zhuihuan1"] = "伤人者，追而还之！",
+  ["$ty_heg__zhuihuan2"] = "追而还击，皆为因果。",
+  ["~ty_heg__yangwan"] = "遇人不淑……",
+}
+
 return extension

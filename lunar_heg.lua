@@ -551,12 +551,12 @@ Fk:loadTranslationTable{
 --   ["~fk_heg__dongyun"] = "大汉，要亡于宦官之手了...",
 -- }
 
-local jianyong = General(extension, "fk_heg__jianyong", "shu", 3)
-jianyong:addSkill("qiaoshui")
-jianyong:addSkill("zongshij")
-Fk:loadTranslationTable{
-  ["fk_heg__jianyong"] = "简雍",
-}
+-- local jianyong = General(extension, "fk_heg__jianyong", "shu", 3)
+-- jianyong:addSkill("qiaoshui")
+-- jianyong:addSkill("zongshij")
+-- Fk:loadTranslationTable{
+--   ["fk_heg__jianyong"] = "简雍",
+-- }
 
 local handang = General(extension, "fk_heg__handang", "wu", 4)
 handang:addSkill("gongqi")
