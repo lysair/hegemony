@@ -806,6 +806,7 @@ H.removeGeneral = function(room, player, isDeputy)
     arg = isDeputy and "deputyGeneral" or "mainGeneral",
     arg2 = orig.name,
   }
+  room:returnToGeneralPile({orig.name})
   room.logic:trigger("fk.GeneralRemoved", player, orig.name)
 end
 Fk:loadTranslationTable{
@@ -828,12 +829,18 @@ H.transformGeneral = function(room, player, isMain)
   room.logic:trigger("fk.GeneralTransforming", player, orig)
   local generals
   if Fk.generals[H.getActualGeneral(player, false)].kingdom == "wild" then
-    generals = Fk:getGeneralsRandomly(3, Fk:getAllGenerals(), existingGenerals, function(p) return p.kingdom == "wild" end)
+    generals = room:findGenerals(function(g)
+      return Fk.generals[g].kingdom ~= "wild"
+    end, 3)
   else
-    generals = Fk:getGeneralsRandomly(3, Fk:getAllGenerals(), existingGenerals, function(p) return p.kingdom ~= player.kingdom end)
+    generals = room:findGenerals(function(g)
+      return Fk.generals[g].kingdom == player.kingdom
+    end, 3)
   end
-  generals = table.map(generals, Util.NameMapper)
   local general = room:askForGeneral(player, generals, 1, true)
+  table.removeOne(generals, general)
+  table.insert(generals, orig)
+  room:returnToGeneralPile(generals)
   room:changeHero(player, general, false, not isMain, true, false)
 end
 
