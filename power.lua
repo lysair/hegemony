@@ -976,13 +976,14 @@ local weidiRecorder = fk.CreateTriggerSkill{
       end
     else
       room.logic:getEventsOfScope(GameEvent.MoveCards, 1, function(e)
-        local move = e.data[1]
-        if move.toArea == Card.PlayerHand and move.to then
-          local target = room:getPlayerById(move.to)
-          if target and target:getMark("_ld__weidi-turn") == 0 then
-            for _, info in ipairs(move.moveInfo) do
-              if info.fromArea == Card.DrawPile and target:getMark("_ld__weidi-turn") == 0 then
-                room:setPlayerMark(target, "_ld__weidi-turn", 1)
+        for _, move in ipairs(e.data) do
+          if move.toArea == Card.PlayerHand and move.to then
+            local target = room:getPlayerById(move.to)
+            if target and target:getMark("_ld__weidi-turn") == 0 then
+              for _, info in ipairs(move.moveInfo) do
+                if info.fromArea == Card.DrawPile and target:getMark("_ld__weidi-turn") == 0 then
+                  room:setPlayerMark(target, "_ld__weidi-turn", 1)
+                end
               end
             end
           end

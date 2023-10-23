@@ -301,11 +301,12 @@ local diancai = fk.CreateTriggerSkill{
     if not player:hasSkill(self.name) or target.phase ~= Player.Play or target == player then return false end
     local num = 0
     player.room.logic:getEventsOfScope(GameEvent.MoveCards, 1, function(e)
-      local move = e.data[1]
-      if move and move.from and move.from == player.id and ((move.to and move.to ~= player.id) or not table.contains({Card.PlayerHand, Card.PlayerEquip}, move.toArea)) then
-        for _, info in ipairs(move.moveInfo) do
-          if info.fromArea == Card.PlayerHand or info.fromArea == Card.PlayerEquip then
-            num = num + 1
+      for _, move in ipairs(e.data) do
+        if move and move.from and move.from == player.id and ((move.to and move.to ~= player.id) or not table.contains({Card.PlayerHand, Card.PlayerEquip}, move.toArea)) then
+          for _, info in ipairs(move.moveInfo) do
+            if info.fromArea == Card.PlayerHand or info.fromArea == Card.PlayerEquip then
+              num = num + 1
+            end
           end
         end
       end
