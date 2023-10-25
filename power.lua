@@ -1668,15 +1668,12 @@ local liulongcanjia = fk.CreateDefensiveRide{
   on_install = function(self, room, player)
     DefensiveRide.onInstall(self, room, player)
     room:setPlayerMark(player, "@@liulongcanjia", 1) -- 绷
-    -- room:handleAddLoseSkills(player, "#liulongcanjia_prohibit", nil, false, true)
   end,
   on_uninstall = function(self, room, player)
     DefensiveRide.onUninstall(self, room, player)
     room:setPlayerMark(player, "@@liulongcanjia", 0)
-    -- room:handleAddLoseSkills(player, "-#liulongcanjia_prohibit", nil, false, true)
   end,
 }
--- Fk:addSkill(liulongProhibit)
 Fk:addSkill(liulongcanjiaSkill)
 H.addCardToConvertCards(liulongcanjia, "zhuahuangfeidian")
 extension_card:addCard(liulongcanjia)

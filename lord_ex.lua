@@ -1043,7 +1043,6 @@ local zhengjian = fk.CreateTriggerSkill{
 
 local zhengjian_prohibit = fk.CreateProhibitSkill{
   name = "#zhengjian_prohibit",
-  is_prohibited = function() return false end,
   prohibit_use = function(self, player, card)
     return card.trueName == "peach" and player:getMark("ld__zhengjian") > 0
   end,
