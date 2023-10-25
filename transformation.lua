@@ -842,7 +842,7 @@ local jubao = fk.CreateTriggerSkill{
     local targets = table.map(table.filter(room.alive_players, function(p)
       return table.find(p:getEquipments(Card.SubtypeTreasure), function(cid)
         return Fk:getCardById(cid).name == "luminous_pearl"
-      end) end), function(p) return p.id end)
+      end) end), Util.IdMapper)
     if #targets > 0 then
       for _, pid in ipairs(targets) do
         local p = room:getPlayerById(pid)
@@ -980,8 +980,6 @@ Fk:loadTranslationTable{
   [":ld__lordsunquan_haoshi"] = "摸牌阶段，你可以多摸两张牌，若如此做，此阶段结束时，若你的手牌数大于5，你将一半的手牌（向下取整）交给一名手牌数最小的其他角色。",
   [":ld__lordsunquan_shelie"] = "摸牌阶段，你可以改为亮出牌堆顶的五张牌，获得其中每种花色的牌各一张。 ",
   [":ld__lordsunquan_duoshi"] = "出牌阶段限四次，你可将一张红色手牌当【以逸待劳】使用。 ",
-
-  ["#fenghuotu-choose"] = "缘江烽火图：你可选择此回合拥有至多%arg个技能",
 
   ["ld__lordsunquan_zhiheng"] = "制衡",
 }

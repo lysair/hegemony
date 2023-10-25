@@ -27,7 +27,7 @@ local wanggui = fk.CreateTriggerSkill{
       end
     else
       local targets = table.map(table.filter(room.alive_players, function(p)
-        return H.compareKingdomWith(p, player, true) end), function(p) return p.id end)
+        return H.compareKingdomWith(p, player, true) end), Util.IdMapper)
       if #targets == 0 then return end
       local to = room:askForChoosePlayers(player, targets, 1, 1, "#ty_heg__wanggui_damage-choose", self.name, true)
       if #to > 0 then
@@ -540,7 +540,7 @@ local zhiwei = fk.CreateTriggerSkill{
     if event == fk.GeneralRevealed then
       room:notifySkillInvoked(player, self.name, "special")
       player:broadcastSkillInvoke(self.name)
-      local targets = table.map(room:getOtherPlayers(player, false), function(p) return p.id end)
+      local targets = table.map(room:getOtherPlayers(player, false), Util.IdMapper)
       if #targets == 0 then return false end
       local to = room:askForChoosePlayers(player, targets, 1, 1, "#ty_heg__zhiwei-choose", self.name, false, true)
       if #to > 0 then
@@ -1328,8 +1328,7 @@ local zhuihuan = fk.CreateTriggerSkill{
     return player:hasSkill(self.name) and player.phase == Player.Finish
   end,
   on_cost = function(self, event, target, player, data)
-    local to = player.room:askForChoosePlayers(player, table.map(player.room:getAlivePlayers(), function(p)
-      return p.id end), 1, 2, "#ty_heg__zhuihuan-choose", self.name, true, true)
+    local to = player.room:askForChoosePlayers(player, table.map(player.room:getAlivePlayers(), Util.IdMapper), 1, 2, "#ty_heg__zhuihuan-choose", self.name, true, true)
     if #to > 0 then
       self.cost_data = to
       return true

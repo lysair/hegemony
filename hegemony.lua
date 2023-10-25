@@ -737,7 +737,7 @@ Fk:loadTranslationTable{
   ["heg: besieged on all sides"] = "四面楚歌，被同一势力围观",
   ["@@alliance"] = "合",
 
-  ["#HegInitialNotice"] = "提示：<b><font color='purple'>暴露野心</font></b><b>暂无</b><br><b><font color='red'>君刘备</font></b>、<b><font color='#8c92ac'>君张角</font></b>、<b><font color='forestgreen'>君孙权</font></b>已登场！<b><font color='goldenrod'>君主</font></b>必须选择对应普通武将为<b>主将</b>，并在<b>首个回合亮将</b>才能变身",
+  ["#HegInitialNotice"] = "提示：<b><font color='purple'>暴露野心</font></b><b>暂无</b><br><b><font color='red'>君刘备</font></b>、<b><font color='#8c92ac'>君张角</font></b>、<b><font color='forestgreen'>君孙权</font></b>、<b><font color='royalblue'>君曹操</font></b>均已登场！<br><b><font color='goldenrod'>君主</font></b>必须选择对应普通武将为<b>主将</b>，并在<b>首个回合亮将</b>才能变身",
 }
 
 return heg

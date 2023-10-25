@@ -337,8 +337,7 @@ local fangzhu = fk.CreateTriggerSkill{
     return target == player and player:hasSkill(self.name)
   end,
   on_cost = function(self, event, target, player, data)
-    local to = player.room:askForChoosePlayers(player, table.map(player.room:getOtherPlayers(player), function(p)
-      return p.id end), 1, 1, "#hs__fangzhu-choose:::"..player:getLostHp(), self.name, true)
+    local to = player.room:askForChoosePlayers(player, table.map(player.room:getOtherPlayers(player), Util.IdMapper), 1, 1, "#hs__fangzhu-choose:::"..player:getLostHp(), self.name, true)
     if #to > 0 then
       self.cost_data = to[1]
       return true
@@ -1004,7 +1003,7 @@ local shushen = fk.CreateTriggerSkill{
   on_cost = function(self, event, target, player, data)
     local room = player.room
     local to = room:askForChoosePlayers(player, table.map(room:getOtherPlayers(player),
-      function(p) return p.id end), 1, 1, "#hs__shushen-choose", self.name, true)
+    Util.IdMapper), 1, 1, "#hs__shushen-choose", self.name, true)
     if #to > 0 then
       self.cost_data = to[1]
       return true
@@ -1425,8 +1424,7 @@ local tianxiang = fk.CreateTriggerSkill{
     return player:hasSkill(self.name) and target == player
   end,
   on_cost = function(self, event, target, player, data)
-    local tar, card =  player.room:askForChooseCardAndPlayers(player, table.map(player.room:getOtherPlayers(player), function (p)
-      return p.id end), 1, 1, ".|.|heart|hand", "#hs__tianxiang-choose", self.name, true)
+    local tar, card =  player.room:askForChooseCardAndPlayers(player, table.map(player.room:getOtherPlayers(player), Util.IdMapper), 1, 1, ".|.|heart|hand", "#hs__tianxiang-choose", self.name, true)
     if #tar > 0 and card then
       self.cost_data = {tar[1], card}
       return true
@@ -2210,9 +2208,7 @@ local shuangren = fk.CreateTriggerSkill{
       table.filter(room:getOtherPlayers(player), function(p)
         return not p:isKongcheng()
       end),
-      function(p)
-        return p.id
-      end
+      Util.IdMapper
     )
     if #availableTargets == 0 then return false end
     local target = room:askForChoosePlayers(player, availableTargets, 1, 1, "#shuangren-ask", self.name, true)
@@ -2234,9 +2230,7 @@ local shuangren = fk.CreateTriggerSkill{
         table.filter(room:getOtherPlayers(player), function(p)
           return H.compareKingdomWith(p, target) and not player:isProhibited(p, slash)
         end),
-        function(p)
-          return p.id
-        end
+        Util.IdMapper
       )
       if #availableTargets == 0 then return false end
       local victims = room:askForChoosePlayers(player, availableTargets, 1, 1, "#shuangren_slash-ask:" .. target.id, self.name, false)

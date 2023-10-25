@@ -584,7 +584,7 @@ local xuanhuoOther = fk.CreateActiveSkill{
     if #targets == 1 then
       to = targets[1]
     else
-      to = room:getPlayerById(room:askForChoosePlayers(player, table.map(targets, function(p) return p.id end), 1, 1, nil, self.name, false)[1])
+      to = room:getPlayerById(room:askForChoosePlayers(player, table.map(targets, Util.IdMapper), 1, 1, nil, self.name, false)[1])
     end
     room:doIndicate(player.id, {to.id})
     to:broadcastSkillInvoke(self.name)
@@ -1338,25 +1338,9 @@ local jianan = fk.CreateTriggerSkill{
       end
     end
     for _, skill in ipairs(all_choices) do
-      local skillNames = {skill, skill:sub(10)}
+      local skillNames = {skill, skill:sub(9)}
       local can_choose = true
       for _, sname in ipairs(skills) do
-        if skill == "jianan__ld__jieyue" and sname == "ld__jieyue" then
-          can_choose = false
-          break
-        elseif skill == "jianan__ld__tuxi" and sname == "ex__tuxi" then
-          can_choose = false
-          break
-        elseif skill == "jianan__ld__qiaobian" and sname == "qiaobian" then
-          can_choose = false
-          break
-        elseif skill == "jianan__ld__qiaobian" and sname == "hs__xiaoguo" then
-          can_choose = false
-          break
-        elseif skill == "jianan__ld__qiaobian" and sname == "hs__duanliang" then
-          can_choose = false
-          break
-        end
         if table.contains(skillNames, sname) then
           can_choose = false
           break
@@ -1365,7 +1349,12 @@ local jianan = fk.CreateTriggerSkill{
       if can_choose then table.insert(choices, skill) end
     end
     if #choices == 0 then return false end
-    local choice = room:askForChoice(target, choices, self.name, "#jianan-choice", true, all_choices)
+    local result = room:askForCustomDialog(target, self.name,
+    "packages/utility/qml/ChooseSkillBox.qml", {
+      choices, 1, 1, "#jianan-choice"
+    })
+    if result == "" then return false end
+    local choice = json.decode(result)[1]
     room:handleAddLoseSkills(target, choice, nil)
     local record = type(target:getMark("@jianan_skills")) == "table" and target:getMark("@jianan_skills") or {}
     table.insert(record, choice)
@@ -1412,7 +1401,7 @@ local huibian = fk.CreateActiveSkill{
       return target2.kingdom == "wei"
     elseif #selected == 1 then
       local target1 = Fk:currentRoom():getPlayerById(to_select)
-      return not(target1.kingdom ~= "wei" or not target1:isWounded())
+      return target1.kingdom == "wei" and target1:isWounded()
     else
       return false
     end
@@ -1427,13 +1416,17 @@ local huibian = fk.CreateActiveSkill{
       damage = 1,
       skillName = self.name,
     }
-    target1:drawCards(2, self.name)
-    room:recover{
-      who = target2,
-      num = 1,
-      recoverBy = player,
-      skillName = self.name
-    }
+    if not target1.dead then
+      target1:drawCards(2, self.name)
+    end
+    if not target2.dead and target2:isWounded() then
+      room:recover{
+        who = target2,
+        num = 1,
+        recoverBy = player,
+        skillName = self.name
+      }
+    end
   end,
 }
 
@@ -1581,16 +1574,16 @@ Fk:loadTranslationTable{
   ["jianan"] = "建安",
   [":jianan"] = "<b><font color='goldenrod'>君主技</font></b>，你拥有“五子良将纛”。<br>" ..
   "#<b>五子良将纛</b>：魏势力角色的准备阶段，其可以弃置一张牌并选择一张暗置的武将牌或暗置两张已明置武将牌中的其中一张，" ..
-  "若如此做，其获得“节钺”、“突袭”、“巧变”，“骁果”、“断粮”中一个场上没有的技能，"..
+  "若如此做，其获得〖节钺〗、〖突袭〗、〖巧变〗、〖骁果〗、〖断粮〗中一个场上没有的技能，"..
   "且不能明置以此法选择或暗置的武将牌，直至你回合开始。",
   ["huibian"] = "挥鞭",
   [":huibian"] = "出牌阶段限一次，你可以选择一名魏势力角色和另一名已受伤的魏势力角色，若如此做，你对前者造成1点伤害，令其摸两张牌，然后后者回复1点体力。",
 
-  ["#jianan-ask"] = "良将纛：你可以弃置一张牌，选择暗置一张武将牌，然后获得“节钺”、“突袭”、“巧变”，“骁果”、“断粮”中一个场上没有的技能",
-  ["#jianan-choice"] = "良将纛：获得以下一个技能",
+  ["#jianan-ask"] = "五子良将纛：你可弃置一张牌，暗置一张武将牌，选择获得〖节钺〗〖突袭〗〖巧变〗〖骁果〗〖断粮〗",
+  ["#jianan-choice"] = "五子良将纛：获得以下一个技能",
 
-  ["@@jianan_reveal"] = "良将纛 不能明置",
-  ["@jianan_skills"] = "良将纛 拥有技能",
+  ["@@jianan_reveal"] = "良将纛 禁亮",
+  ["@jianan_skills"] = "良将纛 拥有",
 
   ["#zongyu-ask"] = "总御：是否交换你与其装备区内的所有防御坐骑牌",
 
@@ -1652,19 +1645,38 @@ extension_card.game_modes_whitelist = { 'nos_heg_mode', 'new_heg_mode' }
 local liulongcanjiaSkill = fk.CreateDistanceSkill{
   name = "#liulongcanjiaSkill",
   frequency = Skill.Compulsory,
+  attached_equip = "liulongcanjia",
   correct_func = function(self, from, to)
     if from:hasSkill(self.name) then
       return -1
     end
   end,
 }
+local liulongProhibit = fk.CreateProhibitSkill{
+  name = "#liulongcanjia_prohibit",
+  attached_equip = "liulongcanjia",
+  prohibit_use = function(self, player, card)
+    return player:hasSkill(liulongcanjiaSkill.name) and table.contains({Card.SubtypeDefensiveRide, Card.SubtypeOffensiveRide}, card.sub_type)
+  end,
+}
+liulongcanjiaSkill:addRelatedSkill(liulongProhibit)
 local liulongcanjia = fk.CreateDefensiveRide{
   name = "liulongcanjia",
   suit = Card.Heart,
   number = 13,
   equip_skill = liulongcanjiaSkill,
+  on_install = function(self, room, player)
+    DefensiveRide.onInstall(self, room, player)
+    room:setPlayerMark(player, "@@liulongcanjia", 1) -- 绷
+    -- room:handleAddLoseSkills(player, "#liulongcanjia_prohibit", nil, false, true)
+  end,
+  on_uninstall = function(self, room, player)
+    DefensiveRide.onUninstall(self, room, player)
+    room:setPlayerMark(player, "@@liulongcanjia", 0)
+    -- room:handleAddLoseSkills(player, "-#liulongcanjia_prohibit", nil, false, true)
+  end,
 }
-
+-- Fk:addSkill(liulongProhibit)
 Fk:addSkill(liulongcanjiaSkill)
 H.addCardToConvertCards(liulongcanjia, "zhuahuangfeidian")
 extension_card:addCard(liulongcanjia)
@@ -1675,6 +1687,8 @@ Fk:loadTranslationTable{
 Fk:loadTranslationTable{
   ["liulongcanjia"] = "六龙骖驾",
   [":liulongcanjia"] = "装备牌·坐骑<br /><b>坐骑技能</b>：锁定技，其他角色与你的距离+1，你与其他角色的距离-1。",
+
+  ["@@liulongcanjia"] = "六龙骖驾",
 }
 
 return {

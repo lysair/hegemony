@@ -8,20 +8,20 @@ Fk:loadTranslationTable{
   ["fk_heg"] = "新月",
 }
 
--- local guohuai = General(extension, "fk_heg__guohuai", "wei", 4)
--- guohuai:addSkill("jingce")
--- guohuai:addCompanions { "hs__zhanghe", "hs__xiahouyuan" }
--- Fk:loadTranslationTable{
---   ["fk_heg__guohuai"] = "郭淮",
---   ["fk_heg__jingce"] = "精策",
---   [":fk_heg__jingce"] = "出牌阶段结束时，若你本回合已使用的牌数大于或等于你的体力值，你可以摸两张牌。",
--- }
+local guohuai = General(extension, "fk_heg__guohuai", "wei", 4)
+guohuai:addSkill("jingce")
+guohuai:addCompanions { "hs__zhanghe", "hs__xiahouyuan" }
+Fk:loadTranslationTable{
+  ["fk_heg__guohuai"] = "郭淮",
+  ["fk_heg__jingce"] = "精策",
+  [":fk_heg__jingce"] = "出牌阶段结束时，若你本回合已使用的牌数大于或等于你的体力值，你可以摸两张牌。",
+}
 
--- local caozhang = General(extension, "fk_heg__caozhang", "wei", 4)
--- caozhang:addSkill("jiangchi")
--- Fk:loadTranslationTable{
---   ["fk_heg__caozhang"] = "曹彰",
--- }
+local caozhang = General(extension, "fk_heg__caozhang", "wei", 4)
+caozhang:addSkill("jiangchi")
+Fk:loadTranslationTable{
+  ["fk_heg__caozhang"] = "曹彰",
+}
 
 --[[
 local caoang = General(extension, "fk_heg__caoang", "wei", 4)
@@ -54,7 +54,7 @@ local wumei = fk.CreateTriggerSkill{
   on_cost = function(self, event, target, player, data)
     local room = player.room
     local to = room:askForChoosePlayers(player, table.map(table.filter(room.alive_players, function (p)
-      return p:getMark("@@fk_heg__wumei_extra") == 0 end), function(p) return p.id end), 1, 1, "#fk_heg__wumei-choose", self.name, true)
+      return p:getMark("@@fk_heg__wumei_extra") == 0 end), Util.IdMapper), 1, 1, "#fk_heg__wumei-choose", self.name, true)
     if #to > 0 then
       self.cost_data = to[1]
       return true
@@ -302,11 +302,11 @@ Fk:loadTranslationTable{
   [":fk_heg__jiyuan"] = "当一名角色进入濒死时，你可令其摸一张牌。",
 }
 
--- local mazhong = General(extension, "fk_heg__mazhong", "shu", 4)
--- mazhong:addSkill("fuman")
--- Fk:loadTranslationTable{
---   ['fk_heg__mazhong'] = '马忠',
--- }
+local mazhong = General(extension, "fk_heg__mazhong", "shu", 4)
+mazhong:addSkill("fuman")
+Fk:loadTranslationTable{
+  ['fk_heg__mazhong'] = '马忠',
+}
 
 
 --[===[
@@ -437,7 +437,7 @@ Fk:loadTranslationTable{
 --     if event == fk.EventPhaseStart then
 --       if player.room:askForSkillInvoke(player, self.name, nil, "#fk_heg__yizan-invoke") then
 --         local targets = table.map(table.filter(room:getOtherPlayers(player), function(p)
---           return (p:getHandcardNum() < player:getHandcardNum()) end), function(p) return p.id end)
+--           return (p:getHandcardNum() < player:getHandcardNum()) end), Util.IdMapper)
 --         if #targets > 0 then
 --           local to = room:askForChoosePlayers(player, targets, 1, 1, "#fk_heg__yizan-choose", self.name, true)
 --           self.cost_data = to[1]
@@ -572,17 +572,17 @@ Fk:loadTranslationTable{
   ['fk_heg__panzhangmazhong'] = '潘璋马忠',
 }
 
--- local zhuzhi = General(extension, "fk_heg__zhuzhi", "wu", 4)
--- zhuzhi:addSkill("nos__anguo")
--- Fk:loadTranslationTable{
---   ['fk_heg__zhuzhi'] = '朱治',
--- }
+local zhuzhi = General(extension, "fk_heg__zhuzhi", "wu", 4)
+zhuzhi:addSkill("nos__anguo")
+Fk:loadTranslationTable{
+  ['fk_heg__zhuzhi'] = '朱治',
+}
 
--- local zhuhuan = General(extension, "fk_heg__zhuhuan", "wu", 4)
--- zhuhuan:addSkill("youdi")
--- Fk:loadTranslationTable{
---   ['fk_heg__zhuhuan'] = '朱桓',
--- }
+local zhuhuan = General(extension, "fk_heg__zhuhuan", "wu", 4)
+zhuhuan:addSkill("youdi")
+Fk:loadTranslationTable{
+  ['fk_heg__zhuhuan'] = '朱桓',
+}
 
 local guyong = General(extension, "fk_heg__guyong", "wu", 3)
 local bingyi = fk.CreateTriggerSkill{
@@ -613,8 +613,7 @@ local bingyi = fk.CreateTriggerSkill{
         end
       end
     end
-    local tos = room:askForChoosePlayers(player, table.map(room:getOtherPlayers(player, false), function(p)
-      return p.id end), 1, #cards, "#fk_heg__bingyi-choose:::"..#cards, self.name, true)
+    local tos = room:askForChoosePlayers(player, table.map(room:getOtherPlayers(player, false), Util.IdMapper), 1, #cards, "#fk_heg__bingyi-choose:::"..#cards, self.name, true)
     table.insert(tos, player.id)
     room:sortPlayersByAction(tos)
     for _, pid in ipairs(tos) do
@@ -1116,12 +1115,12 @@ Fk:loadTranslationTable{
   ["~fk_heg__chengui"] = "终日戏虎，竟为虎所噬。",
 }
 
--- local gongsunzan = General(extension, "fk_heg__gongsunzan", "qun", 4)
--- gongsunzan:addSkill("yicong")
--- gongsunzan:addSkill("qiaomeng")
--- Fk:loadTranslationTable{
---   ["fk_heg__gongsunzan"] = "公孙瓒",
--- }
+local gongsunzan = General(extension, "fk_heg__gongsunzan", "qun", 4)
+gongsunzan:addSkill("yicong")
+gongsunzan:addSkill("qiaomeng")
+Fk:loadTranslationTable{
+  ["fk_heg__gongsunzan"] = "公孙瓒",
+}
 
 --[==[
 local wanglie = General(extension, "fk_heg__wanglie", "qun", 3)

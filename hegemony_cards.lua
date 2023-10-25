@@ -313,7 +313,7 @@ local tribladeSkill = fk.CreateTriggerSkill{
   on_cost = function(self, event, target, player, data)
     local room = player.room
     local targets = table.map(table.filter(room.alive_players, function(p)
-      return data.to:distanceTo(p) == 1 and p ~= player end), function (p) return p.id end)
+      return data.to:distanceTo(p) == 1 and p ~= player end), Util.IdMapper)
     if #targets == 0 then return false end
     local to, card = room:askForChooseCardAndPlayers(player, targets, 1, 1, ".|.|.|hand", "#triblade-invoke::"..data.to.id, self.name, true)
     if #to > 0 then
