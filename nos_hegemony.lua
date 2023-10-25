@@ -466,6 +466,7 @@ heg = fk.CreateGameMode{
     "formation_cards",
     "momentum_cards",
     "transformation_cards",
+    "power_cards",
   },
 }
 

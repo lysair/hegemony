@@ -8,20 +8,20 @@ Fk:loadTranslationTable{
   ["fk_heg"] = "新月",
 }
 
-local guohuai = General(extension, "fk_heg__guohuai", "wei", 4)
-guohuai:addSkill("jingce")
-guohuai:addCompanions { "hs__zhanghe", "hs__xiahouyuan" }
-Fk:loadTranslationTable{
-  ["fk_heg__guohuai"] = "郭淮",
-  ["fk_heg__jingce"] = "精策",
-  [":fk_heg__jingce"] = "出牌阶段结束时，若你本回合已使用的牌数大于或等于你的体力值，你可以摸两张牌。",
-}
+-- local guohuai = General(extension, "fk_heg__guohuai", "wei", 4)
+-- guohuai:addSkill("jingce")
+-- guohuai:addCompanions { "hs__zhanghe", "hs__xiahouyuan" }
+-- Fk:loadTranslationTable{
+--   ["fk_heg__guohuai"] = "郭淮",
+--   ["fk_heg__jingce"] = "精策",
+--   [":fk_heg__jingce"] = "出牌阶段结束时，若你本回合已使用的牌数大于或等于你的体力值，你可以摸两张牌。",
+-- }
 
-local caozhang = General(extension, "fk_heg__caozhang", "wei", 4)
-caozhang:addSkill("jiangchi")
-Fk:loadTranslationTable{
-  ["fk_heg__caozhang"] = "曹彰",
-}
+-- local caozhang = General(extension, "fk_heg__caozhang", "wei", 4)
+-- caozhang:addSkill("jiangchi")
+-- Fk:loadTranslationTable{
+--   ["fk_heg__caozhang"] = "曹彰",
+-- }
 
 --[[
 local caoang = General(extension, "fk_heg__caoang", "wei", 4)
@@ -302,11 +302,11 @@ Fk:loadTranslationTable{
   [":fk_heg__jiyuan"] = "当一名角色进入濒死时，你可令其摸一张牌。",
 }
 
-local mazhong = General(extension, "fk_heg__mazhong", "shu", 4)
-mazhong:addSkill("fuman")
-Fk:loadTranslationTable{
-  ['fk_heg__mazhong'] = '马忠',
-}
+-- local mazhong = General(extension, "fk_heg__mazhong", "shu", 4)
+-- mazhong:addSkill("fuman")
+-- Fk:loadTranslationTable{
+--   ['fk_heg__mazhong'] = '马忠',
+-- }
 
 
 --[===[
@@ -572,17 +572,17 @@ Fk:loadTranslationTable{
   ['fk_heg__panzhangmazhong'] = '潘璋马忠',
 }
 
-local zhuzhi = General(extension, "fk_heg__zhuzhi", "wu", 4)
-zhuzhi:addSkill("nos__anguo")
-Fk:loadTranslationTable{
-  ['fk_heg__zhuzhi'] = '朱治',
-}
+-- local zhuzhi = General(extension, "fk_heg__zhuzhi", "wu", 4)
+-- zhuzhi:addSkill("nos__anguo")
+-- Fk:loadTranslationTable{
+--   ['fk_heg__zhuzhi'] = '朱治',
+-- }
 
-local zhuhuan = General(extension, "fk_heg__zhuhuan", "wu", 4)
-zhuhuan:addSkill("youdi")
-Fk:loadTranslationTable{
-  ['fk_heg__zhuhuan'] = '朱桓',
-}
+-- local zhuhuan = General(extension, "fk_heg__zhuhuan", "wu", 4)
+-- zhuhuan:addSkill("youdi")
+-- Fk:loadTranslationTable{
+--   ['fk_heg__zhuhuan'] = '朱桓',
+-- }
 
 local guyong = General(extension, "fk_heg__guyong", "wu", 3)
 local bingyi = fk.CreateTriggerSkill{
@@ -1116,12 +1116,12 @@ Fk:loadTranslationTable{
   ["~fk_heg__chengui"] = "终日戏虎，竟为虎所噬。",
 }
 
-local gongsunzan = General(extension, "fk_heg__gongsunzan", "qun", 4)
-gongsunzan:addSkill("yicong")
-gongsunzan:addSkill("qiaomeng")
-Fk:loadTranslationTable{
-  ["fk_heg__gongsunzan"] = "公孙瓒",
-}
+-- local gongsunzan = General(extension, "fk_heg__gongsunzan", "qun", 4)
+-- gongsunzan:addSkill("yicong")
+-- gongsunzan:addSkill("qiaomeng")
+-- Fk:loadTranslationTable{
+--   ["fk_heg__gongsunzan"] = "公孙瓒",
+-- }
 
 --[==[
 local wanglie = General(extension, "fk_heg__wanglie", "qun", 3)
