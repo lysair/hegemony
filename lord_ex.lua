@@ -593,11 +593,71 @@ Fk:loadTranslationTable{
 }
 
 
--- local mf = General(extension, "ld__mifangfushiren", "shu", 4)
--- mf.subkingdom = "wu"
--- Fk:loadTranslationTable{
---   ["ld__mifangfushiren"] = "糜芳傅士仁",
--- }
+local qtc = General(extension, "ld__qtc", "shu", 4)
+qtc.subkingdom = "wu"
+local fengshiv = fk.CreateTriggerSkill{
+  name = "ld__fengshiv",
+  anim_type = "offensive",
+  events = {fk.TargetSpecified},
+  can_trigger = function(self, event, target, player, data)
+    if not (target == player and player:hasSkill(self.name) and #AimGroup:getAllTargets(data.tos) == 1) then return false end
+    for _, id in ipairs(AimGroup:getAllTargets(data.tos)) do
+      if id == player.id or not (player:getHandcardNum() > player.room:getPlayerById(id):getHandcardNum()) or player.room:getPlayerById(id):isNude() then
+        return false
+      end
+    end
+    return true
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    for _, id in ipairs(AimGroup:getAllTargets(data.tos)) do
+      room:askForDiscard(player, 1, 1, true, self.name, false)
+      local cid = room:askForCardChosen(player, room:getPlayerById(id), "he", self.name)
+      room:throwCard({cid}, self.name, room:getPlayerById(id), player)
+      if data.card.is_damage_card then
+        data.additionalDamage = (data.additionalDamage or 0) + 1
+      end
+    end
+  end,
+}
+
+local fengshiv_back = fk.CreateTriggerSkill{
+  name = "#ld__fengshiv_back",
+  anim_type = "offensive",
+  events = {fk.TargetConfirmed},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) and not player:isNude() and #AimGroup:getAllTargets(data.tos) == 1
+     and player:getHandcardNum() < player.room:getPlayerById(data.from):getHandcardNum()
+  end,
+  on_cost = function (self, event, target, player, data)
+    return player.room:askForSkillInvoke(player.room:getPlayerById(data.from), self.name, nil, "#ld__fengshiv-ask") 
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local cid = room:askForCardChosen(player, room:getPlayerById(data.from), "he", self.name)
+    room:throwCard({cid}, self.name, room:getPlayerById(data.from), player)
+    room:askForDiscard(player, 1, 1, true, self.name, false)
+    if data.card.is_damage_card then
+      data.additionalDamage = (data.additionalDamage or 0) + 1
+    end
+  end,
+}
+
+fengshiv:addRelatedSkill(fengshiv_back)
+qtc:addSkill(fengshiv)
+
+Fk:loadTranslationTable{
+  ["ld__qtc"] = "糜芳傅士仁",
+  ["ld__fengshiv"] = "锋势",
+  [":ld__fengshiv"] = "当你使用牌指定其他角色为目标后，若其手牌数小于你且你与其均有牌，你可以弃置你与其各一张牌，然后此牌造成伤害值+1。当你成为其他角色使用牌的目标后，若你手牌数小于你且你与其均有牌，其可以令你弃置你与其各一张牌，然后此牌造成伤害值+1",
+
+  ["#ld__fengshiv-ask"] = "锋势：是否令糜芳傅士仁弃置你与其各一张牌，然后此牌的伤害基数+1",
+
+  ["$ld__fengshiv1"] = "",
+  ["$ld__fengshiv2"] = "",
+
+  ["~ld__qtc"] = "",
+}
 
 local shixie = General(extension, "hs__shixie", "qun", 3)
 shixie.subkingdom = "wu"
@@ -931,7 +991,7 @@ local congcha_delay = fk.CreateTriggerSkill{
     if event == fk.BuryVictim then
       player.room:setPlayerMark(target, "@@ld__congcha_delay", 0)
     elseif event == fk.TurnStart then
-      local targets = table.filter(room.alive_players, function(p) return p:getMark("@@ld__congcha_delay") == 1 end)
+      local targets = table.filter(player.room.alive_players, function(p) return p:getMark("@@ld__congcha_delay") == 1 end)
       for _, p in ipairs(targets) do
         player.room:setPlayerMark(p, "@@ld__congcha_delay", 0)
       end
