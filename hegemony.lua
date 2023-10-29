@@ -274,6 +274,10 @@ function HegLogic:chooseGenerals()
   local generals = room:getNGenerals(#players * generalNum) -- Fk:getGeneralsRandomly
   table.shuffle(generals)
   for k, p in ipairs(players) do
+    -- UI
+    p:setMark("@seat", "seat#" .. tostring(p.seat))
+    p:doNotify("SetPlayerMark", json.encode{ p.id, "@seat", "seat#" .. tostring(p.seat)})
+
     -- local arg = { map = table.map }
     local arg = table.slice(generals, (k - 1) * generalNum + 1, k * generalNum + 1)
     table.sort(arg, function(a, b) return Fk.generals[a].kingdom > Fk.generals[b].kingdom end)
@@ -365,6 +369,9 @@ function HegLogic:broadcastGeneral()
   local players = room.players
 
   for _, p in ipairs(players) do
+    p:setMark("@seat", 0)
+    p:doNotify("SetPlayerMark", json.encode{ p.id, "@seat", 0})
+
     assert(p.general ~= "")
     local general = Fk.generals[p:getMark("__heg_general")]
     local deputy = Fk.generals[p:getMark("__heg_deputy")]
@@ -736,6 +743,7 @@ Fk:loadTranslationTable{
   ["#WildChooseKingdom"] = "%from 成为 %arg2 ，选择了势力 %arg",
   ["heg: besieged on all sides"] = "四面楚歌，被同一势力围观",
   ["@@alliance"] = "合",
+  ["@seat"] = "",
 
   ["#HegInitialNotice"] = "提示：<b><font color='purple'>暴露野心</font></b><b>暂无</b><br><b><font color='red'>君刘备</font></b>、<b><font color='#8c92ac'>君张角</font></b>、<b><font color='forestgreen'>君孙权</font></b>、<b><font color='royalblue'>君曹操</font></b>均已登场！<br><b><font color='goldenrod'>君主</font></b>必须选择对应普通武将为<b>主将</b>，并在<b>首个回合亮将</b>才能变身",
 }
