@@ -47,18 +47,18 @@ local zhengbi = fk.CreateTriggerSkill{
           return Fk:getCardById(id).type == Card.TypeBasic end)
         print(#basic_cards2)
         if #basic_cards2 > 1 then
-          table.insert(card_choices, "zhengbi__basic-back")
+          table.insert(card_choices, "zhengbi__basic-back:"..player.id)
         end
         if #player:getCardIds("he") - #basic_cards2 > 0 then
-          table.insert(card_choices, "zhengbi__nobasic-back")
+          table.insert(card_choices, "zhengbi__nobasic-back:"..player.id)
         end
         if #card_choices == 0 then return false end
         local card_choice = room:askForChoice(to, card_choices, self.name)
         if card_choice:startsWith("zhengbi__basic-back") then
-          cards2 = room:askForCard(to, 2, 2, false, self.name, false, ".|.|.|.|.|basic", "#ld__zhengbi-give1")
+          cards2 = room:askForCard(to, 2, 2, false, self.name, false, ".|.|.|.|.|basic", "#ld__zhengbi-give1:"..player.id)
           room:moveCardTo(cards2, Player.Hand, player, fk.ReasonGive, self.name, nil, false, player.id)
         elseif card_choice:startsWith("zhengbi__nobasic-back") then
-          cards2 = room:askForCard(to, 1, 1, false, self.name, false, ".|.|.|.|.|^basic", "#ld__zhengbi-give2")
+          cards2 = room:askForCard(to, 1, 1, false, self.name, false, ".|.|.|.|.|^basic", "#ld__zhengbi-give2:"..player.id)
           room:moveCardTo(cards2, Player.Hand, player, fk.ReasonGive, self.name, nil, false, player.id)
         end
         
@@ -93,14 +93,14 @@ local zhengbi_targetmod = fk.CreateTargetModSkill{
 
 local fengying = fk.CreateActiveSkill{
   name = "ld__fengying",
-  anim_type = "offensive",
+  anim_type = "support",
   frequency = Skill.Limited,
   card_num = 0,
   target_num = 0,
   card_filter = Util.FalseFunc,
   target_filter = Util.FalseFunc,
   can_use = function(self, player) 
-    return player:usedSkillTimes(self.name, Player.HistoryGame) == 0 and not player:isKongcheng()
+    return player:usedSkillTimes(self.name, Player.HistoryGame) == 0 and not player:isKongcheng() and not player:prohibitUse(Fk:cloneCard("threaten_emperor"))
   end,
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
@@ -138,18 +138,18 @@ Fk:loadTranslationTable{
   ["zhengbi_useCard"] = "选择无势力角色用牌无限制",
 
   ["#ld__zhengbi-give"] = "请选择一张基本牌",
-  ["zhengbi__basic-back"] = "交给崔琰毛玠两张基本牌",
-  ["zhengbi__nobasic-back"] = "交给崔琰毛玠一张非基本牌",
+  ["zhengbi__basic-back"] = "交给%src两张基本牌",
+  ["zhengbi__nobasic-back"] = "交给%src一张非基本牌",
 
-  ["#ld__zhengbi-give1"] = "请交给崔琰毛玠两张基本牌",
-  ["#ld__zhengbi-give2"] = "请交给崔琰毛玠一张非基本牌",
+  ["#ld__zhengbi-give1"] = "征辟：请交给%src两张基本牌",
+  ["#ld__zhengbi-give2"] = "征辟：请交给%src一张非基本牌",
 
-  ["#ld__zhengbi_choose"] = "请选择一名未确定势力的角色，你对其使用牌无距离与次数限制",
+  ["#ld__zhengbi_choose"] = "征辟：请选择一名未确定势力的角色，你对其使用牌无距离与次数限制",
   ["@@ld__zhengbi_choose-turn"] = "征辟",
 
   ["$ld__zhengbi1"] = "跅弛之士，在御之而已。",
-  ["$ld__zhengbi2"] = "	内不避亲，外不避仇。",
-  ["$ld__fengying1"] = "二臣恭奉，以迎皇嗣。	",
+  ["$ld__zhengbi2"] = "内不避亲，外不避仇。",
+  ["$ld__fengying1"] = "二臣恭奉，以迎皇嗣。",
   ["$ld__fengying2"] = "奉旨典选，以迎忠良。",
   ["~ld__cuiyanmaojie"] = "为世所痛惜，冤哉……",
 }
@@ -1282,7 +1282,7 @@ local jieyue_drawJA = fk.CreateTriggerSkill{
 }
 
 local tuxiJA = fk.CreateTriggerSkill{
-  name = "jianan__ld__tuxi",
+  name = "jianan__ex__tuxi",
   anim_type = "control",
   events = {fk.DrawNCards},
   can_trigger = function(self, event, target, player, data)
@@ -1293,7 +1293,7 @@ local tuxiJA = fk.CreateTriggerSkill{
     local room = player.room
     local targets = table.map(table.filter(room:getOtherPlayers(player), function(p)
       return not p:isKongcheng() end), function (p) return p.id end)
-    local tos = room:askForChoosePlayers(player, targets, 1, data.n, "#jianan__ld__tuxi-choose:::"..data.n, self.name, true)
+    local tos = room:askForChoosePlayers(player, targets, 1, data.n, "#jianan__ex__tuxi-choose:::"..data.n, self.name, true)
     if #tos > 0 then
       self.cost_data = tos
       return true
@@ -1310,7 +1310,7 @@ local tuxiJA = fk.CreateTriggerSkill{
 }
 
 local qiaobianJA = fk.CreateTriggerSkill{
-  name = "jianan__ld__qiaobian",
+  name = "jianan__qiaobian",
   anim_type = "offensive",
   events = {fk.EventPhaseChanging},
   can_trigger = function(self, event, target, player, data)
@@ -1324,7 +1324,7 @@ local qiaobianJA = fk.CreateTriggerSkill{
       [5] = "phase_play",
       [6] = "phase_discard",
     }
-    local card = player.room:askForDiscard(player, 1, 1, false, self.name, true, ".", "#jianan__ld__qiaobian-invoke:::" .. phase_name_table[data.to], true)
+    local card = player.room:askForDiscard(player, 1, 1, false, self.name, true, ".", "#jianan__qiaobian-invoke:::" .. phase_name_table[data.to], true)
     if #card > 0 then
       self.cost_data = card
       return true
@@ -1339,7 +1339,7 @@ local qiaobianJA = fk.CreateTriggerSkill{
         return not p:isKongcheng() end), function(p) return p.id end)
       if #targets > 0 then
         local n = math.min(2, #targets)
-        local tos = room:askForChoosePlayers(player, targets, 1, n, "#jianan__ld__qiaobian-choose:::"..n, self.name, true)
+        local tos = room:askForChoosePlayers(player, targets, 1, n, "#jianan__qiaobian-choose:::"..n, self.name, true)
         if #tos > 0 then
           room:sortPlayersByAction(tos)
           for _, id in ipairs(tos) do
@@ -1352,7 +1352,7 @@ local qiaobianJA = fk.CreateTriggerSkill{
         end
       end
     elseif data.to == Player.Play then
-      local targets = room:askForChooseToMoveCardInBoard(player, "#jianan__ld__qiaobian-move", self.name, true, nil)
+      local targets = room:askForChooseToMoveCardInBoard(player, "#jianan__qiaobian-move", self.name, true, nil)
       if #targets ~= 0 then
         targets = table.map(targets, function(id) return room:getPlayerById(id) end)
         room:askForMoveCardInBoard(player, targets[1], targets[2], self.name)
@@ -1363,14 +1363,14 @@ local qiaobianJA = fk.CreateTriggerSkill{
 }
 
 local xiaoguoJA = fk.CreateTriggerSkill{
-  name = "jianan__ld__xiaoguo",
+  name = "jianan__hs__xiaoguo",
   anim_type = "offensive",
   events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
     return target ~= player and player:hasSkill(self.name) and target.phase == Player.Finish and not player:isKongcheng()
   end,
   on_cost = function(self, event, target, player, data)
-    local card = player.room:askForDiscard(player, 1, 1, true, self.name, true, ".|.|.|.|.|basic", "#jianan__ld__xiaoguo-invoke::"..target.id, true)
+    local card = player.room:askForDiscard(player, 1, 1, true, self.name, true, ".|.|.|.|.|basic", "#jianan__hs__xiaoguo-invoke::"..target.id, true)
     if #card > 0 then
       self.cost_data = card
       return true
@@ -1379,7 +1379,7 @@ local xiaoguoJA = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     local room = player.room
     room:throwCard(self.cost_data, self.name, player, player)
-    if #room:askForDiscard(target, 1, 1, true, self.name, true, ".|.|.|.|.|equip", "#jianan__ld__xiaoguo-discard:"..player.id) == 0 then
+    if #room:askForDiscard(target, 1, 1, true, self.name, true, ".|.|.|.|.|equip", "#jianan__hs__xiaoguo-discard:"..player.id) == 0 then
       room:damage{
         from = player,
         to = target,
@@ -1391,7 +1391,7 @@ local xiaoguoJA = fk.CreateTriggerSkill{
 }
 
 local duanliangJA = fk.CreateViewAsSkill{
-  name = "jianan__ld__duanliang",
+  name = "jianan__hs__duanliang",
   anim_type = "control",
   pattern = "supply_shortage",
   card_filter = function(self, to_select, selected)
@@ -1412,13 +1412,13 @@ local duanliangJA = fk.CreateViewAsSkill{
     local room = player.room
     for _, p in ipairs(targets) do
       if player:distanceTo(room:getPlayerById(p)) > 2 then
-        room:setPlayerMark(player, "@@jianan__ld__duanliang-phase", 1)
+        room:setPlayerMark(player, "@@jianan__hs__duanliang-phase", 1)
       end
     end
   end
 }
 local duanliang_targetmodJA = fk.CreateTargetModSkill{
-  name = "#jianan__ld__duanliang_targetmod",
+  name = "#jianan__hs__duanliang_targetmod",
   distance_limit_func =  function(self, player, skill)
     if player:hasSkill(self.name) and skill.name == "supply_shortage_skill" then
       return 99
@@ -1426,10 +1426,10 @@ local duanliang_targetmodJA = fk.CreateTargetModSkill{
   end,
 }
 local duanliang_invalidityJA = fk.CreateInvaliditySkill {
-  name = "#jianan__ld__duanlianginvalidity",
+  name = "#jianan__hs__duanlianginvalidity",
   invalidity_func = function(self, from, skill)
-    return from:getMark("@@jianan__ld__duanliang-phase") > 0 and
-      skill.name == "jianan__ld__duanliang"
+    return from:getMark("@@jianan__hs__duanliang-phase") > 0 and
+      skill.name == "jianan__hs__duanliang"
   end
 }
 
@@ -1457,12 +1457,11 @@ local jianan = fk.CreateTriggerSkill{
     elseif H.getGeneralsRevealedNum(target) == 2 then 
       isDeputy = H.doHideGeneral(room, target, target, self.name)
     end
-    room:setPlayerMark(target, "@@jianan_reveal", 1)
     local record = type(target:getMark(MarkEnum.RevealProhibited)) == "table" and target:getMark(MarkEnum.RevealProhibited) or {}
     table.insert(record, isDeputy and "d" or "m")
     room:setPlayerMark(target, MarkEnum.RevealProhibited, record)
 
-    local all_choices = {"jianan__ld__jieyue", "jianan__ld__tuxi", "jianan__ld__qiaobian", "jianan__ld__duanliang", "jianan__ld__xiaoguo"}
+    local all_choices = {"jianan__ld__jieyue", "jianan__ex__tuxi", "jianan__qiaobian", "jianan__hs__duanliang", "jianan__hs__xiaoguo"}
     local choices = {}
     local skills = {}
     for _, p in ipairs(room.alive_players) do
@@ -1511,7 +1510,6 @@ local jiananOtherLose = fk.CreateTriggerSkill{
         room:handleAddLoseSkills(p, skills, nil)
         room:setPlayerMark(p, "@jianan_skills", 0)
       end
-      room:setPlayerMark(p, "@@jianan_reveal", 0)
       room:setPlayerMark(p, MarkEnum.RevealProhibited, 0)
     end
   end,
@@ -1715,8 +1713,7 @@ Fk:loadTranslationTable{
   ["#jianan-ask"] = "五子良将纛：你可弃置一张牌，暗置一张武将牌，选择获得〖节钺〗〖突袭〗〖巧变〗〖骁果〗〖断粮〗",
   ["#jianan-choice"] = "五子良将纛：获得以下一个技能",
 
-  ["@@jianan_reveal"] = "良将纛 禁亮",
-  ["@jianan_skills"] = "良将纛 拥有",
+  ["@jianan_skills"] = "良将纛",
 
   ["#zongyu-ask"] = "总御：是否交换你与其装备区内的所有防御坐骑牌",
 
@@ -1725,25 +1722,25 @@ Fk:loadTranslationTable{
   ["#jianan__ld__jieyue-target"] = "节钺：你可将一张手牌交给不是魏势力或没有势力的一名角色，对其发起军令",
   ["#jianan__ld__jieyue_draw"] = "节钺",
 
-  ["jianan__ld__tuxi"] = "突袭",
-  [":jianan__ld__tuxi"] = "摸牌阶段，你可以少摸任意张牌并获得等量其他角色各一张手牌。",
-  ["#jianan__ld__tuxi-choose"] = "突袭：你可以少至多%arg张牌，获得等量其他角色各一张手牌",
+  ["jianan__ex__tuxi"] = "突袭",
+  [":jianan__ex__tuxi"] = "摸牌阶段，你可以少摸任意张牌并获得等量其他角色各一张手牌。",
+  ["#jianan__ex__tuxi-choose"] = "突袭：你可以少摸至多%arg张牌，获得等量其他角色各一张手牌",
 
-  ["jianan__ld__qiaobian"] = "巧变",
-  [":jianan__ld__qiaobian"] = "你的阶段开始前（准备阶段和结束阶段除外），你可以弃置一张手牌跳过该阶段。若以此法跳过摸牌阶段，"..
+  ["jianan__qiaobian"] = "巧变",
+  [":jianan__qiaobian"] = "你的阶段开始前（准备阶段和结束阶段除外），你可以弃置一张手牌跳过该阶段。若以此法跳过摸牌阶段，"..
   "你可以获得至多两名其他角色的各一张手牌；若以此法跳过出牌阶段，你可以将场上的一张牌移动至另一名角色相应的区域内。",
-  ["#jianan__ld__qiaobian-invoke"] = "巧变：你可以弃一张手牌，跳过 %arg",
-  ["#jianan__ld__qiaobian-choose"] = "巧变：你可以依次获得%arg名角色的各一张手牌",
-  ["#jianan__ld__qiaobian-move"] = "巧变：请选择两名角色，移动场上的一张牌",
+  ["#jianan__qiaobian-invoke"] = "巧变：你可以弃一张手牌，跳过 %arg",
+  ["#jianan__qiaobian-choose"] = "巧变：你可以依次获得%arg名角色的各一张手牌",
+  ["#jianan__qiaobian-move"] = "巧变：请选择两名角色，移动场上的一张牌",
 
-  ["jianan__ld__duanliang"] = "断粮",
-  [":jianan__ld__duanliang"] = "你可将一张不为锦囊牌的黑色牌当【兵粮寸断】使用（无距离关系的限制），若你至目标对应的角色的距离大于2，此技能于此阶段内无效。",
-  ["@@jianan__ld__duanliang-phase"] = "断粮 无效",
+  ["jianan__hs__duanliang"] = "断粮",
+  [":jianan__hs__duanliang"] = "你可将一张不为锦囊牌的黑色牌当【兵粮寸断】使用（无距离关系的限制），若你至目标对应的角色的距离大于2，此技能于此阶段内无效。",
+  ["@@jianan__hs__duanliang-phase"] = "断粮 无效",
 
-  ["jianan__ld__xiaoguo"] = "骁果",
-  [":jianan__ld__xiaoguo"] = "其他角色的结束阶段开始时，你可以弃置一张基本牌，然后其需弃置一张装备牌，否则你对其造成1点伤害。",
-  ["#jianan__ld__xiaoguo-invoke"] = "骁果：你可以弃置一张基本牌，%dest 需弃置一张装备牌，否则你对其造成1点伤害",
-  ["#jianan__ld__xiaoguo-discard"] = "骁果：你需弃置一张装备牌，否则 %src 对你造成1点伤害",
+  ["jianan__hs__xiaoguo"] = "骁果",
+  [":jianan__hs__xiaoguo"] = "其他角色的结束阶段开始时，你可以弃置一张基本牌，然后其需弃置一张装备牌，否则你对其造成1点伤害。",
+  ["#jianan__hs__xiaoguo-invoke"] = "骁果：你可以弃置一张基本牌，%dest 需弃置一张装备牌，否则你对其造成1点伤害",
+  ["#jianan__hs__xiaoguo-discard"] = "骁果：你需弃置一张装备牌，否则 %src 对你造成1点伤害",
 
   ["$jianan1"] = "设使天下无孤，不知几人称帝，几人称王。",
   ["$jianan2"] = "行为军锋，还为后拒！",
@@ -1757,16 +1754,16 @@ Fk:loadTranslationTable{
 
   ["$jianan__ld__jieyue1"] = "孤之股肱，谁敢不从？嗯？",
   ["$jianan__ld__jieyue2"] = "泰山之高，群山不可及，文则之重，泰山不可及！",
-  ["$jianan__ld__tuxi1"] = "以百破万，让孤再看一次！",
-  ["$jianan__ld__tuxi2"] = "望将军身影，可治孤之头风病。",
-  ["$jianan__ld__qiaobian1"] = "孤之兵道，此一时，彼一时。",
-  ["$jianan__ld__qiaobian2"] = "时变，势变，孤唯才是举！",
-  ["$jianan__ld__duanliang1"] = "孤以为断粮如断肠，卿意下如何？",
-  ["$jianan__ld__duanliang2"] = "卿名为“亚夫”，实为冠军也！",
-  ["$jianan__ld__xiaoguo1"] = "使孤梦回辽东者，卿之雄风也！",
-  ["$jianan__ld__xiaoguo2"] = "得贤人共治天下，得将军共定天下！",
+  ["$jianan__ex__tuxi1"] = "以百破万，让孤再看一次！",
+  ["$jianan__ex__tuxi2"] = "望将军身影，可治孤之头风病。",
+  ["$jianan__qiaobian1"] = "孤之兵道，此一时，彼一时。",
+  ["$jianan__qiaobian2"] = "时变，势变，孤唯才是举！",
+  ["$jianan__hs__duanliang1"] = "孤以为断粮如断肠，卿意下如何？",
+  ["$jianan__hs__duanliang2"] = "卿名为“亚夫”，实为冠军也！",
+  ["$jianan__hs__xiaoguo1"] = "使孤梦回辽东者，卿之雄风也！",
+  ["$jianan__hs__xiaoguo2"] = "得贤人共治天下，得将军共定天下！",
 
-  ["$ld__lordcaocao"] = "神龟虽寿，犹有竟时，腾蛇吐雾，终为土灰。",
+  ["~ld__lordcaocao"] = "神龟虽寿，犹有竟时。腾蛇乘雾，终为土灰。",
 }
 
 
