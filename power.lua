@@ -6,21 +6,154 @@ local H = require "packages/hegemony/util"
 Fk:loadTranslationTable{
   ["power"] = "君临天下·权",
 }
---[[
+
+local cuiyanmaojie = General(extension, "ld__cuiyanmaojie", "wei", 3)
+local zhengbi = fk.CreateTriggerSkill{
+  name = "ld__zhengbi",
+  anim_type = "control",
+  events = {fk.EventPhaseStart},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) and player.phase == Player.Play
+     and (table.find(player:getCardIds(Player.Hand), function(id) return Fk:getCardById(id).type == Card.TypeBasic end) or table.every(player.room:getOtherPlayers(player), function(p) return H.getGeneralsRevealedNum(p) == 0 end))
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local choices = {}
+    local basic_cards1 = table.filter(player:getCardIds(Player.Hand), function(id)
+      return Fk:getCardById(id).type == Card.TypeBasic end)
+
+    local targets1 = table.map(table.filter(room:getOtherPlayers(player), function(p)
+      return H.getGeneralsRevealedNum(p) > 0 end), function(p) return p.id end)
+    local targets2 = table.map(table.filter(room:getOtherPlayers(player), function(p)
+      return H.getGeneralsRevealedNum(p) == 0 end), function(p) return p.id end)
+    if #basic_cards1 > 0 and #targets1 > 0 then
+      table.insert(choices, "zhengbi_giveCard")
+    end
+    if #targets2 > 0 then
+      table.insert(choices, "zhengbi_useCard")
+    end
+    if #choices == 0 then return false end
+    local choice = room:askForChoice(player, choices, self.name)
+    if choice:startsWith("zhengbi_giveCard") then
+      local tos, id = room:askForChooseCardAndPlayers(player, targets1, 1, 1, ".|.|.|.|.|basic", "#ld__zhengbi-give", self.name, true)
+      room:obtainCard(tos[1], id, false, fk.ReasonGive)
+      local cards2 = room:getPlayerById(tos[1]):getCardIds("he")
+      if #cards2 == 1 then
+        room:moveCardTo(cards2, Player.Hand, player, fk.ReasonGive, self.name, nil, false, player.id)
+      else
+        local to = room:getPlayerById(tos[1])
+        local card_choices = {}
+        local basic_cards2 = table.filter(to:getCardIds(Player.Hand), function(id)
+          return Fk:getCardById(id).type == Card.TypeBasic end)
+        print(#basic_cards2)
+        if #basic_cards2 > 1 then
+          table.insert(card_choices, "zhengbi__basic-back")
+        end
+        if #player:getCardIds("he") - #basic_cards2 > 0 then
+          table.insert(card_choices, "zhengbi__nobasic-back")
+        end
+        if #card_choices == 0 then return false end
+        local card_choice = room:askForChoice(to, card_choices, self.name)
+        if card_choice:startsWith("zhengbi__basic-back") then
+          cards2 = room:askForCard(to, 2, 2, false, self.name, false, ".|.|.|.|.|basic", "#ld__zhengbi-give1")
+          room:moveCardTo(cards2, Player.Hand, player, fk.ReasonGive, self.name, nil, false, player.id)
+        elseif card_choice:startsWith("zhengbi__nobasic-back") then
+          cards2 = room:askForCard(to, 1, 1, false, self.name, false, ".|.|.|.|.|^basic", "#ld__zhengbi-give2")
+          room:moveCardTo(cards2, Player.Hand, player, fk.ReasonGive, self.name, nil, false, player.id)
+        end
+        
+      end
+    elseif choice:startsWith("zhengbi_useCard") then
+      local to = room:askForChoosePlayers(player, targets2, 1, 1, "#ld__zhengbi_choose", self.name, true)
+      if #to then
+        room:setPlayerMark(room:getPlayerById(to[1]), "@@ld__zhengbi_choose-turn", 1)
+      end
+    end
+  end,
+
+  refresh_events = {fk.GeneralRevealed},
+  can_refresh = function(self, event, target, player, data)
+    return player:hasSkill(self.name) and target:getMark("@@ld__zhengbi_choose-turn") > 0
+  end,
+  on_refresh = function(self, event, target, player, data)
+    player.room:setPlayerMark(target, "@@ld__zhengbi_choose-turn", 0)
+  end,
+}
+
+local zhengbi_targetmod = fk.CreateTargetModSkill{
+  name = "#ld__zhengbi_targetmod",
+  frequency = Skill.Compulsory,
+  bypass_times = function(self, player, skill, scope, card, to)
+    return player:hasSkill(self.name) and to:getMark("@@ld__zhengbi_choose-turn") > 0
+  end,
+  bypass_distances =  function(self, player, skill, card, to)
+    return player:hasSkill(self.name) and to:getMark("@@ld__zhengbi_choose-turn") > 0
+  end,
+}
+
+local fengying = fk.CreateActiveSkill{
+  name = "ld__fengying",
+  anim_type = "offensive",
+  frequency = Skill.Limited,
+  card_num = 0,
+  target_num = 0,
+  card_filter = Util.FalseFunc,
+  target_filter = Util.FalseFunc,
+  can_use = function(self, player) 
+    return player:usedSkillTimes(self.name, Player.HistoryGame) == 0 and not player:isKongcheng()
+  end,
+  on_use = function(self, room, effect)
+    local player = room:getPlayerById(effect.from)
+    local use = {
+      from = player.id,
+      tos = table.map(player, function(id) return {id} end),
+      card = Fk:cloneCard("threaten_emperor"),
+    }
+    use.card:addSubcards(player:getCardIds(Player.Hand))
+    use.card.skillName = self.name
+    room:useCard(use)
+    local targets = table.map(table.filter(room.alive_players, function(p) return H.compareKingdomWith(p, player) end), Util.IdMapper)
+    if #targets > 0 then
+      for _, pid in ipairs(targets) do
+        local p = room:getPlayerById(pid)
+        p:drawCards(math.max(0, p.maxHp - p:getHandcardNum()), self.name)
+      end
+    end 
+  end,
+}
+
+zhengbi:addRelatedSkill(zhengbi_targetmod)
+cuiyanmaojie:addSkill(zhengbi)
+cuiyanmaojie:addSkill(fengying)
+
+cuiyanmaojie:addCompanions("hs__caopi")
 Fk:loadTranslationTable{
   ["ld__cuiyanmaojie"] = "崔琰毛玠",
-  ["zhengbi"] = "征辟",
-  [":zhengbi"] = "出牌阶段开始时，你可选择：1.选择一名没有势力的角色，你于此回合内对其使用牌无距离关系的限制，且对包括其在内的角色使用牌无次数限制；2.将一张基本牌交给一名有势力的角色，若其有牌且牌数：为1，其将所有牌交给你；大于1，其将一张不是基本牌的牌或两张基本牌交给你。",
+  ["ld__zhengbi"] = "征辟",
+  [":ld__zhengbi"] = "出牌阶段开始时，你可以选择一项：1.选择一名没有势力的角色，直至其确定势力，你于此回合内对其使用牌无距离与次数限制；2.将一张基本牌交给一名有势力的角色，然后其交给你一张非基本牌或两张基本牌。",
   ["ld__fengying"] = "奉迎",
-  [":ld__fengying"] = "限定技，出牌阶段，你可将所有手牌当【挟天子以令诸侯】（无目标的限制）使用，当此牌被使用时，你选择所有与你势力相同的角色，这些角色各将手牌补至X张（X为其体力上限）。",
+  [":ld__fengying"] = "限定技，出牌阶段，你可将所有手牌当【挟天子以令诸侯】（无视大势力限制）使用，然后你令所有与你势力相同的角色将手牌补至其体力上限。",
 
-  ["$zhengbi1"] = "跅弛之士，在御之而已。",
-  ["$zhengbi2"] = "	内不避亲，外不避仇。",
+  ["zhengbi_giveCard"] = "交给有势力角色基本牌",
+  ["zhengbi_useCard"] = "选择无势力角色用牌无限制",
+
+  ["#ld__zhengbi-give"] = "请选择一张基本牌",
+  ["zhengbi__basic-back"] = "交给崔琰毛玠两张基本牌",
+  ["zhengbi__nobasic-back"] = "交给崔琰毛玠一张非基本牌",
+
+  ["#ld__zhengbi-give1"] = "请交给崔琰毛玠两张基本牌",
+  ["#ld__zhengbi-give2"] = "请交给崔琰毛玠一张非基本牌",
+
+  ["#ld__zhengbi_choose"] = "请选择一名未确定势力的角色，你对其使用牌无距离与次数限制",
+  ["@@ld__zhengbi_choose-turn"] = "征辟",
+
+  ["$ld__zhengbi1"] = "跅弛之士，在御之而已。",
+  ["$ld__zhengbi2"] = "	内不避亲，外不避仇。",
   ["$ld__fengying1"] = "二臣恭奉，以迎皇嗣。	",
   ["$ld__fengying2"] = "奉旨典选，以迎忠良。",
   ["~ld__cuiyanmaojie"] = "为世所痛惜，冤哉……",
 }
-]]
+
 local yujin = General(extension, "ld__yujin", "wei", 4)
 local jieyue = fk.CreateTriggerSkill{
   name = "ld__jieyue",
@@ -1365,7 +1498,7 @@ local jianan = fk.CreateTriggerSkill{
 local jiananOtherLose = fk.CreateTriggerSkill{
   name = "#jianan_other_lose&",
   visible = false,
-  refresh_events = {fk.TurnStart},
+  refresh_events = {fk.TurnStart, fk.BuryVictim},
   can_refresh = function(self, event, target, player, data)
     return target == player and player:hasSkill("jianan")
   end,

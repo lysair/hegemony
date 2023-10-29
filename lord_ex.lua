@@ -720,7 +720,7 @@ Fk:loadTranslationTable{
   ["hs__lixia_loseHp"] = "失去1点体力",
 
   ["$hs__lixia1"] = "将军真乃国之栋梁。",
-  ["$hs__lixia2"] = "英雄可安身立命与交州之地。",
+  ["$hs__lixia2"] = "英雄可安身立命于交州之地。",
 
   ["~hs__shixie"] = "我这一生，足矣……",
 }
@@ -857,11 +857,102 @@ Fk:loadTranslationTable{
   ["~ld__liuqi"] = "父亲，孩儿来，见你了。",
 }
 
--- local tangzi = General(extension, "ld__tangzi", "wei", 4)
--- tangzi.subkingdom = "wu"
--- Fk:loadTranslationTable{
---   ["ld__tangzi"] = "唐咨",
--- }
+local tangzi = General(extension, "ld__tangzi", "wei", 4)
+tangzi.subkingdom = "wu"
+local xingzhao = fk.CreateTriggerSkill{
+  name = "ld__xingzhao",
+  anim_type = "drawcard",
+  frequency = Skill.Compulsory,
+  events = {fk.Damaged, fk.AfterCardsMove},
+  can_trigger = function(self, event, target, player, data)
+    if player:hasSkill(self.name) then
+      if event == fk.Damaged then
+        return #table.filter(player.room.alive_players, function(p) return p:isWounded() end) > 1 and target == player
+      elseif event == fk.AfterCardsMove then
+        if not (#table.filter(player.room.alive_players, function(p) return p:isWounded() end) > 3) then return false end
+        for _, move in ipairs(data) do
+          if move.from == player.id then
+            for _, info in ipairs(move.moveInfo) do
+              if info.fromArea == Card.PlayerEquip then
+                return true
+              end
+            end
+          end
+        end
+      else 
+        return #table.filter(player.room.alive_players, function(p) return p:isWounded() end) > 2
+      end
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    if event == fk.AfterCardsMove then
+      player:drawCards(1, self.name)
+    elseif event == fk.Damaged then
+      if player:getHandcardNum() < data.from:getHandcardNum() then
+        player:drawCards(1, self.name)
+      end
+      if player:getHandcardNum() > data.from:getHandcardNum() then
+        data.from:drawCards(1, self.name)
+      end
+    else
+      return true
+    end
+  end,
+
+  refresh_events = {fk.GeneralRevealed, fk.GeneralHidden, fk.EventLoseSkill, fk.HpChanged, fk.MaxHpChanged},
+  can_refresh = function(self, event, target, player, data)
+    if event == fk.GeneralRevealed or event == fk.GeneralHidden or event == fk.EventLoseSkill then
+      return target == player
+    else
+      return true
+    end
+  end,
+  on_refresh = function(self, event, target, player, data)
+    local room = player.room
+    if H.hasShownSkill(player, self.name) and #table.filter(room.alive_players, function(p) return p:isWounded() end) > 0 then
+      room:handleAddLoseSkills(player, "ld__xunxun", nil, false, true)
+    else
+      room:handleAddLoseSkills(player, "-ld__xunxun", nil, false, true)
+    end
+  end,
+}
+
+local xingzhao_maxcards = fk.CreateMaxCardsSkill{
+  name = "#ld__xingzhao_maxcards",
+  fixed_func = function(self, player)
+    if player:hasSkill(self.name) then
+      return player.hp + 4
+    end
+  end
+}
+
+local ld__xunxun = fk.CreateTriggerSkill{
+  name = "ld__xunxun",
+  anim_type = "control",
+  events = {fk.EventPhaseStart},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) and player.phase == Player.Draw
+  end,
+  on_use = function(self, event, target, player, data)
+    player.room:askForGuanxing(player, player.room:getNCards(4), {2, 2}, {2, 2})
+  end,
+}
+
+tangzi:addSkill(xingzhao)
+xingzhao:addRelatedSkill(xingzhao_maxcards)
+Fk:addSkill(ld__xunxun)
+Fk:loadTranslationTable{
+  ["ld__tangzi"] = "唐咨",
+  ["ld__xingzhao"] = "兴棹",
+  [":ld__xingzhao"] = "锁定技，场上受伤的角色数为：1个或以上，你拥有技能〖恂恂〗；2个或以上，你受到伤害后，你与伤害来源手牌数较少的角色摸一张牌；3个或以上，你的手牌上限+4；4个或以上，你失去装备区内的牌时，摸一张牌。",
+  ["ld__xunxun"] = "恂恂",
+
+  ["$ld__xingzhao1"] = "精挑细选，方能成百年之计。",
+  ["$ld__xingzhao2"] = "拿些上好的木料来。",
+  ["$ld__xunxun1"] = "让我先探他一探。",
+  ["$ld__xunxun2"] = "船，也不是一天就能造出来的。",
+  ["~ld__tangzi"] = "偷工减料，要不得啊...",
+}
 
 local xiahouba = General(extension, "ld__xiahouba", "shu", 4)
 xiahouba.subkingdom = "wei"
@@ -1087,9 +1178,14 @@ local zhengjian = fk.CreateTriggerSkill{
     player.room:setPlayerMark(target, "ld__zhengjian", 1)
   end,
 
-  refresh_events = {fk.TargetConfirmed},
+  refresh_events = {fk.TargetConfirmed, fk.BuryVictim},
   can_refresh = function (self, event, target, player, data)
-    return player:hasSkill(self.name) and player == target and data.card.trueName == "slash"
+    if event == fk.TargetConfirmed then
+      return player:hasSkill(self.name) and player == target and data.card.trueName == "slash"
+    end
+    if event == fk.BuryVictim then
+      return player:hasSkill(self.name) and player == target
+    end
   end,
   on_refresh = function (self, event, target, player, data)
     local targets = table.filter(player.room.alive_players, function(p) return p:getMark("ld__zhengjian") > 0 end)
