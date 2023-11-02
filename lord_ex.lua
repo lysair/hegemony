@@ -627,7 +627,7 @@ local fengshiv_back = fk.CreateTriggerSkill{
   events = {fk.TargetConfirmed},
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(self.name) and not player:isNude() and #AimGroup:getAllTargets(data.tos) == 1
-     and player:getHandcardNum() < player.room:getPlayerById(data.from):getHandcardNum()
+     and player:getHandcardNum() < player.room:getPlayerById(data.from):getHandcardNum() and table.contains(player.player_skills, "ld__fengshiv")
   end,
   on_cost = function (self, event, target, player, data)
     return player.room:askForSkillInvoke(player.room:getPlayerById(data.from), self.name, nil, "#ld__fengshiv-ask:" .. player.id) 
