@@ -32,11 +32,45 @@ Fk:loadTranslationTable{
 }
 
 local xiahoudun = General(extension, "hs__xiahoudun", "wei", 4)
-xiahoudun:addSkill("ex__ganglie") -- 手杀修改：界刚烈。22按次
+local hs__ganglie = fk.CreateTriggerSkill{
+  name = "hs__ganglie",
+  anim_type = "masochism",
+  events = {fk.Damaged},
+  on_trigger = function(self, event, target, player, data)
+    self:doCost(event, target, player, data)
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local from = data.from
+    if from and not from.dead then room:doIndicate(player.id, {from.id}) end
+    local judge = {
+      who = player,
+      reason = self.name,
+      pattern = ".",
+    }
+    room:judge(judge)
+    if judge.card.color == Card.Red and from and not from.dead then
+      room:damage{
+        from = player,
+        to = from,
+        damage = 1,
+        skillName = self.name,
+      }
+    elseif judge.card.color == Card.Black and from and not from:isNude() then
+      local cid = room:askForCardChosen(player, from, "he", self.name)
+      room:throwCard({cid}, self.name, from, player)
+    end
+  end
+}
+
+xiahoudun:addSkill(hs__ganglie)
 xiahoudun:addCompanions("hs__xiahouyuan")
 Fk:loadTranslationTable{
   ["hs__xiahoudun"] = "夏侯惇",
   ["~hs__xiahoudun"] = "诸多败绩，有负丞相重托……",
+
+  ["hs__ganglie"] = "刚烈",
+  [":hs__ganglie"] = "当你受到伤害后，你可判定，若结果为：红色，你对来源造成1点伤害；黑色，你弃置来源的一张牌。",
 }
 
 local zhangliao = General(extension, "hs__zhangliao", "wei", 4)
@@ -47,10 +81,46 @@ Fk:loadTranslationTable{
 }
 
 local xuchu = General(extension, "hs__xuchu", "wei", 4)
-xuchu:addSkill("luoyi")
+local hs__luoyi = fk.CreateTriggerSkill{
+  name = "hs__luoyi",
+  anim_type = "offensive",
+  events = {fk.EventPhaseEnd},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) and player.phase == Player.Draw
+  end,
+  on_use = function(self, event, target, player, data)
+    player.room:askForDiscard(player, 1, 1, false, self.name, false, nil, "hs__luoyi-ask", false)
+  end,
+}
+local hs__luoyi_trigger = fk.CreateTriggerSkill{
+  name = "#hs__luoyi_trigger",
+  mute = true,
+  events = {fk.DamageCaused},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:usedSkillTimes("hs__luoyi", Player.HistoryTurn) > 0 and
+      not data.chain and data.card and (data.card.trueName == "slash" or data.card.name == "duel")
+  end,
+  on_cost = function(self, event, target, player, data)
+    return true
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    player:broadcastSkillInvoke("hs__luoyi")
+    room:notifySkillInvoked(player, "hs__luoyi")
+    data.damage = data.damage + 1
+  end,
+}
+
+hs__luoyi:addRelatedSkill(hs__luoyi_trigger)
+xuchu:addSkill(hs__luoyi)
 Fk:loadTranslationTable{
   ["hs__xuchu"] = "许褚",
   ["~hs__xuchu"] = "冷，好冷啊……",
+
+  ["hs__luoyi-ask"] = "你可以弃置一张牌，于此回合内执行【杀】或【决斗】的效果造成伤害时伤害+1",
+
+  ["hs__luoyi"] = "裸衣",
+  [":hs__luoyi"] = "摸牌阶段结束时，你可以弃置一张牌，若如此做，你于此回合内执行【杀】或【决斗】的效果造成伤害时，此伤害+1。",
 }
 
 local guojia = General(extension, "hs__guojia", "wei", 3)
@@ -161,11 +231,85 @@ Fk:loadTranslationTable{
   ["~hs__zhenji"] = "悼良会之永绝兮，哀一逝而异乡。",
 }
 
-local xiahouyuan = General(extension, "hs__xiahouyuan", "wei", 4)
-xiahouyuan:addSkill("shensu")
+local xiahouyuan = General(extension, "hs__xiahouyuan", "wei", 5)
+local hs__shensu = fk.CreateTriggerSkill{
+  name = "hs__shensu",
+  anim_type = "offensive",
+  events = {fk.EventPhaseChanging},
+  can_trigger = function(self, event, target, player, data)
+    if target == player and player:hasSkill(self.name) and not player:prohibitUse(Fk:cloneCard("slash")) then
+      if (data.to == Player.Judge and not player.skipped_phases[Player.Draw]) or data.to == Player.Discard then
+        return true
+      elseif data.to == Player.Play then
+        return not player:isNude()
+      end
+    end
+  end,
+  on_cost = function(self, event, target, player, data)
+    local room = player.room
+    local slash = Fk:cloneCard("slash")
+    local max_num = slash.skill:getMaxTargetNum(player, slash)
+    local targets = {}
+    for _, p in ipairs(room:getOtherPlayers(player)) do
+      if not player:isProhibited(p, slash) then
+        table.insert(targets, p.id)
+      end
+    end
+    if #targets == 0 or max_num == 0 then return end
+    if data.to == Player.Judge then
+      local tos = room:askForChoosePlayers(player, targets, 1, max_num, "#hs__shensu1-choose", self.name, true)
+      if #tos > 0 then
+        self.cost_data = {tos}
+        return true
+      end
+    elseif data.to == Player.Play then
+      local tos, id = room:askForChooseCardAndPlayers(player, targets, 1, max_num, ".|.|.|.|.|equip", "#hs__shensu2-choose", self.name, true)
+      if #tos > 0 and id then
+        self.cost_data = {tos, {id}}
+        return true
+      end
+    elseif data.to == Player.Discard then
+      local tos = room:askForChoosePlayers(player, targets, 1, max_num, "#hs__shensu3-choose", self.name, true)
+      if #tos > 0 then
+        self.cost_data = {tos}
+        return true
+      end
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    if data.to == Player.Judge then
+      player:skip(Player.Judge)
+      player:skip(Player.Draw)
+    elseif data.to == Player.Play then
+      player:skip(Player.Play)
+      room:throwCard(self.cost_data[2], self.name, player, player)
+    elseif data.to == Player.Discard then
+      player:skip(Player.Discard)
+      player.room:loseHp(player, 1, self.name)
+    end
+
+    local slash = Fk:cloneCard("slash")
+    slash.skillName = self.name
+    room:useCard({
+      from = target.id,
+      tos = table.map(self.cost_data[1], function(pid) return { pid } end),
+      card = slash,
+    })
+    return true
+  end,
+}
+xiahouyuan:addSkill(hs__shensu)
 Fk:loadTranslationTable{
   ["hs__xiahouyuan"] = "夏侯渊",
   ["~hs__xiahouyuan"] = "竟然比我还…快……",
+
+  ["hs__shensu"] = "神速",
+  [":hs__shensu"] = "①判定阶段开始前，你可跳过此阶段和摸牌阶段来视为使用普【杀】。②出牌阶段开始前，你可跳过此阶段并弃置一张装备牌来视为使用普【杀】。③弃牌阶段开始前，你可跳过此阶段并失去1点体力来视为使用普【杀】。",
+ 
+  ["#hs__shensu1-choose"] = "神速：你可以跳过判定阶段和摸牌阶段，视为使用一张无距离限制的【杀】",
+  ["#hs__shensu2-choose"] = "神速：你可以跳过出牌阶段并弃置一张装备牌，视为使用一张无距离限制的【杀】",
+  ["#hs__shensu3-choose"] = "神速：你可以跳过弃牌阶段并失去1点体力，视为使用一张无距离限制的【杀】",
 }
 
 local zhanghe = General(extension, "hs__zhanghe", "wei", 4)
@@ -314,10 +458,48 @@ Fk:loadTranslationTable{
 }
 
 local dianwei = General(extension, "hs__dianwei", "wei", 4)
-dianwei:addSkill("qiangxi")
+
+local hs__qiangxi = fk.CreateActiveSkill{
+  name = "hs__qiangxi",
+  anim_type = "offensive",
+  max_card_num = 1,
+  target_num = 1,
+  can_use = function(self, player)
+    return player:usedSkillTimes(self.name) == 0
+  end,
+  card_filter = function(self, to_select, selected)
+    return Fk:getCardById(to_select).sub_type == Card.SubtypeWeapon
+  end,
+  target_filter = function(self, to_select, selected, selected_cards)
+    return #selected == 0 and to_select ~= Self.id
+  end,
+  on_use = function(self, room, effect)
+    local player = room:getPlayerById(effect.from)
+    local target = room:getPlayerById(effect.tos[1])
+    if #effect.cards > 0 then
+      room:throwCard(effect.cards, self.name, player)
+    else
+      room:loseHp(player, 1, self.name)
+    end
+    room:damage{
+      from = player,
+      to = target,
+      damage = 1,
+      skillName = self.name,
+    }
+  end,
+}
+
+dianwei:addSkill(hs__qiangxi)
 Fk:loadTranslationTable{
   ['hs__dianwei'] = '典韦',
   ["~hs__dianwei"] = "主公，快走！",
+
+  ["hs__qiangxi"] = "强袭",
+  [":hs__qiangxi"] = "出牌阶段限一次，你可以失去1点体力或弃置一张武器牌，并选择一名其他角色，对其造成1点伤害。",
+
+  ["$hs__qiangxi1"] = "吃我一戟！",
+  ["$hs__qiangxi2"] = "看我三步之内取你小命！",
 }
 
 local xunyu = General(extension, "hs__xunyu", "wei", 3)
@@ -398,6 +580,8 @@ local xiaoguo = fk.CreateTriggerSkill{
         damage = 1,
         skillName = self.name,
       }
+    else
+      player:drawCards(1, self.name)
     end
   end,
 }
@@ -406,7 +590,7 @@ yuejin:addSkill(xiaoguo)
 Fk:loadTranslationTable{
   ["hs__yuejin"] = "乐进",
   ["hs__xiaoguo"] = "骁果",
-  [":hs__xiaoguo"] = "其他角色的结束阶段开始时，你可以弃置一张基本牌，然后其需弃置一张装备牌，否则你对其造成1点伤害。",
+  [":hs__xiaoguo"] = "其他角色的结束阶段开始时，你可以弃置一张基本牌，然后其选择一项：1.弃置一张装备牌，然后你摸一张牌；2.你对其造成1点伤害。",
   ["#hs__xiaoguo-invoke"] = "骁果：你可以弃置一张基本牌，%dest 需弃置一张装备牌，否则你对其造成1点伤害",
   ["#hs__xiaoguo-discard"] = "骁果：你需弃置一张装备牌，否则 %src 对你造成1点伤害",
 
