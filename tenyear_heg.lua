@@ -1401,13 +1401,13 @@ local zhuihuan_damage = fk.CreateTriggerSkill{
   on_cost = Util.TrueFunc,
   on_use = function(self, event, target, player, data)
     local room = player.room
+    handleZhuihuan(room, target, false, true)
     room:damage{
       from = player,
       to = data.from,
       damage = 1,
       skillName = self.name,
     }
-    handleZhuihuan(room, target, false, true)
   end,
 }
 
