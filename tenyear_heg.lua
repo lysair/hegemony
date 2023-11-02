@@ -1457,4 +1457,139 @@ Fk:loadTranslationTable{
   ["~ty_heg__yangwan"] = "遇人不淑……",
 }
 
+local zhouyi = General(extension, "ty_heg__zhouyi", "wu", 3,3,General.Female)
+local zhukou = fk.CreateTriggerSkill{
+  name = "ty_heg__zhukou",
+  anim_type = "offensive",
+  events = {fk.Damage},
+  can_trigger = function(self, event, target, player, data)
+    if target == player and player:hasSkill(self.name) then
+      local room = player.room
+      if event == fk.Damage then
+        if room.current and room.current.phase == Player.Play then
+          local damage_event = room.logic:getCurrentEvent()
+          if not damage_event then return false end
+          local x = player:getMark("ty_heg__zhukou_record-phase")
+          if x == 0 then
+            room.logic:getEventsOfScope(GameEvent.ChangeHp, 1, function (e)
+              local reason = e.data[3]
+              if reason == "damage" then
+                local first_damage_event = e:findParent(GameEvent.Damage)
+                if first_damage_event and first_damage_event.data[1].from == player then
+                  x = first_damage_event.id
+                  room:setPlayerMark(player, "ty_heg__zhukou_record-phase", x)
+                end
+                return true
+              end
+            end, Player.HistoryPhase)
+          end
+          if damage_event.id == x then
+            local events = room.logic.event_recorder[GameEvent.UseCard] or Util.DummyTable
+            local end_id = player:getMark("ty_heg__zhukou_record-turn")
+            if end_id == 0 then
+              local turn_event = damage_event:findParent(GameEvent.Turn, false)
+              end_id = turn_event.id
+            end
+            room:setPlayerMark(player, "ty_heg__zhukou_record-turn", room.logic.current_event_id)
+            local y = player:getMark("ty_heg__zhukou_usecard-turn")
+            for i = #events, 1, -1 do
+              local e = events[i]
+              if e.id <= end_id then break end
+              local use = e.data[1]
+              if use.from == player.id then
+                y = y + 1
+              end
+            end
+            room:setPlayerMark(player, "ty_heg__zhukou_usecard-turn", y)
+            return y > 0
+          end
+        end
+      end
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    if event == fk.Damage then
+      local n = player:getMark("ty_heg__zhukou_usecard-turn")
+      if n > 0 then
+        player:drawCards(math.min(5, n), self.name)
+      end
+    end
+  end,
+}
+
+local duannian = fk.CreateTriggerSkill{
+  name = "ty_heg__duannian",
+  anim_type = "drawcard",
+  events = {fk.EventPhaseEnd},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) and player.phase == Player.Play and not player:isKongcheng()
+  end,
+  on_use = function(self, event, target, player, data)
+    player.room:throwCard(player:getCardIds("h"), self.name, player, player)
+    player:drawCards(player.maxHp - player:getHandcardNum(), self.name)
+  end,
+}
+
+local lianyou = fk.CreateTriggerSkill{
+  name = "ty_heg__lianyou",
+  anim_type = "control",
+  events = {fk.Death},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name, false, true)
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local targets = table.map(table.filter(room.alive_players,  function(p)
+      return not p:hasSkill(self.name) end), function(p) return p.id end)
+    if #targets > 0 then
+      local to = room:askForChoosePlayers(player, targets, 1, 1, "#ty_heg__lianyou-choose", self.name, true)
+      if #to > 0 then
+        to = to[1]
+        room:handleAddLoseSkills(room:getPlayerById(to), "xinghuo", nil, true, false)
+      end
+    end      
+  end,
+}
+
+local xinghuo = fk.CreateTriggerSkill{
+  name = "xinghuo",
+  frequency = Skill.Compulsory,
+  anim_type = "offensive",
+  events = {fk.DamageCaused},
+  can_trigger = function(self, event, target, player, data)
+    return player:hasSkill(self.name) and data.damageType == fk.FireDamage and data.from == player and not data.from.dead
+  end,
+  on_cost = Util.TrueFunc,
+  on_use = function(self, event, target, player, data)
+    data.damage = data.damage + 1
+  end,
+} 
+
+zhouyi:addSkill(zhukou)
+zhouyi:addSkill(duannian)
+zhouyi:addSkill(lianyou)
+zhouyi:addRelatedSkill(xinghuo)
+
+Fk:loadTranslationTable{
+  ["ty_heg__zhouyi"] = "周夷",
+  ["ty_heg__zhukou"] = "逐寇",
+  [":ty_heg__zhukou"] = "当你于每回合的出牌阶段首次造成伤害后，你可以摸X张牌（X为本回合你已使用的牌数且至多为5）。",
+  ["ty_heg__duannian"] = "断念",
+  [":ty_heg__duannian"] = "出牌阶段结束时，你可以弃置所有手牌，然后将手牌摸至体力上限。",
+  ["ty_heg__lianyou"] = "莲佑",
+  [":ty_heg__lianyou"] = "当你死亡时，你可以令一名其他角色获得“兴火”。",
+  ["#ty_heg__lianyou-choose"] = "莲佑：选择一名角色，其获得“兴火”。",
+  ["xinghuo"] = "兴火",
+  [":xinghuo"] = "锁定技，当你造成火属性伤害时，你令此伤害+1。",
+  
+  ["$ty_heg__zhukou1"] = "草莽贼寇，不过如此。",
+  ["$ty_heg__zhukou2"] = "轻装上阵，利剑出鞘。",
+  ["$ty_heg__duannian1"] = "断思量，莫思量。",
+  ["$ty_heg__duannian2"] = "一别两宽，不负相思。",
+  ["$xinghuo1"] = "莲花佑兴，业火可兴。",
+  ["$xinghuo2"] = "昔日莲花开，今日红火燃。",
+  ["~ty_heg__zhouyi"] = "江水寒，萧瑟起……",
+}
+
+
 return extension
