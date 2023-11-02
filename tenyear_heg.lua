@@ -1360,18 +1360,21 @@ local zhuihuan = fk.CreateTriggerSkill{
     end
   end,
 
-  refresh_events = {fk.BuryVictim, fk.TurnStart},
+  refresh_events = {fk.BuryVictim, fk.TurnStart, fk.Death},
   can_refresh = function (self, event, target, player, data)
     if event == fk.BuryVictim then
-      return (player:hasSkill(self.name) and target == player) or target:getMark("@@ty_heg__zhuihuan-damage") == 1 or target:getMark("@@ty_heg__zhuihuan-discard") == 1
+      return target:getMark("@@ty_heg__zhuihuan-damage") == 1 or target:getMark("@@ty_heg__zhuihuan-discard") == 1
     end
     if event == fk.TurnStart then
       return player:hasSkill(self.name) and target == player
     end
+    if event == fk.Death then
+      return player:hasSkill(self.name, false, true) and player == target
+    end
   end,
   on_refresh = function (self, event, target, player, data)
     local room = player.room
-    if event == fk.TurnStart or (player:hasSkill(self.name) and target == player) then
+    if event == fk.TurnStart or event == fk.Death then
       for _, p in ipairs(room.alive_players) do
         if p:getMark("@@ty_heg__zhuihuan-damage") == 1 then
           handleZhuihuan(room, p, false, true)
