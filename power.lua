@@ -1058,7 +1058,7 @@ local weidi = fk.CreateActiveSkill{
   name = "ld__weidi",
   anim_type = "control",
   can_use = function(self, player)
-    return player:usedSkillTimes(self.name, Player.HistoryGame) == 0
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
   end,
   card_filter = Util.FalseFunc,
   target_num = 1,
