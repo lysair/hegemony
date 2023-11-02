@@ -1182,11 +1182,9 @@ local zhengjian = fk.CreateTriggerSkill{
   can_refresh = function (self, event, target, player, data)
     if event == fk.TargetConfirmed then
       return player:hasSkill(self.name) and player == target and data.card.trueName == "slash"
-    end
-    if event == fk.Death then
+    elseif event == fk.Death then
       return player:hasSkill(self.name, false, true) and player == target
-    end
-    if event == fk.EnterDying then
+    elseif event == fk.EnterDying then
       return player:hasSkill(self.name) and target:getMark("ld__zhengjian") > 0
     end
   end,
