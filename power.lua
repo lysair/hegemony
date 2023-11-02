@@ -1497,9 +1497,14 @@ local jianan = fk.CreateTriggerSkill{
 local jiananOtherLose = fk.CreateTriggerSkill{
   name = "#jianan_other_lose&",
   visible = false,
-  refresh_events = {fk.TurnStart, fk.BuryVictim},
+  refresh_events = {fk.TurnStart, fk.Death},
   can_refresh = function(self, event, target, player, data)
-    return target == player and player:hasSkill("jianan")
+    if event == fk.TurnStart then
+      return target == player and player:hasSkill("jianan")
+    end
+    if event == fk.Death then
+      return player:hasSkill("jianan", false, true) and player == target
+    end
   end,
   on_refresh = function(self, event, target, player, data)
     local room = player.room
