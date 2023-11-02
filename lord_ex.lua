@@ -920,7 +920,7 @@ local xingzhao = fk.CreateTriggerSkill{
 local xingzhao_maxcards = fk.CreateMaxCardsSkill{
   name = "#ld__xingzhao_maxcards",
   fixed_func = function(self, player)
-    if player:hasSkill(self.name) then
+    if player:hasSkill(self.name) and #table.filter(player.room.alive_players, function(p) return p:isWounded() end) > 2 then
       return player.hp + 4
     end
   end
