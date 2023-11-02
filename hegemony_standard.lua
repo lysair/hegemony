@@ -980,7 +980,7 @@ local tieqi = fk.CreateTriggerSkill{
     if judge.card.suit ~= nil then
       local suits = {}
       table.insert(suits, judge.card:getSuitString())
-      if #room:askForDiscard(to, 1, 1, false, self.name, true, ".|.|" .. table.concat(suits, ","), "#hs__tieqi-discard:::" .. judge.card:getSuitString()) == 0 then
+      if #room:askForDiscard(to, 1, 1, true, self.name, true, ".|.|" .. table.concat(suits, ","), "#hs__tieqi-discard:::" .. judge.card:getSuitString()) == 0 then
         data.disresponsive = true
       end
     end
