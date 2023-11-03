@@ -410,7 +410,7 @@ local choutao = fk.CreateTriggerSkill{
 
 yanrou:addSkill(choutao)
 Fk:loadTranslationTable{
-  ["yanrou"] = "阎柔",
+  ["fk_heg__yanrou"] = "阎柔",
   ["fk_heg__choutao"] = "仇讨",
   [":fk_heg__choutao"] = "当你使用【杀】指定目标后或成为【杀】的目标后，你可以弃置使用者一张牌，令此【杀】不能被响应。",
   ["#fk_heg__choutao-invoke"] = "仇讨：你可以弃置 %dest 一张牌令此【杀】不能被响应",
