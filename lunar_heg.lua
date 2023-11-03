@@ -292,17 +292,17 @@ local poyuan = fk.CreateTriggerSkill{
     if event == fk.Damage then
       local choices = {}
       if not data.to:isKongcheng() then
-        table.insert(choices, "discard-hand")
+        table.insert(choices, "poyuan_discard-hand")
       end
       if #data.to:getCardIds("e") > 0 then
-        table.insert(choices, "discard-equip")
+        table.insert(choices, "poyuan_discard-equip")
       end
       if #choices == 0 then return end
       local choice = room:askForChoice(player, choices, self.name)
-      if choice:startsWith("discard-hand") then
+      if choice:startsWith("poyuan_discard-hand") then
         room:askForDiscard(data.to, 1, 1, false, self.name, false)
       end
-      if choice:startsWith("discard-equip") then
+      if choice:startsWith("poyuan_discard-equip") then
         local id = room:askForCardChosen(player, data.to, "e", self.name)
         room:throwCard(id, self.name, data.to, player)
       end
@@ -374,8 +374,8 @@ Fk:loadTranslationTable{
   [":fk_heg__choulue"] = "当你受到伤害后，若你的“阴阳鱼”标记数不大于2，你可以获得一个“阴阳鱼”标记；与你势力相同的角色使用普通锦囊牌指定唯一目标后，你可以移去一个“阴阳鱼”标记，视为使用一张指定相同角色的同名牌。",
   
   ["#fk_heg__poyuan-discard"] = "破垣：是否令受伤角色弃置一张手牌，或你弃置受伤角色装备区内一张牌",
-  ["discard-hand"] = "令其弃置一张手牌",
-  ["discard-equip"] = "弃置其一张装备区内的牌",
+  ["poyuan_discard-hand"] = "令其弃置一张手牌",
+  ["poyuan_discard-equip"] = "弃置其一张装备区内的牌",
   
   ["#fk_heg__choulue-getfish"] = "筹略：是否获得一个“阴阳鱼”标记",
   ["#fk_heg__choulue-twice"] = "筹略：是否移去一个“阴阳鱼”标记，令此牌结算两次",
@@ -1438,6 +1438,76 @@ Fk:loadTranslationTable{
   ["$fk_heg__fencheng1"] = "我得不到的，你们也别想得到！",
   ["$fk_heg__fencheng2"] = "让这一切都灰飞烟灭吧！哼哼哼哼……",
   ["~fk_heg__liru"] = "如遇明主，大业必成……",
+}
+
+local quyi = General(extension, "fk_heg__quyi", "qun", 4)
+local fuji = fk.CreateTriggerSkill{
+  name = "fk_heg__fuji",
+  anim_type = "offensive",
+  events = {fk.TargetSpecified, fk.Damaged},
+  can_trigger = function (self, event, target, player, data)
+    if event == fk.TargetSpecified then
+      return target == player and player:hasSkill(self.name) and not table.contains(player.player_skills, self)
+    else
+      return player:hasSkill(self.name) and player == target and player:getHandcardNum() < data.from:getHandcardNum() and table.contains(player.player_skills, self)
+    end
+  end,
+  on_cost = function (self, event, target, player, data)
+    if event == fk.TargetSpecified then
+      return player.room:askForSkillInvoke(player, self.name, nil, "#fk_heg__fuji-invoke")
+    else
+      return true
+    end
+  end,
+  on_use = function (self, event, target, player, data)
+    local room = player.room
+    if event == fk.TargetSpecified then
+      data.disresponsiveList = data.disresponsiveList or {}
+      for _, p in ipairs(room.alive_players) do
+        table.insertIfNeed(data.disresponsiveList, p.id)
+      end
+    else
+      local isDeputy = H.inGeneralSkills(player, self.name)
+      if isDeputy then
+        isDeputy = isDeputy == "d"
+        player:hideGeneral(isDeputy)
+      end
+    end
+  end,
+}
+
+local jiaozi = fk.CreateTriggerSkill{
+  name = "fk_heg__jiaozi",
+  anim_type = "offensive",
+  frequency = Skill.Compulsory,
+  events = {fk.DamageCaused, fk.DamageInflicted},
+  can_trigger = function (self, event, target, player, data)
+    local targets = table.filter(player.room:getOtherPlayers(player), function(p) return H.compareKingdomWith(player, p) end)
+    return player:hasSkill(self.name) and player == target and #targets > 0 
+      and table.every(targets, function(p) return player:getHandcardNum() > p:getHandcardNum() end)
+  end,
+  on_cost = Util.TrueFunc,
+  on_use = function (self, event, target, player, data)
+    data.damage = data.damage + 1
+  end,
+}
+
+quyi:addSkill(fuji)
+quyi:addSkill(jiaozi)
+Fk:loadTranslationTable{
+  ["fk_heg__quji"] = "麴义",
+  ["fk_heg__fuji"] = "伏骑",
+  [":fk_heg__fuji"] = "当你使用牌指定目标后，若此武将牌处于暗置状态，你可以明置此武将牌，令此牌不能被响应；当你受到伤害后，若此武将牌处于明置状态，暗置此武将牌。",
+  ["fk_heg__jiaozi"] = "骄恣",
+  [":fk_heg__jiaozi"] = "锁定技，当你受到或造成伤害时，若你为与你势力相同的角色中手牌数唯一最多的角色，且存在与你势力相同的其他角色，此伤害+1。",
+  
+  ["##fk_heg__fuji-invoke"] = "破垣：是否令受伤角色弃置一张手牌，或你弃置受伤角色装备区内一张牌",
+
+  ["$fk_heg__fuji1"] = "白马？不足挂齿！",
+  ["$fk_heg__fuji2"] = "掌握之中，岂可逃之？",
+  ["$fk_heg__jiaozi1"] = "数战之功，吾应得此赏！",
+  ["$fk_heg__jiaozi2"] = "无我出力，怎会连胜？",
+  ["~fk_heg__quyi"] = "主公，我无异心啊！",
 }
 
 return extension
