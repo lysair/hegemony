@@ -387,6 +387,39 @@ Fk:loadTranslationTable{
   ["~fk_heg__liuye"] = "功名富贵，到头来，不过黄土一抔...",
 }
 
+local yanrou = General(extension, "fk_heg__yanrou", "wei", 4)
+local choutao = fk.CreateTriggerSkill{
+  name = "fk_heg__choutao",
+  anim_type = "offensive",
+  events ={fk.TargetSpecified, fk.TargetConfirmed},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) and data.card.trueName == "slash" and data.firstTarget and
+      not player.room:getPlayerById(data.from):isNude()
+  end,
+  on_cost = function(self, event, target, player, data)
+    return player.room:askForSkillInvoke(player, self.name, nil, "#fk_heg__choutao-invoke::"..data.from)
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local from = room:getPlayerById(data.from)
+    local id = room:askForCardChosen(player, from, "he", self.name)
+    room:throwCard({id}, self.name, from, player)
+    data.disresponsive = true
+  end,
+}
+
+yanrou:addSkill(choutao)
+Fk:loadTranslationTable{
+  ["yanrou"] = "阎柔",
+  ["fk_heg__choutao"] = "仇讨",
+  [":fk_heg__choutao"] = "当你使用【杀】指定目标后或成为【杀】的目标后，你可以弃置使用者一张牌，令此【杀】不能被响应。",
+  ["#fk_heg__choutao-invoke"] = "仇讨：你可以弃置 %dest 一张牌令此【杀】不能被响应",
+
+  ["$fk_heg__choutao1"] = "大恨深仇，此剑讨之！",
+  ["$fk_heg__choutao2"] = "是非恩怨，此役决之！",
+  ["~fk_heg__yanrou"] = "寒风折戍矛，铁衣裹枯骨……",
+}
+
 local maliang = General(extension, "fk_heg__maliang", "shu", 3)
 maliang:addCompanions("ld__masu")
 maliang:addSkill("xiemu")
