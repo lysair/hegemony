@@ -1543,4 +1543,58 @@ Fk:loadTranslationTable{
   ["~fk_heg__quyi"] = "主公，我无异心啊！",
 }
 
+local chengong = General(extension, "fk_heg__chengong", "qun", 3)
+local mingce = fk.CreateActiveSkill{
+  name = "fk_heg__mingce",
+  anim_type = "support",
+  card_num = 1,
+  target_num = 1,
+  prompt = "#fk_heg__mingce",
+  can_use = function(self, player)
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and not player:isKongcheng()
+  end,
+  card_filter = function(self, to_select, selected)
+    return #selected == 0 and (Fk:getCardById(to_select).trueName == "slash" or Fk:getCardById(to_select).type == Card.TypeEquip)
+  end,
+  target_filter = function(self, to_select, selected)
+    return #selected == 0 and to_select ~= Self.id
+  end,
+  on_use = function(self, room, effect)
+    local player = room:getPlayerById(effect.from)
+    local target = room:getPlayerById(effect.tos[1])
+    room:obtainCard(target.id, Fk:getCardById(effect.cards[1]), false, fk.ReasonGive)
+    if player.dead or target.dead then return end
+    if H.askCommandTo(player, target, self.name) then
+      player:drawCards(1, self.name)
+      local targets = table.map(table.filter(room:getOtherPlayers(target), function(p)
+        return target:inMyAttackRange(p) end), Util.IdMapper)
+      if #targets > 0 then
+        local tos = room:askForChoosePlayers(player, targets, 1, 1, "#fk_heg__mingce-choose::"..target.id, self.name, false, true)
+        local to
+        if #tos > 0 then
+          to = tos[1]
+        else
+          to = table.random(targets)
+        end
+        room:doIndicate(target.id, {to})
+        room:useVirtualCard("slash", nil, target, room:getPlayerById(to), self.name, true)
+      end
+    end
+  end,
+}
+
+chengong:addSkill(mingce)
+chengong:addSkill("zhichi")
+Fk:loadTranslationTable{
+  ["fk_heg__chengong"] = "陈宫",
+  ["fk_heg__mingce"] = "明策",
+  [":fk_heg__mingce"] = "出牌阶段限一次，你可以交给一名其他角色一张装备牌或【杀】，令其执行一次“军令”，若其执行，你摸一张牌，然后令其视为对其攻击范围内一名你指定的角色使用一张【杀】。",
+  
+  ["#fk_heg__mingce"] = "明策：交给一名角色一张装备牌或【杀】，令其执行一次“军令”",
+  ["#fk_heg__mingce-choose"] = "明策：选择 %dest 视为使用【杀】的目标",
+  
+  ["$fk_heg__mingce1"] = "如此，霸业可图也。",
+  ["$fk_heg__mingce2"] = "如此，一击可擒也。",
+  ["~fk_heg__chengong"] = "请出就戮！",
+}
 return extension
