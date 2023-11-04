@@ -678,7 +678,7 @@ local xuanhuo = fk.CreateTriggerSkill{
   on_refresh = function(self, event, target, player, data)
     local room = player.room
     local players = room.alive_players
-    local fazhengs = table.filter(players, function(p) return table.contains(p.player_skills, self) end)
+    local fazhengs = table.filter(players, function(p) return H.hasShownSkill(p, self) end)
     local xuanhuo_map = {}
     for _, p in ipairs(players) do
       local will_attach = false
@@ -701,7 +701,7 @@ local xuanhuoOther = fk.CreateActiveSkill{
   name = "ld__xuanhuo_other&",
   can_use = function(self, player)
     return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and table.find(Fk:currentRoom().alive_players, function(p)
-      return table.contains(p.player_skills, xuanhuo) and H.compareKingdomWith(p, player) and p ~= Self
+      return H.hasShownSkill(p, xuanhuo) and H.compareKingdomWith(p, player) and p ~= Self
     end)
   end,
   card_num = 1,
@@ -711,7 +711,7 @@ local xuanhuoOther = fk.CreateActiveSkill{
   target_num = 0,
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
-    local targets = table.filter(room:getOtherPlayers(player), function(p) return table.contains(p.player_skills, xuanhuo) and H.compareKingdomWith(p, player) end)
+    local targets = table.filter(room:getOtherPlayers(player), function(p) return H.hasShownSkill(p, xuanhuo) and H.compareKingdomWith(p, player) end)
     if #targets == 0 then return false end
     local to
     if #targets == 1 then

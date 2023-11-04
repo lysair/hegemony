@@ -856,7 +856,7 @@ end
 
 --- 技能是否为主将/副将武将牌上的技能，返回“m”“d”或nil
 ---@param player ServerPlayer
----@param skill string | Skill
+---@param skill string | Skill @ 技能，建议技能名
 ---@return string | nil
 H.inGeneralSkills = function(player, skill)
   assert(type(skill) == "string" or skill:isInstanceOf(Skill))

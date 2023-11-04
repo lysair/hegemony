@@ -4,6 +4,7 @@ local extension = Package:new("strategic_advantage", Package.CardPack)
 extension.extensionName = "hegemony"
 
 local H = require "packages/hegemony/util"
+local U = require "packages/utility/utility"
 
 Fk:loadTranslationTable{
   ["strategic_advantage"] = "君临天下·势备篇",
@@ -633,7 +634,7 @@ local bladeSkill = fk.CreateTriggerSkill{
     for _, id in ipairs(TargetGroup:getRealTargets(data.tos)) do
       local p = room:getPlayerById(id)
       room:addPlayerMark(p, "@@sa__blade")
-      local record = type(p:getMark(MarkEnum.RevealProhibited)) == "table" and p:getMark(MarkEnum.RevealProhibited) or {}
+      local record = U.getMark(p, MarkEnum.RevealProhibited)
       table.insertTable(record, {"m", "d"})
       room:setPlayerMark(p, MarkEnum.RevealProhibited, record)
       data.extra_data = data.extra_data or {}
@@ -652,7 +653,7 @@ local bladeSkill = fk.CreateTriggerSkill{
       local p = room:getPlayerById(tonumber(key))
       if p:getMark("@@sa__blade") > 0 then
         room:removePlayerMark(p, "@@sa__blade", num)
-        local record = type(p:getMark(MarkEnum.RevealProhibited)) == "table" and p:getMark(MarkEnum.RevealProhibited) or {}
+        local record = U.getMark(p, MarkEnum.RevealProhibited)
         table.removeOne(record, "m")
         table.removeOne(record, "d")
         if #record == 0 then record = 0 end
@@ -689,9 +690,10 @@ local halberdTargets = fk.CreateActiveSkill{
     local orig = table.simpleClone(Self:getMark("_sa__halberd"))
     if table.contains(orig, to_select) or to_select == Self.id then return false end
     local target = Fk:currentRoom():getPlayerById(to_select)
-    if target.kingdom == "unknown" then return true end
-    table.insertTable(orig, selected)
-    return table.every(orig, function(id) return not H.compareKingdomWith(target, Fk:currentRoom():getPlayerById(id)) end)
+    if target.kingdom == "unknown" or table.every(orig, function(id) return not H.compareKingdomWith(target, Fk:currentRoom():getPlayerById(id)) end) then
+      local card = Fk:cloneCard("slash")
+      return not Self:isProhibited(target, card) and card.skill:modTargetFilter(to_select, orig, Self.id, card, true)
+    end
   end,
 }
 local halberdDelay = fk.CreateTriggerSkill{

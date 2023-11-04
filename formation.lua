@@ -36,7 +36,8 @@ local tuntian = fk.CreateTriggerSkill{
       pattern = ".|.|spade,club,diamond",
     }
     room:judge(judge)
-    if judge.card.suit ~= Card.Heart and room:getCardArea(judge.card.id) == Card.DiscardPile and room:askForChoice(player, {"ld__tuntian_field:::" .. judge.card:toLogString(), "Cancel"}, self.name) ~= "Cancel" then
+    if judge.card.suit ~= Card.Heart and room:getCardArea(judge.card.id) == Card.DiscardPile and
+      room:askForSkillInvoke(player, self.name, nil, "ld__tuntian_field:::" .. judge.card:toLogString()) then
       player:addToPile("ld__dengai_field", judge.card, true, self.name)
     end
   end,
@@ -112,7 +113,7 @@ Fk:loadTranslationTable{
   [":ziliang"] = "副将技，当与你势力相同的一名角色受到伤害后，你可将一张“田”交给其。",
 
   ["ld__dengai_field"] = "田",
-  ["ld__tuntian_field"] = "将%arg置于武将牌上（称为“田”）",
+  ["ld__tuntian_field"] = "屯田：将%arg置于武将牌上（称为“田”）",
   ["#ziliang-card"] = "资粮：你可将一张“田”交给 %dest",
 
   ["$ld__tuntian1"] = "留得良田在，何愁不破敌？",

@@ -581,7 +581,7 @@ local hongfa = fk.CreateTriggerSkill{
   on_refresh = function(self, event, target, player, data)
     local room = player.room
     local players = room.alive_players
-    local godzhangjiaos = table.filter(players, function(p) return table.contains(p.player_skills, self) end)
+    local godzhangjiaos = table.filter(players, function(p) return H.hasShownSkill(p, self) end)
     local hongfa_map = {}
     for _, p in ipairs(players) do
       local will_attach = false

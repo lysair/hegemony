@@ -329,7 +329,6 @@ function HegLogic:chooseGenerals()
   generals = table.filter(generals, function(g) return not table.contains(selected, g) end)
   room:returnToGeneralPile(generals)
 
-  local choiceMap = {}
   for _, p in ipairs(players) do
     local allKingdoms = {"wei", "shu", "wu", "qun"}
     local curGeneral = Fk.generals[p:getMark("__heg_general")]
@@ -342,7 +341,7 @@ function HegLogic:chooseGenerals()
       kingdoms = table.filter(kingdoms, function(k) return curGeneral.kingdom == k or curGeneral.subkingdom == k end)
     end
 
-    choiceMap[p.id] = kingdoms
+    p.default_reply = kingdoms[1]
 
     local data = json.encode({ kingdoms, allKingdoms, "AskForKingdom", "#ChooseHegInitialKingdom" })
     p.request_data = data
@@ -356,9 +355,10 @@ function HegLogic:chooseGenerals()
     if p.reply_ready then
       kingdomChosen = p.client_reply
     else
-      kingdomChosen = choiceMap[p.id][1]
+      kingdomChosen = p.default_reply
     end
     room:setPlayerMark(p, "__heg_kingdom", kingdomChosen)
+    p.default_reply = ""
     -- p.kingdom = kingdomChosen
     --room:notifyProperty(p, p, "kingdom")
   end

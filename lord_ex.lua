@@ -595,68 +595,67 @@ Fk:loadTranslationTable{
 
 local qtc = General(extension, "ld__mifangfushiren", "shu", 4)
 qtc.subkingdom = "wu"
-local fengshiv = fk.CreateTriggerSkill{
-  name = "ld__fengshiv",
+local fengshih = fk.CreateTriggerSkill{
+  name = "ld__fengshih",
   anim_type = "offensive",
   events = {fk.TargetSpecified},
   can_trigger = function(self, event, target, player, data)
     if not (target == player and player:hasSkill(self) and #AimGroup:getAllTargets(data.tos) == 1) then return false end
-    for _, id in ipairs(AimGroup:getAllTargets(data.tos)) do
-      if id == player.id or not (player:getHandcardNum() > player.room:getPlayerById(id):getHandcardNum()) or player.room:getPlayerById(id):isNude() then
-        return false
-      end
-    end
-    return true
+    local target = player.room:getPlayerById(data.to)
+    return player:getHandcardNum() > target:getHandcardNum() and not target:isNude()
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    for _, id in ipairs(AimGroup:getAllTargets(data.tos)) do
-      room:askForDiscard(player, 1, 1, true, self.name, false)
-      local cid = room:askForCardChosen(player, room:getPlayerById(id), "he", self.name)
-      room:throwCard({cid}, self.name, room:getPlayerById(id), player)
-      if data.card.is_damage_card then
-        data.additionalDamage = (data.additionalDamage or 0) + 1
-      end
+    local target = room:getPlayerById(data.to)
+    room:askForDiscard(player, 1, 1, true, self.name, false)
+    if not target:isNude() then
+      local cid = room:askForCardChosen(player, target, "he", self.name)
+      room:throwCard({cid}, self.name, target, player)
     end
+    data.additionalDamage = (data.additionalDamage or 0) + 1
   end,
 }
 
-local fengshiv_back = fk.CreateTriggerSkill{
-  name = "#ld__fengshiv_back",
-  anim_type = "offensive",
+local fengshih_back = fk.CreateTriggerSkill{
+  name = "#ld__fengshih_back",
+  mute = true,
+  anim_type = "negative",
   events = {fk.TargetConfirmed},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self) and not player:isNude() and #AimGroup:getAllTargets(data.tos) == 1
-     and player:getHandcardNum() < player.room:getPlayerById(data.from):getHandcardNum() and table.contains(player.player_skills, "ld__fengshiv")
+    return target == player and H.hasShownSkill(player, fengshih) and not player:isNude() and #AimGroup:getAllTargets(data.tos) == 1
+      and player:getHandcardNum() < player.room:getPlayerById(data.from):getHandcardNum()
   end,
   on_cost = function (self, event, target, player, data)
-    return player.room:askForSkillInvoke(player.room:getPlayerById(data.from), self.name, nil, "#ld__fengshiv-ask:" .. player.id) 
+    return player.room:askForSkillInvoke(player.room:getPlayerById(data.from), self.name, nil, "#ld__fengshih_back-ask:" .. player.id) 
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
+    player:broadcastSkillInvoke("ld__fengshih")
+    room:notifySkillInvoked(player, "ld__fengshih", "negative")
     local cid = room:askForCardChosen(player, room:getPlayerById(data.from), "he", self.name)
     room:throwCard({cid}, self.name, room:getPlayerById(data.from), player)
-    room:askForDiscard(player, 1, 1, true, self.name, false)
-    if data.card.is_damage_card then
-      data.additionalDamage = (data.additionalDamage or 0) + 1
+    if not player:isNude() then
+      room:askForDiscard(player, 1, 1, true, self.name, false)
     end
+    data.additionalDamage = (data.additionalDamage or 0) + 1
   end,
 }
 
-fengshiv:addRelatedSkill(fengshiv_back)
-qtc:addSkill(fengshiv)
+fengshih:addRelatedSkill(fengshih_back)
+qtc:addSkill(fengshih)
 
 Fk:loadTranslationTable{
   ["ld__mifangfushiren"] = "糜芳傅士仁",
-  ["ld__fengshiv"] = "锋势",
-  [":ld__fengshiv"] = "当你使用牌指定其他角色为目标后，若其手牌数小于你且你与其均有牌，你可以弃置你与其各一张牌，然后此牌造成伤害值+1。当你成为其他角色使用牌的目标后，若你手牌数小于你且你与其均有牌，其可以令你弃置你与其各一张牌，然后此牌造成伤害值+1",
+  ["ld__fengshih"] = "锋势",
+  [":ld__fengshih"] = "当你使用牌指定其他角色为唯一目标后，若其手牌数小于你且你与其均有牌，你可以弃置你与其各一张牌，然后此牌造成伤害值+1。当你成为其他角色使用牌的唯一目标后，若你手牌数小于其且你与其均有牌，其可以令你弃置你与其各一张牌，然后此牌造成伤害值+1。",
 
-  ["#ld__fengshiv-ask"] = "锋势：是否令%src弃置你与其各一张牌，然后此牌的伤害基数+1",
+  ["#ld__fengshih_back"] = "锋势",
+  ["#ld__fengshih_back-ask"] = "锋势：是否令%src弃置你与其各一张牌，然后此牌的伤害基数+1",
 
-  ["$ld__fengshiv1"] = "",
-  ["$ld__fengshiv2"] = "",
+  ["$ld__fengshih1"] = "雪中送炭？倒不如落井下石！",
+  ["$ld__fengshih2"] = "今发兵援羽，敢问是过是功？",
 
-  ["~ld__mifangfushiren"] = "",
+  ["~ld__mifangfushiren"] = "虞翻小儿，你安敢辱我！",
 }
 
 local shixie = General(extension, "hs__shixie", "qun", 3)
@@ -922,9 +921,7 @@ local xingzhao_maxcards = fk.CreateMaxCardsSkill{
   correct_func = function(self, player)
     if player:hasSkill(self) and #table.filter(Fk:currentRoom().alive_players,
       function(p) return p:isWounded() end) >= 3 then
-
       return 4
-
     end
   end
 }
@@ -941,14 +938,15 @@ local ld__xunxun = fk.CreateTriggerSkill{
   end,
 }
 
-tangzi:addSkill(xingzhao)
 xingzhao:addRelatedSkill(xingzhao_maxcards)
-Fk:addSkill(ld__xunxun)
+tangzi:addSkill(xingzhao)
+tangzi:addRelatedSkill(ld__xunxun)
 Fk:loadTranslationTable{
   ["ld__tangzi"] = "唐咨",
   ["ld__xingzhao"] = "兴棹",
   [":ld__xingzhao"] = "锁定技，场上受伤的角色数为：1个或以上，你拥有技能〖恂恂〗；2个或以上，你受到伤害后，你与伤害来源手牌数较少的角色摸一张牌；3个或以上，你的手牌上限+4；4个或以上，你失去装备区内的牌时，摸一张牌。",
   ["ld__xunxun"] = "恂恂",
+  [":ld__xunxun"] = "摸牌阶段开始时，你可以观看牌堆顶的四张牌，将其中两张牌以任意顺序置于牌堆顶，其余以任意顺序置于牌堆底。",
 
   ["$ld__xingzhao1"] = "精挑细选，方能成百年之计。",
   ["$ld__xingzhao2"] = "拿些上好的木料来。",

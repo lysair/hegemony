@@ -1479,10 +1479,11 @@ local fuji = fk.CreateTriggerSkill{
   anim_type = "offensive",
   events = {fk.TargetSpecified, fk.AfterDying},
   can_trigger = function (self, event, target, player, data)
+    if target ~= player or not player:hasSkill(self) then return end
     if event == fk.TargetSpecified then
-      return target == player and player:hasSkill(self) and not table.contains(player.player_skills, self)
+      return player:isFakeSkill(self)
     else
-      return target == player and player:hasSkill(self) and table.contains(player.player_skills, self)
+      return H.inGeneralSkills(player, self.name) and not player:isFakeSkill(self)
     end
   end,
   on_cost = function (self, event, target, player, data)
@@ -1500,11 +1501,7 @@ local fuji = fk.CreateTriggerSkill{
         table.insertIfNeed(data.disresponsiveList, p.id)
       end
     else
-      local isDeputy = H.inGeneralSkills(player, self.name)
-      if isDeputy then
-        isDeputy = isDeputy == "d"
-        player:hideGeneral(isDeputy)
-      end
+      player:hideGeneral(H.inGeneralSkills(player, self.name) == "d")
     end
   end,
 }

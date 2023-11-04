@@ -189,9 +189,7 @@ local hongyuanTrigger = fk.CreateTriggerSkill{
     local room = player.room
     room:notifySkillInvoked(player, "os_heg__hongyuan", "support")
     player:broadcastSkillInvoke("os_heg__hongyuan")
-    -- data.who = room:getPlayerById(target)
-    room:getPlayerById(target):drawCards(data.num, self.name) -- 摆先
-    return true
+    data.who = room:getPlayerById(target)
   end,
 
   refresh_events = {fk.AfterTurnEnd, fk.BuryVictim},
@@ -308,7 +306,7 @@ local yaowu = fk.CreateTriggerSkill{
   events = {fk.Damage},
   anim_type = "support",
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self) and player:usedSkillTimes(self.name, Player.HistoryGame) == 0 and not table.contains(player.player_skills, self) 
+    return target == player and player:hasSkill(self) and player:usedSkillTimes(self.name, Player.HistoryGame) == 0 and player:isFakeSkill(self) 
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
