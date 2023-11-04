@@ -627,7 +627,7 @@ local fengshiv_back = fk.CreateTriggerSkill{
   events = {fk.TargetConfirmed},
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(self.name) and not player:isNude() and #AimGroup:getAllTargets(data.tos) == 1
-     and player:getHandcardNum() < player.room:getPlayerById(data.from):getHandcardNum()
+     and player:getHandcardNum() < player.room:getPlayerById(data.from):getHandcardNum() and table.contains(player.player_skills, "ld__fengshiv")
   end,
   on_cost = function (self, event, target, player, data)
     return player.room:askForSkillInvoke(player.room:getPlayerById(data.from), self.name, nil, "#ld__fengshiv-ask:" .. player.id) 
@@ -920,7 +920,7 @@ local xingzhao = fk.CreateTriggerSkill{
 local xingzhao_maxcards = fk.CreateMaxCardsSkill{
   name = "#ld__xingzhao_maxcards",
   fixed_func = function(self, player)
-    if player:hasSkill(self.name) then
+    if player:hasSkill(self.name) and #table.filter(player.room.alive_players, function(p) return p:isWounded() end) > 2 then
       return player.hp + 4
     end
   end
@@ -1178,21 +1178,26 @@ local zhengjian = fk.CreateTriggerSkill{
     player.room:setPlayerMark(target, "ld__zhengjian", 1)
   end,
 
-  refresh_events = {fk.TargetConfirmed, fk.BuryVictim},
+  refresh_events = {fk.TargetConfirmed, fk.Death, fk.EnterDying},
   can_refresh = function (self, event, target, player, data)
     if event == fk.TargetConfirmed then
       return player:hasSkill(self.name) and player == target and data.card.trueName == "slash"
-    end
-    if event == fk.BuryVictim then
-      return player:hasSkill(self.name) and player == target
+    elseif event == fk.Death then
+      return player:hasSkill(self.name, false, true) and player == target
+    elseif event == fk.EnterDying then
+      return player:hasSkill(self.name) and target:getMark("ld__zhengjian") > 0
     end
   end,
   on_refresh = function (self, event, target, player, data)
-    local targets = table.filter(player.room.alive_players, function(p) return p:getMark("ld__zhengjian") > 0 end)
-    if #targets > 0 then
-      for _, p in ipairs(targets) do
-        player.room:setPlayerMark(p, "ld__zhengjian", 0)
+    if event == fk.TargetConfirmed or event == fk.Death then
+      local targets = table.filter(player.room.alive_players, function(p) return p:getMark("ld__zhengjian") > 0 end)
+      if #targets > 0 then
+        for _, p in ipairs(targets) do
+          player.room:setPlayerMark(p, "ld__zhengjian", 0)
+        end
       end
+    else
+      player.room:setPlayerMark(target, "ld__zhengjian", 0)
     end
   end,
 }
@@ -1210,7 +1215,7 @@ sufei:addSkill(zhengjian)
 Fk:loadTranslationTable{
   ["ld__sufei"] = "苏飞",
   ["ld__zhengjian"] = "诤荐",
-  [":ld__zhengjian"] = "与你势力相同角色的结束阶段，若其本回合使用牌数不小于其体力上限，你可以令其获得一个“珠联璧合”标记，若如此做，其不能使用【桃】直至你成为【杀】的目标。",
+  [":ld__zhengjian"] = "与你势力相同角色的结束阶段，若其本回合使用牌数不小于其体力上限，你可以令其获得一个“珠联璧合”标记，若如此做，其不能使用【桃】直至你成为【杀】的目标或其进入濒死状态。",
 
   ["$ld__zhengjian1"] = "需持续投入，方有回报。",
   ["$ld__zhengjian2"] = "心无旁骛，断而敢行。",

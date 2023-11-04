@@ -1058,7 +1058,7 @@ local weidi = fk.CreateActiveSkill{
   name = "ld__weidi",
   anim_type = "control",
   can_use = function(self, player)
-    return player:usedSkillTimes(self.name, Player.HistoryGame) == 0
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
   end,
   card_filter = Util.FalseFunc,
   target_num = 1,
@@ -1497,9 +1497,14 @@ local jianan = fk.CreateTriggerSkill{
 local jiananOtherLose = fk.CreateTriggerSkill{
   name = "#jianan_other_lose&",
   visible = false,
-  refresh_events = {fk.TurnStart, fk.BuryVictim},
+  refresh_events = {fk.TurnStart, fk.Death},
   can_refresh = function(self, event, target, player, data)
-    return target == player and player:hasSkill("jianan")
+    if event == fk.TurnStart then
+      return target == player and player:hasSkill("jianan")
+    end
+    if event == fk.Death then
+      return player:hasSkill("jianan", false, true) and player == target
+    end
   end,
   on_refresh = function(self, event, target, player, data)
     local room = player.room
