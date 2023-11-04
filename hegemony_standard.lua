@@ -124,6 +124,20 @@ Fk:loadTranslationTable{
 }
 
 local guojia = General(extension, "hs__guojia", "wei", 3)
+local hs__yiji_active = fk.CreateActiveSkill{
+  name = "hs__yiji_active",
+  expand_pile = "hs__yiji",
+  min_card_num = 1,
+  target_num = 1,
+  card_filter = function(self, to_select, selected, targets)
+    local ids = Self:getMark("hs__yiji_cards")
+      return type(ids) == "table" and table.contains(ids, to_select)
+  end,
+  target_filter = function(self, to_select, selected, selected_cards)
+    return #selected == 0 and to_select ~= Self.id
+  end,
+}
+Fk:addSkill(hs__yiji_active)
 local yiji = fk.CreateTriggerSkill{
   name = "hs__yiji",
   anim_type = "masochism",
@@ -131,37 +145,40 @@ local yiji = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     local room = player.room
     local ids = room:getNCards(2)
-    local fakemove = {
-      toArea = Card.PlayerHand,
-      to = player.id,
-      moveInfo = table.map(ids, function(id) return {cardId = id, fromArea = Card.Void} end),
-      moveReason = fk.ReasonJustMove,
-    }
-    room:notifyMoveCards({player}, {fakemove})
-    for _, id in ipairs(ids) do
-      room:setCardMark(Fk:getCardById(id), "yiji", 1)
-    end
-    while table.find(ids, function(id) return Fk:getCardById(id):getMark("yiji") > 0 end) do
-      if not room:askForUseActiveSkill(player, "yiji_active", "#hs__yiji-give", true) then
-        for _, id in ipairs(ids) do
-          room:setCardMark(Fk:getCardById(id), "yiji", 0)
+    while true do
+      player.special_cards["hs__yiji"] = table.simpleClone(ids)
+      player:doNotify("ChangeSelf", json.encode {
+        id = player.id,
+        handcards = player:getCardIds("h"),
+        special_cards = player.special_cards,
+      })
+      room:setPlayerMark(player, "hs__yiji_cards", ids)
+      local _, ret = room:askForUseActiveSkill(player, "hs__yiji_active", "#hs__yiji-give", true, nil, true)
+      room:setPlayerMark(player, "hs__yiji_cards", 0)
+      player.special_cards["hs__yiji"] = table.simpleClone(ids)
+      player:doNotify("ChangeSelf", json.encode {
+        id = player.id,
+        handcards = player:getCardIds("h"),
+        special_cards = player.special_cards,
+      })
+      if ret then
+        for _, id in ipairs(ret.cards) do
+          table.removeOne(ids, id)
         end
-        ids = table.filter(ids, function(id) return room:getCardArea(id) ~= Card.PlayerHand end)
-        fakemove = {
-          from = player.id,
-          toArea = Card.Void,
-          moveInfo = table.map(ids, function(id) return {cardId = id, fromArea = Card.PlayerHand} end),
-          moveReason = fk.ReasonGive,
-        }
-        room:notifyMoveCards({player}, {fakemove})
-        room:moveCards({
-          fromArea = Card.Void,
-          ids = ids,
-          to = player.id,
-          toArea = Card.PlayerHand,
-          moveReason = fk.ReasonGive,
-          skillName = self.name,
-        })
+        room:moveCardTo(ret.cards, Card.PlayerHand, room:getPlayerById(ret.targets[1]), fk.ReasonGive, self.name, nil, false, player.id)
+        if #ids == 0 then break end
+        if player.dead then
+          room:moveCards({
+            ids = ids,
+            toArea = Card.DiscardPile,
+            moveReason = fk.ReasonJustMove,
+            skillName = self.name,
+          })
+          break
+        end
+      else
+        room:moveCardTo(ids, Player.Hand, player, fk.ReasonGive, self.name, nil, false, player.id)
+        break
       end
     end
   end,
@@ -172,8 +189,9 @@ Fk:loadTranslationTable{
   ["hs__guojia"] = "郭嘉",
   ["hs__yiji"] = "遗计",
   [":hs__yiji"] = "当你受到伤害后，你可观看牌堆顶的两张牌并分配。",
-  
-  ["#hs__yiji-give"] = "遗计：你可以将这些牌分配给任意角色，点“取消”自己保留",
+
+  ["#hs__yiji-give"] = "遗计：你可以将这些牌分配给其他角色，或点“取消”自己保留",
+  ["hs__yiji_active"] = "遗计",
 
   ["$hs__yiji1"] = "也好。",
   ["$hs__yiji2"] = "罢了。",

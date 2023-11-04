@@ -1769,6 +1769,23 @@ local shilus = fk.CreateTriggerSkill{
       end
     end
   end,
+
+  refresh_events = {fk.EventLoseSkill, fk.GeneralHidden, fk.BuryVictim},
+  can_refresh = function(self, event, target, player, data)
+    if player:getMark("@&massacre") == 0 or player ~= target then return false end
+    if event == fk.EventLoseSkill then
+      return data == self
+    elseif event == fk.BuryVictim then
+      return true
+    elseif event == fk.GeneralHidden then
+      return table.contains(Fk.generals[data]:getSkillNameList(), self.name)
+    end
+  end,
+  on_refresh = function(self, event, target, player, data)
+    local room = player.room
+    room:returnToGeneralPile(U.getMark(player, "@&massacre"))
+    room:setPlayerMark(player, "@&massacre", 0)
+  end,
 }
 local xiongnve = fk.CreateTriggerSkill{
   name = "xiongnve",
@@ -1854,7 +1871,6 @@ local xiongnve = fk.CreateTriggerSkill{
 }
 
 local function compareXiongNveKingdom(player, target)
-  --FIXME:不知道野心家角色是怎么判定的，等Nyu神出手
   local mark = player:getMark("@xiongnve_kindom-phase")
   return type(mark) == "table" and table.contains(mark, target.kingdom)
 end
