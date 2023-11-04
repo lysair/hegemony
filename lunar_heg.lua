@@ -1477,12 +1477,12 @@ local quyi = General(extension, "fk_heg__quyi", "qun", 4)
 local fuji = fk.CreateTriggerSkill{
   name = "fk_heg__fuji",
   anim_type = "offensive",
-  events = {fk.TargetSpecified, fk.Damaged},
+  events = {fk.TargetSpecified, fk.AfterDying},
   can_trigger = function (self, event, target, player, data)
     if event == fk.TargetSpecified then
       return target == player and player:hasSkill(self.name) and not table.contains(player.player_skills, self)
     else
-      return player:hasSkill(self.name) and player == target and player:getHandcardNum() < data.from:getHandcardNum() and table.contains(player.player_skills, self)
+      return target == player and player:hasSkill(self.name) and table.contains(player.player_skills, self)
     end
   end,
   on_cost = function (self, event, target, player, data)
@@ -1528,13 +1528,12 @@ local jiaozi = fk.CreateTriggerSkill{
 quyi:addSkill(fuji)
 quyi:addSkill(jiaozi)
 Fk:loadTranslationTable{
-  ["fk_heg__quji"] = "麴义",
+  ["fk_heg__quyi"] = "麴义",
   ["fk_heg__fuji"] = "伏骑",
-  [":fk_heg__fuji"] = "当你使用牌指定目标后，若此武将牌处于暗置状态，你可以明置此武将牌，令此牌不能被响应；当你受到伤害后，若此武将牌处于明置状态，暗置此武将牌。",
+  [":fk_heg__fuji"] = "当你使用牌指定目标后，若此武将牌处于暗置状态，你可以明置此武将牌，令此牌不能被响应；当你脱离濒死状态后，若此武将牌处于明置状态，暗置此武将牌。",
   ["fk_heg__jiaozi"] = "骄恣",
   [":fk_heg__jiaozi"] = "锁定技，当你受到或造成伤害时，若你为与你势力相同的角色中手牌数唯一最多的角色，且存在与你势力相同的其他角色，此伤害+1。",
-  
-  ["##fk_heg__fuji-invoke"] = "破垣：是否令受伤角色弃置一张手牌，或你弃置受伤角色装备区内一张牌",
+  ["#fk_heg__fuji-invoke"] = "伏骑：你可以亮出麴义，令此牌不能被响应",
 
   ["$fk_heg__fuji1"] = "白马？不足挂齿！",
   ["$fk_heg__fuji2"] = "掌握之中，岂可逃之？",
@@ -1544,6 +1543,7 @@ Fk:loadTranslationTable{
 }
 
 local chengong = General(extension, "fk_heg__chengong", "qun", 3)
+--[[
 local mingce = fk.CreateActiveSkill{
   name = "fk_heg__mingce",
   anim_type = "support",
@@ -1582,19 +1582,19 @@ local mingce = fk.CreateActiveSkill{
     end
   end,
 }
-
-chengong:addSkill(mingce)
+--]]
 chengong:addSkill("zhichi")
+chengong:addSkill("mingce")
 Fk:loadTranslationTable{
   ["fk_heg__chengong"] = "陈宫",
-  ["fk_heg__mingce"] = "明策",
-  [":fk_heg__mingce"] = "出牌阶段限一次，你可以交给一名其他角色一张装备牌或【杀】，令其执行一次“军令”，若其执行，你摸一张牌，然后令其视为对其攻击范围内一名你指定的角色使用一张【杀】。",
-  
-  ["#fk_heg__mingce"] = "明策：交给一名角色一张装备牌或【杀】，令其执行一次“军令”",
-  ["#fk_heg__mingce-choose"] = "明策：选择 %dest 视为使用【杀】的目标",
-  
-  ["$fk_heg__mingce1"] = "如此，霸业可图也。",
-  ["$fk_heg__mingce2"] = "如此，一击可擒也。",
+  -- ["fk_heg__mingce"] = "明策",
+  -- [":fk_heg__mingce"] = "出牌阶段限一次，你可以交给一名其他角色一张装备牌或【杀】，令其执行一次“军令”，若其执行，你摸一张牌，然后令其视为对其攻击范围内一名你指定的角色使用一张【杀】。",
+
+  -- ["#fk_heg__mingce"] = "明策：交给一名角色一张装备牌或【杀】，令其执行一次“军令”",
+  -- ["#fk_heg__mingce-choose"] = "明策：选择 %dest 视为使用【杀】的目标",
+
+  -- ["$fk_heg__mingce1"] = "如此，霸业可图也。",
+  -- ["$fk_heg__mingce2"] = "如此，一击可擒也。",
   ["~fk_heg__chengong"] = "请出就戮！",
 }
 return extension
