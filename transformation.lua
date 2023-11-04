@@ -121,7 +121,7 @@ local zhiman = fk.CreateTriggerSkill{
   name = "ld__zhiman",
   events = {fk.DamageCaused},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and data.to ~= player
+    return target == player and player:hasSkill(self) and data.to ~= player
   end,
   on_cost = function(self, event, target, player, data)
     return player.room:askForSkillInvoke(player, self.name, nil, "#ld__zhiman-invoke::"..data.to.id)
@@ -164,7 +164,7 @@ local xuanlve = fk.CreateTriggerSkill{
   anim_type = "control",
   events = {fk.AfterCardsMove},
   can_trigger = function(self, event, target, player, data)
-    if not player:hasSkill(self.name) then return end
+    if not player:hasSkill(self) then return end
     local room = player.room
     for _, move in ipairs(data) do
       if move.from == player.id then
@@ -254,7 +254,7 @@ local diaodu = fk.CreateTriggerSkill{
   anim_type = "drawcard",
   events = {fk.CardUsing, fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
-    if not player:hasSkill(self.name) then return false end
+    if not player:hasSkill(self) then return false end
     if event == fk.CardUsing then return H.compareKingdomWith(target, player) and data.card.type == Card.TypeEquip
     else return target == player and target.phase == Player.Play and table.find(player.room.alive_players, function(p)
     return H.compareKingdomWith(p, player) and #p:getCardIds(Player.Equip) > 0 end) end
@@ -298,7 +298,7 @@ local diancai = fk.CreateTriggerSkill{
   events = {fk.EventPhaseEnd},
   anim_type = "drawcard",
   can_trigger = function(self, event, target, player, data)
-    if not player:hasSkill(self.name) or target.phase ~= Player.Play or target == player then return false end
+    if not player:hasSkill(self) or target.phase ~= Player.Play or target == player then return false end
     local num = 0
     player.room.logic:getEventsOfScope(GameEvent.MoveCards, 1, function(e)
       for _, move in ipairs(e.data) do
@@ -453,9 +453,9 @@ local fenghuotu = fk.CreateTriggerSkill{
   events = {fk.EventPhaseStart, fk.Damaged},
   can_trigger = function (self, event, target, player, data)
     if event == fk.EventPhaseStart then
-      return H.compareKingdomWith(player, target) and player:hasSkill(self.name) and #player:getPile("lord_fenghuo") > 0 and target.phase == Player.Start
+      return H.compareKingdomWith(player, target) and player:hasSkill(self) and #player:getPile("lord_fenghuo") > 0 and target.phase == Player.Start
     else
-      return player == target and player:hasSkill(self.name) and data.card and #player:getPile("lord_fenghuo") > 0 and (data.card.type == Card.TypeTrick or data.card.trueName == "slash")
+      return player == target and player:hasSkill(self) and data.card and #player:getPile("lord_fenghuo") > 0 and (data.card.type == Card.TypeTrick or data.card.trueName == "slash")
     end
   end,
   on_cost = function (self, event, target, player, data)
@@ -555,7 +555,7 @@ local ld__yingzi = fk.CreateTriggerSkill{
 
   refresh_events = {fk.EventPhaseStart},
   can_refresh = function(self, event, target, player, data)
-    return player == target and player:hasSkill(self.name) and player.phase == Player.Discard and not player:isFakeSkill(self.name)
+    return player == target and player:hasSkill(self) and player.phase == Player.Discard and not player:isFakeSkill(self.name)
   end,
   on_refresh = function(self, event, target, player, data)
     player:broadcastSkillInvoke(self.name)
@@ -655,7 +655,7 @@ local ld__shelie = fk.CreateTriggerSkill{
   anim_type = "drawcard",
   events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and player.phase == Player.Draw
+    return target == player and player:hasSkill(self) and player.phase == Player.Draw
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
@@ -824,7 +824,7 @@ local jubao = fk.CreateTriggerSkill{
   frequency = Skill.Compulsory,
   events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
-    if not (target == player and player:hasSkill(self.name) and player.phase == Player.Finish) then return false end
+    if not (target == player and player:hasSkill(self) and player.phase == Player.Finish) then return false end
     for _, id in ipairs(player.room.discard_pile) do
       if Fk:getCardById(id).name == "luminous_pearl" then
         return true
@@ -864,7 +864,7 @@ local jubao_move = fk.CreateTriggerSkill{
   frequency = Skill.Compulsory,
   anim_type = "defensive",
   can_trigger = function(self, event, target, player, data)
-    if not player:hasSkill(self.name) or not (player:getEquipment(Card.SubtypeTreasure)) then return false end
+    if not player:hasSkill(self) or not (player:getEquipment(Card.SubtypeTreasure)) then return false end
     for _, move in ipairs(data) do
       if move.from == player.id and move.moveReason == fk.ReasonPrey and not move.proposer == player then
         for _, info in ipairs(move.moveInfo) do

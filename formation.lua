@@ -16,7 +16,7 @@ local tuntian = fk.CreateTriggerSkill{
   anim_type = "special",
   events = {fk.AfterCardsMove},
   can_trigger = function(self, event, target, player, data)
-    if player:hasSkill(self.name) and player.phase == Player.NotActive then
+    if player:hasSkill(self) and player.phase == Player.NotActive then
       for _, move in ipairs(data) do
         if move.from == player.id then
           for _, info in ipairs(move.moveInfo) do
@@ -44,7 +44,7 @@ local tuntian = fk.CreateTriggerSkill{
 local tuntian_distance = fk.CreateDistanceSkill{
   name = "#ld__tuntian_distance",
   correct_func = function(self, from, to)
-    if from:hasSkill(self.name) then
+    if from:hasSkill(self) then
       return -#from:getPile("ld__dengai_field")
     end
   end,
@@ -84,7 +84,7 @@ local ziliang = fk.CreateTriggerSkill{
   relate_to_place = "d",
   events = {fk.Damaged},
   can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self.name) and H.compareKingdomWith(player, target) and not target.dead and #player:getPile("ld__dengai_field") > 0
+    return player:hasSkill(self) and H.compareKingdomWith(player, target) and not target.dead and #player:getPile("ld__dengai_field") > 0
   end,
   on_cost = function(self, event, target, player, data)
     local card = player.room:askForCard(player, 1, 1, false, self.name, true, ".|.|.|ld__dengai_field", "#ziliang-card::" .. target.id, "ld__dengai_field")
@@ -144,7 +144,7 @@ local tianfuTrig = fk.CreateTriggerSkill{ -- FIXME
   end,
   on_refresh = function(self, event, target, player, data)
     local room = player.room
-    local ret = H.inFormationRelation(room.current, player) and #room.alive_players > 3 and player:hasSkill(self.name)
+    local ret = H.inFormationRelation(room.current, player) and #room.alive_players > 3 and player:hasSkill(self)
     room:handleAddLoseSkills(player, ret and 'ld__kanpo' or "-ld__kanpo", nil, false, true)
   end,
 }
@@ -191,7 +191,7 @@ local guanxing = fk.CreateTriggerSkill{
   anim_type = "control",
   events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and
+    return target == player and player:hasSkill(self) and
       player.phase == Player.Start
   end,
   on_use = function(self, event, target, player, data)
@@ -233,7 +233,7 @@ local shengxi = fk.CreateTriggerSkill{
   anim_type = "drawcard",
   events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
-    return player == target and player:hasSkill(self.name) and player.phase == Player.Finish and 
+    return player == target and player:hasSkill(self) and player.phase == Player.Finish and 
       #player.room.logic:getEventsOfScope(GameEvent.ChangeHp, 1, function (e)
         local damage = e.data[5]
         if damage and target == damage.from then
@@ -251,7 +251,7 @@ local shoucheng = fk.CreateTriggerSkill{
   anim_type = "support",
   events = {fk.AfterCardsMove},
   can_trigger = function(self, event, target, player, data)
-    if not player:hasSkill(self.name) then return end
+    if not player:hasSkill(self) then return end
     for _, move in ipairs(data) do
       if move.from then
         local from = player.room:getPlayerById(move.from)
@@ -283,7 +283,7 @@ local shoucheng = fk.CreateTriggerSkill{
     room:sortPlayersByAction(targets)
     for _, p in ipairs(targets) do
       local to = room:getPlayerById(p)
-      if to.dead or not player:hasSkill(self.name) then break end
+      if to.dead or not player:hasSkill(self) then break end
       self:doCost(event, p, player, nil)
     end
   end,
@@ -324,7 +324,7 @@ local yicheng = fk.CreateTriggerSkill{
   anim_type = "defensive",
   events = {fk.TargetConfirmed},
   can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self.name) and H.compareKingdomWith(target, player) and data.card.trueName == "slash"
+    return player:hasSkill(self) and H.compareKingdomWith(target, player) and data.card.trueName == "slash"
   end,
   on_cost = function(self, event, target, player, data)
     return player.room:askForSkillInvoke(player, self.name, nil, "#yicheng-ask::" .. target.id)
@@ -361,7 +361,7 @@ local qianhuan = fk.CreateTriggerSkill{
   anim_type = "defensive",
   mute = true,
   can_trigger = function(self, event, target, player, data)
-    if not player:hasSkill(self.name) then return false end
+    if not player:hasSkill(self) then return false end
     if event == fk.Damaged then
       return not target.dead and H.compareKingdomWith(target, player) and not player:isNude() and #player:getPile("yuji_sorcery") < 4
     elseif event == fk.TargetConfirming then
@@ -488,7 +488,7 @@ local zhangwu = fk.CreateTriggerSkill{
   events = {fk.BeforeCardsMove, fk.AfterCardsMove},
   frequency = Skill.Compulsory,
   can_trigger = function(self, event, target, player, data)
-    if not player:hasSkill(self.name) then return false end
+    if not player:hasSkill(self) then return false end
     if event == fk.BeforeCardsMove then
       for _, move in ipairs(data) do
         if move.from == player.id and move.moveReason ~= fk.ReasonUse and (move.to ~= player.id or (move.toArea ~= Card.PlayerEquip and move.toArea ~= Card.PlayerHand)) then
@@ -577,7 +577,7 @@ local jizhao = fk.CreateTriggerSkill{
   frequency = Skill.Limited,
   events = {fk.AskForPeaches},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and player.dying and player:usedSkillTimes(self.name, Player.HistoryGame) == 0
+    return target == player and player:hasSkill(self) and player.dying and player:usedSkillTimes(self.name, Player.HistoryGame) == 0
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
@@ -639,7 +639,7 @@ local dragonPhoenixSkill = fk.CreateTriggerSkill{
   attached_equip = "dragon_phoenix",
   events = {fk.TargetSpecified, fk.EnterDying},
   can_trigger = function(self, event, target, player, data)
-    if not player:hasSkill(self.name) then return end
+    if not player:hasSkill(self) then return end
     if event == fk.TargetSpecified then
       if target == player and data.card and data.card.trueName == "slash" then
         return not player.room:getPlayerById(data.to):isNude()

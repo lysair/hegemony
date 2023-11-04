@@ -307,7 +307,7 @@ local tribladeSkill = fk.CreateTriggerSkill{
   attached_equip = "triblade",
   events = {fk.Damage},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and data.card and data.card.trueName == "slash" and not data.to.dead and not data.chain and
+    return target == player and player:hasSkill(self) and data.card and data.card.trueName == "slash" and not data.to.dead and not data.chain and
       not player:isKongcheng() and table.find(player.room.alive_players, function(p) return data.to:distanceTo(p) == 1 and p ~= player end)
   end,
   on_cost = function(self, event, target, player, data)

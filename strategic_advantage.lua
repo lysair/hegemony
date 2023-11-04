@@ -624,7 +624,7 @@ local bladeSkill = fk.CreateTriggerSkill{
   events = {fk.CardUsing},
   frequency = Skill.Compulsory,
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and data.card.trueName == "slash"
+    return target == player and player:hasSkill(self) and data.card.trueName == "slash"
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
@@ -724,7 +724,7 @@ local halberdSkill = fk.CreateTriggerSkill{
   events = {fk.AfterCardTargetDeclared},
   mute = true,
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and data.card.trueName == "slash"
+    return target == player and player:hasSkill(self) and data.card.trueName == "slash"
   end,
   on_cost = function(self, event, target, player, data)
     local room = player.room
@@ -791,7 +791,7 @@ local breastplateSkill = fk.CreateTriggerSkill{
   attached_equip = "sa__breastplate",
   events = {fk.DamageInflicted},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and data.damage >= player.hp
+    return target == player and player:hasSkill(self) and data.damage >= player.hp
   end,
   on_cost = function(self, event, target, player, data)
     return player.room:askForSkillInvoke(player, self.name, data, "#sa__breastplate-ask:::" .. data.damage .. ":" .. damage_nature_table[data.damageType])
@@ -834,7 +834,7 @@ local ironArmorSkill = fk.CreateTriggerSkill{
   frequency = Skill.Compulsory,
   events = {fk.TargetConfirming, fk.BeforeChainStateChange},
   can_trigger = function(self, event, target, player, data)
-    if target ~= player or not player:hasSkill(self.name) then return false end
+    if target ~= player or not player:hasSkill(self) then return false end
     if event == fk.TargetConfirming then return table.contains({"fire__slash", "burning_camps", "fire_attack"}, data.card.name) 
     else return H.isSmallKingdomPlayer(player) and not player.chained end
   end,
@@ -906,7 +906,7 @@ local jadeSealSkill = fk.CreateTriggerSkill{
   events = {fk.EventPhaseStart, fk.DrawNCards},
   frequency = Skill.Compulsory,
   can_trigger = function(self, event, target, player, data)
-    if target ~= player or not player:hasSkill(self.name) or not H.isBigKingdomPlayer(player) then return false end
+    if target ~= player or not player:hasSkill(self) or not H.isBigKingdomPlayer(player) then return false end
     return event == fk.DrawNCards or player.phase == Player.Play
   end,
   on_cost = function(self, event, target, player, data)
@@ -946,7 +946,7 @@ local jadeSealBig = H.CreateBigKingdomSkill{
   name = "#jade_seal_big",
   attached_equip = "jade_seal",
   fixed_func = function(self, player)
-    return player:hasSkill(self.name) and player.kingdom ~= "unknown"
+    return player:hasSkill(self) and player.kingdom ~= "unknown"
   end
 }
 jadeSealSkill:addRelatedSkill(jadeSealBig)

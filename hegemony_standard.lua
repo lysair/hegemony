@@ -86,7 +86,7 @@ local hs__luoyi = fk.CreateTriggerSkill{
   anim_type = "offensive",
   events = {fk.EventPhaseEnd},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and player.phase == Player.Draw
+    return target == player and player:hasSkill(self) and player.phase == Player.Draw
   end,
   on_use = function(self, event, target, player, data)
     player.room:askForDiscard(player, 1, 1, false, self.name, false, nil, "hs__luoyi-ask", false)
@@ -204,7 +204,7 @@ local luoshen = fk.CreateTriggerSkill{
   anim_type = "drawcard",
   events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and player.phase == Player.Start
+    return target == player and player:hasSkill(self) and player.phase == Player.Start
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
@@ -255,7 +255,7 @@ local hs__shensu = fk.CreateTriggerSkill{
   anim_type = "offensive",
   events = {fk.EventPhaseChanging},
   can_trigger = function(self, event, target, player, data)
-    if target == player and player:hasSkill(self.name) and not player:prohibitUse(Fk:cloneCard("slash")) then
+    if target == player and player:hasSkill(self) and not player:prohibitUse(Fk:cloneCard("slash")) then
       if (data.to == Player.Judge and not player.skipped_phases[Player.Draw]) or data.to == Player.Discard then
         return true
       elseif data.to == Player.Play then
@@ -368,7 +368,7 @@ local duanliang = fk.CreateViewAsSkill{
 local duanliang_targetmod = fk.CreateTargetModSkill{
   name = "#hs__duanliang_targetmod",
   distance_limit_func =  function(self, player, skill)
-    if player:hasSkill(self.name) and skill.name == "supply_shortage_skill" then
+    if player:hasSkill(self) and skill.name == "supply_shortage_skill" then
       return 99
     end
   end,
@@ -419,7 +419,7 @@ local jushou = fk.CreateTriggerSkill{
   anim_type = "defensive",
   events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and player.phase == Player.Finish
+    return target == player and player:hasSkill(self) and player.phase == Player.Finish
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
@@ -534,7 +534,7 @@ local fangzhu = fk.CreateTriggerSkill{
   anim_type = "masochism",
   events = {fk.Damaged},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name)
+    return target == player and player:hasSkill(self)
   end,
   on_cost = function(self, event, target, player, data)
     local to = player.room:askForChoosePlayers(player, table.map(player.room:getOtherPlayers(player), Util.IdMapper), 1, 1, "#hs__fangzhu-choose:::"..player:getLostHp(), self.name, true)
@@ -579,7 +579,7 @@ local xiaoguo = fk.CreateTriggerSkill{
   anim_type = "offensive",
   events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
-    return target ~= player and player:hasSkill(self.name) and target.phase == Player.Finish and not player:isKongcheng()
+    return target ~= player and player:hasSkill(self) and target.phase == Player.Finish and not player:isKongcheng()
   end,
   on_cost = function(self, event, target, player, data)
     local card = player.room:askForDiscard(player, 1, 1, true, self.name, true, ".|.|.|.|.|basic", "#hs__xiaoguo-invoke::"..target.id, true)
@@ -663,7 +663,7 @@ local paoxiaoTrigger = fk.CreateTriggerSkill{
   visible = false,
   frequency = Skill.Compulsory,
   can_trigger = function(self, event, target, player, data)
-    if target ~= player or not player:hasSkill(self.name) or data.card.trueName ~= "slash" then return false end
+    if target ~= player or not player:hasSkill(self) or data.card.trueName ~= "slash" then return false end
     local events = player.room.logic:getEventsOfScope(GameEvent.UseCard, 2, function(e) 
       local use = e.data[1]
       return use.from == player.id and use.card.trueName == "slash" 
@@ -678,7 +678,7 @@ local paoxiaoTrigger = fk.CreateTriggerSkill{
   can_refresh = function(self, event, target, player, data)
     if player ~= target then return false end -- 摆一下
     if event == fk.CardUsing then
-      return player:hasSkill(self.name) and data.card.trueName == "slash" and player:usedCardTimes("slash") > 1
+      return player:hasSkill(self) and data.card.trueName == "slash" and player:usedCardTimes("slash") > 1
     else
       if event == fk.CardUseFinished then
         return (data.extra_data or {}).hsPaoxiaoNullifiled
@@ -717,7 +717,7 @@ local paoxiao = fk.CreateTargetModSkill{
   name = "hs__paoxiao",
   frequency = Skill.Compulsory,
   bypass_times = function(self, player, skill, scope)
-    if player:hasSkill(self.name) and skill.trueName == "slash_skill"
+    if player:hasSkill(self) and skill.trueName == "slash_skill"
       and scope == Player.HistoryPhase then
       return true
     end
@@ -744,7 +744,7 @@ local guanxing = fk.CreateTriggerSkill{
   anim_type = "control",
   events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and
+    return target == player and player:hasSkill(self) and
       player.phase == Player.Start
   end,
   on_use = function(self, event, target, player, data)
@@ -759,7 +759,7 @@ local kongcheng = fk.CreateTriggerSkill{
   events = {fk.TargetConfirming, fk.BeforeCardsMove, fk.EventPhaseStart},
   frequency = Skill.Compulsory,
   can_trigger = function(self, event, target, player, data)
-    if not player:hasSkill(self.name) then return false end
+    if not player:hasSkill(self) then return false end
     if event == fk.EventPhaseStart then
       return player == target and player.phase == Player.Draw and #player:getPile("zither") > 0
     else
@@ -956,7 +956,7 @@ local tieqi = fk.CreateTriggerSkill{
   anim_type = "offensive",
   events = {fk.TargetSpecified},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and data.card.trueName == "slash"
+    return target == player and player:hasSkill(self) and data.card.trueName == "slash"
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
@@ -1047,7 +1047,7 @@ local liegong = fk.CreateTriggerSkill{
   anim_type = "offensive",
   events = {fk.TargetSpecified},
   can_trigger = function(self, event, target, player, data)
-    if not (target == player and player:hasSkill(self.name)) then return end
+    if not (target == player and player:hasSkill(self)) then return end
     local room = player.room
     local to = room:getPlayerById(data.to)
     local num = #to:getCardIds(Player.Hand)
@@ -1090,7 +1090,7 @@ local kuanggu = fk.CreateTriggerSkill{
   anim_type = "drawcard",
   events = {fk.Damage},
   can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self.name) and target == player and (data.extra_data or {}).kuanggucheck
+    return player:hasSkill(self) and target == player and (data.extra_data or {}).kuanggucheck
   end,
   on_trigger = function(self, event, target, player, data)
     self.cancel_cost = false
@@ -1193,7 +1193,7 @@ local shushen = fk.CreateTriggerSkill{
   anim_type = "support",
   events = {fk.HpRecover},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name)
+    return target == player and player:hasSkill(self)
   end,
   on_trigger = function(self, event, target, player, data)
     self.cancel_cost = false
@@ -1294,7 +1294,7 @@ local keji = fk.CreateTriggerSkill{
   events = {fk.EventPhaseStart},
   frequency = Skill.Compulsory,
   can_trigger = function(self, event, target, player, data)
-    if target ~= player or not player:hasSkill(self.name) or player.phase ~= Player.Discard then return false end 
+    if target ~= player or not player:hasSkill(self) or player.phase ~= Player.Discard then return false end 
     local cards, play_ids = {}, {}
     local logic = player.room.logic
     logic:getEventsOfScope(GameEvent.Phase, 1, function (e)
@@ -1330,7 +1330,7 @@ local mouduan = fk.CreateTriggerSkill{
   events = {fk.EventPhaseStart},
   anim_type = "control",
   can_trigger = function(self, event, target, player, data)
-    if target ~= player or not player:hasSkill(self.name) or player.phase ~= Player.Finish then return false end 
+    if target ~= player or not player:hasSkill(self) or player.phase ~= Player.Finish then return false end 
     local suits, types, play_ids = {}, {}, {}
     local logic = player.room.logic
     logic:getEventsOfScope(GameEvent.Phase, 1, function (e)
@@ -1462,9 +1462,9 @@ local qianxun = fk.CreateTriggerSkill{
   frequency = Skill.Compulsory,
   mute = true,
   can_trigger = function(self, event, target, player, data)
-    if not player:hasSkill(self.name) then return false end
+    if not player:hasSkill(self) then return false end
     if event == fk.TargetConfirming then
-      return target == player and player:hasSkill(self.name) and data.card.name == "snatch"
+      return target == player and player:hasSkill(self) and data.card.name == "snatch"
     elseif event == fk.BeforeCardsMove then
       local id = 0
       local source = player
@@ -1581,7 +1581,7 @@ local xiaoji = fk.CreateTriggerSkill{
   anim_type = "drawcard",
   events = {fk.AfterCardsMove},
   can_trigger = function(self, event, target, player, data)
-    if not player:hasSkill(self.name) then return end
+    if not player:hasSkill(self) then return end
     for _, move in ipairs(data) do
       if move.from == player.id then
         for _, info in ipairs(move.moveInfo) do
@@ -1623,7 +1623,7 @@ local tianxiang = fk.CreateTriggerSkill{
   anim_type = "defensive",
   events = {fk.DamageInflicted},
   can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self.name) and target == player
+    return player:hasSkill(self) and target == player
   end,
   on_cost = function(self, event, target, player, data)
     local tar, card =  player.room:askForChooseCardAndPlayers(player, table.map(player.room:getOtherPlayers(player), Util.IdMapper), 1, 1, ".|.|heart|hand", "#hs__tianxiang-choose", self.name, true)
@@ -1697,7 +1697,7 @@ local buqu = fk.CreateTriggerSkill{
   events = {fk.AskForPeaches},
   frequency = Skill.Compulsory,
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and player.dying
+    return target == player and player:hasSkill(self) and player.dying
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
@@ -1734,7 +1734,7 @@ local fenji = fk.CreateTriggerSkill{
   anim_type = "support",
   events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self.name) and target.phase == Player.Finish and target:isKongcheng()
+    return player:hasSkill(self) and target.phase == Player.Finish and target:isKongcheng()
   end,
   on_use = function(self, event, target, player, data)
     target:drawCards(2, self.name)
@@ -1987,7 +1987,7 @@ local weimu = fk.CreateTriggerSkill{
   events = { fk.TargetConfirming, fk.BeforeCardsMove },
   frequency = Skill.Compulsory,
   can_trigger = function(self, event, target, player, data)
-    if not player:hasSkill(self.name) then return false end
+    if not player:hasSkill(self) then return false end
     if event == fk.TargetConfirming then
       return target == player and data.card.color == Card.Black and data.card:isCommonTrick()
     elseif event == fk.BeforeCardsMove then
@@ -2076,7 +2076,7 @@ local jianchu = fk.CreateTriggerSkill{
   anim_type = "offensive",
   events = {fk.TargetSpecified},
   can_trigger = function(self, event, target, player, data)
-    if not (target == player and player:hasSkill(self.name)) then return end
+    if not (target == player and player:hasSkill(self)) then return end
     local to = player.room:getPlayerById(data.to)
     return data.card.trueName == "slash" and not to:isNude()
   end,
@@ -2239,7 +2239,7 @@ local mateng_mashu = fk.CreateDistanceSkill{
   name = "heg_mateng__mashu",
   frequency = Skill.Compulsory,
   correct_func = function(self, from, to)
-    if from:hasSkill(self.name) then
+    if from:hasSkill(self) then
       return -1
     end
   end,
@@ -2267,7 +2267,7 @@ local mingshi = fk.CreateTriggerSkill{
   events = {fk.DamageInflicted},
   frequency = Skill.Compulsory,
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and data.from and 
+    return target == player and player:hasSkill(self) and data.from and 
       (data.from.general == "anjiang" or data.from.deputyGeneral == "anjiang")
   end,
   on_use = function(self, event, target, player, data)
@@ -2279,7 +2279,7 @@ local lirang = fk.CreateTriggerSkill{
   anim_type = "support",
   events = {fk.AfterCardsMove},
   can_trigger = function(self, event, target, player, data)
-    if not player:hasSkill(self.name) then return false end
+    if not player:hasSkill(self) then return false end
     for _, move in ipairs(data) do
       if move.from == player.id and move.moveReason == fk.ReasonDiscard and move.toArea == Card.DiscardPile then
         for _, info in ipairs(move.moveInfo) do
@@ -2292,7 +2292,7 @@ local lirang = fk.CreateTriggerSkill{
   end,
   on_trigger = function(self, event, target, player, data)
     for _, move in ipairs(data) do
-      if not player:hasSkill(self.name) then break end
+      if not player:hasSkill(self) then break end
       if move.from == player.id and move.moveReason == fk.ReasonDiscard and move.toArea == Card.DiscardPile then
         local cids = {}
         for _, info in ipairs(move.moveInfo) do
@@ -2398,7 +2398,7 @@ local shuangren = fk.CreateTriggerSkill{
   anim_type = "offensive",
   events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self.name) and player.phase == Player.Play and not player:isKongcheng() and table.find(player.room:getOtherPlayers(player), function(p)
+    return player:hasSkill(self) and player.phase == Player.Play and not player:isKongcheng() and table.find(player.room:getOtherPlayers(player), function(p)
       return not p:isKongcheng()
     end)
   end,
@@ -2468,7 +2468,7 @@ local sijian = fk.CreateTriggerSkill{
   events = {fk.AfterCardsMove},
   anim_type = "control",
   can_trigger = function(self, event, target, player, data)
-    if not player:hasSkill(self.name) or not player:isKongcheng() then return end
+    if not player:hasSkill(self) or not player:isKongcheng() then return end
     local ret = false
     for _, move in ipairs(data) do
       if move.from == player.id then
@@ -2507,7 +2507,7 @@ local suishi = fk.CreateTriggerSkill{
   events = {fk.EnterDying, fk.Death},
   mute = true,
   can_trigger = function(self, event, target, player, data)
-    if not player:hasSkill(self.name) or target == player then return false end
+    if not player:hasSkill(self) or target == player then return false end
     if event == fk.EnterDying then
       return data.damage and data.damage.from and H.compareKingdomWith(data.damage.from, player)
     else
@@ -2566,13 +2566,13 @@ local huoshui = fk.CreateTriggerSkill{ -- FIXME
   can_trigger = function(self, event, target, player, data)
     if target ~= player then return false end
     if event == fk.TurnStart then
-      return player:hasSkill(self.name) 
+      return player:hasSkill(self) 
     end
     if player.phase == Player.NotActive then return false end
     if event == fk.EventAcquireSkill or event == fk.EventLoseSkill then
       return data == self 
     elseif event == fk.GeneralRevealed then
-      return data == "hs__zoushi" and player:hasSkill(self.name) 
+      return data == "hs__zoushi" and player:hasSkill(self) 
     else
       return player:hasSkill(self.name, true, true) 
     end
@@ -2783,7 +2783,7 @@ local yinyangfishMax = fk.CreateTriggerSkill{
   anim_type = "defensive",
   events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player.phase == Player.Discard and player:hasSkill(self.name) and player:getMark("@!yinyangfish") > 0 and player:getHandcardNum() > player:getMaxCards()
+    return target == player and player.phase == Player.Discard and player:hasSkill(self) and player:getMark("@!yinyangfish") > 0 and player:getHandcardNum() > player:getMaxCards()
   end,
   on_cost = function(self, event, target, player, data)
     return player.room:askForSkillInvoke(player, self.name, nil, "#yinyangfish_max-ask")
@@ -2943,7 +2943,7 @@ local wildMax = fk.CreateTriggerSkill{
   anim_type = "defensive",
   events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player.phase == Player.Discard and player:hasSkill(self.name) and player:getMark("@!wild") > 0 and player:getHandcardNum() > player:getMaxCards()
+    return target == player and player.phase == Player.Discard and player:hasSkill(self) and player:getMark("@!wild") > 0 and player:getHandcardNum() > player:getMaxCards()
   end,
   on_cost = function(self, event, target, player, data)
     return player.room:askForSkillInvoke(player, self.name, nil, "#wild_max-ask")
