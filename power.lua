@@ -701,12 +701,12 @@ local xuanhuoOther = fk.CreateActiveSkill{
   name = "ld__xuanhuo_other&",
   can_use = function(self, player)
     return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and table.find(Fk:currentRoom().alive_players, function(p)
-      return H.hasShownSkill(p, xuanhuo) and H.compareKingdomWith(p, player) and p ~= Self
+      return p:hasSkill(xuanhuo) and H.compareKingdomWith(p, player) and p ~= Self
     end)
   end,
   card_num = 1,
   card_filter = function(self, to_select, selected)
-    return #selected < 2 and Fk:currentRoom():getCardArea(to_select) == Player.Hand
+    return #selected < 1 and Fk:currentRoom():getCardArea(to_select) == Player.Hand
   end,
   target_num = 0,
   on_use = function(self, room, effect)

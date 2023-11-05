@@ -971,7 +971,7 @@ H.CreateClearSkill = function(skill, expand_pile)
     expand_pile = expand_pile,
     refresh_events = {fk.EventLoseSkill, fk.GeneralHidden},
     can_refresh = function(self, event, target, player, data)
-      -- if target ~= player then return false end
+      if target ~= player then return false end
       if #player:getPile(expand_pile) == 0 then return false end
       if event == fk.EventLoseSkill then
         return target == player and data == Fk.skills[skill_name]
