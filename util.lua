@@ -121,32 +121,6 @@ end
 
 -- 阵型
 
---- 获取下N家
----@param player Player
----@param n integer
----@param ignoreRemoved bool
----@return player ServerPlayer
-H.getNextNAlive = function(player, n, ignoreRemoved)
-  n = n or 1
-  local ret = player
-  for _ = 1, n do
-    ret = ret:getNextAlive(ignoreRemoved)
-  end
-  return ret
-end
-
---- 获取上N家
----@param player Player
----@param n integer
----@param ignoreRemoved bool
----@return player ServerPlayer
-H.getLastNAlive = function(player, n, ignoreRemoved)
-  n = n or 1
-  local room = Fk:currentRoom()
-  local index = ignoreRemoved and #room.alive_players or #table.filter(room.alive_players, function(p) return not p:isRemoved() end) - n
-  return H.getNextNAlive(player, index, ignoreRemoved)
-end
-
 --- 获取与角色成队列的其余角色
 ---@param player ServerPlayer
 ---@return players ServerPlayer[]|nil @ 队列中的角色
@@ -199,8 +173,8 @@ end
 H.inSiegeRelation = function(player, target, victim)
   if H.compareKingdomWith(player, victim) or not H.compareKingdomWith(player, target) or victim.kingdom == "unknown" then return false end
   if player == target then
-    return (player:getNextAlive() == victim and H.getNextNAlive(player, 2) ~= player and H.compareKingdomWith(H.getNextNAlive(player, 2), player))
-    or (victim:getNextAlive() == player and H.getLastNAlive(player, 2) ~= player and H.compareKingdomWith(H.getLastNAlive(player, 2), player))
+    return (player:getNextAlive() == victim and player:getNextAlive(false, 2) ~= player and H.compareKingdomWith(player:getNextAlive(false, 2), player))
+    or (victim:getNextAlive() == player and player:getLastAlive(false, 2) ~= player and H.compareKingdomWith(player:getLastAlive(false, 2), player))
   else
     return (player:getNextAlive() == victim and victim:getNextAlive() == target) -- P V T
     or (victim:getNextAlive() == player and target:getNextAlive() == victim) -- T V P
@@ -320,7 +294,7 @@ H.CreateArraySummonSkill = function(spec)
         end
       end
       while true do
-        p = H.getLastNAlive(p)
+        p = p:getLastAlive()
         if p == player then break end
         if not H.compareKingdomWith(p, player) then
           if p.kingdom == "unknown" then return true
@@ -328,8 +302,8 @@ H.CreateArraySummonSkill = function(spec)
         end
       end
     elseif pattern == "siege" then -- 围攻
-      if H.compareKingdomWith(player:getNextAlive(), player, true) and H.getNextNAlive(player, 2).kingdom == "unknown" then return true end
-      if H.compareKingdomWith(H.getLastNAlive(player), player, true) and H.getLastNAlive(player, 2).kingdom == "unknown" then return true end
+      if H.compareKingdomWith(player:getNextAlive(), player, true) and player:getNextAlive(false, 2).kingdom == "unknown" then return true end
+      if H.compareKingdomWith(player:getLastAlive(), player, true) and player:getLastAlive(false, 2).kingdom == "unknown" then return true end
     end
     return false
   end
@@ -348,7 +322,7 @@ H.CreateArraySummonSkill = function(spec)
         local p = player
         while true do
           if H.getKingdomPlayersNum(room, true)[kingdom] >= #room.players // 2 then break end
-          p = i == 1 and p:getNextAlive() or H.getLastNAlive(p)
+          p = i == 1 and p:getNextAlive() or p:getLastAlive()
           if p == player then break end
           if not H.compareKingdomWith(p, player) then
             if p.kingdom == "unknown" then
@@ -360,9 +334,9 @@ H.CreateArraySummonSkill = function(spec)
     elseif pattern == "siege" then -- 围攻
       local p
       if H.compareKingdomWith(player:getNextAlive(), player, true) then
-        p = H.getNextNAlive(player, 2)
-      elseif H.compareKingdomWith(H.getLastNAlive(player), player, true) and H.getKingdomPlayersNum(room, true)[kingdom] < #room.players // 2 then
-        p = H.getLastNAlive(player, 2)
+        p = player:getNextAlive(false, 2)
+      elseif H.compareKingdomWith(player:getLastAlive(), player, true) and H.getKingdomPlayersNum(room, true)[kingdom] < #room.players // 2 then
+        p = player:getLastAlive(false, 2)
       end
       if p.kingdom == "unknown" then
         ArraySummonAskForReveal(kingdom, p, curSkill.name)

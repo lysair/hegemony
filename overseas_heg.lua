@@ -18,7 +18,7 @@ Fk:loadTranslationTable{
 }
 
 local xiahoushang = General(extension, "os_heg__xiahoushang", "wei", 4)
-xiahoushang:addCompanions("caopi")
+xiahoushang:addCompanions("hs__caopi")
 local tanfeng = fk.CreateTriggerSkill{
   name = "os_heg__tanfeng",
   anim_type = "offensive",

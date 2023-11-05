@@ -1221,7 +1221,7 @@ local yingtu = fk.CreateTriggerSkill{
     local from = room:getPlayerById(self.cost_data)
     local card = room:askForCardChosen(player, from, "he", self.name)
     room:obtainCard(player.id, card, false, fk.ReasonPrey)
-    local to = player:getNextAlive() == from and H.getLastNAlive(player) or player:getNextAlive()
+    local to = player:getNextAlive() == from and player:getLastAlive() or player:getNextAlive()
     if not to or to == player then return false end
     local id = room:askForCard(player, 1, 1, true, self.name, false, ".", "#yingtu-choose::"..to.id)[1]
     room:obtainCard(to, id, false, fk.ReasonGive)

@@ -15,6 +15,8 @@ local momentum_cards = require "packages/hegemony/momentum"[2]
 local transformation_cards = require "packages/hegemony/transformation"[2]
 local power_cards = require "packages/hegemony/power"[2]
 
+Fk:loadTranslationTable(require 'packages/hegemony/i18n/en_US', 'en_US')
+
 return {
   hegemony_standard,
   formation,
