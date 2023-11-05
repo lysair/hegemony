@@ -851,7 +851,16 @@ end
 ---@param skill string | Skill
 ---@return bool
 H.hasShownSkill = function(player, skill, ignoreNullified, ignoreAlive)
-  return player:hasSkill(skill, ignoreNullified, ignoreAlive) and not player:isFakeSkill(skill)
+  if not player:hasSkill(skill, ignoreNullified, ignoreAlive) then return false end
+
+  -- 客户端不可使用isFakeSkill，进一步特判
+  if RoomInstance then
+    return not player:isFakeSkill(skill)
+  end
+  if ClientInstance then
+    if type(skill) == "string" then skill = Fk.skills[skill] end
+    return table.contains(player.player_skills, skill)
+  end
 end
 
 --- 技能是否为主将/副将武将牌上的技能，返回“m”“d”或nil
