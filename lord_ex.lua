@@ -531,7 +531,11 @@ local midao = fk.CreateTriggerSkill{
   events = {fk.GeneralRevealed, fk.AskForRetrial},
   can_trigger = function (self, event, target, player, data)
     if event == fk.GeneralRevealed then
-      return player:hasSkill(self) and data == "ld__zhanglu"
+      if player:hasSkill(self) then
+        for _, v in pairs(data) do
+          if v == "ld__zhanglu" then return true end
+        end
+      end
     elseif event == fk.AskForRetrial then
       return player:hasSkill(self) and #player:getPile("ld__midao_rice") > 0
     end
@@ -1393,7 +1397,11 @@ local jinxian = fk.CreateTriggerSkill{
   events = {fk.GeneralRevealed, fk.EventPhaseEnd},
   can_trigger = function(self, event, target, player, data)
     if event == fk.GeneralRevealed then
-      return player:hasSkill(self) and data == "ld__pengyang"
+      if player == target then --player:hasSkill(self) then
+        for _, v in pairs(data) do
+          if v == "ld__pengyang" then return true end
+        end
+      end
     else
       return player:hasSkill(self) and player:getMark("ld__jinxian-phase") > 0
     end

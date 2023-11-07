@@ -438,7 +438,11 @@ local jiahe = fk.CreateTriggerSkill{
   frequency = Skill.Compulsory,
   events = {fk.GeneralRevealed},
   can_trigger = function (self, event, target, player, data)
-    return target == player and player:hasSkill(self.name, true) and table.contains(Fk.generals[data]:getSkillNameList(), self.name)
+    if target == player and player:hasSkill(self.name, true) then
+      for _, v in pairs(data) do
+        if table.contains(Fk.generals[v]:getSkillNameList(), self.name) then return true end
+      end
+    end 
   end,
   on_use = function (self, event, target, player, data)
     player.room:handleAddLoseSkills(player, '#fenghuotu')

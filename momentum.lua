@@ -127,7 +127,16 @@ local guixiu = fk.CreateTriggerSkill{
   anim_type = "drawcard",
   events = {fk.GeneralRevealed, "fk.GeneralRemoved"},
   can_trigger = function(self, event, target, player, data)
-    return target == player and table.contains(Fk.generals[data]:getSkillNameList(), self.name) and ((event == "fk.GeneralRemoved" and player:isWounded()) or player:hasSkill(self))
+    if target ~= player then return false end
+    if event == "fk.GeneralRemoved" then
+      return player:isWounded() and table.contains(Fk.generals[data]:getSkillNameList(), self.name)
+    else
+      if player:hasSkill(self) then
+        for _, v in pairs(data) do
+          if table.contains(Fk.generals[v]:getSkillNameList(), self.name) then return true end
+        end
+      end
+    end
   end,
   on_cost = function(self, event, target, player, data)
     return player.room:askForSkillInvoke(player, self.name, nil, "#guixiu-" .. (event == fk.GeneralRevealed and "draw" or "recover"))
@@ -564,7 +573,11 @@ local hongfa = fk.CreateTriggerSkill{
   frequency = Skill.Compulsory,
   mute = true,
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name, true) and table.contains(Fk.generals[data]:getSkillNameList(), self.name)
+    if target == player and player:hasSkill(self.name, true) then
+      for _, v in pairs(data) do
+        if table.contains(Fk.generals[v]:getSkillNameList(), self.name) then return true end
+      end
+    end 
   end,
   on_use = function(self, event, target, player, data)
     player:broadcastSkillInvoke(self.name, 1)

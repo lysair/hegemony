@@ -581,52 +581,54 @@ local heg_rule = fk.CreateTriggerSkill{
         end
       end
     elseif event == fk.GeneralRevealed then
-      if string.find(data, "lord") then
-        local kingdom = player:getMark("__heg_kingdom")
-        for _, p in ipairs(room.players) do
-          if p:getMark("__heg_kingdom") == kingdom and p.kingdom == "wild" and p:getMark("__heg_wild") == 0 then
-            room:setPlayerProperty(p, "kingdom", kingdom)
-            p.role_shown = false
-            room:setPlayerProperty(p, "role", kingdom)
+      for _, general_name in pairs(data) do
+        if string.find(general_name, "lord") then
+          local kingdom = player:getMark("__heg_kingdom")
+          for _, p in ipairs(room.players) do
+            if p:getMark("__heg_kingdom") == kingdom and p.kingdom == "wild" and p:getMark("__heg_wild") == 0 then
+              room:setPlayerProperty(p, "kingdom", kingdom)
+              p.role_shown = false
+              room:setPlayerProperty(p, "role", kingdom)
+            end
           end
         end
-      end
-      if player.kingdom == "wild" then
-        wildChooseKingdom(room, player, data)
-      else
-        player.role = player.kingdom
-      end
-      for _, v in pairs(H.getKingdomPlayersNum(room)) do
-        if v == #room.alive_players then
-          local winner = Fk.game_modes[room.settings.gameMode]:getWinner(player)
-          for _, p in ipairs(room.alive_players) do
-            if p.general == "anjiang" then p:revealGeneral(false) end
-            if p.deputyGeneral == "anjiang" then p:revealGeneral(true) end
-          end
-          room:gameOver(winner)
-          return true
+        if player.kingdom == "wild" then
+          wildChooseKingdom(room, player, general_name)
         else
-          break
+          player.role = player.kingdom
         end
-      end
-      if not room:getTag("TheFirstToShowRewarded") then
-        room:setTag("TheFirstToShowRewarded", player.id)
-        H.addHegMark(room, player, "vanguard")
-      end
-      if player:getMark("hasShownMainGeneral") == 0 and player.general ~= "anjiang" then -- 首次亮主将
-        room:setPlayerMark(player, "hasShownMainGeneral", 1)
-        if Fk.generals[data].kingdom == "wild" then
-          H.addHegMark(room, player, "wild")
+        for _, v in pairs(H.getKingdomPlayersNum(room)) do
+          if v == #room.alive_players then
+            local winner = Fk.game_modes[room.settings.gameMode]:getWinner(player)
+            for _, p in ipairs(room.alive_players) do
+              if p.general == "anjiang" then p:revealGeneral(false) end
+              if p.deputyGeneral == "anjiang" then p:revealGeneral(true) end
+            end
+            room:gameOver(winner)
+            return true
+          else
+            break
+          end
         end
-      end
-      if player.general == "anjiang" or player.deputyGeneral == "anjiang" then return false end
-      if player:getMark("HalfMaxHpLeft") > 0 then
-        room:setPlayerMark(player, "HalfMaxHpLeft", 0)
-        H.addHegMark(room, player, "yinyangfish")
-      end
-      if player:getMark("CompanionEffect") > 0 then
-        room:setPlayerMark(player, "CompanionEffect", 0)
-        H.addHegMark(room, player, "companion")
+        if not room:getTag("TheFirstToShowRewarded") then
+          room:setTag("TheFirstToShowRewarded", player.id)
+          H.addHegMark(room, player, "vanguard")
+        end
+        if player:getMark("hasShownMainGeneral") == 0 and player.general ~= "anjiang" then -- 首次亮主将
+          room:setPlayerMark(player, "hasShownMainGeneral", 1)
+          if Fk.generals[general_name].kingdom == "wild" then
+            H.addHegMark(room, player, "wild")
+          end
+        end
+        if player.general == "anjiang" or player.deputyGeneral == "anjiang" then return false end
+        if player:getMark("HalfMaxHpLeft") > 0 then
+          room:setPlayerMark(player, "HalfMaxHpLeft", 0)
+          H.addHegMark(room, player, "yinyangfish")
+        end
+        if player:getMark("CompanionEffect") > 0 then
+          room:setPlayerMark(player, "CompanionEffect", 0)
+          H.addHegMark(room, player, "companion")
+        end
       end
     elseif event == fk.EventPhaseChanging then
       if data.to == Player.Play then

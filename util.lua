@@ -691,8 +691,7 @@ H.askForRevealGenerals = function(room, player, skill_name, main, deputy, all, c
   if choice == "revealMain" then player:revealGeneral(false)
   elseif choice == "revealDeputy" then player:revealGeneral(true)
   elseif choice == "revealAll" then
-    player:revealGeneral(false)
-    player:revealGeneral(true)
+    player:revealGenerals()
   elseif choice == "Cancel" then
     return false
   end

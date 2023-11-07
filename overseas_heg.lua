@@ -82,7 +82,7 @@ Fk:loadTranslationTable{
 }
 
 local liaohua = General(extension, "os_heg__liaohua", "shu", 4)
-liaohua:addCompanions("guanyu")
+liaohua:addCompanions("hs__guanyu")
 local dangxian = fk.CreateTriggerSkill{
   name = "os_heg__dangxian",
   anim_type = "special",
@@ -91,7 +91,11 @@ local dangxian = fk.CreateTriggerSkill{
   can_trigger = function(self, event, target, player, data)
     if target ~= player or not player:hasSkill(self) then return false end
     if event == fk.GeneralRevealed then
-      return table.contains(Fk.generals[data]:getSkillNameList(), self.name) and player:usedSkillTimes(self.name, Player.HistoryGame) == 0
+      if player:usedSkillTimes(self.name, Player.HistoryGame) == 0 then
+        for _, v in pairs(data) do
+          if table.contains(Fk.generals[v]:getSkillNameList(), self.name) then return true end
+        end
+      end
     elseif event == fk.EventPhaseChanging then
       return data.from == Player.NotActive
     end

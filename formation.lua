@@ -568,7 +568,11 @@ local shouyue = fk.CreateTriggerSkill{
   events = {fk.GeneralRevealed},
   frequency = Skill.Compulsory,
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name, true) and table.contains(Fk.generals[data]:getSkillNameList(), self.name)
+    if target == player and player:hasSkill(self, true) then
+      for _, v in pairs(data) do
+        if table.contains(Fk.generals[v]:getSkillNameList(), self.name) then return true end
+      end
+    end
   end,
 }
 

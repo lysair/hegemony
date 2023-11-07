@@ -2168,15 +2168,23 @@ local duanchang = fk.CreateTriggerSkill{
 
   refresh_events = {fk.GeneralRevealed},
   can_refresh = function(self, event, target, player, data)
-    return target == player and type(player:getMark("_hs__duanchang_anjiang")) == "table" and table.contains(player:getMark("_hs__duanchang_anjiang"), data)
+    if target == player and type(player:getMark("_hs__duanchang_anjiang")) == "table" then
+      for _, v in pairs(data) do
+        if table.contains(player:getMark("_hs__duanchang_anjiang"), v) then return true end
+      end
+    end
   end,
   on_refresh = function(self, event, target, player, data)
     local skills = {}
-    for _, skill_name in ipairs(Fk.generals[data]:getSkillNameList(true)) do
-      table.insertIfNeed(skills, skill_name)
-    end
-    if #skills > 0 then
-      player.room:handleAddLoseSkills(player, "-"..table.concat(skills, "|-"), nil, true, false)
+    for _, v in pairs(data) do
+      if table.contains(player:getMark("_hs__duanchang_anjiang"), v) then
+        for _, skill_name in ipairs(Fk.generals[v]:getSkillNameList(true)) do
+          table.insertIfNeed(skills, skill_name)
+        end
+        if #skills > 0 then
+          player.room:handleAddLoseSkills(player, "-"..table.concat(skills, "|-"), nil, true, false)
+        end
+      end
     end
   end,
 }
@@ -2572,9 +2580,13 @@ local huoshui = fk.CreateTriggerSkill{ -- FIXME
     if event == fk.EventAcquireSkill or event == fk.EventLoseSkill then
       return data == self 
     elseif event == fk.GeneralRevealed then
-      return data == "hs__zoushi" and player:hasSkill(self) 
+      if player:hasSkill(self) then
+        for _, v in pairs(data) do
+          if v == "hs__zoushi" then return true end
+        end
+      end
     else
-      return player:hasSkill(self.name, true, true) 
+      return player:hasSkill(self, true, true) 
     end
   end,
   on_use = function(self, event, target, player, data)

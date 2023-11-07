@@ -506,8 +506,10 @@ local zhiwei = fk.CreateTriggerSkill{
   mute = true,
   can_trigger = function(self, event, target, player, data)
     if player:hasSkill(self) then
-      if event == fk.GeneralRevealed and data == "ty_heg__luyusheng" then
-        return true
+      if event == fk.GeneralRevealed then
+        for _, v in pairs(data) do
+          if v == "ty_heg__luyusheng" then return true end
+        end
       elseif event == fk.AfterCardsMove then
         if player.phase ~= Player.Discard then return false end
         local zhiwei_id = player:getMark(self.name)
