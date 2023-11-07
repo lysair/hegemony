@@ -1411,6 +1411,7 @@ local jinxian = fk.CreateTriggerSkill{
     local room = player.room
     if event == fk.GeneralRevealed then
       local targets = table.map(table.filter(room.alive_players, function(p) return player:distanceTo(p) <= 1 end), Util.IdMapper)
+      room:sortPlayersByAction(targets)
       for _, id in ipairs(targets) do
         local p = room:getPlayerById(id)
         if not p.dead then
