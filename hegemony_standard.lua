@@ -767,6 +767,7 @@ local kongcheng = fk.CreateTriggerSkill{
       if event == fk.TargetConfirming then
         return target == player and (data.card.trueName == "slash" or data.card.name == "duel")
       elseif event == fk.BeforeCardsMove then
+        if player.phase ~= Player.NotActive then return false end
         for _, move in ipairs(data) do
           if move.moveReason == fk.ReasonGive and move.to == player.id and move.toArea == Card.PlayerHand then
             return true
