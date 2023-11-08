@@ -86,7 +86,7 @@ local ld__qice = fk.CreateActiveSkill{
     use.card:addSubcards(player:getCardIds(Player.Hand))
     use.card.skillName = self.name
     room:useCard(use)
-    if player:getMark("@@ld__qice_transform") == 0 and room:askForChoice(player, {"transform_deputy", "Cancel"}, self.name) ~= "Cancel" then
+    if not player.dead and player:getMark("@@ld__qice_transform") == 0 and room:askForChoice(player, {"transform_deputy", "Cancel"}, self.name) ~= "Cancel" then
       room:setPlayerMark(player, "@@ld__qice_transform", 1)
       H.transformGeneral(room, player)
     end

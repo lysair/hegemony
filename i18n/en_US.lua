@@ -7,7 +7,7 @@ return {
 
   ["hs__simayi"] = "Si Mayi",
 
-  ["hs__xiahoudun"] = "Xia Houdun",
+  ["hs__xiahoudun"] = "Xiahou Dun",
 
   ["hs__zhangliao"] = "Zhang Liao",
 
@@ -156,10 +156,10 @@ return {
   ["known_both_skill"] = "Known Both",
   -- [":known_both"] = "锦囊牌<br/><b>时机</b>：出牌阶段<br/><b>目标</b>：一名其他角色<br/><b>效果</b>：观看其一张暗置的武将牌或其手牌。",
   -- ["#known_both-choice"] = "知己知彼：选择对 %dest 执行的一项",
-  ["known_both_main"] = "观看主将",
-  ["known_both_deputy"] = "观看副将",
-  ["known_both_hand"] = "观看手牌",
-  ["#KnownBothGeneral"] = "观看武将",
+  ["known_both_main"] = "Examine main character",
+  ["known_both_deputy"] = "Examine deputy character",
+  ["known_both_hand"] = "Examine hand cards",
+  ["#KnownBothGeneral"] = "Examine character(s)",
 
   ["await_exhausted"] = "Await Exhausted",
 
@@ -172,8 +172,8 @@ return {
   ["sa__drowning"] = "Drowning",
   -- [":sa__drowning"] = "",
   ["sa__drowning_skill"] = "Drowning",
-  ["sa__drowning_throw"] = "弃置装备区里的所有牌",
-  ["sa__drowning_damage"] = "受到%src造成的1点雷电伤害",
+  ["sa__drowning_throw"] = "Discard all cards in your equip area",
+  ["sa__drowning_damage"] = "Take 1 Thunder DMG from %src",
 
   ["burning_camps"] = "Burning Camps",
 

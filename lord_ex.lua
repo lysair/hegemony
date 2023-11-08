@@ -1397,7 +1397,7 @@ local jinxian = fk.CreateTriggerSkill{
   events = {fk.GeneralRevealed, fk.EventPhaseEnd},
   can_trigger = function(self, event, target, player, data)
     if event == fk.GeneralRevealed then
-      if player == target then --player:hasSkill(self) then
+      if player == target and player:hasSkill(self) then
         for _, v in pairs(data) do
           if v == "ld__pengyang" then return true end
         end
