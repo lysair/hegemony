@@ -313,6 +313,7 @@ local hs__shensu = fk.CreateTriggerSkill{
       from = target.id,
       tos = table.map(self.cost_data[1], function(pid) return { pid } end),
       card = slash,
+      extraUse = true,
     })
     return true
   end,
@@ -324,7 +325,7 @@ Fk:loadTranslationTable{
 
   ["hs__shensu"] = "神速",
   [":hs__shensu"] = "①判定阶段开始前，你可跳过此阶段和摸牌阶段来视为使用普【杀】。②出牌阶段开始前，你可跳过此阶段并弃置一张装备牌来视为使用普【杀】。③弃牌阶段开始前，你可跳过此阶段并失去1点体力来视为使用普【杀】。",
- 
+
   ["#hs__shensu1-choose"] = "神速：你可以跳过判定阶段和摸牌阶段，视为使用一张无距离限制的【杀】",
   ["#hs__shensu2-choose"] = "神速：你可以跳过出牌阶段并弃置一张装备牌，视为使用一张无距离限制的【杀】",
   ["#hs__shensu3-choose"] = "神速：你可以跳过弃牌阶段并失去1点体力，视为使用一张无距离限制的【杀】",

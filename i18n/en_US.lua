@@ -127,7 +127,27 @@ return {
   ["hs__zoushi"] = "Zou Shi",
 
   ["ld"] = "H. Ld.",
+  -- Formation Package
   ["formation"] = "Formation",
+
+  ["ld__dengai"] = "Deng Ai",
+
+  ["ld__caohong"] = "Cao Hong",
+
+  ["ld__jiangwei"] = "Jiang Wei",
+
+  ["ld__jiangwanfeiyi"] = "Jiang Wan & Fei Yi",
+
+  ["ld__jiangqin"] = "Jiang Qin",
+
+  ["ld__xusheng"] = "Xu Sheng",
+
+  ["ld__yuji"] = "Yu Ji",
+
+  ["ld__hetaihou"] = "Emp. D. He", -- Empress Dowager He. is it good?
+
+  ["ld__lordliubei"] = "Lord Liu Bei",
+
   ["momentum"] = "Momentum",
   ["transformation"] = "Transformation",
   ["power"] = "Power",
@@ -244,4 +264,107 @@ return {
   ["momentum_cards"] = "Momentum Cards",
   ["transformation_cards"] = "Transformation Cards",
   ["power_cards"] = "Power Cards",
+
+  -- Game Concept
+  ["new_heg_mode"] = "New Hegemony",
+  -- [":new_heg_mode"] = heg_description,
+  ["#ChooseHegInitialKingdom"] = "Heg. Rule: Choose your initial nationality",
+  ["wild"] = "*Careerist*",
+  ["#heg_rule"] = "Heg. Rule",
+  ["revealMain"] = "Reveal main character",
+  ["revealDeputy"] = "Reveal deputy character",
+  ["revealAll"] = "Reveal all characters",
+  ["#EnterBattleRoyalMode"] = "<font color=\"red\"><b>Battle Royal Mode</b></font> begins, all <font color=\"#3598E8\"><b>Peach</b></font>es "..
+  "can only be used/played as <font color=\"#3598E8\"><b>Slash</b></font> or <font color=\"#3598E8\"><b>Jink</b></font>, cannot be used to recover HPs",
+  ["#EnterBattleRoyalModeLog"] = "<font color=\"#CC3131\"><b>Battle Royal Mode</b></font> begins",
+  ["#wild-choose"] = "Careerist founding state: choose your nationality!",
+  ["heg_qin"] = "Qin",
+  ["heg_qi"] = "Qi", 
+  ["heg_chu"] = "Chu", 
+  ["heg_yan"] = "Yan", 
+  ["heg_zhao"] = "Zhao", 
+  ["heg_hanr"] = "Hann", 
+  ["heg_jin"] = "Jin", 
+  ["heg_han"] = "Han", 
+  ["heg_xia"] = "Xia",
+  ["heg_shang"] = "Shang", 
+  ["heg_zhou"] = "Zhou", 
+  ["heg_liang"] = "Liang",
+  ["#WildChooseKingdom"] = "%from became %arg2 , chose %arg",
+  ["heg: besieged on all sides"] = "Besieged on all sides...",
+  ["@seat"] = "",
+
+  -- ["#HegInitialNotice"] = "提示：<b><font color='purple'>暴露野心</font></b><b>暂无</b><br><b><font color='red'>君刘备</font></b>、<b><font color='#8c92ac'>君张角</font></b>、<b><font color='forestgreen'>君孙权</font></b>、<b><font color='royalblue'>君曹操</font></b>均已登场！<br><b><font color='goldenrod'>君主</font></b>必须选择对应普通武将为<b>主将</b>，并在<b>首个回合亮将</b>才能变身",
+
+  ["#HegPrepareConvertLord"] = "Heg. Rule: Please choose character card(s) to reveal (ONLY this time convertible into lord)",
+  ["ConvertToLord"] = "<b>Convert into <font color='goldenrod'>%arg</font></b>！",
+
+  ["#hide_general-ask"] = "%arg: hide a character card of %dest",
+  ["#HideOtherGeneral"] = "%from hid %arg2, the %arg of %to",
+
+  ["#GeneralRemoved"] = "%from removed %arg %arg2",
+
+  ["command"] = "Command",
+--[[
+  ["#StartCommand"] = "%arg：请选择一项军令<br>%arg2；<br>%arg3",
+  ["command1"] = "军令一",
+  ["command2"] = "军令二",
+  ["command3"] = "军令三",
+  ["command4"] = "军令四",
+  ["command5"] = "军令五",
+  ["command6"] = "军令六",
+
+  [":command1"] = "军令一：对发起者指定的角色造成1点伤害",
+  [":command2"] = "军令二：摸一张牌，然后交给发起者两张牌",
+  [":command3"] = "军令三：失去1点体力",
+  [":command4"] = "军令四：本回合不能使用或打出手牌且所有非锁定技失效",
+  [":command5"] = "军令五：叠置，本回合不能回复体力",
+  [":command6"] = "军令六：选择一张手牌和一张装备区里的牌，弃置其余的牌",
+
+  ["start_command"] = "发起军令",
+  ["#CommandChoice"] = "%from 选择了 %arg",
+  -- ["chose"] = "chose",
+
+  ["do_command"] = "执行军令",
+  ["#commandselect_yes"] = "执行军令",
+  ["#commandselect_no"] = "不执行军令",
+
+  ["#command1-damage"] = "军令：请选择 %dest 伤害的目标",
+  ["#Command1Damage"] = "%from 选择对 %to 造成伤害",
+  ["#command2-give"] = "军令：请选择两张牌交给 %dest",
+  ["#command6-select"] = "军令：请选择要保留的一张手牌和一张装备",
+
+  ["vanguard_skill&"] = "先驱",
+  ["#vanguard_skill&"] = "你可弃一枚“先驱”，将手牌摸至4张，观看一名其他角色的一张暗置武将牌",
+  [":vanguard_skill&"] = "出牌阶段，你可弃一枚“先驱”，将手牌摸至4张，观看一名其他角色的一张暗置武将牌。",
+
+  ["yinyangfish_skill&"] = "阴阳鱼",
+  ["#yinyangfish_skill&"] = "你可弃一枚“阴阳鱼”，摸一张牌",
+  ["#yinyangfish_max&"] = "阴阳鱼",
+  ["#yinyangfish_max-ask"] = "你可弃一枚“阴阳鱼”，此回合手牌上限+2",
+  [":yinyangfish_skill&"] = "出牌阶段，你可弃一枚“阴阳鱼”，摸一张牌；弃牌阶段开始时，你可弃一枚“阴阳鱼”，此回合手牌上限+2。",
+
+  ["companion_skill&"] = "珠联[摸]",
+  ["#companion_skill&"] = "你可弃一枚“珠联璧合”，摸两张牌",
+  [":companion_skill&"] = "出牌阶段，你可弃一枚“珠联璧合”，摸两张牌。",
+  ["companion_peach&"] = "珠联[桃]",
+  [":companion_peach&"] = "你可弃一枚“珠联璧合”，视为使用【桃】。",
+  ["#companion_peach&"] = "你可弃一枚“珠联璧合”，视为使用【桃】",
+
+  ["wild_draw&"] = "野心[牌]",
+  [":wild_draw&"] = "你可弃一枚“野心家”，执行“先驱”、“阴阳鱼”或“珠联璧合”的效果。",
+  ["#wild_draw&"] = "你可将“野心家”当一种标记弃置并执行其效果（点击左侧选项框展开）",
+  ["wild_vanguard"] = "将手牌摸至4张，观看一张暗置武将牌",
+  ["wild_yinyangfish"] = "摸一张牌",
+  ["wild_companion"] = "摸两张牌",
+
+  ["wild_peach&"] = "野心[桃]",
+  [":wild_peach&"] = "你可弃一枚“野心家”，视为使用【桃】。",
+  ["#wild_peach&"] = "你可弃一枚“野心家”，视为使用【桃】",
+
+  ["#wild_max&"] = "野心家[手牌上限]",
+  ["#wild_max-ask"] = "你可弃一枚“野心家”，此回合手牌上限+2",
+--]]
+  ["battle_royal&"] = "Battle Royal",
+  -- [":battle_royal&"] = "非转化的【桃】只能当【杀】或【闪】使用或打出。",
 }
