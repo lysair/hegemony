@@ -413,6 +413,7 @@ local guishu = fk.CreateViewAsSkill{
   end,
   card_filter = function(self, to_select, selected)
     return #selected == 0 and Fk:getCardById(to_select).suit == Card.Spade
+      and Fk:currentRoom():getCardArea(to_select) == Player.Hand
   end,
   view_as = function(self, cards)
     if #cards ~= 1 or self.interaction.data == nil then return end
