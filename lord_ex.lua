@@ -1170,6 +1170,7 @@ local zhengjian = fk.CreateTriggerSkill{
   events = {fk.EventPhaseStart},
   can_trigger = function (self, event, target, player, data)
     if not (H.compareKingdomWith(player, target) and target.phase == Player.Finish and player:hasSkill(self)) then return false end
+    if target:getMark("@!companion") ~= 0 then return end
     local events = target.room.logic:getEventsOfScope(GameEvent.UseCard, 999, function(e) 
       local use = e.data[1]
       return use.from == target.id
@@ -1220,7 +1221,7 @@ sufei:addSkill(zhengjian)
 Fk:loadTranslationTable{
   ["ld__sufei"] = "苏飞",
   ["ld__zhengjian"] = "诤荐",
-  [":ld__zhengjian"] = "与你势力相同角色的结束阶段，若其本回合使用牌数不小于其体力上限，你可以令其获得一个“珠联璧合”标记，若如此做，其不能使用【桃】直至你成为【杀】的目标或其进入濒死状态。",
+  [":ld__zhengjian"] = "与你势力相同角色的结束阶段，若其本回合使用牌数不小于其体力上限且没有“珠联璧合”标记，你可以令其获得一个“珠联璧合”标记，若如此做，其不能使用【桃】直至你成为【杀】的目标或其进入濒死状态。",
 
   ["$ld__zhengjian1"] = "需持续投入，方有回报。",
   ["$ld__zhengjian2"] = "心无旁骛，断而敢行。",
