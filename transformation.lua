@@ -255,7 +255,7 @@ local diaodu = fk.CreateTriggerSkill{
   events = {fk.CardUsing, fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
     if not player:hasSkill(self) then return false end
-    if event == fk.CardUsing then return H.compareKingdomWith(target, player) and data.card.type == Card.TypeEquip
+    if event == fk.CardUsing then return H.compareKingdomWith(target, player) and data.card.type == Card.TypeEquip and (H.hasShownSkill(player, self) or player == target)
     else return target == player and target.phase == Player.Play and table.find(player.room.alive_players, function(p)
     return H.compareKingdomWith(p, player) and #p:getCardIds(Player.Equip) > 0 end) end
   end,
@@ -749,7 +749,7 @@ local lianzi = fk.CreateActiveSkill{
     return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and not player:isKongcheng()
   end,
   card_filter = function(self, to_select, selected)
-    return #selected == 0 and not Self:prohibitDiscard(to_select)
+    return #selected == 0 and not Self:prohibitDiscard(to_select) and Fk:currentRoom():getCardArea(to_select) == Player.Hand
   end,
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
@@ -937,7 +937,7 @@ Fk:loadTranslationTable{
   "不小于一，〖英姿〗；不小于二，〖好施〗；不小于三，〖涉猎〗；不小于四，〖度势〗；不小于五，可额外选择一项。<br>"..
   "③锁定技，当你受到【杀】或锦囊牌造成的伤害后，你将一张“烽火”置入弃牌堆。",
   ["lianzi"] = "敛资",
-  [":lianzi"] = "出牌阶段限一次，你可以弃置一张牌并展示牌堆顶X张牌（X为吴势力角色装备区内牌数与“烽火”数之和），你获得其中与你弃置的牌类型相同的牌，将其余牌置入弃牌堆，然后若你因此获得至少四张牌，你失去〖敛资〗，获得〖制衡〗。",
+  [":lianzi"] = "出牌阶段限一次，你可以弃置一张手牌并展示牌堆顶X张牌（X为吴势力角色装备区内牌数与“烽火”数之和），你获得其中与你弃置的牌类型相同的牌，将其余牌置入弃牌堆，然后若你因此获得至少四张牌，你失去〖敛资〗，获得〖制衡〗。",
 
   ["$jiahe"] = "嘉禾生，大吴兴！",
   ["$jubao1"] = "四海之宝，孤之所爱。",

@@ -14,18 +14,17 @@ local zhengbi = fk.CreateTriggerSkill{
   events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(self) and player.phase == Player.Play
-     and (table.find(player:getCardIds(Player.Hand), function(id) return Fk:getCardById(id).type == Card.TypeBasic end) or table.every(player.room:getOtherPlayers(player), function(p) return H.getGeneralsRevealedNum(p) == 0 end))
+      and (table.find(player:getCardIds(Player.Hand), function(id) return Fk:getCardById(id).type == Card.TypeBasic end) or table.every(player.room:getOtherPlayers(player), function(p) return H.getGeneralsRevealedNum(p) == 0 end))
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
     local choices = {}
     local basic_cards1 = table.filter(player:getCardIds(Player.Hand), function(id)
       return Fk:getCardById(id).type == Card.TypeBasic end)
-
     local targets1 = table.map(table.filter(room:getOtherPlayers(player), function(p)
-      return H.getGeneralsRevealedNum(p) > 0 end), function(p) return p.id end)
+      return H.getGeneralsRevealedNum(p) > 0 end), Util.IdMapper)
     local targets2 = table.map(table.filter(room:getOtherPlayers(player), function(p)
-      return H.getGeneralsRevealedNum(p) == 0 end), function(p) return p.id end)
+      return H.getGeneralsRevealedNum(p) == 0 end), Util.IdMapper)
     if #basic_cards1 > 0 and #targets1 > 0 then
       table.insert(choices, "zhengbi_giveCard")
     end
@@ -37,32 +36,28 @@ local zhengbi = fk.CreateTriggerSkill{
     if choice:startsWith("zhengbi_giveCard") then
       local tos, id = room:askForChooseCardAndPlayers(player, targets1, 1, 1, ".|.|.|.|.|basic", "#ld__zhengbi-give", self.name, true)
       room:obtainCard(tos[1], id, false, fk.ReasonGive)
-      local cards2 = room:getPlayerById(tos[1]):getCardIds("he")
-      if #cards2 == 1 then
-        room:moveCardTo(cards2, Player.Hand, player, fk.ReasonGive, self.name, nil, false, player.id)
-      else
-        local to = room:getPlayerById(tos[1])
+      local to = room:getPlayerById(tos[1])
+      if to.dead or to:isNude() then return end
+      local cards2 = to:getCardIds("he")
+      if #cards2 > 1 then
         local card_choices = {}
-        local basic_cards2 = table.filter(to:getCardIds(Player.Hand), function(id)
+        local num = #table.filter(to:getCardIds(Player.Hand), function(id)
           return Fk:getCardById(id).type == Card.TypeBasic end)
-        print(#basic_cards2)
-        if #basic_cards2 > 1 then
+        if num > 1 then
           table.insert(card_choices, "zhengbi__basic-back:"..player.id)
         end
-        if #player:getCardIds("he") - #basic_cards2 > 0 then
+        if #player:getCardIds("he") - num > 0 then
           table.insert(card_choices, "zhengbi__nobasic-back:"..player.id)
         end
         if #card_choices == 0 then return false end
         local card_choice = room:askForChoice(to, card_choices, self.name)
         if card_choice:startsWith("zhengbi__basic-back") then
           cards2 = room:askForCard(to, 2, 2, false, self.name, false, ".|.|.|.|.|basic", "#ld__zhengbi-give1:"..player.id)
-          room:moveCardTo(cards2, Player.Hand, player, fk.ReasonGive, self.name, nil, false, player.id)
         elseif card_choice:startsWith("zhengbi__nobasic-back") then
           cards2 = room:askForCard(to, 1, 1, false, self.name, false, ".|.|.|.|.|^basic", "#ld__zhengbi-give2:"..player.id)
-          room:moveCardTo(cards2, Player.Hand, player, fk.ReasonGive, self.name, nil, false, player.id)
         end
-        
       end
+      room:moveCardTo(cards2, Player.Hand, player, fk.ReasonGive, self.name, nil, false, player.id)
     elseif choice:startsWith("zhengbi_useCard") then
       local to = room:askForChoosePlayers(player, targets2, 1, 1, "#ld__zhengbi_choose", self.name, true)
       if #to then
@@ -1292,7 +1287,7 @@ local tuxiJA = fk.CreateTriggerSkill{
   on_cost = function(self, event, target, player, data)
     local room = player.room
     local targets = table.map(table.filter(room:getOtherPlayers(player), function(p)
-      return not p:isKongcheng() end), function (p) return p.id end)
+      return not p:isKongcheng() end), Util.IdMapper)
     local tos = room:askForChoosePlayers(player, targets, 1, data.n, "#jianan__ex__tuxi-choose:::"..data.n, self.name, true)
     if #tos > 0 then
       self.cost_data = tos
@@ -1336,7 +1331,7 @@ local qiaobianJA = fk.CreateTriggerSkill{
     player:skip(data.to)
     if data.to == Player.Draw then
       local targets = table.map(table.filter(room:getOtherPlayers(player), function(p)
-        return not p:isKongcheng() end), function(p) return p.id end)
+        return not p:isKongcheng() end), Util.IdMapper)
       if #targets > 0 then
         local n = math.min(2, #targets)
         local tos = room:askForChoosePlayers(player, targets, 1, n, "#jianan__qiaobian-choose:::"..n, self.name, true)

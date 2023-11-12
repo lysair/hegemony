@@ -195,7 +195,8 @@ local tongdu = fk.CreateTriggerSkill{
   anim_type = "control",
   events = {fk.EventPhaseStart},
   can_trigger = function (self, event, target, player, data)
-    if target.phase ~= Player.Finish or not H.compareKingdomWith(player, target) or not player:hasSkill(self) then return false end
+    if target.phase ~= Player.Finish or not H.compareKingdomWith(player, target) or not player:hasSkill(self)
+      or (target ~= player and not H.hasShownSkill(player, self)) then return false end
     local room = player.room
     local discard_ids = {}
     room.logic:getEventsOfScope(GameEvent.Phase, 1, function (e)
@@ -780,7 +781,7 @@ local wenji_record = fk.CreateTriggerSkill{
   events = {fk.CardUsing},
   can_trigger = function(self, event, target, player, data)
     return target == player and player:usedSkillTimes("ld__wenji", Player.HistoryTurn) > 0 and player:getMark("ld__wenji-turn") ~= 0 and
-      player:getMark("wenji-turn") == data.card.id
+      player:getMark("ld__wenji-turn") == data.card.id
   end,
   on_cost = Util.TrueFunc,
   on_use = function(self, event, target, player, data)
@@ -1178,9 +1179,7 @@ local zhengjian = fk.CreateTriggerSkill{
     return #events >= target.maxHp
   end,
   on_use = function (self, event, target, player, data)
-    player.room:addPlayerMark(target, "@!companion", 1)
-    target:addFakeSkill("companion_skill&")
-    target:addFakeSkill("companion_peach&")
+    H.addHegMark(player.room, target, "companion")
     player.room:setPlayerMark(target, "ld__zhengjian", 1)
   end,
 
@@ -1238,7 +1237,7 @@ local chenglue = fk.CreateTriggerSkill{
   can_trigger = function (self, event, target, player, data)
     if event == fk.TargetSpecified then
       return player:hasSkill(self) and H.compareKingdomWith(target, player) 
-       and #AimGroup:getAllTargets(data.tos) > 1 and data.firstTarget
+        and #AimGroup:getAllTargets(data.tos) > 1 and data.firstTarget
     elseif event == fk.Damaged then
       return player:hasSkill(self) and player == target and data.card and player:getMark("ld__chenglue_detect") > 0
     elseif event == fk.CardUseFinished then

@@ -1424,8 +1424,7 @@ local zhuihuan_discard = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     local room = player.room
     local from = data.from
-    local cards = from:getCardIds("h")
-    room:askForDiscard(from, 2, 2, false, self.name, true)
+    room:askForDiscard(from, 2, 2, false, self.name, false)
     handleZhuihuan(room, target, false, false)
   end,
 }
@@ -1542,7 +1541,7 @@ local lianyou = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     local room = player.room
     local targets = table.map(table.filter(room.alive_players,  function(p)
-      return not p:hasSkill(self) end), function(p) return p.id end)
+      return not p:hasSkill(self) end), Util.IdMapper)
     if #targets > 0 then
       local to = room:askForChoosePlayers(player, targets, 1, 1, "#ty_heg__lianyou-choose", self.name, true)
       if #to > 0 then
