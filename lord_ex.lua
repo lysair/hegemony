@@ -1106,9 +1106,11 @@ Fk:loadTranslationTable{
   [":ld__congcha"] = "准备阶段，你可以选择一名未确定势力的角色，若如此做，当其明置武将牌后，若其确定势力且势力与你：相同，你与其各摸两张牌；不同，其失去1点体力；摸牌阶段，若场上不存在未确定势力的角色，你可以多摸两张牌。",
 
   ["@@ld__congcha_delay"] = "聪察",
+  ["#ld__congcha_delay"] = "聪察",
+
   ["$ld__congca1"] = "窥一斑而知全豹。",
   ["$ld__congca2"] = "问一事则明其心。",
-
+  ["~ld__panjun"] = "密谋既泄，难处奸贼啊……",
 }
 
 local wenqin = General(extension, "ld__wenqin", "wei", 4)

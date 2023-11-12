@@ -495,11 +495,9 @@ Fk:loadTranslationTable{
 
 local hegNullificationSkill = fk.CreateActiveSkill{
   name = "heg__nullification_skill",
-  can_use = function()
-    return false
-  end,
+  can_use = Util.FalseFunc,
   on_use = function(self, room, use)
-    if use.responseToEvent.to and #TargetGroup:getRealTargets(use.responseToEvent.tos) > 1 then 
+    if use.responseToEvent and use.responseToEvent.to and #TargetGroup:getRealTargets(use.responseToEvent.tos) > 1 then 
       local from = room:getPlayerById(use.from)
       local to = room:getPlayerById(use.responseToEvent.to)
       if to.kingdom ~= "unknown" then
