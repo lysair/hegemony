@@ -180,8 +180,8 @@ local knownBothSkill = fk.CreateActiveSkill{
         card_data = {
           { "$Hand", target:getCardIds(Player.Hand) }
         }
-        --TODO:需要进一步突破，自由prompt，max==0（仅观看，不选牌）时的特化优化（新开函数）
-      }, self.name)
+        --TODO:需要进一步突破，max==0（仅观看，不选牌）时的特化优化（新开函数）
+      }, self.name, "#known_both-hand::"..target.id)
     else
       local general = choice == "known_both_main" and {target:getMark("__heg_general"), target.deputyGeneral, target.seat} or {target.general, target:getMark("__heg_deputy"), target.seat}
       room:askForCustomDialog(player, self.name, "packages/hegemony/qml/KnownBothBox.qml", general)
@@ -206,6 +206,7 @@ Fk:loadTranslationTable{
   ["known_both_deputy"] = "观看副将",
   ["known_both_hand"] = "观看手牌",
   ["#KnownBothGeneral"] = "观看武将",
+  ["#known_both-hand"] = "知己知彼：观看%dest的手牌",
 }
 
 local awaitExhaustedSkill = fk.CreateActiveSkill{

@@ -148,7 +148,27 @@ return {
 
   ["ld__lordliubei"] = "Lord Liu Bei",
 
+  --- Momentum Package
   ["momentum"] = "Momentum",
+
+  ["ld__lidian"] = "Li Dian",
+
+  ["ld__zangba"] = "Zang Ba",
+
+  ["ld__madai"] = "Mai Dai",
+
+  ["ld__mifuren"] = "Lady Mi",
+
+  ["ld__sunce"] = "Sun Ce",
+
+  ["ld__chenwudongxi"] = "Chen Wu & Dong Xi",
+
+  ["ld__dongzhuo"] = "Dong Zhuo",
+
+  ["ld__zhangren"] = "Zhang Ren",
+
+  ["ld__lordzhangjiao"] = "Lord Zhang Jiao",
+
   ["transformation"] = "Transformation",
   ["power"] = "Power",
   ["tenyear_heg"] = "Tenyear Heg.",
@@ -160,13 +180,13 @@ return {
 
   ["heg__nullification"] = "Nullification Heg.",
   ["heg__nullification_skill"] = "Nullification Heg.",
-  -- [":heg__nullification"] = "锦囊牌<br/><b>时机</b>：当锦囊牌对目标生效前<br/><b>目标</b>：此牌<br/><b>效果</b>：抵消此牌。你令对对应的角色为与其势力相同的角色的目标结算的此牌不是【无懈可击】的合法目标，当此牌对对应的角色为这些角色中的一名的目标生效前，抵消此牌。",
-  -- ["#hegN-ask"] = "无懈可击·国：请选择",
-  -- ["hegN-single"] = "对%dest使用",
-  -- ["hegN-all"] = "对%arg势力使用",
-  -- ["hegN_toast"] = " 【无懈可击·国】对 ",
-  -- ["#HegNullificationSingle"] = "%from 选择此 %card 对 %to 生效",
-  -- ["#HegNullificationAll"] = "%from 选择此 %card 对 %arg 势力生效",
+  [":heg__nullification"] = "Nullification Heg. (trick card)<br /><b>Phase</b>: When a trick card is about to take effect (including Nullification itself)<br /><b>Target</b>: This trick card<br /><b>Effect</b>: Counter the target and players from his force trick card.",
+  ["#hegN-ask"] = "Nullification Heg.: Please Choose",
+  ["hegN-single"] = "Use to %dest",
+  ["hegN-all"] = "Use to %arg",
+  ["hegN_toast"] = " Nullification Heg. to ",
+  ["#HegNullificationSingle"] = "%from chose %card effect to %to ",
+  ["#HegNullificationAll"] = "%from chose %card effect to %arg ",
 
   ["befriend_attacking"] = "Befriend Attacking",
   ["befriend_attacking_skill"] = "Befriend Attacking",
@@ -279,16 +299,16 @@ return {
   ["#EnterBattleRoyalModeLog"] = "<font color=\"#CC3131\"><b>Battle Royal Mode</b></font> begins",
   ["#wild-choose"] = "Careerist founding state: choose your nationality!",
   ["heg_qin"] = "Qin",
-  ["heg_qi"] = "Qi", 
-  ["heg_chu"] = "Chu", 
-  ["heg_yan"] = "Yan", 
-  ["heg_zhao"] = "Zhao", 
-  ["heg_hanr"] = "Hann", 
-  ["heg_jin"] = "Jin", 
-  ["heg_han"] = "Han", 
+  ["heg_qi"] = "Qi",
+  ["heg_chu"] = "Chu",
+  ["heg_yan"] = "Yan",
+  ["heg_zhao"] = "Zhao",
+  ["heg_hanr"] = "Hann",
+  ["heg_jin"] = "Jin",
+  ["heg_han"] = "Han",
   ["heg_xia"] = "Xia",
-  ["heg_shang"] = "Shang", 
-  ["heg_zhou"] = "Zhou", 
+  ["heg_shang"] = "Shang",
+  ["heg_zhou"] = "Zhou",
   ["heg_liang"] = "Liang",
   ["#WildChooseKingdom"] = "%from became %arg2 , chose %arg",
   ["heg: besieged on all sides"] = "Besieged on all sides...",
@@ -305,15 +325,15 @@ return {
   ["#GeneralRemoved"] = "%from removed %arg %arg2",
 
   ["command"] = "Command",
---[[
-  ["#StartCommand"] = "%arg：请选择一项军令<br>%arg2；<br>%arg3",
-  ["command1"] = "军令一",
-  ["command2"] = "军令二",
-  ["command3"] = "军令三",
-  ["command4"] = "军令四",
-  ["command5"] = "军令五",
-  ["command6"] = "军令六",
 
+  ["#StartCommand"] = "%arg: Please choose one command:  <br>%arg2 or <br>%arg3",
+  ["command1"] = "Command1",
+  ["command2"] = "Command2",
+  ["command3"] = "Command3",
+  ["command4"] = "Command4",
+  ["command5"] = "Command5",
+  ["command6"] = "Command6",
+--[[
   [":command1"] = "军令一：对发起者指定的角色造成1点伤害",
   [":command2"] = "军令二：摸一张牌，然后交给发起者两张牌",
   [":command3"] = "军令三：失去1点体力",
