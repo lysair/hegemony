@@ -811,7 +811,7 @@ local ld__zhiheng = fk.CreateActiveSkill{
         return Fk:getCardById(cid).name == "luminous_pearl" and not table.contains(selected, cid) and to_select ~= cid
       end)
     end
-    return #selected < Self.maxHp and not Self:prohibitDiscard(to_select)
+    return #selected < Self.maxHp and not Self:prohibitDiscard(Fk:getCardById(to_select))
   end,
   on_use = function(self, room, effect)
     local from = room:getPlayerById(effect.from)
