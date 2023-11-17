@@ -682,7 +682,7 @@ Fk:loadTranslationTable{
 
 local halberdTargets = fk.CreateActiveSkill{
   name = "#sa__halberd_targets",
-  can_use = function() return false end,
+  can_use = Util.FalseFunc,
   min_target_num = 1,
   card_num = 0,
   card_filter = Util.FalseFunc,
@@ -690,7 +690,12 @@ local halberdTargets = fk.CreateActiveSkill{
     local orig = table.simpleClone(Self:getMark("_sa__halberd"))
     if table.contains(orig, to_select) or to_select == Self.id then return false end
     local target = Fk:currentRoom():getPlayerById(to_select)
-    if target.kingdom == "unknown" or table.every(orig, function(id) return not H.compareKingdomWith(target, Fk:currentRoom():getPlayerById(id)) end) then
+    local room = Fk:currentRoom()
+    if target.kingdom == "unknown" or (table.every(orig, function(id)
+      return not H.compareKingdomWith(target, room:getPlayerById(id))
+    end) and table.every(selected, function(id)
+      return not H.compareKingdomWith(target, room:getPlayerById(id))
+    end)) then
       local card = Fk:cloneCard("slash")
       return not Self:isProhibited(target, card) and card.skill:modTargetFilter(to_select, orig, Self.id, card, true)
     end

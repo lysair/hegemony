@@ -1009,7 +1009,7 @@ local luminousPearlSkill = fk.CreateActiveSkill{
     return Self.maxHp
   end,
   card_filter = function(self, to_select, selected)
-    return #selected < Self.maxHp and not Self:prohibitDiscard(to_select) and Fk:getCardById(to_select).name ~= "luminous_pearl"
+    return #selected < Self.maxHp and not Self:prohibitDiscard(Fk:getCardById(to_select)) and Fk:getCardById(to_select).name ~= "luminous_pearl"
   end,
   on_use = function(self, room, effect)
     local from = room:getPlayerById(effect.from)

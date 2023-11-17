@@ -3,6 +3,7 @@ extension.extensionName = "hegemony"
 extension.game_modes_whitelist = { 'nos_heg_mode', 'new_heg_mode' }
 
 local H = require "packages/hegemony/util"
+local U = require "packages/utility/utility"
 
 Fk:loadTranslationTable{
   ["tenyear_heg"] = "国战-十周年专属",
@@ -144,9 +145,8 @@ local deshao = fk.CreateTriggerSkill{
   anim_type = "defensive",
   events = {fk.TargetSpecified},
   can_trigger = function (self, event, target, player, data)
-    return target ~= player and player:hasSkill(self) and #TargetGroup:getRealTargets(data.tos) == 1
-      and data.card.color == Card.Black
-      and TargetGroup:getRealTargets(data.tos)[1] == player.id and H.getGeneralsRevealedNum(player) >= H.getGeneralsRevealedNum(target) 
+    return target ~= player and player:hasSkill(self) and U.isOnlyTarget(player, data, event)
+      and data.card.color == Card.Black and H.getGeneralsRevealedNum(player) >= H.getGeneralsRevealedNum(target) 
       and player:usedSkillTimes(self.name, Player.HistoryTurn) < player.hp
   end,
   on_cost = function(self, event, target, player, data)
