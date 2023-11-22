@@ -806,9 +806,12 @@ local peace_spell_maxcards = fk.CreateMaxCardsSkill{
   name = "#peace_spell_maxcards",
   correct_func = function(self, player)
     if player:hasSkill("#peace_spell_skill") then
-      return player.kingdom == "unknown" and 1 or H.getKingdomPlayersNum(Fk:currentRoom())[H.getKingdom(player)] + #player:getPile("heavenly_army")
-    else
-      return 0
+      if player.kingdom == "unknown" then
+        return 1
+      else
+        local num = H.getKingdomPlayersNum(Fk:currentRoom())[H.getKingdom(player)]
+        return (num or 0) + #player:getPile("heavenly_army")
+      end
     end
   end,
 }

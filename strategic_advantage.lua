@@ -887,7 +887,7 @@ local woodenOxSkill = fk.CreateActiveSkill{
     return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
   end,
 }
-Fk:addSkill(woodenOxSkill)
+-- Fk:addSkill(woodenOxSkill)
 local woodenOx = fk.CreateTreasure{
   name = "wooden_ox",
   suit = Card.Diamond,
