@@ -805,7 +805,7 @@ H.transformGeneral = function(room, player, isMain)
     end, 3)
   else
     generals = room:findGenerals(function(g)
-      return Fk.generals[g].kingdom == player.kingdom
+      return Fk.generals[g].kingdom == Fk.generals[H.getActualGeneral(player, false)].kingdom
     end, 3)
   end
   local general = room:askForGeneral(player, generals, 1, true)
