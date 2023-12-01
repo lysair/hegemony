@@ -718,7 +718,7 @@ heg = fk.CreateGameMode{
 }
 
 Fk:loadTranslationTable{
-  ["new_heg_mode"] = "新国战",
+  ["new_heg_mode"] = "国战模式",
   [":new_heg_mode"] = heg_description,
   ["#ChooseHegInitialKingdom"] = "国战规则：选择你的初始势力",
   ["wild"] = "野心家",
