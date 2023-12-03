@@ -54,7 +54,7 @@ local zhengbi = fk.CreateTriggerSkill{
         if card_choice:startsWith("zhengbi__basic-back") then
           cards2 = room:askForCard(to, 2, 2, false, self.name, false, ".|.|.|.|.|basic", "#ld__zhengbi-give1:"..player.id)
         elseif card_choice:startsWith("zhengbi__nobasic-back") then
-          cards2 = room:askForCard(to, 1, 1, false, self.name, false, ".|.|.|.|.|^basic", "#ld__zhengbi-give2:"..player.id)
+          cards2 = room:askForCard(to, 1, 1, true, self.name, false, ".|.|.|.|.|^basic", "#ld__zhengbi-give2:"..player.id)
         end
       end
       room:moveCardTo(cards2, Player.Hand, player, fk.ReasonGive, self.name, nil, false, player.id)

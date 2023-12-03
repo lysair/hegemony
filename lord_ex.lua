@@ -171,7 +171,7 @@ local jujian = fk.CreateTriggerSkill{
 
 xushu:addSkill(qiance)
 xushu:addSkill(jujian)
-
+xushu:addCompanions("hs__wolong")
 Fk:loadTranslationTable{
   ["ld__xushu"] = "徐庶",
   ["ld__qiance"] = "谦策",
@@ -373,7 +373,7 @@ local aocai = fk.CreateTriggerSkill{
 }
 
 local aocai_use = fk.CreateViewAsSkill{
-  name = "#ld_aocai_use",
+  name = "ld_aocai_use",
   card_filter = function(self, to_select, selected)
     if #selected == 0 then
       local ids = Self:getMark("ld_aocai_cards")
@@ -388,7 +388,7 @@ local aocai_use = fk.CreateViewAsSkill{
 }
 
 local aocai_response = fk.CreateActiveSkill{
-  name = "#ld_aocai_response",
+  name = "ld_aocai_response",
   card_num = 1,
   target_num = 0,
   card_filter = function(self, to_select, selected)
@@ -475,12 +475,151 @@ Fk:loadTranslationTable{
   ["~ld__zhugeke"] = "重权震主，是我疏忽了……",
 }
 
--- 
--- local mengda = General(extension, "ld__mengda", "wei", 4)
--- mengda.subkingdom = "shu"
--- Fk:loadTranslationTable{
---   ["ld__mengda"] = "孟达",
--- }
+local huangzu = General(extension, "ld__huangzu", "qun", 4)
+local xishe = fk.CreateTriggerSkill{
+  name = "ld__xishe",
+  anim_type = "offensive",
+  events = {fk.EventPhaseStart},
+  can_trigger = function (self, event, target, player, data)
+    return player ~= target and player:hasSkill(self) and #player:getCardIds("e") > 0 and target.phase == Player.Start
+  end,
+  on_use = function (self, event, target, player, data)
+    local room = player.room
+    while true do
+      local card = room:askForCard(player, 1, 1, true, self.name, true, ".|.|.|equip", "#ld__xishe")
+      if not card then break end
+      room:moveCardTo(card, Card.DiscardPile, nil, fk.ReasonDiscard, self.name, nil, true, player.id)
+      local slash = Fk:cloneCard("slash")
+      slash.skillName = self.name
+      room:setPlayerMark(player, "ld__xishe_noresponse", 1)
+      room:useVirtualCard("slash", nil, player, table.map({target.id}, Util.Id2PlayerMapper), self.name, true)
+      room:setPlayerMark(player, "ld__xishe_noresponse", 0)
+      if #player:getCardIds("e") == 0 or player.dead or target.dead then
+        if target.dead and not player.dead then room:setPlayerMark(player, "ld__xishe_change-turn", 1) end
+        break
+      end
+    end
+  end,
+
+  refresh_events = {fk.TurnEnd},
+  can_refresh = function (self, event, target, player, data)
+    return player:getMark("ld__xishe_change-turn") > 0 and player:getMark("@@ld__xishe_change_before") == 0
+  end,
+  on_refresh = function (self, event, target, player, data)
+    if not player.room:askForChoice(player, {"transform_deputy", "Cancel"}, self.name) ~= "Cancel" then
+      player.room:setPlayerMark(player, "@@ld__xishe_change_before", 1)
+      H.transformGeneral(player.room, player)
+    end
+  end
+} 
+
+local xishe_noresponse = fk.CreateTriggerSkill{
+  name = "#ld__xishe_noresponse",
+  anim_type = "control",
+  events = {fk.TargetSpecified},
+  can_trigger = function (self, event, target, player, data)
+    return player:hasSkill("ld__xishe") and player:getMark("ld__xishe_noresponse") > 0
+  end,
+  on_cost = Util.TrueFunc,
+  on_use = function (self, event, target, player, data)
+    local room = player.room
+    local targets = table.filter(room.alive_players, function(p) return p.hp < player.hp end)
+    if #targets > 0 then
+      data.disresponsiveList = data.disresponsiveList or {}
+      for _, p in ipairs(targets) do
+        table.insertIfNeed(data.disresponsiveList, p.id)
+      end
+    end
+  end,
+}
+
+xishe:addRelatedSkill(xishe_noresponse)
+huangzu:addSkill(xishe)
+Fk:loadTranslationTable{
+  ["ld__huangzu"] = "黄祖",
+  ["ld__xishe"] = "袭射",
+  [":ld__xishe"] = "其他角色的准备阶段，你可以弃置一张装备区内的牌，视为对其使用一张【杀】（体力值小于你的角色不能响应），然后你可以重复此流程。此回合结束时，若你以此法杀死了一名角色，你可以变更副将。 <br>注：变更副将后暗置的效果尚在施工中，",
+  ["#ld__xishe_noresponse"] = "袭射",
+  ["#ld__xishe"] = "袭射：你可以弃置一张装备区内的牌，视为对当前回合角色使用一张【杀】",
+
+  ["@@ld__xishe_change_before"] = "袭射 已变更",
+  ["$ld__xishe1"] = "",
+  ["$ld__xishe2"] = "",
+  
+  ["~ld__huangzu"] = "",
+}
+
+local mengda = General(extension, "ld__mengda", "shu", 4)
+mengda.subkingdom = "wei"
+local qiuan = fk.CreateTriggerSkill{
+  name = "ld__qiuan",
+  anim_type = "masochism",
+  events = {fk.DamageInflicted},
+  can_trigger = function(self, event, target, player, data)
+    local room = target.room
+    return target == player and player:hasSkill(self.name) and data.card and #player:getPile("ld__mengda_letter") == 0 and 
+      table.every(data.card:isVirtual() and data.card.subcards or {data.card.id}, function(id) return room:getCardArea(id) == Card.Processing end)
+  end,
+  on_use = function(self, event, target, player, data)
+    player:addToPile("ld__mengda_letter", data.card, true, self.name)
+    if #player:getPile("ld__mengda_letter") > 0 then
+      return true
+    end
+  end,
+}
+local liangfan = fk.CreateTriggerSkill{
+  name = "ld__liangfan",
+  anim_type = "offensive",
+  frequency = Skill.Compulsory,
+  events = {fk.EventPhaseStart, fk.Damage},
+  can_trigger = function(self, event, target, player, data)
+    if event == fk.EventPhaseStart then
+      return player:hasSkill(self.name) and player.phase == Player.Start and #player:getPile("ld__mengda_letter") > 0
+    end
+    if event == fk.Damage then
+      return target == player and player:hasSkill(self.name) and data.card and data.card:getMark("@@ld__mengda_letter-turn") > 0
+       and not data.to:isNude() and not player.dead and not data.to.dead and data.to ~= player
+    end
+  end,
+  on_cost = Util.TrueFunc,
+  on_use = function (self, event, target, player, data)
+    local room = player.room
+    if event == fk.EventPhaseStart then
+      for _, id in ipairs(player:getPile("ld__mengda_letter")) do
+        room:setCardMark(Fk:getCardById(id), "@@ld__mengda_letter-turn", 1)
+      end
+      local dummy = Fk:cloneCard("dilu")
+      dummy:addSubcards(player:getPile("ld__mengda_letter"))
+      room:obtainCard(player, dummy, true)
+      room:loseHp(player, 1, self.name)
+    else
+      local card = room:askForCardChosen(player, data.to, "he", self.name)
+      room:obtainCard(player, card, false, fk.ReasonPrey)
+    end
+  end,
+}
+
+mengda:addSkill(qiuan)
+mengda:addSkill(liangfan)
+
+Fk:loadTranslationTable{
+  ["ld__mengda"] = "孟达",
+  ["ld__qiuan"] = "求安",
+  [":ld__qiuan"] = "当你受到伤害时，若没有“函”，你可以将造成此伤害的牌置于武将牌上，称为“函”，然后防止此伤害。",
+  ["ld__liangfan"] = "量反",
+  [":ld__liangfan"] = "锁定技，准备阶段，若你有“函”，你获得之，然后失去1点体力，当你于此回合内使用以此法获得的牌造成伤害后，你可以获得受伤角色的一张牌。",
+
+  ["ld__mengda_letter"] = "函",
+
+  ["@@ld__mengda_letter-turn"] = "函",
+
+  ["$ld__qiuan1"] = "",
+  ["$ld__qiuan2"] = "",
+  ["$ld__liangfan1"] = "",
+  ["$ld__liangfan2"] = "",
+
+  ["~ld__mengda"] = "",
+}
 
 local zhanglu = General(extension, "ld__zhanglu", "qun", 3)
 zhanglu.subkingdom = "wei"

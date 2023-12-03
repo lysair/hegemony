@@ -1595,7 +1595,11 @@ local xiaoji = fk.CreateTriggerSkill{
     end
   end,
   on_use = function(self, event, target, player, data)
-    player:drawCards(2, self.name)
+    if player.room.current == player then
+      player:drawCards(1, self.name)
+    else
+      player:drawCards(3, self.name)
+    end
   end,
 }
 
@@ -1605,17 +1609,59 @@ sunshangxiang:addSkill("jieyin")
 Fk:loadTranslationTable{
   ["hs__sunshangxiang"] = "孙尚香",
   ["hs__xiaoji"] = "枭姬",
-  [":hs__xiaoji"] = "当你失去装备区的装备牌后，你可以摸两张牌。",
+  [":hs__xiaoji"] = "当你失去装备区的装备牌后，若此时是你的回合内，你摸一张牌，否则你摸三张牌。",
 
   ["$hs__xiaoji1"] = "哼！",
   ["$hs__xiaoji2"] = "看我的厉害！",
   ["~hs__sunshangxiang"] = "不！还不可以死！",
 }
 
-local sunjian = General(extension, "hs__sunjian", "wu", 5)
-sunjian:addSkill("yinghun")
+local yinghun = fk.CreateTriggerSkill{
+  name = "hs__yinghun",
+  anim_type = "drawcard",
+  mute = true,
+  events = {fk.EventPhaseStart},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self) and player.phase == Player.Start
+  end,
+  on_cost = function(self, event, target, player, data)
+    local to = player.room:askForChoosePlayers(player, table.map(player.room:getOtherPlayers(player), function (p)
+      return p.id end), 1, 1, "#yinghun-choose:::"..player:getLostHp()..":"..player:getLostHp(), self.name, true)
+    if #to > 0 then
+      self.cost_data = to[1]
+      return true
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local to = room:getPlayerById(self.cost_data)
+    local n = player:getLostHp()
+    local choice = room:askForChoice(player, {"#yinghun-draw:::" .. n,  "#yinghun-discard:::" .. n}, self.name)
+    if choice:startsWith("#yinghun-draw") then
+      player:broadcastSkillInvoke(self.name, 1)
+      room:notifySkillInvoked(player, self.name, "support")
+      to:drawCards(n, self.name)
+      room:askForDiscard(to, 1, 1, true, self.name, false)
+    else
+      player:broadcastSkillInvoke(self.name, 2)
+      room:notifySkillInvoked(player, self.name, "control")
+      to:drawCards(1, self.name)
+      room:askForDiscard(to, n, n, true, self.name, false)
+    end
+  end,
+}
+local sunjian = General:new(extension, "hs__sunjian", "wu", 5)
+sunjian:addSkill(yinghun)
 Fk:loadTranslationTable{
   ['hs__sunjian'] = '孙坚',
+  ["hs__yinghun"] = "英魂",
+  [":hs__yinghun"] = "准备阶段，你可以选择一名其他角色并选择一项：1.令其摸X张牌，然后弃置一张牌；2.令其摸一张牌，然后弃置X张牌（X为你已损失的体力值）。",
+  ["#yinghun-choose"] = "英魂：你可以令一名其他角色：摸%arg张牌然后弃置一张牌，或摸一张牌然后弃置%arg2张牌",
+  ["#yinghun-draw"] = "摸%arg张牌，弃置1张牌",
+  ["#yinghun-discard"] = "摸1张牌，弃置%arg张牌",
+
+  ["$hs__yinghun1"] = "以吾魂魄，保佑吾儿之基业。",
+  ["$hs__yinghun2"] = "不诛此贼三族，则吾死不瞑目！",
   ["~hs__sunjian"] = "有埋伏！呃……啊！！",
 }
 
@@ -1625,7 +1671,7 @@ local tianxiang = fk.CreateTriggerSkill{
   anim_type = "defensive",
   events = {fk.DamageInflicted},
   can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self) and target == player
+    return player:hasSkill(self) and target == player and (player:getMark("hs__tianxiang_damage-turn") == 0 or player:getMark("hs__tianxiang_loseHp-turn") == 0)
   end,
   on_cost = function(self, event, target, player, data)
     local tar, card =  player.room:askForChooseCardAndPlayers(player, table.map(player.room:getOtherPlayers(player), Util.IdMapper), 1, 1, ".|.|heart|hand", "#hs__tianxiang-choose", self.name, true)
@@ -1641,18 +1687,22 @@ local tianxiang = fk.CreateTriggerSkill{
     room:throwCard(cid, self.name, player, player)
 
     if to.dead then return true end
-
-    local choices = {"hs__tianxiang_loseHp"}
-    if data.from and not data.from.dead then
+    local choices = {}
+    if player:getMark("hs__tianxiang_loseHp-turn") == 0 then
+      table.insert(choices, "hs__tianxiang_loseHp")
+    end
+    if data.from and not data.from.dead and player:getMark("hs__tianxiang_damage-turn") == 0 then
       table.insert(choices, "hs__tianxiang_damage")
     end
     local choice = room:askForChoice(player, choices, self.name, "#hs__tianxiang-choice::"..to.id)
     if choice == "hs__tianxiang_loseHp" then
+      room:setPlayerMark(player, "hs__tianxiang_loseHp-turn", 1)
       room:loseHp(to, 1, self.name)
       if not to.dead and (room:getCardArea(cid) == Card.DrawPile or room:getCardArea(cid) == Card.DiscardPile) then
         room:obtainCard(to, cid, true, fk.ReasonJustMove)
       end
     else
+      room:setPlayerMark(player, "hs__tianxiang_damage-turn", 1)
       room:damage{
         from = data.from,
         to = to,
@@ -1667,13 +1717,35 @@ local tianxiang = fk.CreateTriggerSkill{
   end,
 }
 
+local hongyan = fk.CreateFilterSkill{
+  name = "hs__hongyan",
+  card_filter = function(self, to_select, player)
+    return to_select.suit == Card.Spade and player:hasSkill(self)
+  end,
+  view_as = function(self, to_select)
+    return Fk:cloneCard(to_select.name, Card.Heart, to_select.number)
+  end,
+}
+
+local hongyan_maxcards = fk.CreateMaxCardsSkill{
+  name = "#hs__hongyan_maxcards",
+  correct_func = function (self, player)
+    if player:hasSkill("hs__hongyan") and #table.filter(player:getCardIds(Player.Equip), function (id) return Fk:getCardById(id).suit == Card.Heart or Fk:getCardById(id).suit == Card.Spade end) > 0  then
+      return 1
+    end
+  end,
+}
+
 xiaoqiao:addSkill(tianxiang)
-xiaoqiao:addSkill("hongyan")
+hongyan:addRelatedSkill(hongyan_maxcards)
+xiaoqiao:addSkill(hongyan)
 
 Fk:loadTranslationTable{
   ['hs__xiaoqiao'] = '小乔',
   ["hs__tianxiang"] = "天香",
-  [":hs__tianxiang"] = "当你受到伤害时，你可弃置一张<font color='red'>♥</font>手牌并选择一名其他角色。你防止此伤害，选择：1.令来源对其造成1点伤害，其摸X张牌（X为其已损失的体力值且至多为5）；2.令其失去1点体力，其获得牌堆或弃牌堆中你以此法弃置的牌。",
+  [":hs__tianxiang"] = "当你受到伤害时，你可弃置一张<font color='red'>♥</font>手牌并选择一名其他角色。你防止此伤害，选择本回合未选择过的一项：1.令来源对其造成1点伤害，其摸X张牌（X为其已损失的体力值且至多为5）；2.令其失去1点体力，其获得牌堆或弃牌堆中你以此法弃置的牌。",
+  ["hs__hongyan"] = "红颜",
+  [":hs__hongyan"] = "锁定技，你的黑桃牌视为红桃牌；若你的装备区内有红桃牌，你的手牌上限+1",
 
   ["#hs__tianxiang-choose"] = "天香：弃置一张<font color='red'>♥</font>手牌并选择一名其他角色",
   ["#hs__tianxiang-choice"] = "天香：选择一项令 %dest 执行",
