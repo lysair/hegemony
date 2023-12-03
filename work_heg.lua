@@ -219,7 +219,6 @@ local mingzheng = fk.CreateTriggerSkill{
   on_use = function (self, event, target, player, data)
     local room = player.room
     if event == fk.EventPhaseStart then
-      player:drawCards(10, self.name)
       local targets = table.map(table.filter(room.alive_players, function(p) return H.compareKingdomWith(p, player) and p ~= player end), Util.IdMapper)
       for _, pid in ipairs(targets) do
         local p = room:getPlayerById(pid)
