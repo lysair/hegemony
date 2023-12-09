@@ -87,7 +87,7 @@ local dangxian = fk.CreateTriggerSkill{
   name = "os_heg__dangxian",
   anim_type = "special",
   frequency = Skill.Compulsory,
-  events = {fk.EventPhaseChanging, fk.GeneralRevealed}, -- 先这样
+  events = {fk.TurnStart, fk.GeneralRevealed}, -- 先这样
   can_trigger = function(self, event, target, player, data)
     if target ~= player or not player:hasSkill(self) then return false end
     if event == fk.GeneralRevealed then
@@ -96,8 +96,8 @@ local dangxian = fk.CreateTriggerSkill{
           if table.contains(Fk.generals[v]:getSkillNameList(), self.name) then return true end
         end
       end
-    elseif event == fk.EventPhaseChanging then
-      return data.from == Player.NotActive
+    else
+      return true
     end
   end,
   on_use = function(self, event, target, player, data)

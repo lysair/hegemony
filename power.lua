@@ -250,26 +250,22 @@ local jianglue = fk.CreateActiveSkill{
         end
       end
     end
-    room:changeMaxHp(player, 1)
-    room:recover({
-      who = player,
-      num = 1,
-      recoverBy = player,
-      skillName = self.name
-    })
-    if #tos == 0 then return false end
+    table.insert(tos, 1, player.id)
     local num = 0
-    room:sortPlayersByAction(tos)
     for _, pid in ipairs(tos) do
       local p = room:getPlayerById(pid)
-      room:changeMaxHp(p, 1)
-      if room:recover({
-        who = p,
-        num = 1,
-        recoverBy = player,
-        skillName = self.name
-      }) then
-        num = num + 1
+      if not p.dead then
+        room:changeMaxHp(p, 1)
+        if not p.dead then
+          if room:recover({
+            who = p,
+            num = 1,
+            recoverBy = player,
+            skillName = self.name
+          }) then
+            num = num + 1
+          end
+        end
       end
     end
     if num > 0 then player:drawCards(num, self.name) end

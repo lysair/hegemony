@@ -504,7 +504,7 @@ end
 local imperialOrderRemoved = fk.CreateTriggerSkill{
   name = "imperial_order_removed",
   global = true,
-  refresh_events = {fk.BeforeCardsMove, fk.EventPhaseChanging},
+  refresh_events = {fk.BeforeCardsMove, fk.TurnEnd},
   can_refresh = function(self, event, target, player, data)
     if player.room:getTag("ImperialOrderHasRemoved") then return false end -- 先这样，只有一次！
     if event == fk.BeforeCardsMove then
@@ -519,7 +519,7 @@ local imperialOrderRemoved = fk.CreateTriggerSkill{
         end
       end
     else
-      return target == player and data.to == Player.NotActive and target.room:getTag("ImperialOrderRemoved")
+      return target == player and target.room:getTag("ImperialOrderRemoved")
     end
   end,
   on_refresh = function(self, event, target, player, data)

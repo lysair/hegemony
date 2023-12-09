@@ -53,7 +53,7 @@ H.compareExpectedKingdomWith = function(from, to, diff)
     return not diff
   end
   if from.kingdom == "unknown" then
-    local kingdom = Fk.generals[H.getActualGeneral(from, false)].kingdom -- 双势力？
+    local kingdom = from:getMark("__heg_kingdom")
     local i = 1
     -- 君主……
 
@@ -362,7 +362,7 @@ end
 --- 军令发起者抽取并选择军令
 ---@param from ServerPlayer @ 军令发起者
 ---@param skill_name string @ 技能名
----@return index integer @ 是否执行
+---@return integer @ 选择的军令序号
 H.startCommand = function(from, skill_name)
   local allcommands = {"command1", "command2", "command3", "command4", "command5", "command6"}
   local commands = table.random(allcommands, 2)

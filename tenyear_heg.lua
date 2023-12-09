@@ -187,11 +187,10 @@ local mingfa = fk.CreateActiveSkill{
 local mingfa_delay = fk.CreateTriggerSkill{
   name = "#ty_heg__mingfa_delay",
   anim_type = "offensive",
-  events = {fk.EventPhaseChanging},
+  events = {fk.TurnEnd},
   can_trigger = function (self, event, target, player, data)
-    if target.dead or data.to ~= Player.NotActive or player.dead then return false end
-    local mark = target:getMark("@@ty_heg__mingfa_delay")
-    return type(mark) == "table" and table.contains(mark, player.id)
+    if target.dead or player.dead then return false end
+    return table.contains(U.getMark(target, "@@ty_heg__mingfa_delay"), player.id)
   end,
   on_cost = Util.TrueFunc,
   on_use = function (self, event, target, player, data)

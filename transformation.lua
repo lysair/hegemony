@@ -396,10 +396,10 @@ local xiongsuan_delay = fk.CreateTriggerSkill{
   name = "#xiongsuanDelay",
   visible = false,
   frequency = Skill.Compulsory,
-  events = {fk.EventPhaseChanging},
+  events = {fk.TurnEnd},
   mute = true,
   can_trigger = function(self, event, target, player, data)
-    return target == player and data.to == Player.NotActive and type(player:getMark("_xiongsuan-turn")) == "table"
+    return target == player and type(player:getMark("_xiongsuan-turn")) == "table"
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
