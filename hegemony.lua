@@ -505,7 +505,7 @@ end
 local heg_rule = fk.CreateTriggerSkill{
   name = "#heg_rule",
   priority = 0.001,
-  events = {fk.TurnStart, fk.GameOverJudge, fk.Deathed, fk.GeneralRevealed, fk.EventPhaseChanging},
+  events = {fk.TurnStart, fk.GameOverJudge, fk.Deathed, fk.GeneralRevealed, fk.EventPhaseChanging, fk.GeneralShown},
   can_trigger = function(self, event, target, player, data)
     return target == player
   end,
@@ -582,43 +582,13 @@ local heg_rule = fk.CreateTriggerSkill{
       end
     elseif event == fk.GeneralRevealed then
       for _, general_name in pairs(data) do
-        if string.find(general_name, "lord") then
-          local kingdom = player:getMark("__heg_kingdom")
-          for _, p in ipairs(room.players) do
-            if p:getMark("__heg_kingdom") == kingdom and p.kingdom == "wild" and p:getMark("__heg_wild") == 0 then
-              room:setPlayerProperty(p, "kingdom", kingdom)
-              p.role_shown = false
-              room:setPlayerProperty(p, "role", kingdom)
-            end
-          end
-        end
-        if player.kingdom == "wild" then
-          wildChooseKingdom(room, player, general_name)
-        else
-          player.role = player.kingdom
-        end
-        for _, v in pairs(H.getKingdomPlayersNum(room)) do
-          if v == #room.alive_players then
-            local winner = Fk.game_modes[room.settings.gameMode]:getWinner(player)
-            for _, p in ipairs(room.alive_players) do
-              if p.general == "anjiang" then p:revealGeneral(false) end
-              if p.deputyGeneral == "anjiang" then p:revealGeneral(true) end
-            end
-            room:gameOver(winner)
-            return true
-          else
-            break
-          end
-        end
-        if not room:getTag("TheFirstToShowRewarded") then
-          room:setTag("TheFirstToShowRewarded", player.id)
+        if room:getTag("TheFirstToShowRewarded") == player.id and player:getMark("_vanguard_gained") == 0 then
+          room:setPlayerMark(player, "_vanguard_gained", 1)
           H.addHegMark(room, player, "vanguard")
         end
-        if player:getMark("hasShownMainGeneral") == 0 and player.general ~= "anjiang" then -- 首次亮主将
-          room:setPlayerMark(player, "hasShownMainGeneral", 1)
-          if Fk.generals[general_name].kingdom == "wild" then
-            H.addHegMark(room, player, "wild")
-          end
+        if player:getMark("hasShownMainGeneral") == 1 and Fk.generals[general_name].kingdom == "wild" and player:getMark("_wild_gained") == 0 then
+          room:setPlayerMark(player, "_wild_gained", 1)
+          H.addHegMark(room, player, "wild")
         end
         if player.general == "anjiang" or player.deputyGeneral == "anjiang" then return false end
         if player:getMark("HalfMaxHpLeft") > 0 then
@@ -635,6 +605,43 @@ local heg_rule = fk.CreateTriggerSkill{
         player:addFakeSkill("alliance&")
       elseif data.from == Player.Play then
         player:loseFakeSkill("alliance&")
+      end
+    elseif event == fk.GeneralShown then
+      if not room:getTag("TheFirstToShowRewarded") then
+        room:setTag("TheFirstToShowRewarded", player.id)
+      end
+      local general_name = data["m"] or data["d"]
+      if string.find(general_name, "lord") then
+        local kingdom = player:getMark("__heg_kingdom")
+        for _, p in ipairs(room.players) do
+          if p:getMark("__heg_kingdom") == kingdom and p.kingdom == "wild" and p:getMark("__heg_wild") == 0 then
+            room:setPlayerProperty(p, "kingdom", kingdom)
+            p.role_shown = false
+            room:setPlayerProperty(p, "role", kingdom)
+          end
+        end
+      end
+      if player.kingdom == "wild" then
+        wildChooseKingdom(room, player, general_name)
+      else
+        player.role = player.kingdom
+      end
+
+      for _, v in pairs(H.getKingdomPlayersNum(room)) do
+        if v == #room.alive_players then
+          local winner = Fk.game_modes[room.settings.gameMode]:getWinner(player)
+          for _, p in ipairs(room.alive_players) do
+            if p.general == "anjiang" then p:revealGeneral(false) end
+            if p.deputyGeneral == "anjiang" then p:revealGeneral(true) end
+          end
+          room:gameOver(winner)
+          return true
+        else
+          break
+        end
+      end
+      if player:getMark("hasShownMainGeneral") == 0 and data["m"] then -- 首次亮主将
+        room:setPlayerMark(player, "hasShownMainGeneral", 1)
       end
     end
   end,
