@@ -428,6 +428,7 @@ local qianhuan = fk.CreateTriggerSkill{
       room:notifySkillInvoked(player, "qianhuan", "defensive")
       room:moveCardTo(self.cost_data, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, self.name, "yuji_sorcery")
       AimGroup:cancelTarget(data, target.id)
+      return true
     elseif event == fk.BeforeCardsMove then
       room:moveCardTo(self.cost_data, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, self.name, "yuji_sorcery")
       local mirror_moves = {}

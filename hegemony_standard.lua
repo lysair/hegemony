@@ -781,6 +781,7 @@ local kongcheng = fk.CreateTriggerSkill{
     local room = player.room
     if event == fk.TargetConfirming then
       AimGroup:cancelTarget(data, player.id)
+      return true
     elseif event == fk.BeforeCardsMove then
       local mirror_moves = {}
       for _, move in ipairs(data) do
@@ -1498,6 +1499,7 @@ local qianxun = fk.CreateTriggerSkill{
     if event == fk.TargetConfirming then
       player:broadcastSkillInvoke(self.name, 2)
       AimGroup:cancelTarget(data, player.id)
+      return true
     elseif event == fk.BeforeCardsMove then
       player:broadcastSkillInvoke(self.name, 1)
       local source = player
@@ -2093,6 +2095,7 @@ local weimu = fk.CreateTriggerSkill{
     local room = player.room
     if event == fk.TargetConfirming then
       AimGroup:cancelTarget(data, player.id)
+      return true
     elseif event == fk.BeforeCardsMove then
       local source = player
       local mirror_moves = {}

@@ -850,9 +850,8 @@ local ironArmorSkill = fk.CreateTriggerSkill{
     room:notifySkillInvoked(player, self.name, "defensive")
     if event == fk.TargetConfirming then 
       AimGroup:cancelTarget(data, player.id)
-    else
-      return true
     end
+    return true
   end
 }
 Fk:addSkill(ironArmorSkill)
