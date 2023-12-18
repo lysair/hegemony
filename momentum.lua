@@ -175,11 +175,11 @@ local yongjue = fk.CreateTriggerSkill{
   anim_type = "support",
   events = {fk.CardUseFinished},
   can_trigger = function(self, event, target, player, data)
-    if player:hasSkill(self) and H.compareKingdomWith(target, player) and not target.dead and data.card.trueName == "slash" then
-      local events = target.room.logic:getEventsOfScope(GameEvent.UseCard, 1, function(e) 
+    if player:hasSkill(self) and H.compareKingdomWith(target, player) and not target.dead and data.card.trueName == "slash" and target.phase == Player.Play then
+      local events = target.room.logic:getEventsOfScope(GameEvent.UseCard, 1, function(e)
         local use = e.data[1]
         return use.from == target.id
-      end, Player.HistoryTurn)
+      end, Player.HistoryPhase)
       if #events == 1 and events[1].id == target.room.logic:getCurrentEvent().id then
         local cards = Card:getIdList(data.card)
         return #cards > 0 and table.every(cards, function(id) return target.room:getCardArea(id) == Card.Processing end)
@@ -205,7 +205,7 @@ Fk:loadTranslationTable{
   ["cunsi"] = "存嗣",
   [":cunsi"] = "出牌阶段，你可移除此武将牌并选择一名角色，其获得〖勇决〗。若其不为你，其摸两张牌。", -- canShowInPlay 若此武将牌处于明置状态
   ["yongjue"] = "勇决",
-  [":yongjue"] = "当与你势力相同的一名角色于出牌阶段内使用的【杀】结算结束后，若此【杀】为其于此阶段内使用过的第一张牌，（你令）其选择是否获得此【杀】对应的所有实体牌。",
+  [":yongjue"] = "当与你势力相同的一名角色于其出牌阶段内使用的【杀】结算结束后，若此【杀】为其于此阶段内使用过的第一张牌，（你令）其选择是否获得此【杀】对应的所有实体牌。",
 
   ["#guixiu-draw"] = "是否发动“闺秀”，摸两张牌",
   ["#guixiu-recover"] = "是否发动“闺秀”，回复1点体力",

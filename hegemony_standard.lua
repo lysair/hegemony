@@ -1038,9 +1038,6 @@ huangyueying:addCompanions("hs__wolong")
 
 Fk:loadTranslationTable{
   ["hs__huangyueying"] = "黄月英",
-  ["hs__jizhi"] = "集智",
-  [":hs__jizhi"] = "当你使用非转化的普通锦囊牌时，你可摸一张牌。",
-
   ["~hs__huangyueying"] = "亮……",
 }
 

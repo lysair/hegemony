@@ -66,6 +66,7 @@ end
 
 local drowningSkill = fk.CreateActiveSkill{
   name = "sa__drowning_skill",
+  prompt = "#sa__drowning_skill",
   target_num = 1,
   mod_target_filter = function(self, to_select, selected, user, card, distance_limited)
     return to_select ~= user and #Fk:currentRoom():getPlayerById(to_select):getCardIds(Player.Equip) > 0
@@ -116,10 +117,12 @@ Fk:loadTranslationTable{
   ["sa__drowning_skill"] = "水淹七军",
   ["sa__drowning_throw"] = "弃置装备区里的所有牌",
   ["sa__drowning_damage"] = "受到%src造成的1点雷电伤害",
+  ["#sa__drowning_skill"] = "选择一名装备区里有牌的其他角色，其选择：<br/>1.弃置装备区里的所有牌；2.受到你造成的1点雷电伤害",
 }
 
 local burningCampsSkill = fk.CreateActiveSkill{
   name = "burning_camps_skill",
+  prompt = "#burning_camps_skill",
   mod_target_filter = function(self, to_select, selected, user, card, distance_limited)
     local prev = Fk:currentRoom():getPlayerById(user):getNextAlive()
     return prev.id ~= user and (to_select == prev.id or H.inFormationRelation(prev, Fk:currentRoom():getPlayerById(to_select)))
@@ -181,10 +184,12 @@ extension:addCards{
 Fk:loadTranslationTable{
   ["burning_camps"] = "火烧连营",
   [":burning_camps"] = "锦囊牌<br/><b>时机</b>：出牌阶段<br/><b>目标</b>：你的下家和除其外与其处于同一队列的所有角色<br/><b>效果</b>：目标角色受到你造成的1点火焰伤害。<br /><font color='grey'>\"<b>队列</b>\"：连续相邻的若干名(至少2名)势力相同的角色处于同一队列",
+  ["#burning_camps_skill"] = "对你的下家和除其外与其处于同一队列的所有角色各造成1点火焰伤害",
 }
 
 local lureTigerSkill = fk.CreateActiveSkill{
   name = "lure_tiger_skill",
+  prompt = "#lure_tiger_skill",
   min_target_num = 1,
   max_target_num = 2,
   mod_target_filter = function(self, to_select, selected, user)
@@ -247,12 +252,14 @@ Fk:loadTranslationTable{
   ["lure_tiger"] = "调虎离山",
   [":lure_tiger"] = "锦囊牌<br/><b>时机</b>：出牌阶段<br/><b>目标</b>：一至两名其他角色<br/><b>效果</b>：目标角色于此回合内不计入距离和座次的计算，且不能使用牌，且不是牌的合法目标，且体力值不会改变。",
   ["#lure_tiger_prohibit"] = "调虎离山",
+  ["#lure_tiger_skill"] = "选择一至两名其他角色，这些角色于此回合内不计入距离和座次的计算，<br/>且不能使用牌，且不是牌的合法目标，且体力值不会改变",
 
   ["@@lure_tiger-turn"] = "调虎离山",
 }
 
 local fightTogetherSkill = fk.CreateActiveSkill{
   name = "fight_together_skill",
+  prompt = "#fight_together_skill",
   target_num = 1,
   mod_target_filter = function(self, to_select, selected, user, card, distance_limited)
     if table.every(Fk:currentRoom().alive_players, function(p) return not H.isBigKingdomPlayer(p) end) then return false end
@@ -316,10 +323,12 @@ extension:addCards{
 Fk:loadTranslationTable{
   ["fight_together"] = "勠力同心",
   [":fight_together"] = "锦囊牌<br/><b>时机</b>：出牌阶段<br/><b>目标</b>：所有大势力角色或所有小势力角色<br/><b>效果</b>：若目标角色：不处于连环状态，其横置；处于连环状态，其摸一张牌。<br/><font color='grey'>操作提示：选择一名角色，若其为大势力角色，则目标为所有大势力角色；若其为小势力角色，则目标为所有小势力角色</font>",
+  ["#fight_together_skill"] = "选择所有大势力角色或小势力角色，若这些角色处于/不处于连环状态，其摸一张牌/横置",
 }
 
 local allianceFeastSkill = fk.CreateActiveSkill{
   name = "alliance_feast_skill",
+  prompt = "#alliance_feast_skill",
   target_num = 1,
   mod_target_filter = function(self, to_select, selected, user, card, distance_limited)
     if to_select == user then return true end
@@ -405,11 +414,12 @@ Fk:loadTranslationTable{
   [":alliance_feast"] = "锦囊牌<br/><b>时机</b>：出牌阶段<br/><b>目标</b>：有势力的你和除你的势力外的一个势力的所有角色<br/><b>效果</b>：若目标角色：为你，你摸X张牌，回复（Y-X）点体力（Y为该势力的角色数）（X为你选择的自然数且不大于Y）；不为你，其摸一张牌，重置。<br/><font color='grey'>操作提示：选择一名与你势力不同的角色，目标为你和该势力的所有角色</font>",
   ["alliance_feast_skill"] = "联军盛宴",
   ["#AFrecover"] = "回复%arg点体力，摸%arg2张牌",
-  --["AF-ask"] = "联军盛宴：请选择回复体力的点数，剩余点数将用于摸牌",
+  ["#alliance_feast_skill"] = "选择除你的势力外的一个势力的所有角色，<br/>你选择X（不大于Y），摸X张牌，回复Y-X点体力（Y为该势力的角色数）；<br/>这些角色各摸一张牌，重置",
 }
 
 local threatenEmperorSkill = fk.CreateActiveSkill{
   name = "threaten_emperor_skill",
+  prompt = "#threaten_emperor_skill",
   mod_target_filter = function(self, to_select, selected, user, card, distance_limited)
     return to_select == Self.id and H.isBigKingdomPlayer(Self)
   end,
@@ -474,10 +484,11 @@ extension:addCards{
 ]]
 Fk:loadTranslationTable{
   ["threaten_emperor"] = "挟天子以令诸侯",
-  [":threaten_emperor"] = "锦囊牌<br/><b>时机</b>：出牌阶段<br/><b>目标</b>：为大势力角色的你<br/><b>效果</b>：目标角色结束出牌阶段，当前回合的弃牌阶段结束时，其可弃置一张手牌，然后其获得一个额外回合。",
+  [":threaten_emperor"] = "锦囊牌<br/><b>时机</b>：出牌阶段<br/><b>目标</b>：为大势力角色的你<br/><b>效果</b>：目标角色结束出牌阶段，此回合的弃牌阶段结束时，其可弃置一张手牌，然后其获得一个额外回合。",
   ["#TE-ask"] = "受到【挟天子以令诸侯】影响，你可以弃置一张手牌，获得一个额外回合",
   ["threaten_emperor_skill"] = "挟天子以令诸侯",
   ["#threaten_emperor_extra"] = "挟天子以令诸侯",
+  ["#threaten_emperor_skill"] = "你结束出牌阶段，此回合弃牌阶段结束时，你可弃置一张手牌，然后获得一个额外回合",
 }
 
 local function doImperialOrder(room, target)
@@ -573,6 +584,7 @@ local imperialOrderRemoved = fk.CreateTriggerSkill{
 Fk:addSkill(imperialOrderRemoved)
 local imperialOrderSkill = fk.CreateActiveSkill{
   name = "imperial_order_skill",
+  prompt = "#imperial_order_skill",
   mod_target_filter = function(self, to_select, selected, user, card, distance_limited)
     return Fk:currentRoom():getPlayerById(to_select).kingdom == "unknown"
   end,
@@ -616,6 +628,7 @@ Fk:loadTranslationTable{
   ["IO_discard"] = "弃置一张装备牌",
   ["IO_hplose"] = "失去1点体力",
   ["#ImperialOrderRemoved"] = "%card 被移出游戏",
+  ["#imperial_order_skill"] = "所有没有势力的角色选择：1.明置一张武将牌，摸一张牌；2.弃置一张装备牌；3.失去1点体力",
 }
 
 local bladeSkill = fk.CreateTriggerSkill{
@@ -731,7 +744,7 @@ local halberdSkill = fk.CreateTriggerSkill{
   events = {fk.AfterCardTargetDeclared},
   mute = true,
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self) and data.card.trueName == "slash"
+    return target == player and player:hasSkill(self) and data.card.trueName == "slash" and #U.getUseExtraTargets(player.room, data) > 0
   end,
   on_cost = function(self, event, target, player, data)
     local room = player.room

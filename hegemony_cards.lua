@@ -109,6 +109,7 @@ extension:addCards{
 
 local befriendAttackingSkill = fk.CreateActiveSkill{
   name = "befriend_attacking_skill",
+  prompt = "#befriend_attacking_skill",
   target_num = 1,
   mod_target_filter = function(self, to_select, selected, user)
     local target = Fk:currentRoom():getPlayerById(to_select)
@@ -144,10 +145,12 @@ Fk:loadTranslationTable{
   ["befriend_attacking_skill"] = "远交近攻",
   [":befriend_attacking"] = "锦囊牌<br/><b>时机</b>：出牌阶段<br/><b>目标</b>：有明置武将且势力与你不同的一名角色<br/><b>效果</b>：目标角色"..
   "摸一张牌，然后你摸三张牌。",
+  ["#befriend_attacking_skill"] = "选择势力与你不同的一名角色，其摸一张牌，你摸三张牌",
 }
 
 local knownBothSkill = fk.CreateActiveSkill{
   name = "known_both_skill",
+  prompt = "#known_both_skill",
   target_num = 1,
   mod_target_filter = function(self, to_select, selected, user)
     local target = Fk:currentRoom():getPlayerById(to_select)
@@ -200,17 +203,19 @@ extension:addCards{
 Fk:loadTranslationTable{
   ["known_both"] = "知己知彼",
   ["known_both_skill"] = "知己知彼",
-  [":known_both"] = "锦囊牌<br/><b>时机</b>：出牌阶段<br/><b>目标</b>：一名其他角色<br/><b>效果</b>：观看其一张暗置的武将牌或其手牌。",
+  [":known_both"] = "锦囊牌<br/><b>时机</b>：出牌阶段<br/><b>目标</b>：一名其他角色<br/><b>效果</b>：观看目标角色一张暗置的武将牌或其手牌。",
   ["#known_both-choice"] = "知己知彼：选择对 %dest 执行的一项",
   ["known_both_main"] = "观看主将",
   ["known_both_deputy"] = "观看副将",
   ["known_both_hand"] = "观看手牌",
   ["#KnownBothGeneral"] = "观看武将",
   ["#known_both-hand"] = "知己知彼：观看%dest的手牌",
+  ["#known_both_skill"] = "选择一名其他角色，观看其一张暗置的武将牌或其手牌",
 }
 
 local awaitExhaustedSkill = fk.CreateActiveSkill{
   name = "await_exhausted_skill",
+  prompt = "#await_exhausted_skill",
   mod_target_filter = function(self, to_select, selected, user)
     local target = Fk:currentRoom():getPlayerById(to_select)
     local player = Fk:currentRoom():getPlayerById(user)
@@ -260,6 +265,7 @@ Fk:loadTranslationTable{
   ["await_exhausted_skill"] = "以逸待劳",
   [":await_exhausted"] = "锦囊牌<br/><b>时机</b>：出牌阶段<br/><b>目标</b>：你和与你势力相同的角色<br/><b>效果</b>：每名目标角色各摸两张牌，"..
   "然后弃置两张牌。",
+  ["#await_exhausted_skill"] = "你和与你势力相同的角色各摸两张牌，然后弃置两张牌",
 }
 
 extension:addCards{

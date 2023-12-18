@@ -214,6 +214,18 @@ local heg_description = [==[
 
 ## 君主规则 （君临天下）
 
+武将牌上的势力名称为“君”的武将为该势力君主武将。（君刘备、君张角、君孙权、君曹操）
+
+玩家将对应的普通武将设置为主将，在第一个回合开始亮将时，可以亮出主将并替换为对应的君主武将。
+
+（其他时点亮将均不能变身君主武将。）
+
+君主武将牌不可被暗置。君主武将和所有本势力武将均有“珠联璧合”的关系。
+
+君主武将牌明置时，所有与此君主势力相同的野心家角色恢复其原有势力，在君主武将存活时，所有与君主势力相同的角色均不会成为野心家。
+
+某势力的君主死后，其他与君主势力相同的角色均成为野心家。
+
 ]==]
 
 local H = require "packages/hegemony/util"
@@ -526,7 +538,8 @@ local heg_rule = fk.CreateTriggerSkill{
           room:sendLog{
             type = "#EnterBattleRoyalModeLog",
           }
-          room:setTag("BattleRoyalMode", true) 
+          room:setTag("BattleRoyalMode", true)
+          room:setBanner("@@BattleRoyalMode", 1)
           for _, p in ipairs(room.alive_players) do
             -- p:addFakeSkill("battle_royal&")
             -- p:addFakeSkill("battle_royal_prohibit&")
@@ -737,6 +750,7 @@ Fk:loadTranslationTable{
   ["#EnterBattleRoyalMode"] = "游戏进入 <font color=\"red\"><b>鏖战模式</b></font>，所有的【<font color=\"#3598E8\"><b>桃</b></font>】"..
   "只能当【<font color=\"#3598E8\"><b>杀</b></font>】或【<font color=\"#3598E8\"><b>闪</b></font>】使用或打出，不能用于回复体力",
   ["#EnterBattleRoyalModeLog"] = "游戏进入 <font color=\"#CC3131\"><b>鏖战模式</b></font>",
+  ["@@BattleRoyalMode"] = "鏖战模式",
   ["#wild-choose"] = "野心家建国：选择你要成为的势力！",
   ["heg_qin"] = "秦",
   ["heg_qi"] = "齐", 

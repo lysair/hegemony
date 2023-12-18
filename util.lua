@@ -123,31 +123,27 @@ end
 
 --- 获取与角色成队列的其余角色
 ---@param player ServerPlayer
----@return players ServerPlayer[]|nil @ 队列中的角色
+---@return ServerPlayer[]? @ 队列中的角色
 H.getFormationRelation = function(player)
-  local players = Fk:currentRoom().alive_players
-  local index = table.indexOf(players, player) -- ABCDEF, C
-  local targets = table.slice(players, index)
-  table.insertTable(targets, table.slice(players, 1, index)) -- CDEFAB
-  players = {}
-  for i = 2, #targets do
-    local p = targets[i] ---@type ServerPlayer
-    if not p:isRemoved() then
-      if H.compareKingdomWith(p, player) then
-        table.insert(players, p)
-      else
-        break
-      end
+  local players = {}
+  local p = player
+  while true do
+    p = p:getNextAlive()
+    if p == player then break end
+    if H.compareKingdomWith(p, player) then
+      table.insert(players, p)
+    else
+      break
     end
   end
-  for i = #targets, 2, -1 do
-    local p = targets[i] ---@type ServerPlayer
-    if not p:isRemoved() then
-      if H.compareKingdomWith(p, player) then
-        table.insert(players, p)
-      else
-        break
-      end
+  p = player
+  while true do
+    p = p:getLastAlive()
+    if p == player then break end
+    if H.compareKingdomWith(p, player) then
+      table.insertIfNeed(players, p)
+    else
+      break
     end
   end
   return players
@@ -348,6 +344,7 @@ H.CreateArraySummonSkill = function(spec)
 end
 
 -- 军令
+
 --- 对某角色发起军令（抽取、选择、询问）
 ---@param from ServerPlayer @ 军令发起者
 ---@param to ServerPlayer @ 军令执行者
@@ -570,11 +567,11 @@ Fk:loadTranslationTable{
 -- 武将牌相关
 
 --- 是否珠联璧合
----@param general General
----@param deputy General
----@return boolean
+---@param general General 主将
+---@param deputy General 副将
+---@return bool
 H.isCompanionWith = function(general, deputy)
-  return table.contains(general.companions, deputy.name) or table.contains(deputy.companions, general.name) 
+  return table.contains(general.companions, deputy.name) or table.contains(deputy.companions, general.name) or (string.find(general.name, "lord") and (deputy.kingdom == general.kingdom or deputy.subkingdom == general.kingdom))
 end
 
 --- 判断有无主将/副将
@@ -614,7 +611,7 @@ H.lordGenerals = {}
 --- 获取所属势力的君主，可能为nil
 ---@param room Room
 ---@param player Player
----@return lord ServerPlayer | nil @ 君主
+---@return ServerPlayer? @ 君主
 H.getHegLord = function(room, player)
   local kingdom = player.kingdom
   return table.find(room.alive_players, function(p) return p.kingdom == kingdom and string.find(p.general, "lord") end)

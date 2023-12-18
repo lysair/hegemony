@@ -373,8 +373,6 @@ return {
   ["#hs__tieqi-discard"] = "铁骑：你需弃置一张%arg牌，否则不能使用【闪】抵消此【杀】。",
 
   ["hs__huangyueying"] = "Huang Yueying",
-  ["hs__jizhi"] = "集智",
-  [":hs__jizhi"] = "当你使用非转化的普通锦囊牌时，你可摸一张牌。",
 
   ["hs__huangzhong"] = "Huang Zhong",
   ["hs__liegong"] = "烈弓",
@@ -711,6 +709,7 @@ return {
   ["#EnterBattleRoyalMode"] = "<font color=\"red\"><b>Battle Royal Mode</b></font> begins, all <font color=\"#3598E8\"><b>Peach</b></font>es "..
   "can only be used/played as <font color=\"#3598E8\"><b>Slash</b></font> or <font color=\"#3598E8\"><b>Jink</b></font>, cannot be used to recover HPs",
   ["#EnterBattleRoyalModeLog"] = "<font color=\"#CC3131\"><b>Battle Royal Mode</b></font> begins",
+  ["@@BattleRoyalMode"] = "Battle Royal Mode",
   ["#wild-choose"] = "Careerist founding state: choose your nationality!",
   ["heg_qin"] = "Qin",
   ["heg_qi"] = "Qi",
