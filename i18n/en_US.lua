@@ -755,8 +755,10 @@ return {
   [":command6"] = "军令六：选择一张手牌和一张装备区里的牌，弃置其余的牌",
 
   ["start_command"] = "发起军令",
+  ["#AskCommandTo"] = "%from 发动了 “%arg”，对 %to 发起了 <font color='#0598BC'><b>军令",
   ["#CommandChoice"] = "%from 选择了 %arg",
   -- ["chose"] = "chose",
+  -- ["to"] = "to",
 
   ["do_command"] = "执行军令",
   ["#commandselect_yes"] = "执行军令",
@@ -770,12 +772,14 @@ return {
   ["vanguard_skill&"] = "先驱",
   ["#vanguard_skill&"] = "你可弃一枚“先驱”，将手牌摸至4张，观看一名其他角色的一张暗置武将牌",
   [":vanguard_skill&"] = "出牌阶段，你可弃一枚“先驱”，将手牌摸至4张，观看一名其他角色的一张暗置武将牌。",
+  ["vanguard"] = "先驱",
 
   ["yinyangfish_skill&"] = "阴阳鱼",
   ["#yinyangfish_skill&"] = "你可弃一枚“阴阳鱼”，摸一张牌",
   ["#yinyangfish_max&"] = "阴阳鱼",
   ["#yinyangfish_max-ask"] = "你可弃一枚“阴阳鱼”，此回合手牌上限+2",
   [":yinyangfish_skill&"] = "出牌阶段，你可弃一枚“阴阳鱼”，摸一张牌；弃牌阶段开始时，你可弃一枚“阴阳鱼”，此回合手牌上限+2。",
+  ["yinyangfish"] = "阴阳鱼",
 
   ["companion_skill&"] = "珠联[摸]",
   ["#companion_skill&"] = "你可弃一枚“珠联璧合”，摸两张牌",
@@ -783,6 +787,7 @@ return {
   ["companion_peach&"] = "珠联[桃]",
   [":companion_peach&"] = "你可弃一枚“珠联璧合”，视为使用【桃】。",
   ["#companion_peach&"] = "你可弃一枚“珠联璧合”，视为使用【桃】",
+  ["companion"] = "珠联璧合",
 
   ["wild_draw&"] = "野心[牌]",
   [":wild_draw&"] = "你可弃一枚“野心家”，执行“先驱”、“阴阳鱼”或“珠联璧合”的效果。",

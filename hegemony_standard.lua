@@ -2839,6 +2839,7 @@ Fk:loadTranslationTable{
   ["vanguard_skill&"] = "先驱",
   ["#vanguard_skill&"] = "你可弃一枚“先驱”，将手牌摸至4张，观看一名其他角色的一张暗置武将牌",
   [":vanguard_skill&"] = "出牌阶段，你可弃一枚“先驱”，将手牌摸至4张，观看一名其他角色的一张暗置武将牌。",
+  ["vanguard"] = "先驱",
 }
 
 local removeYinyangfish = function(room, player)
@@ -2888,6 +2889,7 @@ Fk:loadTranslationTable{
   ["#yinyangfish_max&"] = "阴阳鱼",
   ["#yinyangfish_max-ask"] = "你可弃一枚“阴阳鱼”，此回合手牌上限+2",
   [":yinyangfish_skill&"] = "出牌阶段，你可弃一枚“阴阳鱼”，摸一张牌；弃牌阶段开始时，你可弃一枚“阴阳鱼”，此回合手牌上限+2。",
+  ["yinyangfish"] = "阴阳鱼",
 }
 
 local removeCompanion = function(room, player)
@@ -2944,6 +2946,7 @@ Fk:loadTranslationTable{
   ["companion_peach&"] = "珠联[桃]",
   [":companion_peach&"] = "你可弃一枚“珠联璧合”，视为使用【桃】。",
   ["#companion_peach&"] = "你可弃一枚“珠联璧合”，视为使用【桃】",
+  ["companion"] = "珠联璧合",
 }
 
 -- 野心家标记

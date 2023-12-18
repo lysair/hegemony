@@ -113,7 +113,7 @@ end
 
 --- 判断角色是否为小势力角色
 ---@param player ServerPlayer
----@return boolean
+---@return bool
 H.isSmallKingdomPlayer = function(player)
   if H.isBigKingdomPlayer(player) then return false end
   return table.find(Fk:currentRoom().alive_players, function(p) return H.isBigKingdomPlayer(p) end)
@@ -351,6 +351,24 @@ end
 ---@param skill_name string @ 技能名
 ---@return boolean @ 是否执行
 H.askCommandTo = function(from, to, skill_name)
+  local room = from.room
+  room:sendLog{
+    type = "#AskCommandTo",
+    from = from.id,
+    to = {to.id},
+    arg = skill_name,
+  }
+  local ret = "<b><font color='#0C8F0C'>" .. Fk:translate(from.general)
+  if from.deputyGeneral and from.deputyGeneral ~= "" then
+    ret = ret .. "/" .. Fk:translate(from.deputyGeneral)
+  end
+  ret = ret .. "</b></font> " .. Fk:translate("to") .. " <b><font color='#CC3131'>" .. Fk:translate(to.general)
+  if to.deputyGeneral and to.deputyGeneral ~= "" then
+    ret = ret .. "/" .. Fk:translate(to.deputyGeneral)
+  end
+  ret = ret .. "</b></font> " .. " <b>" .. Fk:translate("start_command") .. "</b>"
+  room:doBroadcastNotify("ShowToast", ret)
+  room:doBroadcastNotify("ServerMessage", ret)
   local index = H.startCommand(from, skill_name)
   local invoke = H.doCommand(to, skill_name, index, from)
   return invoke
@@ -372,7 +390,13 @@ H.startCommand = function(from, skill_name)
     from = from.id,
     arg = ":"+choice,
   }
-  room:doBroadcastNotify("ShowToast", Fk:translate(from.general) .. "/" .. Fk:translate(from.deputyGeneral) .. Fk:translate("chose") .. Fk:translate(":"+choice))
+  local ret = "<b><font color='#0C8F0C'>" .. Fk:translate(from.general)
+  if from.deputyGeneral and from.deputyGeneral ~= "" then
+    ret = ret .. "/" .. Fk:translate(from.deputyGeneral)
+  end
+  ret = ret .. "</b></font> " .. Fk:translate("chose") .. " <b>" .. Fk:translate(":"+choice) .. "</b>"
+  room:doBroadcastNotify("ShowToast", ret)
+  room:doBroadcastNotify("ServerMessage", ret)
 
   return table.indexOf(allcommands, choice)
 end
@@ -396,7 +420,13 @@ H.doCommand = function(to, skill_name, index, from)
     from = to.id,
     arg = result,
   }
-  room:doBroadcastNotify("ShowToast", Fk:translate(to.general) .. "/" .. Fk:translate(to.deputyGeneral) .. Fk:translate("chose") .. Fk:translate(result))
+  local ret = "<b><font color='#CC3131'>" .. Fk:translate(to.general)
+  if to.deputyGeneral and to.deputyGeneral ~= "" then
+    ret = ret .. "/" .. Fk:translate(to.deputyGeneral)
+  end
+  ret = ret .. "</b></font> " .. Fk:translate("chose") .. " <b>" .. Fk:translate(result) .. "</b>"
+  room:doBroadcastNotify("ShowToast",  ret)
+  room:doBroadcastNotify("ServerMessage", ret)
 
   if choice == "Cancel" then return false end
   if index == 1 then
@@ -475,8 +505,10 @@ Fk:loadTranslationTable{
   [":command6"] = "军令六：选择一张手牌和一张装备区里的牌，弃置其余的牌",
 
   ["start_command"] = "发起军令",
+  ["#AskCommandTo"] = "%from 发动了 “%arg”，对 %to 发起了 <font color='#0598BC'><b>军令",
   ["#CommandChoice"] = "%from 选择了 %arg",
   ["chose"] = "选择了",
+  ["to"] = "对",
 
   ["do_command"] = "执行军令",
   ["#commandselect_yes"] = "执行军令",
