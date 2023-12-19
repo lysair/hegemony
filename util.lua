@@ -735,7 +735,7 @@ Fk:loadTranslationTable{
 ---@param player ServerPlayer
 ---@param target ServerPlayer
 ---@param skill_name string
----@return isDeputy bool
+---@return boolean
 H.doHideGeneral = function(room, player, target, skill_name)
   if player.dead or target.dead then return end
   local choices = {}

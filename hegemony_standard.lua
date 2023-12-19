@@ -369,7 +369,7 @@ local duanliang = fk.CreateViewAsSkill{
 local duanliang_targetmod = fk.CreateTargetModSkill{
   name = "#hs__duanliang_targetmod",
   distance_limit_func =  function(self, player, skill)
-    if player:hasSkill(self) and skill.name == "supply_shortage_skill" then
+    if player:hasSkill(duanliang) and skill.name == "supply_shortage_skill" then
       return 99
     end
   end,
@@ -484,7 +484,7 @@ local hs__qiangxi = fk.CreateActiveSkill{
   max_card_num = 1,
   target_num = 1,
   can_use = function(self, player)
-    return player:usedSkillTimes(self.name) == 0
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
   end,
   card_filter = function(self, to_select, selected)
     return Fk:getCardById(to_select).sub_type == Card.SubtypeWeapon
@@ -534,9 +534,6 @@ local fangzhu = fk.CreateTriggerSkill{
   name = "hs__fangzhu",
   anim_type = "masochism",
   events = {fk.Damaged},
-  can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self)
-  end,
   on_cost = function(self, event, target, player, data)
     local to = player.room:askForChoosePlayers(player, table.map(player.room:getOtherPlayers(player), Util.IdMapper), 1, 1, "#hs__fangzhu-choose:::"..player:getLostHp(), self.name, true)
     if #to > 0 then
@@ -552,7 +549,7 @@ local fangzhu = fk.CreateTriggerSkill{
       if not to.dead then room:loseHp(to, 1, self.name) end
     else
       to:drawCards(num, self.name)
-      to:turnOver()
+      if not to.dead then to:turnOver() end
     end
   end,
 }
@@ -599,7 +596,7 @@ local xiaoguo = fk.CreateTriggerSkill{
         damage = 1,
         skillName = self.name,
       }
-    else
+    elseif not player.dead then
       player:drawCards(1, self.name)
     end
   end,
@@ -1138,8 +1135,6 @@ Fk:loadTranslationTable{
   ["hs__weiyan"] = "魏延",
   ["hs__kuanggu"] = "狂骨",
   [":hs__kuanggu"] = "当你对距离1以内的角色造成1点伤害后，你可摸一张牌或回复1点体力。",
-  ["draw1"] = "摸一张牌",
-  ["recover"] = "回复1点体力",
 
   ["$hs__kuanggu1"] = "哈哈哈哈哈哈，赢你还不容易？",
   ["$hs__kuanggu2"] = "哼！也不看看我是何人！",

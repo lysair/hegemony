@@ -1416,7 +1416,7 @@ local duanliangJA = fk.CreateViewAsSkill{
 local duanliang_targetmodJA = fk.CreateTargetModSkill{
   name = "#jianan__hs__duanliang_targetmod",
   distance_limit_func =  function(self, player, skill)
-    if player:hasSkill(self) and skill.name == "supply_shortage_skill" then
+    if player:hasSkill(duanliangJA) and skill.name == "supply_shortage_skill" then
       return 99
     end
   end,
