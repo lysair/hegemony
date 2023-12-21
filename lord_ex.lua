@@ -641,17 +641,25 @@ local bushi = fk.CreateTriggerSkill{
   on_use = function (self, event, target, player, data)
     local room = player.room
     room:moveCardTo(self.cost_data, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, self.name, "ld__midao_rice", true, player.id)
-    room:useVirtualCard("amazing_grace", nil, player, player.room.alive_players, self.name, true)
-    local card = room:askForCard(room.current, 1, 1, true, self.name, true, nil, "#ld__bushi")
-    if #card > 0 then
-      player:addToPile("ld__midao_rice", card, true, self.name)
-      room.current:drawCards(1, self.name)
+    local targets = table.map(room.alive_players, Util.IdMapper)
+    local tos = room:askForChoosePlayers(player, targets, 1, player.maxHp, "#ld__midao-choose", self.name, false)
+    room:sortPlayersByAction(tos)
+    if #tos == 0 then
+      tos = table.random(targets, 1)
     end
-    if room.current ~= player then
-      local card = room:askForCard(player, 1, 1, true, self.name, true, nil, "#ld__bushi")
-      if #card > 0 then
-        player:addToPile("ld__midao_rice", card, true, self.name)
-        player:drawCards(1, self.name)
+    for _, id in ipairs(tos) do
+      local p = room:getPlayerById(id)
+      if not p.dead then
+        p:drawCards(1, self.name)
+      end
+    end
+    for _, id in ipairs(tos) do
+      local p = room:getPlayerById(id)
+      if not p.dead then
+        local card = room:askForCard(p, 1, 1, true, self.name, true, nil, "#ld__bushi")
+        if #card > 0 then
+          player:addToPile("ld__midao_rice", card, true, self.name)
+        end
       end
     end
   end,
@@ -716,7 +724,7 @@ zhanglu:addSkill(midao)
 Fk:loadTranslationTable{
   ["ld__zhanglu"] = "张鲁",
   ["ld__bushi"] = "布施",
-  [":ld__bushi"] = "一名角色的结束阶段，若你于此回合内造成或受到过伤害，你可以移去一张“米”，视为使用一张【五谷丰登】，然后其与你可以依次将一张牌置于你武将牌上，称为“米”，然后摸一张牌。",
+  [":ld__bushi"] = "一名角色的结束阶段，若你于此回合内造成或受到过伤害，你可以移去一张“米”，令至多X名角色各摸一张牌（X为你的体力上限），以此法摸牌的角色可以依次将一张牌置于你武将牌上，称为“米”。",
   ["ld__midao"] = "米道",
   [":ld__midao"] = "当你明置此武将牌后，你摸两张牌，然后将两张牌置于武将牌上，称为“米”；一名角色的判定牌生效前，你可以打出一张“米”替换之。",
 
@@ -725,7 +733,8 @@ Fk:loadTranslationTable{
   ["$ld__midao1"] = "恩结天地，法惠八荒。",
   ["$ld__midao2"] = "行五斗米道，可知暖饱。",
 
-  ["#ld__bushi_discard"] = "布施：你可以移去一张“米”，视为使用一张【五谷丰登】。",
+  ["#ld__midao-choose"] = "布施：选择至多你体力上限数名角色各摸一张牌",
+  ["#ld__bushi_discard"] = "布施：你可以移去一张“米”，令至多你体力上限名角色各摸一张牌。",
   ["#ld__bushi"] = "布施：你可以将一张牌置于张鲁武将牌上，称为“米”。",
 
   ["#ld__midao-ask"] = "米道：你可打出一张牌替换 %dest 的 %arg 判定",   
@@ -1471,8 +1480,7 @@ local tongling = fk.CreateTriggerSkill{
       if #to > 0 then
         local use = room:askForUseCard(room:getPlayerById(to[1]), "", "^(jink,nullification)|.|.|hand", "#ld__tongling-use", true, {must_targets = {data.to.id}})
         if use then
-          room:handleAddLoseSkills(player, "-ld__tongling", nil, false)
-          room:handleAddLoseSkills(player, "ld__tongling_delay", nil, false)
+          room:setPlayerMark(player, "ld__tongling_delay-phase", 1)
           room:setPlayerMark(player, "ld__tongling_to-phase", to[1])
           room:setPlayerMark(player, "ld__tongling_damaged-phase", data.to.id)
           room:setPlayerMark(player, "ld__tongling_card-phase", use.card.id)
@@ -1485,11 +1493,11 @@ local tongling = fk.CreateTriggerSkill{
 }
 
 local tongling_delay = fk.CreateTriggerSkill{
-  name = "ld__tongling_delay",
+  name = "#ld__tongling_delay",
   anim_type = "offensive",
   events = {fk.Damage, fk.CardUseFinished},
   can_trigger = function (self, event, target, player, data)
-    return player:hasSkill("ld__tongling_delay")
+    return player:hasSkill(self) and player:getMark("ld__tongling_delay-phase") > 0
   end,
   on_cost = Util.TrueFunc,
   on_use = function (self, event, target, player, data)
@@ -1504,79 +1512,45 @@ local tongling_delay = fk.CreateTriggerSkill{
         end
         room:getPlayerById(player:getMark("ld__tongling_to-phase")):drawCards(2, self.name)
       else
-        -- if room:getCardArea(player:getMark("ld__tongling_card-phase")) == Card.Processing then
-          room:obtainCard(room:getPlayerById(player:getMark("ld__tongling_damaged-phase")), 
+        room:obtainCard(room:getPlayerById(player:getMark("ld__tongling_damaged-phase")), 
            Fk:getCardById(player:getMark("ld__tongling_card-phase")), false, fk.ReasonGive)
-        -- end
       end
-      room:handleAddLoseSkills(player, "-ld__tongling_delay", nil, false)
-      room:handleAddLoseSkills(player, "ld__tongling_null", nil, false)
+      room:setPlayerMark(player, "ld__tongling_delay-phase", 0)
     end
   end,
 }
 
-local tongling_null = fk.CreateTriggerSkill{
-  name = "ld__tongling_null",
-  anim_type = "offensive",
-  events = {fk.EventPhaseEnd},
-  can_trigger = function (self, event, target, player, data)
-    return player:hasSkill(self)
-  end,
-  on_cost = Util.TrueFunc,
-  on_use = function (self, event, target, player, data)
-    local room = player.room
-    if event == fk.EventPhaseEnd then
-      room:handleAddLoseSkills(player, "-ld__tongling_null", nil, false)
-      room:handleAddLoseSkills(player, "ld__tongling", nil, false)
-    end
-  end,
-}
 
 local jinxian = fk.CreateTriggerSkill{
   name = "ld__jinxian",
   anim_type = "offensive",
-  events = {fk.GeneralRevealed, fk.EventPhaseEnd},
+  events = {fk.GeneralRevealed},
   can_trigger = function(self, event, target, player, data)
-    if event == fk.GeneralRevealed then
-      if player == target and player:hasSkill(self) then
-        for _, v in pairs(data) do
-          if v == "ld__pengyang" then return true end
-        end
+    if player == target and player:hasSkill(self) then
+      for _, v in pairs(data) do
+        if v == "ld__pengyang" then return true end
       end
-    else
-      return player:hasSkill(self) and player:getMark("ld__jinxian-phase") > 0
     end
   end,
   on_cost = Util.TrueFunc,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    if event == fk.GeneralRevealed then
-      local targets = table.map(table.filter(room.alive_players, function(p) return player:distanceTo(p) <= 1 end), Util.IdMapper)
-      room:sortPlayersByAction(targets)
-      for _, id in ipairs(targets) do
-        local p = room:getPlayerById(id)
-        if not p.dead then
-          if H.getGeneralsRevealedNum(p) == 2 then
-            if p == player then
-              room:setPlayerMark(player, "ld__jinxian-phase", 1)
-            else
-              H.doHideGeneral(room, p, p, self.name)
-            end
-          else
-            room:askForDiscard(p, 2, 2, true, self.name, false)
-          end
+    local targets = table.map(table.filter(room.alive_players, function(p) return player:distanceTo(p) <= 1 end), Util.IdMapper)
+    room:sortPlayersByAction(targets)
+    for _, id in ipairs(targets) do
+      local p = room:getPlayerById(id)
+      if not p.dead then
+        if H.getGeneralsRevealedNum(p) == 2 then
+            H.doHideGeneral(room, p, p, self.name)
+        else
+          room:askForDiscard(p, 2, 2, true, self.name, false)
         end
-      end
-    else
-      if H.getGeneralsRevealedNum(player) == 2 then
-        H.doHideGeneral(room, player, player, self.name)
       end
     end
   end,
 }
 
-Fk:addSkill(tongling_null)
-Fk:addSkill(tongling_delay)
+tongling:addRelatedSkill(tongling_delay)
 pengyang:addSkill(tongling)
 pengyang:addSkill(jinxian)
 
@@ -1584,23 +1558,14 @@ Fk:loadTranslationTable{
   ["ld__pengyang"] = "彭羕",
 
   ["ld__tongling"] = "通令",
-  ["ld__tongling_delay"] = "通令",
-  ["ld__tongling_null"] = "通令",
+  ["#ld__tongling_delay"] = "通令",
   [":ld__tongling"] = "出牌阶段限一次，当你对其它势力角色造成伤害后，你可以令一名与你势力相同的角色对其使用一张牌，然后若此牌：造成伤害，你与其各摸两张牌；未造成伤害，其获得与你势力相同角色使用的牌。",
-  [":ld__tongling_delay"] = "出牌阶段限一次，当你对其它势力角色造成伤害后，你可以令一名与你势力相同的角色对其使用一张牌，然后若此牌：造成伤害，你与其各摸两张牌；未造成伤害，其获得与你势力相同角色使用的牌。",
-  [":ld__tongling_null"] = "出牌阶段限一次，当你对其它势力角色造成伤害后，你可以令一名与你势力相同的角色对其使用一张牌，然后若此牌：造成伤害，你与其各摸两张牌；未造成伤害，其获得与你势力相同角色使用的牌。",
+  
   ["#ld__tongling-choose"] = "通令：选择一名与你势力相同的角色，其可以对受伤角色使用一张牌。",
   ["#ld__tongling-use"] = "通令：你可以对受伤角色使用一张牌，若此牌造成伤害，你与彭羕各摸两张牌，若此牌未造成伤害，受伤角色获得之",
-  
-  ["ld__tongling_to-phase"] = "通令角色",
-  ["ld__tongling_card-phase"] = "通令牌",
-  ["ld__tongling_damaged-phase"] = "通令目标",
-  ["ld__tongling_damage-phase"] = "通令",
 
   ["ld__jinxian"] = "近陷",
   [":ld__jinxian"] = "当你明置此武将牌后，你令所有你计算距离不大于1的角色执行：若其武将牌均明置，暗置一张武将牌（若为你则改为此阶段结束时暗置）；若其武将牌仅明置一张或均暗置，其弃置两张牌。",
-
-  ["ld__jinxian-phase"] = "近陷",
   
   ["$ld__tongling1"] = "孝直溢美之言，特以此小利报之，还望笑纳。",
   ["$ld__tongling2"] = "孟起，莫非甘心为他人座下之客。",

@@ -2517,18 +2517,27 @@ local shuangren = fk.CreateTriggerSkill{
         room:useVirtualCard("slash", nil, player, {to}, self.name, true)
       end
     else
-      -- player:endPlayPhase()
-      return true
+      room:setPlayerMark(player, "shuangren-turn", 1)
     end
   end,
 }
 
+local shuangren_prohibit = fk.CreateProhibitSkill{
+  name = "#shuangren_prohibit",
+  is_prohibited = function(self, from, to, card)
+    if from:hasSkill(self) then
+      return from:getMark("shuangren-turn") > 0 and from ~= to
+    end
+  end,
+}
+
+shuangren:addRelatedSkill(shuangren_prohibit)
 jiling:addSkill(shuangren)
 
 Fk:loadTranslationTable{
   ["hs__jiling"] = "纪灵",
   ["shuangren"] = "双刃",
-  [":shuangren"] = "出牌阶段开始时，你可与一名角色拼点。若你：赢，你视为对与其势力相同的一名角色使用【杀】；没赢，你结束出牌阶段。",
+  [":shuangren"] = "出牌阶段开始时，你可与一名角色拼点。若你：赢，你视为对与其势力相同的一名角色使用【杀】；没赢，其他角色于此回合内不是你使用牌的合法目标。",
   
   ["#shuangren-ask"] = "双刃：你可与一名角色拼点",
   ["#shuangren_slash-ask"] = "双刃：你视为对与 %src 势力相同的一名角色使用【杀】",
@@ -2639,7 +2648,7 @@ local huoshui = fk.CreateTriggerSkill{ -- FIXME
   name = "huoshui",
   anim_type = "control",
   frequency = Skill.Compulsory,
-  events = {fk.TurnStart, fk.GeneralRevealed, fk.EventAcquireSkill, fk.EventLoseSkill, fk.Deathed},
+  events = {fk.TurnStart, fk.GeneralRevealed, fk.EventAcquireSkill, fk.EventLoseSkill, fk.Deathed, fk.TargetSpecified},
   can_trigger = function(self, event, target, player, data)
     if target ~= player then return false end
     if event == fk.TurnStart then
@@ -2654,6 +2663,8 @@ local huoshui = fk.CreateTriggerSkill{ -- FIXME
           if v == "hs__zoushi" then return true end
         end
       end
+    elseif event == fk.TargetSpecified then
+      return player:hasSkill(self) and data.firstTarget and (data.card.trueName == "slash" or data.card.trueName == "archery_attack")
     else
       return player:hasSkill(self, true, true) 
     end
@@ -2670,6 +2681,14 @@ local huoshui = fk.CreateTriggerSkill{ -- FIXME
         table.insert(targets, p.id)
       end
       room:doIndicate(player.id, targets)
+    elseif event == fk.TargetSpecified then
+      local targets = table.filter(room.alive_players, function(p) return (not H.compareKingdomWith(p, player)) and H.getGeneralsRevealedNum(p) == 1 end)
+      if #targets > 0 then
+        data.disresponsiveList = data.disresponsiveList or {}
+        for _, p in ipairs(targets) do
+          table.insertIfNeed(data.disresponsiveList, p.id)
+        end
+      end
     else
       for _, p in ipairs(room:getOtherPlayers(player)) do
         room:setPlayerMark(p, "@@huoshui-turn", 0)
@@ -2720,7 +2739,7 @@ zoushi:addSkill(qingcheng)
 Fk:loadTranslationTable{
   ["hs__zoushi"] = "邹氏",
   ["huoshui"] = "祸水",
-  [":huoshui"] = "锁定技，你的回合内，其他角色不能明置其武将牌。",
+  [":huoshui"] = "锁定技，你的回合内：1.其他角色不能明置其武将牌；2.当你使用【杀】或【万箭齐发】指定目标后，你令此牌不能被与你势力不同且有暗置武将牌的角色响应。",
   ["qingcheng"] = "倾城",
   [":qingcheng"] = "出牌阶段，你可弃置一张黑色牌并选择一名武将牌均明置的其他角色，然后你暗置其一张武将牌。然后若你以此法弃置的牌是黑色装备牌，则你可再选择另一名武将牌均明置的其他角色，暗置其一张武将牌。",
 

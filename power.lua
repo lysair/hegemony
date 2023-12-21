@@ -1382,6 +1382,8 @@ local xiaoguoJA = fk.CreateTriggerSkill{
         damage = 1,
         skillName = self.name,
       }
+    else
+      player:drawCards(1, self.name)
     end
   end,
 }
@@ -1814,7 +1816,7 @@ Fk:loadTranslationTable{
 }
 Fk:loadTranslationTable{
   ["liulongcanjia"] = "六龙骖驾",
-  [":liulongcanjia"] = "装备牌·坐骑<br /><b>坐骑技能</b>：锁定技，其他角色与你的距离+1，你与其他角色的距离-1。",
+  [":liulongcanjia"] = "装备牌·坐骑<br /><b>坐骑技能</b>：锁定技，其他角色与你的距离+1，你与其他角色的距离-1；你不能使用坐骑牌。",
 
   ["@@liulongcanjia"] = "六龙骖驾",
 }

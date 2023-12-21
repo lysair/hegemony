@@ -109,6 +109,115 @@ Fk:loadTranslationTable{
   ["~ld__xunyou"] = "主公，臣下……先行告退……",
 }
 
+
+local bianfuren = General(extension, "ld__bianfuren", "wei", 3)
+local wanwei = fk.CreateTriggerSkill{
+  name = "ld__wanwei",
+  events = {fk.BeforeCardsMove},
+  anim_type = 'defensive',
+  can_trigger = function(self, event, target, player, data)
+    if not player:hasSkill(self) then return false end
+    for _, move in ipairs(data) do
+      if move.from == player.id and (move.moveReason == fk.ReasonPrey or move.moveReason == fk.ReasonDiscard) and move.proposer ~= player.id then
+        for _, info in ipairs(move.moveInfo) do
+          if (info.fromArea == Card.PlayerEquip or info.fromArea == Card.PlayerHand) then
+            return true
+          end
+        end
+      end
+    end
+  end,
+  on_cost = function (self, event, target, player, data)
+    return player.room:askForSkillInvoke(player, self.name, nil, "#ld__wanwei-invoke")
+  end,
+  on_use = function (self, event, target, player, data)
+    local all_move = 0
+    local move_info = {}
+    for _, move in ipairs(data) do
+      if move.from == player.id and (move.moveReason == fk.ReasonPrey or move.moveReason == fk.ReasonDiscard) and move.proposer ~= player.id then
+        for _, info in ipairs(move.moveInfo) do
+          all_move = all_move + 1
+          if (info.fromArea == Card.PlayerEquip or info.fromArea == Card.PlayerHand) then
+            table.insert(move_info, info)
+          end
+        end
+      end
+    end
+    if all_move < #player:getCardIds("h") then
+      local cards = player.room:askForCard(player, all_move, all_move, false, self.name, false, ".", "#ld__wanwei-choose") 
+      for i = 1, all_move, 1 do
+        move_info[i].cardId = cards[i]
+      end
+      for _, move in ipairs(data) do
+        if move.from == player.id and (move.moveReason == fk.ReasonPrey or move.moveReason == fk.ReasonDiscard) and move.proposer ~= player.id then
+          move.moveInfo = move_info
+        end
+      end
+    end
+  end,
+}
+
+local yuejian = fk.CreateTriggerSkill{
+  name = "ld__yuejian",
+  frequency = Skill.Compulsory,
+  events = {fk.EventPhaseStart, fk.EventPhaseEnd},
+  can_trigger = function(self, event, target, player, data)
+    if event == fk.EventPhaseStart then
+      return H.compareKingdomWith(player, target) and player:hasSkill(self) and target.phase == Player.Discard 
+        and target:getMark("ld__yuejian-turn") == 0 and player.room.current == target
+    else
+      return H.compareKingdomWith(player, target) and player:hasSkill(self) and target.phase == Player.Discard 
+        and target:getMark("ld__yuejian-add") == 1 and player.room.current == target
+    end
+  end,
+  on_cost = Util.TrueFunc,
+  on_use = function(self, event, target, player, data)
+    if event == fk.EventPhaseStart then
+      player.room:addPlayerMark(target, MarkEnum.AddMaxCards, target.maxHp - target.hp)
+      player.room:setPlayerMark(target, "ld__yuejian-add", 1)
+    else
+      player.room:addPlayerMark(target, MarkEnum.MinusMaxCards, target.maxHp - target.hp)
+      player.room:setPlayerMark(target, "ld__yuejian-add", 0)
+    end
+  end,
+
+  refresh_events = {fk.TargetSpecified},
+  can_refresh = function(self, event, target, player, data)
+    return H.compareKingdomWith(target, player) and target == player.room.current 
+     and target:getMark("ld__yuejian-turn") == 0 and data.firstTarget and data.card.type ~= Card.TypeEquip
+  end,
+  on_refresh = function(self, event, target, player, data)
+    if #AimGroup:getAllTargets(data.tos) == 0 then return end
+    for _, id in ipairs(AimGroup:getAllTargets(data.tos)) do
+      if not H.compareKingdomWith(player.room:getPlayerById(id), target) then
+        player.room:addPlayerMark(target, "ld__yuejian-turn", 1)
+        break
+      end
+    end
+  end,
+}
+
+bianfuren:addCompanions("hs__caocao")
+bianfuren:addSkill(wanwei)
+bianfuren:addSkill(yuejian)
+
+Fk:loadTranslationTable{
+  ["ld__bianfuren"] = "卞夫人",
+  ["ld__wanwei"] = "挽危",
+  [":ld__wanwei"] = "当你的牌被其他角色弃置或获得时，你可以改为你选择的等量的手牌。",
+  ["ld__yuejian"] = "约俭",
+  [":ld__yuejian"] = "锁定技，与你势力相同角色的弃牌阶段开始时，若其本回合处于与你势力相同状态时未对其他势力角色使用过牌，其本回合的手牌上限改为其体力上限。",
+
+  ["#ld__wanwei-invoke"] = "挽危：是否修改即将被其他角色弃置或获得的牌",
+  ["#ld__wanwei-choose"] = "挽危：请选择等量即将被其他角色弃置或获得的牌",
+
+  ["$ld__wanwei1"] = "吉凶未可知，何故自乱？",
+  ["$ld__wanwei2"] = "虽为水火之势，亦当虑而后动。",
+  ["$ld__yuejian1"] = "常闻君子以俭德辟难，不可荣以禄。",
+  ["$ld__yuejian2"] = "如今世事未定，不可铺张浪费。",
+  ["~ld__bianfuren"] = "子桓，兄弟之情，不可轻忘...",
+}
+
 local shamoke = General(extension, "ld__shamoke", "shu", 4)
 shamoke:addSkill("jilis")
 Fk:loadTranslationTable{
@@ -348,6 +457,217 @@ Fk:loadTranslationTable{
 	["$diancai1"] = "军资之用，不可擅作主张！",
 	["$diancai2"] = "善用资财，乃为政上法！",
 	["~ld__lvfan"] = "闻主公欲授大司马之职，容臣不能……谢恩了……",
+}
+
+local zuoci = General(extension, "ld__zuoci", "qun", 3)
+---@param player ServerPlayer
+local addFangkeSkill = function(player, skillName)
+  local room = player.room
+  local skill = Fk.skills[skillName]
+  if (not skill) or skill.lordSkill or skill.switchSkillName
+    or skill.frequency > 2 or skill.relate_to_place == "m" or skill.relate_to_place == "d"
+    or player:hasSkill(skill.name) then
+    return
+  end
+
+  local fangke_skills = player:getMark("ld__xing_skills")
+  if fangke_skills == 0 then fangke_skills = {} end
+  table.insert(fangke_skills, skillName)
+  room:setPlayerMark(player, "ld__xing_skills", fangke_skills)
+  player:addFakeSkill(skill)
+  player:prelightSkill(skill.name, true)
+end
+
+---@param player ServerPlayer
+local removeFangkeSkill = function(player, skillName)
+  local room = player.room
+  local skill = Fk.skills[skillName]
+
+  local fangke_skills = player:getMark("ld__xing_skills")
+  if fangke_skills == 0 then return end
+  if not table.contains(fangke_skills, skillName) then
+    return
+  end
+  table.removeOne(fangke_skills, skillName)
+  room:setPlayerMark(player, "ld__xing_skills", fangke_skills)
+
+  player:loseFakeSkill(skill)
+end
+
+---@param player ServerPlayer
+---@param general General
+local function addFangke(player, general, addSkill)
+  local room = player.room
+  local glist = player:getMark("@&ld__xing")
+  if glist == 0 then glist = {} end
+  table.insertIfNeed(glist, general.name)
+  room:setPlayerMark(player, "@&ld__xing", glist)
+
+  if not addSkill then return end
+  for _, s in ipairs(general.skills) do
+    addFangkeSkill(player, s.name)
+  end
+  for _, sname in ipairs(general.other_skills) do
+    addFangkeSkill(player, sname)
+  end
+end
+
+---@param player ServerPlayer
+---@param general string
+local function removeFangke(player, general)
+  local room = player.room
+  local glist = player:getMark("@&ld__xing")
+  if glist == 0 then return end
+  table.removeOne(glist, general)
+  room:setPlayerMark(player, "@&ld__xing", glist)
+
+  general = Fk.generals[general]
+  for _, s in ipairs(general.skills) do
+    removeFangkeSkill(player, s.name)
+  end
+  for _, sname in ipairs(general.other_skills) do
+    removeFangkeSkill(player, sname)
+  end
+end
+
+---@param player ServerPlayer
+---@param general table
+local function handleFangkeRemove(player, all_xing)
+  print(#all_xing)
+  local record = {}
+  for _, s in ipairs(all_xing) do
+    table.insert(record, s)
+  end
+  for _, s in ipairs(record) do
+    removeFangke(player, s)
+  end
+end
+
+local xinsheng = fk.CreateTriggerSkill{
+  name = "ld__xinsheng",
+  events = {fk.EventPhaseStart, fk.Damaged},
+  can_trigger = function(self, event, target, player, _)
+    if (event == fk.EventPhaseStart and player.phase == Player.Start) or event == fk.Damaged then
+      return target == player and player:hasSkill(self) 
+    end
+  end,
+  on_use = function(self, event, _, player, _)
+    local room = player.room
+    local exclude_list = table.map(room.players, function(p)
+      return H.getActualGeneral(p, false)
+    end)
+    for _, p in ipairs(room.players) do
+      local deputy = p.deputyGeneral
+      if deputy and deputy ~= "" then
+        table.insert(exclude_list, H.getActualGeneral(p, true))
+      end
+    end
+    if event == fk.EventPhaseStart then
+      local m = player:getMark("@&ld__xing")
+      local generals = {}
+      if m == 0 or #m < 2 then
+        local all_xing = Fk:getGeneralsRandomly(5, nil, exclude_list)
+        local choices1 = {}
+        for _, s in ipairs(all_xing) do
+          table.insert(choices1, s.name)
+        end
+        local choice1 = room:askForChoice(player, choices1, self.name, "#ld__xinshen_xing1")
+        local general1 = Fk.generals[choice1]
+        table.insert(generals, general1)
+  
+  
+        local choices2 = {}
+        for _, s in ipairs(all_xing) do
+          if choice1 ~= s.name then
+            table.insert(choices2, s.name)
+          end
+        end
+       
+        local choice2 = room:askForChoice(player, choices2, self.name, "#ld__xinshen_xing1")
+        local general2 = Fk.generals[choice2]
+        table.insert(generals, general2)
+        
+      else
+        local choices = player:getMark("@&ld__xing")
+        local choice = room:askForChoice(player, choices, self.name, "#ld__xinshen_xing2")
+        removeFangke(player, choice)
+        generals = Fk:getGeneralsRandomly(1, nil, exclude_list)
+      end
+      for _, g in ipairs(generals) do
+        addFangke(player, g, true)
+      end
+    else
+      local generals =  Fk:getGeneralsRandomly(1, nil, exclude_list)
+      for _, g in ipairs(generals) do
+        addFangke(player, g, true)
+      end
+    end
+  end,
+
+  refresh_events = {fk.EventLoseSkill, fk.GeneralHidden, fk.BuryVictim},
+  can_refresh = function(self, event, target, player, data)
+    if player:getMark("@&ld__xing") == 0 or player ~= target then return false end
+    if event == fk.EventLoseSkill then
+      return data == self
+    elseif event == fk.BuryVictim then
+      return true
+    elseif event == fk.GeneralHidden then
+      return table.contains(Fk.generals[data]:getSkillNameList(), self.name)
+    end
+  end,
+  on_refresh = function(self, event, target, player, data)
+    local room = player.room
+    local all_xing = player:getMark("@&ld__xing")
+    handleFangkeRemove(player, all_xing)
+    room:setPlayerMark(player, "@&ld__xing", 0)
+  end,
+}
+
+local huashen = fk.CreateTriggerSkill{
+  name = "ld__huashen",
+  events = {fk.AfterSkillEffect},
+  can_trigger = function(self, _, target, player, data)
+    return target == player and player:hasSkill(self) and
+      player:getMark("ld__xing_skills") ~= 0 and
+      table.contains(player:getMark("ld__xing_skills"), data.name)
+  end,
+  on_cost = function() return true end,
+  on_use = function(self, _, target, player, data)
+    local room = player.room
+    local all_xing = player:getMark("@&ld__xing")
+    local choices = {}
+    for _, s in ipairs(all_xing) do
+      local general = Fk.generals[s]
+      if table.contains(general.skills, data) or table.contains(general.other_skills, data.name) then
+        table.insert(choices, s)
+      end
+    end
+    local choice = room:askForChoice(player, choices, self.name, "#ld__xinshen_xing1")
+    removeFangke(player, choice)
+  end,
+}
+
+zuoci:addCompanions("ld__yuji")
+zuoci:addSkill(xinsheng)
+zuoci:addSkill(huashen)
+Fk:loadTranslationTable{
+  ["ld__zuoci"] = "左慈",
+  ["ld__huashen"] = "化身",
+  [":ld__huashen"] = "当你需要发动“形”拥有的技能时，你可以于对应的时机发动“形”拥有的一个无技能标签的技能，然后将拥有此技能的“形”置入武将牌堆。<br>注：不要报有关左慈的任何技能触发bug，有极小可能性导致游戏崩溃的除外。",
+  ["ld__xinsheng"] = "新生",
+  [":ld__xinsheng"] = "准备阶段，若你的“形”：少于两张，你可以随机观看五张武将牌堆中的武将牌，选择其中的两张置于你的武将牌上，称为“形”；不少于两张，你可以将一张“形”置入武将牌堆，然后随机将武将牌堆中的一张武将牌置于你的武将牌上，称为“形”。"..
+    "当你受到伤害后，你可以随机并将武将牌堆中的一张武将牌置于你的武将牌上，称为“形”。",
+
+  ["@&ld__xing"] = "形",
+
+  ["#ld__xinshen_xing1"] = "新生：你可以选择一张武将牌置于你的武将牌上，称为“形”",
+  ["#ld__xinshen_xing2"] = "新生：你可以移去一张“形”，然后随机将一张武将牌置于你的武将牌上，称为“形”",
+
+  ["$ld__huashen1"] = "世间万物，贫道皆可化为其形。",
+  ["$ld__huashen2"] = "尘身土塑，唯魂魄难得。",
+  ["$ld__xinsheng1"] = "大成若缺，损益无妨",
+  ["$ld__xinsheng2"] = "大盈若冲，心神自现。",
+  ["~ld__zuoci"] = "仙人之逝，魂归九天...",
 }
 
 local lijueguosi = General(extension, "ld__lijueguosi", "qun", 4)
@@ -870,7 +1190,7 @@ local jubao_move = fk.CreateTriggerSkill{
   can_trigger = function(self, event, target, player, data)
     if not player:hasSkill(self) or not (player:getEquipment(Card.SubtypeTreasure)) then return false end
     for _, move in ipairs(data) do
-      if move.from == player.id and move.moveReason == fk.ReasonPrey and not move.proposer == player then
+      if move.from == player.id and move.moveReason == fk.ReasonPrey and move.proposer ~= player then
         for _, info in ipairs(move.moveInfo) do
           if info.fromArea == Card.PlayerEquip and table.contains({Card.SubtypeTreasure}, Fk:getCardById(info.cardId).sub_type) then
             return true
@@ -882,7 +1202,7 @@ local jubao_move = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     local ids = {}
     for _, move in ipairs(data) do
-      if move.from == player.id and move.moveReason == fk.ReasonPrey and not move.proposer == player then
+      if move.from == player.id and move.moveReason == fk.ReasonPrey and move.proposer ~= player then
         local move_info = {}
         for _, info in ipairs(move.moveInfo) do
           local id = info.cardId
