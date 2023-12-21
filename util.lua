@@ -477,7 +477,7 @@ H.doCommand = function(to, skill_name, index, from)
       to_remain = ret.cards
     end
     local cards = table.filter(to:getCardIds{Player.Hand, Player.Equip}, function (id)
-      return not (table.contains(to_remain, id) or to:prohibitDiscard(id))
+      return not (table.contains(to_remain, id) or to:prohibitDiscard(Fk:getCardById(id)))
     end)
     if #cards > 0 then
       room:throwCard(cards, "command", to)
