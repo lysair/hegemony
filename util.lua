@@ -735,17 +735,17 @@ Fk:loadTranslationTable{
 ---@param player ServerPlayer
 ---@param target ServerPlayer
 ---@param skill_name string
----@return boolean
+---@return boolean @ 是否为副将
 H.doHideGeneral = function(room, player, target, skill_name)
-  if player.dead or target.dead then return end
+  if player.dead or target.dead then return false end
   local choices = {}
-  if target.general ~= "anjiang" and not target.general:startsWith("blank_") and not string.find(target.general, "lord") then
+  if target.general ~= "anjiang" and not target.general:startsWith("blank_") and not string.find(target.general, "lord") then -- 耦合君主
     table.insert(choices, target.general)
   end
   if target.deputyGeneral and target.deputyGeneral ~= "anjiang" and not target.deputyGeneral:startsWith("blank_") then
     table.insert(choices, target.deputyGeneral)
   end
-  if #choices == 0 then return end
+  if #choices == 0 then return false end
   local choice = room:askForChoice(player, choices, skill_name, "#hide_general-ask::" .. target.id .. ":" .. skill_name)
   local isDeputy = choice == target.deputyGeneral
   target:hideGeneral(isDeputy)

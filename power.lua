@@ -2,6 +2,7 @@ local extension = Package:new("power")
 extension.extensionName = "hegemony"
 extension.game_modes_whitelist = { 'nos_heg_mode', 'new_heg_mode' }
 local H = require "packages/hegemony/util"
+local U = require "packages/utility/utility"
 
 Fk:loadTranslationTable{
   ["power"] = "君临天下·权",
@@ -1436,7 +1437,9 @@ local jianan = fk.CreateTriggerSkill{
   anim_type = "support",
   events = {fk.EventPhaseStart},
   can_trigger = function (self, event, target, player, data)
-    return H.compareKingdomWith(player, target) and not target:isNude() and target.phase == Player.Start and player:hasSkill(self)
+    if not (target == player and not target:isNude() and target.phase == Player.Start) then return end
+    local lord = H.getHegLord(player.room, player)
+    if lord and lord:hasSkill(self) then return true end
   end,
   on_cost = function (self, event, target, player, data)
     if #player.room:askForDiscard(target, 1, 1, true, self.name, true, nil, "#jianan-ask") > 0 then
@@ -1455,7 +1458,7 @@ local jianan = fk.CreateTriggerSkill{
     elseif H.getGeneralsRevealedNum(target) == 2 then 
       isDeputy = H.doHideGeneral(room, target, target, self.name)
     end
-    local record = type(target:getMark(MarkEnum.RevealProhibited)) == "table" and target:getMark(MarkEnum.RevealProhibited) or {}
+    local record = U.getMark(target, MarkEnum.RevealProhibited)
     table.insert(record, isDeputy and "d" or "m")
     room:setPlayerMark(target, MarkEnum.RevealProhibited, record)
 
@@ -1486,7 +1489,7 @@ local jianan = fk.CreateTriggerSkill{
     if result == "" then return false end
     local choice = json.decode(result)[1]
     room:handleAddLoseSkills(target, choice, nil)
-    local record = type(target:getMark("@jianan_skills")) == "table" and target:getMark("@jianan_skills") or {}
+    record = U.getMark(target, "@jianan_skills")
     table.insert(record, choice)
     room:setPlayerMark(target, "@jianan_skills", record)
   end,
@@ -1498,10 +1501,10 @@ local jiananOtherLose = fk.CreateTriggerSkill{
   refresh_events = {fk.TurnStart, fk.Death},
   can_refresh = function(self, event, target, player, data)
     if event == fk.TurnStart then
-      return target == player and player:hasSkill("jianan")
+      return target == player and player:hasSkill(jianan)
     end
     if event == fk.Death then
-      return player:hasSkill("jianan", false, true) and player == target
+      return player:hasSkill(jianan, false, true) and player == target
     end
   end,
   on_refresh = function(self, event, target, player, data)
@@ -1526,9 +1529,7 @@ local huibian = fk.CreateActiveSkill{
   can_use = function(self, player)
     return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
   end,
-  card_filter = function(self, to_select, selected)
-    return false
-  end,
+  card_filter = Util.FalseFunc,
   target_filter = function(self, to_select, selected)
     if #selected == 0 then
       local target2 = Fk:currentRoom():getPlayerById(to_select)

@@ -401,7 +401,7 @@ Fk:loadTranslationTable{
 local caoren = General(extension, "hs__caoren", "wei", 4)
 local jushou_select = fk.CreateActiveSkill{
   name = "#hs__jushou_select",
-  can_use = function() return false end,
+  can_use = Util.FalseFunc,
   target_num = 0,
   card_num = 1,
   card_filter = function(self, to_select, selected)
@@ -2280,11 +2280,10 @@ local xiongyi = fk.CreateActiveSkill{
   frequency = Skill.Limited,
   card_num = 0,
   target_num = 0,
-  frequency = Skill.Limited,
   can_use = function(self, player)
     return player:usedSkillTimes(self.name, Player.HistoryGame) == 0
   end,
-  card_filter = function() return false end,
+  card_filter = Util.FalseFunc,
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
     local targets = table.map(table.filter(room.alive_players, function(p) return H.compareKingdomWith(p, player) end), Util.IdMapper)
@@ -2784,7 +2783,7 @@ Fk:addSkill(command5_cannotrecover)
 -- 军令六
 local command6_select = fk.CreateActiveSkill{
   name = "#command6_select",
-  can_use = function() return false end,
+  can_use = Util.FalseFunc,
   target_num = 0,
   card_num = function()
     local x = 0
