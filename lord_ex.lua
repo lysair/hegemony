@@ -681,7 +681,7 @@ local midao = fk.CreateTriggerSkill{
     if event == fk.GeneralRevealed then
       if player:hasSkill(self) then
         for _, v in pairs(data) do
-          if v == "ld__zhanglu" then return true end
+          if table.contains(Fk.generals[v]:getSkillNameList(), self.name) then return true end
         end
       end
     elseif event == fk.AskForRetrial then
@@ -1513,7 +1513,7 @@ local tongling_delay = fk.CreateTriggerSkill{
         room:getPlayerById(player:getMark("ld__tongling_to-phase")):drawCards(2, self.name)
       else
         room:obtainCard(room:getPlayerById(player:getMark("ld__tongling_damaged-phase")), 
-           Fk:getCardById(player:getMark("ld__tongling_card-phase")), false, fk.ReasonGive)
+          Fk:getCardById(player:getMark("ld__tongling_card-phase")), false, fk.ReasonGive)
       end
       room:setPlayerMark(player, "ld__tongling_delay-phase", 0)
     end
@@ -1528,7 +1528,7 @@ local jinxian = fk.CreateTriggerSkill{
   can_trigger = function(self, event, target, player, data)
     if player == target and player:hasSkill(self) then
       for _, v in pairs(data) do
-        if v == "ld__pengyang" then return true end
+        if table.contains(Fk.generals[v]:getSkillNameList(), self.name) then return true end
       end
     end
   end,
@@ -1560,13 +1560,13 @@ Fk:loadTranslationTable{
   ["ld__tongling"] = "通令",
   ["#ld__tongling_delay"] = "通令",
   [":ld__tongling"] = "出牌阶段限一次，当你对其它势力角色造成伤害后，你可以令一名与你势力相同的角色对其使用一张牌，然后若此牌：造成伤害，你与其各摸两张牌；未造成伤害，其获得与你势力相同角色使用的牌。",
-  
+
   ["#ld__tongling-choose"] = "通令：选择一名与你势力相同的角色，其可以对受伤角色使用一张牌。",
   ["#ld__tongling-use"] = "通令：你可以对受伤角色使用一张牌，若此牌造成伤害，你与彭羕各摸两张牌，若此牌未造成伤害，受伤角色获得之",
 
   ["ld__jinxian"] = "近陷",
   [":ld__jinxian"] = "当你明置此武将牌后，你令所有你计算距离不大于1的角色执行：若其武将牌均明置，暗置一张武将牌（若为你则改为此阶段结束时暗置）；若其武将牌仅明置一张或均暗置，其弃置两张牌。",
-  
+
   ["$ld__tongling1"] = "孝直溢美之言，特以此小利报之，还望笑纳。",
   ["$ld__tongling2"] = "孟起，莫非甘心为他人座下之客。",
 

@@ -767,7 +767,7 @@ Fk:loadTranslationTable{
 -- 移除武将牌
 ---@param room Room
 ---@param player ServerPlayer
----@param isDeputy bool @ 是否为副将，默认主将
+---@param isDeputy? boolean @ 是否为副将，默认主将
 H.removeGeneral = function(room, player, isDeputy)
   player:setMark("CompanionEffect", 0)
   player:setMark("HalfMaxHpLeft", 0)
@@ -827,16 +827,10 @@ H.transformGeneral = function(room, player, isMain)
     table.insert(existingGenerals, H.getActualGeneral(p, true))
   end
   room.logic:trigger("fk.GeneralTransforming", player, orig)
-  local generals
-  if Fk.generals[H.getActualGeneral(player, false)].kingdom == "wild" then
-    generals = room:findGenerals(function(g)
-      return Fk.generals[g].kingdom ~= "wild"
-    end, 3)
-  else
-    generals = room:findGenerals(function(g)
-      return Fk.generals[g].kingdom == Fk.generals[H.getActualGeneral(player, false)].kingdom
-    end, 3)
-  end
+  local kingdom = player:getMark("__heg_kingdom")
+  local generals = room:findGenerals(function(g)
+    return Fk.generals[g].kingdom == kingdom or Fk.generals[g].subkingdom== kingdom
+  end, 3)
   local general = room:askForGeneral(player, generals, 1, true)
   table.removeOne(generals, general)
   table.insert(generals, orig)

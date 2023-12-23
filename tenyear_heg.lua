@@ -527,15 +527,13 @@ local zhiwei = fk.CreateTriggerSkill{
           end
         end
       elseif event == fk.Damage then
-        return target ~= nil and not target.dead and player:getMark(self.name) == target.id
+        return target and not target.dead and player:getMark(self.name) == target.id
       elseif event == fk.Damaged then
-        return target ~= nil and not target.dead and player:getMark(self.name) == target.id and not player:isKongcheng()
+        return target and not target.dead and player:getMark(self.name) == target.id and not player:isKongcheng()
       end
     end
   end,
-  on_cost = function(self, event, target, player, data)
-    return true
-  end,
+  on_cost = Util.TrueFunc,
   on_use = function(self, event, target, player, data)
     local room = player.room
     if event == fk.GeneralRevealed then

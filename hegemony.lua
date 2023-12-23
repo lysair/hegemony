@@ -295,9 +295,12 @@ function HegLogic:chooseGenerals()
     table.sort(arg, function(a, b) return Fk.generals[a].kingdom > Fk.generals[b].kingdom end)
 
     for idx, _ in ipairs(arg) do
-      if Fk.generals[arg[idx]].kingdom == Fk.generals[arg[idx + 1]].kingdom then
-        p.default_reply = { arg[idx], arg[idx + 1] }
-        break
+      local g = Fk.generals[arg[idx]]
+      local g2 = Fk.generals[arg[idx + 1]]
+      if (g.kingdom == g2.kingdom and g.kingdom ~= "wild") or (g.kingdom == "wild" and g2.kingdom ~= "wild") or
+        (g.subkingdom ~= nil and g.subkingdom == g2.subkingdom) or g.kingdom == g2.subkingdom or g.subkingdom == g2.kingdom then
+          p.default_reply = arg[idx] .. "+" .. arg[idx + 1]
+          break
       end
     end
 
@@ -317,8 +320,9 @@ function HegLogic:chooseGenerals()
       room:setPlayerGeneral(p, general, true)
       room:setDeputyGeneral(p, deputy)
     else
-      general = p.default_reply[1]
-      deputy = p.default_reply[2]
+      local general_ret = string.split(p.default_reply, "+")
+      general = general_ret[1]
+      deputy = general_ret[2]
     end
     table.insertTableIfNeed(selected, {general, deputy})
 

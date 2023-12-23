@@ -3,6 +3,7 @@ extension.extensionName = "hegemony"
 extension.game_modes_whitelist = { 'nos_heg_mode', 'new_heg_mode' }
 
 local H = require "packages/hegemony/util"
+local U = require "packages/utility/utility"
 
 Fk:loadTranslationTable{
   ["transformation"] = "君临天下·变",
@@ -215,7 +216,7 @@ Fk:loadTranslationTable{
   ["$ld__wanwei2"] = "虽为水火之势，亦当虑而后动。",
   ["$ld__yuejian1"] = "常闻君子以俭德辟难，不可荣以禄。",
   ["$ld__yuejian2"] = "如今世事未定，不可铺张浪费。",
-  ["~ld__bianfuren"] = "子桓，兄弟之情，不可轻忘...",
+  ["~ld__bianfuren"] = "子桓，兄弟之情，不可轻忘…",
 }
 
 local shamoke = General(extension, "ld__shamoke", "shu", 4)
@@ -466,16 +467,15 @@ local addFangkeSkill = function(player, skillName)
   local skill = Fk.skills[skillName]
   if (not skill) or skill.lordSkill or skill.switchSkillName
     or skill.frequency > 2 or skill.relate_to_place == "m" or skill.relate_to_place == "d"
-    or player:hasSkill(skill.name) then
+    or player:hasSkill(skill) then
     return
   end
 
-  local fangke_skills = player:getMark("ld__xing_skills")
-  if fangke_skills == 0 then fangke_skills = {} end
+  local fangke_skills = U.getMark(player, "ld__xing_skills")
   table.insert(fangke_skills, skillName)
   room:setPlayerMark(player, "ld__xing_skills", fangke_skills)
   player:addFakeSkill(skill)
-  player:prelightSkill(skill.name, true)
+  player:prelightSkill(skill, true)
 end
 
 ---@param player ServerPlayer
@@ -483,8 +483,7 @@ local removeFangkeSkill = function(player, skillName)
   local room = player.room
   local skill = Fk.skills[skillName]
 
-  local fangke_skills = player:getMark("ld__xing_skills")
-  if fangke_skills == 0 then return end
+  local fangke_skills = U.getMark(player, "ld__xing_skills")
   if not table.contains(fangke_skills, skillName) then
     return
   end
@@ -516,30 +515,13 @@ end
 ---@param general string
 local function removeFangke(player, general)
   local room = player.room
-  local glist = player:getMark("@&ld__xing")
-  if glist == 0 then return end
-  table.removeOne(glist, general)
-  room:setPlayerMark(player, "@&ld__xing", glist)
-
-  general = Fk.generals[general]
-  for _, s in ipairs(general.skills) do
-    removeFangkeSkill(player, s.name)
-  end
-  for _, sname in ipairs(general.other_skills) do
-    removeFangkeSkill(player, sname)
-  end
-end
-
----@param player ServerPlayer
----@param general table
-local function handleFangkeRemove(player, all_xing)
-  print(#all_xing)
-  local record = {}
-  for _, s in ipairs(all_xing) do
-    table.insert(record, s)
-  end
-  for _, s in ipairs(record) do
-    removeFangke(player, s)
+  local glist = U.getMark(player, "@&ld__xing")
+  if table.removeOne(glist, general) then
+    if #glist == 0 then glist = 0 end
+    room:setPlayerMark(player, "@&ld__xing", glist)
+    for _, sname in ipairs(Fk.generals[general]:getSkillNameList()) do
+      removeFangkeSkill(player, sname)
+    end
   end
 end
 
@@ -547,61 +529,28 @@ local xinsheng = fk.CreateTriggerSkill{
   name = "ld__xinsheng",
   events = {fk.EventPhaseStart, fk.Damaged},
   can_trigger = function(self, event, target, player, _)
-    if (event == fk.EventPhaseStart and player.phase == Player.Start) or event == fk.Damaged then
-      return target == player and player:hasSkill(self) 
-    end
+    if not (target == player and player:hasSkill(self)) then return end
+    return event == fk.Damaged or player.phase == Player.Start
   end,
   on_use = function(self, event, _, player, _)
     local room = player.room
-    local exclude_list = table.map(room.players, function(p)
-      return H.getActualGeneral(p, false)
-    end)
-    for _, p in ipairs(room.players) do
-      local deputy = p.deputyGeneral
-      if deputy and deputy ~= "" then
-        table.insert(exclude_list, H.getActualGeneral(p, true))
-      end
-    end
+    local generals = {}
     if event == fk.EventPhaseStart then
       local m = player:getMark("@&ld__xing")
-      local generals = {}
       if m == 0 or #m < 2 then
-        local all_xing = Fk:getGeneralsRandomly(5, nil, exclude_list)
-        local choices1 = {}
-        for _, s in ipairs(all_xing) do
-          table.insert(choices1, s.name)
-        end
-        local choice1 = room:askForChoice(player, choices1, self.name, "#ld__xinshen_xing1")
-        local general1 = Fk.generals[choice1]
-        table.insert(generals, general1)
-  
-  
-        local choices2 = {}
-        for _, s in ipairs(all_xing) do
-          if choice1 ~= s.name then
-            table.insert(choices2, s.name)
-          end
-        end
-       
-        local choice2 = room:askForChoice(player, choices2, self.name, "#ld__xinshen_xing1")
-        local general2 = Fk.generals[choice2]
-        table.insert(generals, general2)
-        
+        local all_xing = room:getNGenerals(5)
+        generals = room:askForChoices(player, all_xing, 2, 2, self.name, "#ld__xinshen_xing2", false)
+        if #generals < 2 then generals = table.random(all_xing, 2) end
       else
         local choices = player:getMark("@&ld__xing")
-        local choice = room:askForChoice(player, choices, self.name, "#ld__xinshen_xing2")
+        local choice = room:askForChoice(player, choices, self.name, "#ld__xinshen_xing_recast")
         removeFangke(player, choice)
-        generals = Fk:getGeneralsRandomly(1, nil, exclude_list)
-      end
-      for _, g in ipairs(generals) do
-        addFangke(player, g, true)
+        generals = room:getNGenerals(1)
       end
     else
-      local generals =  Fk:getGeneralsRandomly(1, nil, exclude_list)
-      for _, g in ipairs(generals) do
-        addFangke(player, g, true)
-      end
+      generals = room:getNGenerals(1)
     end
+    table.forEach(generals, function(g) addFangke(player, Fk.generals[g], true) end)
   end,
 
   refresh_events = {fk.EventLoseSkill, fk.GeneralHidden, fk.BuryVictim},
@@ -616,10 +565,10 @@ local xinsheng = fk.CreateTriggerSkill{
     end
   end,
   on_refresh = function(self, event, target, player, data)
-    local room = player.room
-    local all_xing = player:getMark("@&ld__xing")
-    handleFangkeRemove(player, all_xing)
-    room:setPlayerMark(player, "@&ld__xing", 0)
+    local record = table.simpleClone(player:getMark("@&ld__xing"))
+    for _, s in ipairs(record) do
+      removeFangke(player, s)
+    end
   end,
 }
 
@@ -628,21 +577,20 @@ local huashen = fk.CreateTriggerSkill{
   events = {fk.AfterSkillEffect},
   can_trigger = function(self, _, target, player, data)
     return target == player and player:hasSkill(self) and
-      player:getMark("ld__xing_skills") ~= 0 and
-      table.contains(player:getMark("ld__xing_skills"), data.name)
+      table.contains(U.getMark(player, "ld__xing_skills"), data.name)
   end,
-  on_cost = function() return true end,
+  on_cost = Util.TrueFunc,
   on_use = function(self, _, target, player, data)
-    local room = player.room
     local all_xing = player:getMark("@&ld__xing")
     local choices = {}
     for _, s in ipairs(all_xing) do
       local general = Fk.generals[s]
-      if table.contains(general.skills, data) or table.contains(general.other_skills, data.name) then
+      local skills = general:getSkillNameList()
+      if table.contains(skills, data.name) then
         table.insert(choices, s)
       end
     end
-    local choice = room:askForChoice(player, choices, self.name, "#ld__xinshen_xing1")
+    local choice = player.room:askForChoice(player, choices, self.name, "#ld__huashen_remove")
     removeFangke(player, choice)
   end,
 }
@@ -653,21 +601,23 @@ zuoci:addSkill(huashen)
 Fk:loadTranslationTable{
   ["ld__zuoci"] = "左慈",
   ["ld__huashen"] = "化身",
-  [":ld__huashen"] = "当你需要发动“形”拥有的技能时，你可以于对应的时机发动“形”拥有的一个无技能标签的技能，然后将拥有此技能的“形”置入武将牌堆。<br>注：不要报有关左慈的任何技能触发bug，有极小可能性导致游戏崩溃的除外。",
+  [":ld__huashen"] = "当你需要发动“形”拥有的技能时，你可以于对应的时机发动“形”拥有的一个无技能标签的技能，然后将拥有此技能的“形”置入武将牌堆。<br><font color = 'grey'>注：不要报有关左慈的任何技能触发bug，有极小可能性导致游戏崩溃的除外。</font>",
   ["ld__xinsheng"] = "新生",
-  [":ld__xinsheng"] = "准备阶段，若你的“形”：少于两张，你可以随机观看五张武将牌堆中的武将牌，选择其中的两张置于你的武将牌上，称为“形”；不少于两张，你可以将一张“形”置入武将牌堆，然后随机将武将牌堆中的一张武将牌置于你的武将牌上，称为“形”。"..
-    "当你受到伤害后，你可以随机并将武将牌堆中的一张武将牌置于你的武将牌上，称为“形”。",
+  [":ld__xinsheng"] = "准备阶段，若你的“形”：少于两张，你可以观看武将牌堆中的随机五张武将牌，选择其中的两张置于你的武将牌上，称为“形”；不少于两张，你可以将一张“形”置入武将牌堆，然后随机将武将牌堆中的一张武将牌置于你的武将牌上，称为“形”。"..
+    "当你受到伤害后，你可以随机将武将牌堆中的一张武将牌置于你的武将牌上，称为“形”。",
 
   ["@&ld__xing"] = "形",
 
-  ["#ld__xinshen_xing1"] = "新生：你可以选择一张武将牌置于你的武将牌上，称为“形”",
-  ["#ld__xinshen_xing2"] = "新生：你可以移去一张“形”，然后随机将一张武将牌置于你的武将牌上，称为“形”",
+  ["#ld__xinshen_xing1"] = "新生：选择一张武将牌置于你的武将牌上，称为“形”",
+  ["#ld__xinshen_xing2"] = "新生：选择两张武将牌置于你的武将牌上，称为“形”",
+  ["#ld__xinshen_xing_recast"] = "新生：移去一张“形”，然后随机将一张武将牌置于你的武将牌上，称为“形”",
+  ["#ld__huashen_remove"] = "化身：移去一张“形”",
 
   ["$ld__huashen1"] = "世间万物，贫道皆可化为其形。",
   ["$ld__huashen2"] = "尘身土塑，唯魂魄难得。",
-  ["$ld__xinsheng1"] = "大成若缺，损益无妨",
+  ["$ld__xinsheng1"] = "大成若缺，损益无妨。",
   ["$ld__xinsheng2"] = "大盈若冲，心神自现。",
-  ["~ld__zuoci"] = "仙人之逝，魂归九天...",
+  ["~ld__zuoci"] = "仙人之逝，魂归九天…",
 }
 
 local lijueguosi = General(extension, "ld__lijueguosi", "qun", 4)

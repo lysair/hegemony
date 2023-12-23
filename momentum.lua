@@ -163,6 +163,10 @@ local cunsi = fk.CreateActiveSkill{
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
     H.removeGeneral(room, player, player.deputyGeneral == "ld__mifuren")
+    local isDeputy = H.inGeneralSkills(player, self.name)
+    if isDeputy then
+      H.removeGeneral(room, player, isDeputy == "d")
+    end
     local target = room:getPlayerById(effect.tos[1])
     room:handleAddLoseSkills(target, "yongjue", nil)
     if target ~= player and not target.dead then
