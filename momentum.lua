@@ -388,7 +388,7 @@ local fenming = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    for _, p in ipairs(room.alive_players) do
+    for _, p in ipairs(room:getAlivePlayers()) do
       if p.chained and not p:isNude() then
         local c = room:askForCardChosen(player, p, "he", self.name)
         room:throwCard(c, self.name, p, player)

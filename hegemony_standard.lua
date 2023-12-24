@@ -2131,7 +2131,7 @@ jiaxu:addSkill(weimu)
 Fk:loadTranslationTable{
   ['hs__jiaxu'] = '贾诩',
   ['hs__weimu'] = '帷幕',
-  [':hs__weimu'] = '锁定技，当你成为黑色锦囊牌目标后，取消之。',
+  [':hs__weimu'] = '锁定技，当你成为黑色锦囊牌目标时，取消之。',
 
   ["$hs__weimu1"] = "此计伤不到我。",
   ["$hs__weimu2"] = "你奈我何！",
