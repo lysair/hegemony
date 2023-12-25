@@ -539,11 +539,36 @@ local xinsheng = fk.CreateTriggerSkill{
       local m = player:getMark("@&ld__xing")
       if m == 0 or #m < 2 then
         local all_xing = room:getNGenerals(5)
-        generals = room:askForChoices(player, all_xing, 2, 2, self.name, "#ld__xinshen_xing2", false)
-        if #generals < 2 then generals = table.random(all_xing, 2) end
+        local result = room:askForCustomDialog(player, self.name,
+        "packages/utility/qml/ChooseGeneralsAndChoiceBox.qml", {
+          all_xing,
+          {"OK"},
+          "#ld__xinshen_xing2",
+          {},
+          2,
+          2
+        })
+        if result ~= "" then
+          local reply = json.decode(result)
+          generals = reply.cards
+        else
+          generals = table.random(all_xing, 2)
+        end
       else
         local choices = player:getMark("@&ld__xing")
-        local choice = room:askForChoice(player, choices, self.name, "#ld__xinshen_xing_recast")
+        local choice
+        local result = room:askForCustomDialog(player, self.name,
+        "packages/utility/qml/ChooseGeneralsAndChoiceBox.qml", {
+          choices,
+          {"OK"},
+          "#ld__xinshen_xing_recast"
+        })
+        if result ~= "" then
+          local reply = json.decode(result)
+          choice = reply.cards[1]
+        else
+          choice = table.random(choices)
+        end
         removeFangke(player, choice)
         generals = room:getNGenerals(1)
       end

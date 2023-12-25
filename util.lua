@@ -738,15 +738,34 @@ Fk:loadTranslationTable{
 ---@return boolean @ 是否为副将
 H.doHideGeneral = function(room, player, target, skill_name)
   if player.dead or target.dead then return false end
-  local choices = {}
-  if target.general ~= "anjiang" and not target.general:startsWith("blank_") and not string.find(target.general, "lord") then -- 耦合君主
-    table.insert(choices, target.general)
+  local all_choices = {target.general, target.deputyGeneral}
+  local disable_choices = {}
+  if not (target.general ~= "anjiang" and not target.general:startsWith("blank_") and not string.find(target.general, "lord")) then -- 耦合君主
+    table.insert(disable_choices, target.general)
   end
-  if target.deputyGeneral and target.deputyGeneral ~= "anjiang" and not target.deputyGeneral:startsWith("blank_") then
-    table.insert(choices, target.deputyGeneral)
+  if not (target.deputyGeneral ~= "anjiang" and not target.deputyGeneral:startsWith("blank_")) then
+    table.insert(disable_choices, target.deputyGeneral)
   end
-  if #choices == 0 then return false end
-  local choice = room:askForChoice(player, choices, skill_name, "#hide_general-ask::" .. target.id .. ":" .. skill_name)
+  if #disable_choices == 2 then return false end
+  local result = room:askForCustomDialog(player, skill_name,
+  "packages/utility/qml/ChooseGeneralsAndChoiceBox.qml", {
+    all_choices,
+    {"OK"},
+    "#hide_general-ask::" .. target.id .. ":" .. skill_name,
+    {},
+    1,
+    1,
+    disable_choices
+  })
+  local choice
+  if result ~= "" then
+    local reply = json.decode(result)
+    choice = reply.cards[1]
+  else
+    choice = table.find(all_choices, function(g)
+      return not table.contains(disable_choices, g)
+    end)
+  end
   local isDeputy = choice == target.deputyGeneral
   target:hideGeneral(isDeputy)
   room:sendLog{

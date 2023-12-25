@@ -974,12 +974,29 @@ local tieqi = fk.CreateTriggerSkill{
     if to.deputyGeneral ~= "anjiang" then
       table.insert(choices, to.deputyGeneral)
     end
+    local all_choices = {to.general, to.deputyGeneral}
+    local disable_choices = table.filter(all_choices, function(g) return not table.contains(choices, g) end)
     if #choices > 0 then
       local choice
       if H.getHegLord(room, player) and #choices > 1 and H.getHegLord(room, player):hasSkill("shouyue") then
         choice = choices
       else
-        choice = {room:askForChoice(player, choices, self.name, "#hs__tieqi-ask::" .. to.id)}
+        local result = room:askForCustomDialog(player, self.name,
+        "packages/utility/qml/ChooseGeneralsAndChoiceBox.qml", {
+          all_choices,
+          {"OK"},
+          "#hs__tieqi-ask::" .. to.id,
+          {},
+          1,
+          1,
+          disable_choices
+        })
+        if result ~= "" then
+          local reply = json.decode(result)
+          choice = reply.cards
+        else
+          choice = table.random(choices, 1)
+        end
       end
       local record = type(to:getMark("@hs__tieqi-turn")) == "table" and to:getMark("@hs__tieqi-turn") or {}
       for _, c in ipairs(choice) do
@@ -1021,7 +1038,7 @@ Fk:loadTranslationTable{
   ["hs__tieqi"] = "铁骑",
   [":hs__tieqi"] = "当你使用【杀】指定目标后，你可判定，令其本回合一张明置的武将牌非锁定技失效，其需弃置一张与判定结果花色相同的牌，否则其不能使用【闪】抵消此【杀】。",
   ["@hs__tieqi-turn"] = "铁骑",
-  ["#hs__tieqi-ask"] = "铁骑：选择 %dest 一张明置的武将牌，本回合此武将牌上的非锁定技失效",
+  ["#hs__tieqi-ask"] = "铁骑：令 %dest 一张武将牌上的非锁定技此回合失效",
   ["#hs__tieqi-discard"] = "铁骑：你需弃置一张%arg牌，否则不能使用【闪】抵消此【杀】。",
   ["$hs__tieqi1"] = "目标敌阵，全军突击！",
   ["$hs__tieqi2"] = "敌人阵型已乱，随我杀！",
