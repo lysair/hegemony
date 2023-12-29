@@ -3,6 +3,7 @@ extension.extensionName = "hegemony"
 extension.game_modes_whitelist = { 'nos_heg_mode', 'new_heg_mode' }
 
 local H = require "packages/hegemony/util"
+local U = require "packages/utility/utility"
 
 Fk:loadTranslationTable{
   ["formation"] = "君临天下·阵",
@@ -123,6 +124,120 @@ Fk:loadTranslationTable{
   ["$ld__jixi1"] = "谁占到先机，谁就胜了。",
   ["$ld__jixi2"] = "哪里走！！",
   ["~ld__dengai"] = "君不知臣，臣不知君。罢了……罢了！",
+}
+
+local caohong = General(extension, "ld__caohong", "wei", 4)
+
+local heyi = H.CreateArraySummonSkill{
+  name = "heyi",
+  array_type = "formation",
+}
+local heyiTrig = fk.CreateTriggerSkill{ -- FIXME
+  name = '#heyi_trigger',
+  visible = false,
+  frequency = Skill.Compulsory,
+  refresh_events = {fk.TurnStart, fk.GeneralRevealed, fk.EventAcquireSkill, "fk.RemoveStateChanged", fk.EventLoseSkill, fk.GeneralHidden},
+  can_refresh = function(self, event, target, player, data)
+    if event == fk.EventLoseSkill then return data == heyi
+    elseif event == fk.GeneralHidden then return player == target 
+    else return H.hasShownSkill(player, self.name, true, true) end
+  end,
+  on_refresh = function(self, event, target, player, data)
+    local room = player.room
+
+    local ret = #room.alive_players > 3 and player:hasSkill(self)
+    for _, p in ipairs(room.alive_players) do
+      if H.inFormationRelation(p, player) then
+        room:handleAddLoseSkills(p, ret and 'ld__feiying' or "-ld__feiying", nil, false, true)
+      end
+    end
+  end,
+}
+heyi:addRelatedSkill(heyiTrig)
+local feiying = fk.CreateDistanceSkill{
+  name = "ld__feiying",
+  correct_func = function(self, from, to)
+    if to:hasSkill(self) then
+      return 1
+    end
+    return 0
+  end,
+}
+
+local huyuan = fk.CreateTriggerSkill{
+  name = 'ld__huyuan',
+  anim_type = "defensive",
+  events = {fk.EventPhaseStart},
+  can_trigger = function (self, event, target, player, data)
+    return player:hasSkill(self) and player.phase == Player.Finish and not player:isNude()
+  end,
+  on_use = function (self, event, target, player, data)
+    local room = player.room
+    local choices = {}
+    if not player:isKongcheng() then
+      table.insert(choices, "ld__huyuan_give")
+    end
+    local cards = player.player_cards[Player.Hand]
+    if #player:getCardIds("e") > 0 then
+      table.insert(choices, "ld__huyuan_equip")
+    else
+      for _, id in ipairs(cards) do
+        if Fk:getCardById(id).type == Card.TypeEquip then
+          table.insert(choices, "ld__huyuan_equip")
+          break
+        end
+      end
+    end
+    
+    local choice = room:askForChoice(player, choices, self.name)
+    if choice == "ld__huyuan_give" then
+      local card = room:askForCard(player, 1, 1, true, self.name, false, ".", nil)
+      local dummy2 = Fk:cloneCard("dilu")
+      dummy2:addSubcards(card)
+      local targets = table.map(room:getOtherPlayers(player, false), Util.IdMapper)
+      local to = room:askForChoosePlayers(player, targets, 1, 1, "#ld__huyuan-choose", self.name, false, true)
+      room:obtainCard(room:getPlayerById(to[1]), dummy2, false, fk.ReasonGive)
+    elseif choice == "ld__huyuan_equip" then
+      local card = room:askForCard(player, 1, 1, true, self.name, false, ".|.|.|.|.|equip", nil)
+      local targets = table.map(table.filter(room.alive_players, function(p) 
+        return p:hasEmptyEquipSlot(Fk:getCardById(card[1]).sub_type) end), Util.IdMapper)
+      local to = room:askForChoosePlayers(player, targets, 1, 1, "#ld__huyuan-choose", self.name, false, true)
+      room:moveCards({
+        ids = card,
+        from = player.id,
+        to = to[1],
+        toArea = Card.PlayerEquip,
+        moveReason = fk.ReasonPut,
+      })
+      local targets2 = table.map(table.filter(room.alive_players, function(p) 
+        return #p:getCardIds("ej") > 0 end), Util.IdMapper)
+      local to2 = room:askForChoosePlayers(player, targets2, 1, 1, "#ld__huyuan_discard-choose", self.name, false, true)
+      local cid = room:askForCardChosen(player, room:getPlayerById(to2[1]), "ej", self.name)
+      room:throwCard({cid}, self.name, room:getPlayerById(to2[1]), player)
+    end
+  end,
+}
+
+caohong:addSkill(heyi)
+caohong:addSkill(huyuan)
+Fk:addSkill(feiying)
+caohong:addCompanions("hs__caoren")
+Fk:loadTranslationTable{
+  ["ld__caohong"] = "曹洪",
+  ["heyi"] = "鹤翼",
+  [":heyi"] = "阵法技，与你处于同一队列的角色拥有〖飞影〗。",
+  ["ld__huyuan"] = "护援",
+  [":ld__huyuan"] = "结束阶段，你可以选择一项：1.交给一名其他角色一张手牌；2.将一张装备牌置入一名角色的装备区，然后弃置场上的一张牌。",
+
+  ["ld__huyuan_give"] = "交给一名其他角色一张手牌",
+  ["ld__huyuan_equip"] = "将一张装备牌置入一名角色的装备区",
+
+  ["#ld__huyuan-choose"] = "护援：选择一名角色",
+  ["#ld__huyuan_discard-choose"] = "护援：选择一名角色，弃置其场上的一张牌",
+
+  ["ld__feiying"] = "飞影",
+  [":ld__feiying"] = "锁定技，其他角色计算与你的距离+1。",
+
 }
 
 local jiangwei = General(extension, "ld__jiangwei", "shu", 4)
@@ -353,6 +468,82 @@ Fk:loadTranslationTable{
   ["$yicheng1"] = "不怕死，就尽管放马过来！",
   ["$yicheng2"] = "待末将布下疑城，以退曹贼。",
   ["~ld__xusheng"] = "可怜一身胆略，尽随一抔黄土……",
+}
+
+local jiangqin = General(extension, "ld__jiangqin", "wu", 4)
+
+local niaoxiang = H.CreateArraySummonSkill{
+  name = "niaoxiang",
+  array_type = "siege",
+}
+local niaoxiangTrigger = fk.CreateTriggerSkill{
+  name = "#niaoxiang_trigger",
+  visible = false,
+  events = {fk.TargetSpecified},
+  can_trigger = function(self, event, target, player, data)
+    return player:hasSkill(self) and data.card.trueName == "slash" and H.inSiegeRelation(target, player, player.room:getPlayerById(data.to)) 
+      and #player.room.alive_players > 3
+  end,
+  on_cost = Util.TrueFunc,
+  on_use = function(self, event, target, player, data)
+    data.fixedResponseTimes = data.fixedResponseTimes or {}
+    data.fixedResponseTimes["jink"] = 2
+  end
+}
+
+local shangyi = fk.CreateActiveSkill{
+  name = 'ld__shangyi',
+  anim_type = "control",
+  card_num = 0,
+  target_num = 1,
+  prompt = "ld__shangyi",
+  can_use = function(self, player)
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and not player:isKongcheng()
+  end,
+  target_filter = function(self, to_select, selected, selected_cards)
+    return #selected == 0 and to_select ~= Self.id 
+  end,
+  on_use = function(self, room, effect)
+    local player = room:getPlayerById(effect.from)
+    local target = room:getPlayerById(effect.tos[1])
+    if player.dead or target.dead or player:isKongcheng() then return end
+    U.viewCards(target, player:getCardIds("h"), self.name)
+    local choices = {}
+    if H.getGeneralsRevealedNum(target) ~= 2 then
+      table.insert(choices, "ld__shangyi_hidden")
+    end
+    if not target:isKongcheng() then
+      table.insert(choices, "ld__shangyi_card")
+    end
+    if #choices == 0 then return end
+    local choice = room:askForChoice(player, choices, self.name)
+    if choice == "ld__shangyi_hidden" then
+      local general = {target:getMark("__heg_general"), target:getMark("__heg_deputy"), target.seat} 
+      room:askForCustomDialog(player, self.name, "packages/hegemony/qml/KnownBothBox.qml", general)
+    elseif choice == "ld__shangyi_card" then
+      local cards = room:askForCardsChosen(player, target, 1, 1, {
+        card_data = {
+          { "$Hand", target:getCardIds(Player.Hand) }
+        }
+      }, self.name, "#known_both-hand::"..target.id)
+      room:throwCard(cards, self.name, target, player)
+    end
+  end,
+}
+
+niaoxiang:addRelatedSkill(niaoxiangTrigger)
+jiangqin:addSkill(niaoxiang)
+jiangqin:addSkill(shangyi)
+jiangqin:addCompanions("hs__zhoutai")
+Fk:loadTranslationTable{
+  ["ld__jiangqin"] = "蒋钦",
+  ["niaoxiang"] = "鸟翔",
+  [":niaoxiang"] = "阵法技，若你是围攻角色，此围攻关系中的围攻角色使用【杀】指定被围攻角色为目标后，你令被围攻角色响应此【杀】的方式改为依次使用两张【闪】。",
+  ["ld__shangyi"] = "尚义",
+  [":ld__shangyi"] = "出牌阶段限一次，你可以令一名其他角色观看你所有手牌，然后你选择一项：1.观看其所有手牌并弃置其中一张黑色牌；2.观看其所有暗置的武将牌",
+
+  ["ld__shangyi_hidden"] = "观看暗置的武将牌",
+  ["ld__shangyi_card"] = "观看所有手牌",
 }
 
 local yuji = General(extension, "ld__yuji", "qun", 3)

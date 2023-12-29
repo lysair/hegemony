@@ -1789,6 +1789,177 @@ Fk:loadTranslationTable{
   ["~ty_heg__xianglang"] = "识文重义而徇私，恨也……",
 }
 
+local tengyin = General(extension, "ty_heg__tengyin", "wu", 3)
+local chenjian = fk.CreateTriggerSkill{
+  name = "ty_heg__chenjian",
+  anim_type = "control",
+  events = {fk.EventPhaseStart},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self) and player.phase == Player.Start
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local ids = room:getNCards(3)
+    room:moveCards({
+      ids = ids,
+      toArea = Card.Processing,
+      moveReason = fk.ReasonJustMove,
+      skillName = self.name,
+    })
+    local choices = {"Cancel", "chenjian1", "chenjian2"}
+  
+    ids = table.filter(ids, function(id) return room:getCardArea(id) == Card.Processing end)
+    local choice = room:askForChoice(player, choices, self.name)
+
+    if choice == "chenjian1" then
+      local suits = {}
+      for _, id in ipairs(ids) do
+        table.insertIfNeed(suits, Fk:getCardById(id):getSuitString())
+      end
+      local to, card =  room:askForChooseCardAndPlayers(player, table.map(player.room.alive_players, Util.IdMapper), 1, 1, ".|.|"..table.concat(suits, ","), "#chenjian-choose", self.name, true)
+      if #to > 0 and card then
+        local suit = Fk:getCardById(card).suit
+        room:throwCard({card}, self.name, player, player)
+        local dummy = Fk:cloneCard("dilu")
+        for i = #ids, 1, -1 do
+          if Fk:getCardById(ids[i]).suit == suit then
+            dummy:addSubcard(ids[i])
+            table.removeOne(ids, ids[i])
+          end
+        end
+        if not room:getPlayerById(to[1]).dead then
+          room:obtainCard(to[1], dummy, true, fk.ReasonJustMove)
+        end
+
+      end
+    elseif choice == "chenjian2" then
+      local fakemove = {
+        toArea = Card.PlayerHand,
+        to = player.id,
+        moveInfo = table.map(ids, function(id) return {cardId = id, fromArea = Card.Void} end),
+        moveReason = fk.ReasonJustMove,
+      }
+      room:notifyMoveCards({player}, {fakemove})
+      local availableCards = {}
+      for _, id in ipairs(ids) do
+        local card = Fk:getCardById(id)
+        if not player:prohibitUse(card) and card.skill:canUse(player, card) then
+          table.insertIfNeed(availableCards, id)
+        end
+      end
+      room:setPlayerMark(player, "chenjian_cards", availableCards)
+      local success, dat = room:askForUseActiveSkill(player, "chenjian_viewas", "#chenjian-use", true)
+      room:setPlayerMark(player, "chenjian_cards", 0)
+      fakemove = {
+        from = player.id,
+        toArea = Card.Void,
+        moveInfo = table.map(ids, function(id) return {cardId = id, fromArea = Card.PlayerHand} end),
+        moveReason = fk.ReasonJustMove,
+      }
+      room:notifyMoveCards({player}, {fakemove})
+      if success then
+        room:moveCards({
+          from = player.id,
+          ids = dat.cards,
+          toArea = Card.Processing,
+          moveReason = fk.ReasonUse,
+          skillName = self.name,
+        })
+        local card = Fk.skills["chenjian_viewas"]:viewAs(dat.cards)
+        room:useCard{
+          from = player.id,
+          tos = table.map(dat.targets, function(id) return {id} end),
+          card = card,
+          extraUse = true,
+        }
+      end
+    end
+
+    ids = table.filter(ids, function(id) return room:getCardArea(id) == Card.Processing end)
+    if #ids > 0 then
+      room:moveCards({
+        ids = ids,
+        toArea = Card.DiscardPile,
+        moveReason = fk.ReasonJustMove,
+        skillName = self.name,
+      })
+    end
+  end,
+}
+local chenjian_viewas = fk.CreateViewAsSkill{
+  name = "ty_heg__chenjian_viewas",
+  card_filter = function(self, to_select, selected)
+    if #selected == 0 then
+      local ids = Self:getMark("chenjian_cards")
+      return type(ids) == "table" and table.contains(ids, to_select)
+    end
+  end,
+  view_as = function(self, cards)
+    if #cards == 1 then
+      return Fk:getCardById(cards[1])
+    end
+  end,
+}
+local xixiu = fk.CreateTriggerSkill{
+  name = "ty_heg__xixiu",
+  anim_type = "defensive",
+  frequency = Skill.Compulsory,
+  events = {fk.TargetConfirmed, fk.BeforeCardsMove},
+  can_trigger = function(self, event, target, player, data)
+    if player:hasSkill(self) then
+      if event == fk.TargetConfirmed then
+        return target == player and data.from ~= player.id and
+          table.find(player:getCardIds("e"), function(id) return Fk:getCardById(id).suit == data.card.suit end) and player:getMark("ty_heg__xixiu-turn") == 0
+      else
+        if #player:getCardIds("e") ~= 1 then return end
+        for _, move in ipairs(data) do
+          if move.from == player.id and move.moveReason == fk.ReasonDiscard and (move.proposer ~= player and move.proposer ~= player.id) then
+            for _, info in ipairs(move.moveInfo) do
+              if info.fromArea == Card.PlayerEquip then
+                return true
+              end
+            end
+          end
+        end
+      end
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    if event == fk.TargetConfirmed then
+      player:drawCards(1, self.name)
+      player.room:setPlayerMark(player, "ty_heg__xixiu-turn", 1)
+    else
+      for _, move in ipairs(data) do
+        if move.from == player.id and move.moveReason == fk.ReasonDiscard and (move.proposer ~= player and move.proposer ~= player.id) then
+          for i = #move.moveInfo, 1, -1 do
+            local info = move.moveInfo[i]
+            if info.fromArea == Card.PlayerEquip then
+              table.removeOne(move.moveInfo, info)
+              break
+            end
+          end
+        end
+      end
+    end
+  end,
+}
+Fk:addSkill(chenjian_viewas)
+tengyin:addSkill(chenjian)
+tengyin:addSkill(xixiu)
+Fk:loadTranslationTable{
+  ["ty_heg__tengyin"] = "滕胤",
+  ["ty_heg__chenjian"] = "陈见",
+  [":ty_heg__chenjian"] = "准备阶段，你可以亮出牌堆顶的三张牌并可以选择一项：1.弃置一张牌，令一名角色获得其中此牌花色的牌；2.使用其中一张牌。",
+  ["ty_heg__xixiu"] = "皙秀",
+  [":ty_heg__xixiu"] = "①锁定技，每回合限一次，当你成为其他角色使用牌的目标后，若你装备区内有与此牌花色相同的牌，你摸一张牌；②其他角色弃置你装备区内的最后一张牌时，取消之。",
+
+  ["$ty_heg__chenjian1"] = "国有其弊，上书当陈。",
+  ["$ty_heg__chenjian2"] = "食君之禄，怎可默言。",
+  ["$ty_heg__xixiu1"] = "君子如玉，德形皓白。",
+  ["$ty_heg__xixiu2"] = "木秀于身，芬芳自如。",
+  ["~ty_heg__tengyin"] = "臣好洁，不堪与之合污！",
+}
+
 local nanhualaoxian = General(extension, "ty_heg__nanhualaoxian", "qun", 4)
 local gongxiu = fk.CreateTriggerSkill{
   name = "ty_heg__gongxiu",

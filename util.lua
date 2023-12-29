@@ -371,6 +371,11 @@ H.askCommandTo = function(from, to, skill_name)
   room:doBroadcastNotify("ServerMessage", ret)
   local index = H.startCommand(from, skill_name)
   local invoke = H.doCommand(to, skill_name, index, from)
+  local commandData = {
+    from = from,
+    to = to,
+  }
+  room.logic:trigger("fk.AfterCommandUse", nil, commandData)
   return invoke
 end
 
@@ -429,6 +434,13 @@ H.doCommand = function(to, skill_name, index, from)
   room:doBroadcastNotify("ServerMessage", ret)
 
   if choice == "Cancel" then return false end
+  local commandData = {
+    from = from,
+    to = to,
+    command = index,
+  }
+  room.logic:trigger("fk.ChooseDoCommand", nil, commandData)
+  if to:getMark("StopCommand") ~= 0 then room:setPlayerMark(to, "StopCommand", 0) return true end
   if index == 1 then
     local dest = room:askForChoosePlayers(from, table.map(room.alive_players, Util.IdMapper), 1, 1, "#command1-damage::" .. to.id, skill_name)[1]
     room:sendLog{
