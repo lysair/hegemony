@@ -772,48 +772,36 @@ local kuangcai = fk.CreateTriggerSkill{
   events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
     if target == player and player:hasSkill(self) and player.phase == Player.Discard then
-      local n = 0
-      for _, v in pairs(player.cardUsedHistory) do
-        if v[Player.HistoryTurn] > 0 then
-          n = 1
-          break
-        end
-      end
-      if n == 0 then
+      local used = #player.room.logic:getEventsOfScope(GameEvent.UseCard, 1, function(e)
+        local use = e.data[1]
+        return use.from == player.id
+      end, Player.HistoryTurn) > 0
+      if not used then
+        self.cost_data = "noused"
         return true
-      else
-        return #player.room.logic:getEventsOfScope(GameEvent.ChangeHp, 1, function (e)
-          local damage = e.data[5]
-          if damage and target == damage.from then
-            return true
-          end
-        end, Player.HistoryTurn) == 0 and player:getMaxCards() > 0
+      elseif #U.getActualDamageEvents(player.room, 1, function(e) return e.data[1].from == player end) == 0 then
+        self.cost_data = "used"
+        return true
       end
     end
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
     player:broadcastSkillInvoke(self.name)
-    local n = 0
-    for _, v in pairs(player.cardUsedHistory) do
-      if v[Player.HistoryTurn] > 0 then
-        n = 1
-        break
-      end
-    end
-    if n == 0 then
+    if self.cost_data == "noused" then
       room:notifySkillInvoked(player, self.name, "support")
       room:addPlayerMark(player, MarkEnum.AddMaxCards, 1)
     else
       room:notifySkillInvoked(player, self.name, "negative")
       room:addPlayerMark(player, MarkEnum.MinusMaxCards, 1)
     end
+    room:broadcastProperty(player, "MaxCards")
   end,
 }
 local kuangcai_targetmod = fk.CreateTargetModSkill{
   name = "#ty_heg__kuangcai_targetmod",
   bypass_times = function(self, player, skill, scope, card, to)
-    return player:hasSkill("ty_heg__kuangcai") and scope == Player.HistoryPhase and player.phase ~= Player.NotActive
+    return player:hasSkill("ty_heg__kuangcai") and player.phase ~= Player.NotActive
   end,
   bypass_distances = function(self, player, skill, card, to)
     return player:hasSkill("ty_heg__kuangcai") and player.phase ~= Player.NotActive

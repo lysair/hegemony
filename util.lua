@@ -439,8 +439,7 @@ H.doCommand = function(to, skill_name, index, from)
     to = to,
     command = index,
   }
-  room.logic:trigger("fk.ChooseDoCommand", nil, commandData)
-  if to:getMark("StopCommand") ~= 0 then room:setPlayerMark(to, "StopCommand", 0) return true end
+  if room.logic:trigger("fk.ChooseDoCommand", nil, commandData) then return true end
   if index == 1 then
     local dest = room:askForChoosePlayers(from, table.map(room.alive_players, Util.IdMapper), 1, 1, "#command1-damage::" .. to.id, skill_name)[1]
     room:sendLog{
@@ -630,7 +629,7 @@ end
 --- 获得真正的主将/副将（而非暗将）
 ---@param player ServerPlayer
 ---@param isDeputy bool
----@return generalName string
+---@return string
 H.getActualGeneral = function(player, isDeputy)
   if isDeputy then
     return player.deputyGeneral == "anjiang" and player:getMark("__heg_deputy") or player.deputyGeneral or ""
@@ -1005,17 +1004,15 @@ H.CreateClearSkill = function(skill, expand_pile)
     expand_pile = expand_pile,
     refresh_events = {fk.EventLoseSkill, fk.GeneralHidden},
     can_refresh = function(self, event, target, player, data)
-      if target ~= player then return false end
-      if #player:getPile(expand_pile) == 0 then return false end
+      if target ~= player or #player:getPile(expand_pile) == 0 then return false end
       if event == fk.EventLoseSkill then
-        return target == player and data == Fk.skills[skill_name]
+        return data == skill
       else
         return table.contains(Fk.generals[data]:getSkillNameList(), skill_name)
       end
     end,
     on_refresh = function(self, event, target, player, data)
-      local room = player.room
-      room:moveCardTo(player:getPile(expand_pile), Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, self.name, expand_pile, true)
+      player.room:moveCardTo(player:getPile(expand_pile), Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, self.name, expand_pile, true)
     end,
   }
   skill:addRelatedSkill(clear_skill)

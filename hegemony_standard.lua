@@ -662,7 +662,7 @@ local paoxiaoTrigger = fk.CreateTriggerSkill{
   frequency = Skill.Compulsory,
   can_trigger = function(self, event, target, player, data)
     if target ~= player or not player:hasSkill(self) or data.card.trueName ~= "slash" then return false end
-    local events = player.room.logic:getEventsOfScope(GameEvent.UseCard, 2, function(e) 
+    local events = player.room.logic:getEventsOfScope(GameEvent.UseCard, 2, function(e)
       local use = e.data[1]
       return use.from == player.id and use.card.trueName == "slash" 
     end, Player.HistoryTurn)
@@ -728,7 +728,7 @@ zhangfei:addSkill(paoxiao)
 Fk:loadTranslationTable{
   ["hs__zhangfei"] = "张飞",
   ["hs__paoxiao"] = "咆哮",
-  [":hs__paoxiao"] = "锁定技，你使用【杀】无次数限制。当你于出牌阶段使用第二张【杀】时，你摸一张牌。",
+  [":hs__paoxiao"] = "锁定技，你使用【杀】无次数限制。当你于一个回合内使用第二张【杀】时，你摸一张牌。",
 
   ["#hs__paoxiaoTrigger"] = "咆哮",
   ["$hs__paoxiao1"] = "啊~~~",
