@@ -9,6 +9,7 @@ local nos_heg_mode = require "packages.hegemony.nos_hegemony"
 extension:addGameMode(nos_heg_mode)
 
 local H = require "packages/hegemony/util"
+local U = require "packages/utility/utility"
 
 Fk:loadTranslationTable{
   ["hegemony_standard"] = "国战标准版",
@@ -2227,7 +2228,7 @@ local duanchang = fk.CreateTriggerSkill{
     end
     if #choices == 0 then return false end
     local choice = room:askForChoice(player, choices, self.name, "#hs__duanchang-ask::" .. to.id)
-    local record = type(to:getMark("@hs__duanchang")) == "table" and to:getMark("@hs__duanchang") or {}
+    local record = U.getMark(to, "@hs__duanchang")
     table.insert(record, choice)
     room:setPlayerMark(to, "@hs__duanchang", record)
     local _g = (choice == "mainGeneral" or choice == to.general) and to.general or to.deputyGeneral
@@ -2246,13 +2247,13 @@ local duanchang = fk.CreateTriggerSkill{
         local skill = Fk.skills[s]
         to:loseFakeSkill(skill)
       end
-      local record = type(to:getMark("_hs__duanchang_anjiang")) == "table" and to:getMark("_hs__duanchang_anjiang") or {}
+      record = U.getMark(to, "_hs__duanchang_anjiang")
       table.insert(record, _g)
       room:setPlayerMark(to, "_hs__duanchang_anjiang", record)
     end
   end,
 
-  refresh_events = {fk.GeneralRevealed},
+  refresh_events = {fk.GeneralShown},
   can_refresh = function(self, event, target, player, data)
     if target == player and type(player:getMark("_hs__duanchang_anjiang")) == "table" then
       for _, v in pairs(data) do
