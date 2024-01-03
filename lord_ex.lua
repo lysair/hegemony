@@ -23,7 +23,7 @@ local quanjin = fk.CreateActiveSkill{
   end,
   target_num = 1,
   target_filter = function(self, to_select, selected, selected_cards)
-    return #selected == 0 and to_select ~= Self.id and Fk:currentRoom():getPlayerById(to_select):getMark("_quanjin-phase") > 0 and #selected_cards == 1
+    return #selected == 0 and to_select ~= Self.id and Fk:currentRoom():getPlayerById(to_select):getMark("_quanjin-phase") > 0 -- and #selected_cards == 1
   end,
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
@@ -49,7 +49,7 @@ local quanjinRecorder = fk.CreateTriggerSkill{
   visible = false,
   refresh_events = {fk.Damaged, fk.EventAcquireSkill},
   can_refresh = function(self, event, target, player, data)
-    if not player:hasSkill(self) or player.room.current ~= player or player.phase ~= Player.Play then return false end
+    if not (player:hasSkill(quanjin) or player:isFakeSkill(quanjin)) or player.phase ~= Player.Play then return false end
     return event == fk.Damaged or (target == player and data == quanjin)
   end,
   on_refresh = function(self, event, target, player, data)
@@ -57,15 +57,13 @@ local quanjinRecorder = fk.CreateTriggerSkill{
     if event == fk.Damaged then
       room:setPlayerMark(target, "_quanjin-phase", 1)
     else
-      room.logic:getEventsOfScope(GameEvent.ChangeHp, 1, function (e)
-        local damage = e.data[5]
-        if damage then
-          local target = data.to
-          if target:getMark("_quanjin-phase") == 0 then
-            room:setPlayerMark(target, "_quanjin-phase", 1)
-          end
+      for _, e in ipairs(U.getActualDamageEvents(room, 998, nil, Player.HistoryPhase)) do
+        local damage = e.data[1]
+        local to = damage.to
+        if to and to:getMark("_quanjin-phase") == 0 then
+          room:setPlayerMark(to, "_quanjin-phase", 1)
         end
-      end, Player.HistoryPhase)
+      end
     end
   end,
 }
@@ -76,16 +74,16 @@ local zaoyun = fk.CreateActiveSkill{
   anim_type = "offensive",
   prompt = "#zaoyun",
   can_use = function(self, player)
-    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and player.kingdom ~= "unknown"
   end,
   min_card_num = 1,
   card_filter = function(self, to_select, selected)
-    return Fk:currentRoom():getCardArea(to_select) == Player.Hand
+    return Fk:currentRoom():getCardArea(to_select) == Player.Hand and not Self:prohibitDiscard(Fk:getCardById(to_select))
   end,
   target_num = 1,
   target_filter = function(self, to_select, selected, selected_cards)
     local target = Fk:currentRoom():getPlayerById(to_select)
-    return #selected == 0 and not H.compareKingdomWith(target, Self) and target.kingdom ~= "unknown" -- ?
+    return #selected == 0 and H.compareKingdomWith(target, Self, true)
       and Self:distanceTo(target) - 1 == #selected_cards and #selected_cards > 0
   end,
   on_use = function(self, room, effect)

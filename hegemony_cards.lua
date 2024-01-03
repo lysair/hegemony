@@ -4,6 +4,7 @@ local extension = Package:new("hegemony_cards", Package.CardPack)
 extension.extensionName = "hegemony"
 
 local H = require "packages/hegemony/util"
+local U = require "packages/utility/utility"
 
 Fk:loadTranslationTable{
   ["hegemony_cards"] = "国战标准版",
@@ -179,12 +180,7 @@ local knownBothSkill = fk.CreateActiveSkill{
     if #choices == 0 then return end
     local choice = room:askForChoice(player, choices, self.name, "#known_both-choice::"..target.id, false, all_choices)
     if choice == "known_both_hand" then
-      room:askForCardsChosen(player, target, 0, 0, {
-        card_data = {
-          { "$Hand", target:getCardIds(Player.Hand) }
-        }
-        --TODO:需要进一步突破，max==0（仅观看，不选牌）时的特化优化（新开函数）
-      }, self.name, "#known_both-hand::"..target.id)
+      U.viewCards(player, target:getCardIds(Player.Hand), self.name, "#known_both-hand::"..target.id)
     else
       local general = choice == "known_both_main" and {target:getMark("__heg_general"), target.deputyGeneral, target.seat} or {target.general, target:getMark("__heg_deputy"), target.seat}
       room:askForCustomDialog(player, self.name, "packages/hegemony/qml/KnownBothBox.qml", general)

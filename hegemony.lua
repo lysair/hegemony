@@ -419,6 +419,20 @@ function HegLogic:broadcastGeneral()
   end
 end
 
+local function addHegSkill(player, skill, room)
+  if skill.frequency == Skill.Compulsory then
+    player:addFakeSkill("reveal_skill")
+  end
+  player:addFakeSkill(skill)
+  local toget = {table.unpack(skill.related_skills)}
+  table.insert(toget, skill)
+  for _, s in ipairs(toget) do
+    if s:isInstanceOf(TriggerSkill) then
+      room.logic:addTriggerSkill(s)
+    end
+  end
+end
+
 function HegLogic:attachSkillToPlayers()
   local room = self.room
   local players = room.players
@@ -427,43 +441,19 @@ function HegLogic:attachSkillToPlayers()
 
   for _, p in ipairs(room.alive_players) do
     local general = Fk.generals[p:getMark("__heg_general")]
-    local skills = general.skills
+    local skills = table.connect(general.skills, table.map(general.other_skills, Util.Name2SkillMapper))
     for _, s in ipairs(skills) do
       if s.relate_to_place ~= "d" then
-        if s.frequency == Skill.Compulsory then
-          p:addFakeSkill("reveal_skill")
-        end
-        p:addFakeSkill(s)
-      end
-    end
-    for _, sname in ipairs(general.other_skills) do
-      local s = Fk.skills[sname]
-      if s.relate_to_place ~= "d" then
-        if s.frequency == Skill.Compulsory then
-          p:addFakeSkill("reveal_skill")
-        end
-        p:addFakeSkill(s)
+        addHegSkill(p, s, room)
       end
     end
 
     local deputy = Fk.generals[p:getMark("__heg_deputy")]
     if deputy then
-      skills = deputy.skills
+      skills = table.connect(deputy.skills, table.map(deputy.other_skills, Util.Name2SkillMapper))
       for _, s in ipairs(skills) do
         if s.relate_to_place ~= "m" then
-          if s.frequency == Skill.Compulsory then
-            p:addFakeSkill("reveal_skill")
-          end
-          p:addFakeSkill(s)
-        end
-      end
-      for _, sname in ipairs(deputy.other_skills) do
-        local s = Fk.skills[sname]
-        if s.relate_to_place ~= "m" then
-          if s.frequency == Skill.Compulsory then
-            p:addFakeSkill("reveal_skill")
-          end
-          p:addFakeSkill(s)
+          addHegSkill(p, s, room)
         end
       end
     end
@@ -698,7 +688,7 @@ heg = fk.CreateGameMode{
       return not p.surrendered
     end)
     if #alive == 1 then
-      local p = alive[1]
+      local p = alive[1] ---@type ServerPlayer
       p:revealGeneral(false)
       p:revealGeneral(true)
       return p.role

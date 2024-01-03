@@ -199,10 +199,10 @@ local heg_description = [==[
 
 local heg
 
----@class HegLogic: GameLogic
-local HegLogic = {}
+---@class NosHegLogic: GameLogic
+local NosHegLogic = {}
 
-function HegLogic:assignRoles()
+function NosHegLogic:assignRoles()
   local room = self.room
   for _, p in ipairs(room.players) do
     p.role_shown = true
@@ -214,7 +214,7 @@ function HegLogic:assignRoles()
   room.players[1].role = "lord"
 end
 
-function HegLogic:chooseGenerals()
+function NosHegLogic:chooseGenerals()
   local room = self.room
   local generalNum = math.max(room.settings.generalNum, 5)
   room:doBroadcastNotify("ShowToast", Fk:translate("#nos_heg__InitialNotice"))
@@ -276,7 +276,7 @@ function HegLogic:chooseGenerals()
   end
 end
 
-function HegLogic:broadcastGeneral()
+function NosHegLogic:broadcastGeneral()
   local room = self.room
   local players = room.players
 
@@ -305,11 +305,11 @@ function HegLogic:broadcastGeneral()
     room:broadcastProperty(p, "deputyGeneral")
     room:broadcastProperty(p, "maxHp")
     room:broadcastProperty(p, "hp")
-     room:broadcastProperty(p, "shield")
+    room:broadcastProperty(p, "shield")
   end
 end
 
-function HegLogic:attachSkillToPlayers()
+function NosHegLogic:attachSkillToPlayers()
   local room = self.room
   local players = room.players
 
@@ -352,8 +352,8 @@ function HegLogic:attachSkillToPlayers()
 end
 
 local heg_getlogic = function()
-  local h = GameLogic:subclass("NosHegLogic")
-  for k, v in pairs(HegLogic) do
+  local h = GameLogic:subclass("NosNosHegLogic")
+  for k, v in pairs(NosHegLogic) do
     h[k] = v
   end
   return h
