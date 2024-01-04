@@ -670,14 +670,14 @@ H.askForRevealGenerals = function(room, player, skill_name, main, deputy, all, c
   deputy = (deputy == nil) and true or deputy
   all = (all == nil) and true or all
   cancelable = (cancelable == nil) and true or cancelable
-  local all_choices = {"revealMain", "revealDeputy", "revealAll", "Cancel"}
+  local all_choices = {"revealMainGeneral:::" .. player:getMark("__heg_general"), "revealDeputyGeneral:::" .. player:getMark("__heg_deputy"), "revealAll", "Cancel"}
   local choices = {}
 
   if main and player.general == "anjiang" and not player:prohibitReveal() then
-    table.insert(choices, "revealMain")
+    table.insert(choices, "revealMainGeneral:::" .. player:getMark("__heg_general"))
   end
   if deputy and player.deputyGeneral == "anjiang" and not player:prohibitReveal(true) then
-    table.insert(choices, "revealDeputy")
+    table.insert(choices, "revealDeputyGeneral:::" .. player:getMark("__heg_deputy"))
   end
   if #choices == 2 and all then table.insert(choices, "revealAll") end
   if cancelable then table.insert(choices, "Cancel") end
@@ -697,7 +697,7 @@ H.askForRevealGenerals = function(room, player, skill_name, main, deputy, all, c
   local choice = room:askForChoice(player, choices, skill_name, convert and "#HegPrepareConvertLord", false, all_choices)  
 
   -- 先变身君主
-  if convert and (choice == "revealMain" or choice == "revealAll") and room:askForChoice(player, {"ConvertToLord:::" .. H.lordGenerals[player:getMark("__heg_general")], "Cancel"}, skill_name, nil) ~= "Cancel" then
+  if convert and (choice:startsWith("revealMain") or choice == "revealAll") and room:askForChoice(player, {"ConvertToLord:::" .. H.lordGenerals[player:getMark("__heg_general")], "Cancel"}, skill_name, nil) ~= "Cancel" then
     for _, s in ipairs(Fk.generals[player:getMark("__heg_general")]:getSkillNameList()) do
       local skill = Fk.skills[s]
       player:loseFakeSkill(skill)
@@ -726,8 +726,8 @@ H.askForRevealGenerals = function(room, player, skill_name, main, deputy, all, c
     player:doNotify("SetPlayerMark", json.encode{ player.id, "CompanionEffect", 1})
   end
 
-  if choice == "revealMain" then player:revealGeneral(false)
-  elseif choice == "revealDeputy" then player:revealGeneral(true)
+  if choice:startsWith("revealMain") then player:revealGeneral(false)
+  elseif choice:startsWith("revealDeputy") then player:revealGeneral(true)
   elseif choice == "revealAll" then
     player:revealGenerals()
   elseif choice == "Cancel" then
@@ -778,6 +778,8 @@ H.doHideGeneral = function(room, player, target, skill_name)
     end)
   end
   local isDeputy = choice == target.deputyGeneral
+  if isDeputy then room:setPlayerMark(target, "__heg_deputy", target.deputyGeneral)
+  else room:setPlayerMark(target, "__heg_general", target.general) end
   target:hideGeneral(isDeputy)
   room:sendLog{
     type = "#HideOtherGeneral",
@@ -825,8 +827,10 @@ H.removeGeneral = function(room, player, isDeputy)
 
   if isDeputy then
     room:setPlayerProperty(player, "deputyGeneral", new_general)
+    room:setPlayerMark(player, "__heg_deputy", new_general)
   else
     room:setPlayerProperty(player, "general", new_general)
+    room:setPlayerMark(player, "__heg_general", new_general)
   end
 
   player:filterHandcards()
@@ -848,9 +852,12 @@ Fk:loadTranslationTable{
 ---@param player ServerPlayer
 ---@param isMain bool @ 是否为主将，默认副将
 H.transformGeneral = function(room, player, isMain)
-  local orig = isMain and player.general or player.deputyGeneral 
+  local orig = isMain and player.general or player.deputyGeneral
   if not orig then return false end
-  if orig == "anjiang" then player:revealGeneral(not isMain, true) end
+  if orig == "anjiang" then
+    player:revealGeneral(not isMain, true)
+    orig = isMain and player.general or player.deputyGeneral
+  end
   local existingGenerals = {}
   for _, p in ipairs(room.players) do
     table.insert(existingGenerals, H.getActualGeneral(p, false))
@@ -858,14 +865,18 @@ H.transformGeneral = function(room, player, isMain)
   end
   room.logic:trigger("fk.GeneralTransforming", player, orig)
   local kingdom = player:getMark("__heg_kingdom")
+  if kingdom == "wild" then
+    kingdom = player:getMark("__heg_init_kingdom")
+  end
   local generals = room:findGenerals(function(g)
     return Fk.generals[g].kingdom == kingdom or Fk.generals[g].subkingdom== kingdom
   end, 3)
-  local general = room:askForGeneral(player, generals, 1, true)
+  local general = room:askForGeneral(player, generals, 1, true) ---@type string
   table.removeOne(generals, general)
   table.insert(generals, orig)
   room:returnToGeneralPile(generals)
   room:changeHero(player, general, false, not isMain, true, false)
+  room:setPlayerMark(player, isMain and "__heg_general" or "__heg_deputy", general)
 end
 
 -- 技能相关

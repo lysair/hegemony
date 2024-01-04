@@ -374,6 +374,7 @@ function HegLogic:chooseGenerals()
       kingdomChosen = p.default_reply
     end
     room:setPlayerMark(p, "__heg_kingdom", kingdomChosen)
+    room:setPlayerMark(p, "__heg_init_kingdom", kingdomChosen)
     p.default_reply = ""
     -- p.kingdom = kingdomChosen
     --room:notifyProperty(p, p, "kingdom")
@@ -738,9 +739,11 @@ Fk:loadTranslationTable{
   ["#ChooseHegInitialKingdom"] = "国战规则：选择你的初始势力",
   ["wild"] = "野心家",
   ["#heg_rule"] = "国战规则",
-  ["revealMain"] = "明置主将",
-  ["revealDeputy"] = "明置副将",
-  ["revealAll"] = "背水：全部明置",
+  ["revealMain"] = "明置主将", -- TODO:aux
+  ["revealDeputy"] = "明置副将", -- TODO:aux
+  ["revealMainGeneral"] = "明置主将 %arg",
+  ["revealDeputyGeneral"] = "明置副将 %arg",
+  ["revealAll"] = "全部明置",
   ["#EnterBattleRoyalMode"] = "游戏进入 <font color=\"red\"><b>鏖战模式</b></font>，所有的【<font color=\"#3598E8\"><b>桃</b></font>】"..
   "只能当【<font color=\"#3598E8\"><b>杀</b></font>】或【<font color=\"#3598E8\"><b>闪</b></font>】使用或打出，不能用于回复体力",
   ["#EnterBattleRoyalModeLog"] = "游戏进入 <font color=\"#CC3131\"><b>鏖战模式</b></font>",

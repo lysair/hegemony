@@ -479,72 +479,82 @@ local xishe = fk.CreateTriggerSkill{
   anim_type = "offensive",
   events = {fk.EventPhaseStart},
   can_trigger = function (self, event, target, player, data)
-    return player ~= target and player:hasSkill(self) and #player:getCardIds("e") > 0 and target.phase == Player.Start
+    return player:hasSkill(self) and target.phase == Player.Start and table.find(player:getCardIds("e"), function(id) return not player:prohibitDiscard(Fk:getCardById(id)) end) and player ~= target
   end,
   on_use = function (self, event, target, player, data)
     local room = player.room
     while true do
-      local card = room:askForCard(player, 1, 1, true, self.name, true, ".|.|.|equip", "#ld__xishe")
-      if not card then break end
-      room:moveCardTo(card, Card.DiscardPile, nil, fk.ReasonDiscard, self.name, nil, true, player.id)
+      local card = room:askForDiscard(player, 1, 1, true, self.name, true, ".|.|.|equip", "#ld__xishe::" .. target.id)
+      if #card == 0 then break end
       local slash = Fk:cloneCard("slash")
       slash.skillName = self.name
-      room:setPlayerMark(player, "ld__xishe_noresponse", 1)
-      room:useVirtualCard("slash", nil, player, table.map({target.id}, Util.Id2PlayerMapper), self.name, true)
-      room:setPlayerMark(player, "ld__xishe_noresponse", 0)
+      local use = {from = player.id, tos = { {target.id} }, card = slash, extraUse = true} ---@type CardUseStruct
+      use.extra_data = use.extra_data or {}
+      use.extra_data.ld__xisheUser = player.id
+      room:useCard(use)
       if #player:getCardIds("e") == 0 or player.dead or target.dead then
-        if target.dead and not player.dead then room:setPlayerMark(player, "ld__xishe_change-turn", 1) end
         break
       end
     end
   end,
 
-  refresh_events = {fk.TurnEnd},
-  can_refresh = function (self, event, target, player, data)
-    return player:getMark("ld__xishe_change-turn") > 0 and player:getMark("@@ld__xishe_change_before") == 0
+  refresh_events = {fk.Death},
+  can_refresh = function(self, event, target, player, data)
+    return target == player and data.damage and data.damage.card and table.contains(data.damage.card.skillNames, self.name)
   end,
-  on_refresh = function (self, event, target, player, data)
-    if not player.room:askForChoice(player, {"transform_deputy", "Cancel"}, self.name) ~= "Cancel" then
-      player.room:setPlayerMark(player, "@@ld__xishe_change_before", 1)
-      H.transformGeneral(player.room, player)
-    end
-  end
-} 
+  on_refresh = function(self, event, target, player, data)
+    local room = player.room
+    local use = room.logic:getMostRecentEvent(GameEvent.UseCard).data[1]
+    local user = room:getPlayerById((use.extra_data or {}).ld__xisheUser)
+    room:setPlayerMark(user, "ld__xishe_change-turn", 1)
+  end,
+}
 
-local xishe_noresponse = fk.CreateTriggerSkill{
-  name = "#ld__xishe_noresponse",
-  anim_type = "control",
-  events = {fk.TargetSpecified},
+local xishe_delay = fk.CreateTriggerSkill{
+  name = "#ld__xishe_delay",
+  anim_type = "offensive",
+  mute = true,
+  events = {fk.TargetSpecified, fk.TurnEnd},
   can_trigger = function (self, event, target, player, data)
-    return player:hasSkill("ld__xishe") and player:getMark("ld__xishe_noresponse") > 0
+    if event == fk.TargetSpecified then
+      return target == player and (data.extra_data or {}).ld__xisheUser == player.id
+    else
+      return player:getMark("ld__xishe_change-turn") > 0 and player:getMark("@@ld__xishe_change_before") == 0
+    end
   end,
   on_cost = Util.TrueFunc,
   on_use = function (self, event, target, player, data)
-    local room = player.room
-    local targets = table.filter(room.alive_players, function(p) return p.hp < player.hp end)
-    if #targets > 0 then
+    if event == fk.TargetSpecified then
+      local targets = table.map(table.filter(table.map(AimGroup:getAllTargets(data.tos), Util.Id2PlayerMapper),function (p) return p.hp < player.hp end), Util.IdMapper)
       data.disresponsiveList = data.disresponsiveList or {}
-      for _, p in ipairs(targets) do
-        table.insertIfNeed(data.disresponsiveList, p.id)
+      table.insertTableIfNeed(data.disresponsiveList, targets)
+    else
+      local room = player.room
+      if room:askForChoice(player, {"transform_deputy", "Cancel"}, self.name) ~= "Cancel" then
+        room:notifySkillInvoked(player, xishe.name, "special")
+        player:broadcastSkillInvoke(xishe.name)
+        room:setPlayerMark(player, "@@ld__xishe_change_before", 1)
+        H.transformGeneral(room, player)
       end
     end
   end,
 }
 
-xishe:addRelatedSkill(xishe_noresponse)
+xishe:addRelatedSkill(xishe_delay)
 huangzu:addSkill(xishe)
 Fk:loadTranslationTable{
   ["ld__huangzu"] = "黄祖",
   ["ld__xishe"] = "袭射",
   [":ld__xishe"] = "其他角色的准备阶段，你可以弃置一张装备区内的牌，视为对其使用一张【杀】（体力值小于你的角色不能响应），然后你可以重复此流程。此回合结束时，若你以此法杀死了一名角色，你可以变更副将。 <br>注：变更副将后暗置的效果尚在施工中，",
   ["#ld__xishe_noresponse"] = "袭射",
-  ["#ld__xishe"] = "袭射：你可以弃置一张装备区内的牌，视为对当前回合角色使用一张【杀】",
+  ["#ld__xishe"] = "袭射：你可以弃置一张装备区内的牌，视为对 %dest 使用一张【杀】",
 
   ["@@ld__xishe_change_before"] = "袭射 已变更",
-  ["$ld__xishe1"] = "",
-  ["$ld__xishe2"] = "",
-  
-  ["~ld__huangzu"] = "",
+  ["#ld__xishe_delay"] = "袭射",
+
+  ["$ld__xishe1"] = "伏箭灭破虏，坚城拒讨逆。",
+  ["$ld__xishe2"] = "什么江东猛虎？还不是我箭下之鬼！",
+  ["~ld__huangzu"] = "今日不过是成王败寇，哼！动手吧！",
 }
 
 local mengda = General(extension, "ld__mengda", "shu", 4)
@@ -827,10 +837,10 @@ local lixia = fk.CreateTriggerSkill{
   anim_type = "offensive",
   events = {fk.EventPhaseStart},
   can_trigger = function (self, event, target, player, data)
-    return not H.compareKingdomWith(player, target) and #player.player_cards[Player.Equip] > 0 and player:hasSkill(self) and target.phase == Player.Start
+    return player:hasSkill(self) and not H.compareKingdomWith(player, target) and #player.player_cards[Player.Equip] > 0 and target.phase == Player.Start and not target.dead
   end,
   on_cost = function (self, event, target, player, data)
-    return player.room:askForSkillInvoke(target, self.name, nil, "#hs__lixia-ask") 
+    return player.room:askForSkillInvoke(target, self.name, nil, "#hs__lixia-ask")
   end,
   on_use = function (self, event, target, player, data)
     local room = player.room
@@ -841,14 +851,15 @@ local lixia = fk.CreateTriggerSkill{
       table.insert(choices, "hs__lixia_discard")
     end
     table.insert(choices, "hs__lixia_drawcards")
-    table.insert(choices, "hs__lixia_loseHp")
-    if #choices == 0 then return false end
+    if target.hp > 0 then
+      table.insert(choices, "hs__lixia_loseHp")
+    end
     local choice = room:askForChoice(target, choices, self.name)
-    if choice:startsWith("hs__lixia_discard") then
+    if choice == "hs__lixia_discard" then
       room:askForDiscard(target, 2, 2, true, self.name, false)
-    elseif choice:startsWith("hs__lixia_drawcards") then
+    elseif choice == "hs__lixia_drawcards" then
       player:drawCards(2, self.name)
-    elseif choice:startsWith("hs__lixia_loseHp") then
+    else
       room:loseHp(target, 1, self.name)
     end
   end,

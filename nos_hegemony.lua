@@ -474,11 +474,7 @@ heg = fk.CreateGameMode{
 Fk:loadTranslationTable{
   ["nos_heg_mode"] = "经典版国战",
   [":nos_heg_mode"] = heg_description,
-  ["wild"] = "野心家",
   ["#nos_heg_rule"] = "国战规则",
-  ["revealMain"] = "明置主将",
-  ["revealDeputy"] = "明置副将",
-  ["revealAll"] = "背水：全部明置",
   ["#nos_heg__InitialNotice"] = "提示：经典版国战<b>较不完善</b>，建议选择<b>新国战</b>模式",
 }
 
