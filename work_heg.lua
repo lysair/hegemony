@@ -18,7 +18,7 @@ local poyuan = fk.CreateTriggerSkill{
     if event == fk.Damage then
       return target == player and player:hasSkill(self) and data.to ~= player and not data.to.dead and not data.to:isNude()
     else
-      return target == player and player:hasSkill(self) and player:getMark("poyuan-turn") == 0 and H.isBigKingdomPlayer(data.to) 
+      return target == player and player:hasSkill(self) and player:getMark("poyuan-turn") == 0 and H.isBigKingdomPlayer(data.to) and player == player.room.current
     end
   end,
   on_cost = function (self, event, target, player, data)
@@ -60,7 +60,7 @@ local choulue = fk.CreateTriggerSkill{
   events = {fk.Damaged, fk.TargetSpecified},
   can_trigger = function (self, event, target, player, data)
     if event == fk.Damaged then
-      return player == target and player:hasSkill(self) and player:getMark("@!yinyangfish") <= 2
+      return player == target and player:hasSkill(self) and player:getMark("@!yinyangfish") < player.maxHp
     else
       return player:hasSkill(self) and H.compareKingdomWith(player, target) and player:getMark("choulue_virtual") == 0 and #AimGroup:getAllTargets(data.tos) == 1
        and data.card.type == Card.TypeTrick and data.card.sub_type ~= Card.SubtypeDelayedTrick and player:getMark("@!yinyangfish") ~= 0
@@ -110,9 +110,9 @@ liuye:addSkill(choulue)
 Fk:loadTranslationTable{
   ["wk_heg__liuye"] = "刘晔",
   ["wk_heg__poyuan"] = "破垣",
-  [":wk_heg__poyuan"] = "当你对其他角色造成伤害后，你可以选择一项：1.弃置其一张装备区内的牌；2.令其弃置一张手牌；当你于一名角色的回合内首次对大势力角色造成伤害时，此伤害+1。",
+  [":wk_heg__poyuan"] = "①当你对其他角色造成伤害后，你可选择一项：1.弃置其一张装备区内的牌；2.令其弃置一张手牌；②当你于回合内首次对大势力角色造成伤害时，此伤害+1。",
   ["wk_heg__choulue"] = "筹略",
-  [":wk_heg__choulue"] = "当你受到伤害后，若你的“阴阳鱼”标记数不大于2，你可以获得一个“阴阳鱼”标记；与你势力相同的角色使用普通锦囊牌指定唯一目标后，你可以移去一个“阴阳鱼”标记，令此牌结算两次。",
+  [":wk_heg__choulue"] = "①当你受到伤害后，若你的“阴阳鱼”标记数小于你体力上限，你可获得一个“阴阳鱼”标记；②当与你势力相同的角色使用普通锦囊牌指定唯一目标后，你可移去一个“阴阳鱼”标记，令此牌结算两次。",
   
   ["#wk_heg__poyuan-discard"] = "破垣：是否令受伤角色弃置一张手牌，或你弃置受伤角色装备区内一张牌",
   ["poyuan_discard-hand"] = "令其弃置一张手牌",
@@ -237,9 +237,9 @@ dongyun:addSkill(juanshe)
 Fk:loadTranslationTable{
   ["wk_heg__dongyun"] = "董允",
   ["wk_heg__yizan"] = "翼赞",
-  [":wk_heg__yizan"] = "弃牌阶段开始时，你可以令一名手牌数小于你的角色将手牌摸至与你相同（至多摸五张），然后此阶段结束时，若你于此阶段内弃置过牌，其将手牌弃至体力上限。",
+  [":wk_heg__yizan"] = "弃牌阶段开始时，你可令一名手牌数小于你的角色将手牌摸至与你相同（至多摸五张），然后此阶段结束时，若你于此阶段内弃置过牌，其将手牌弃至体力上限。",
   ["wk_heg__juanshe"] = "蠲奢",
-  [":wk_heg__juanshe"] = "与你势力相同角色的结束阶段，若其本回合使用牌数小于其手牌上限，你可以令其弃置一张手牌并回复1点体力，然后直至其回合开始或你受到伤害，其不能使用手牌。",
+  [":wk_heg__juanshe"] = "与你势力相同角色的结束阶段，若其本回合使用牌数小于其手牌上限，你可令其弃置一张手牌并回复1点体力，然后直至其回合开始或你受到伤害，其不能使用手牌。",
 
   ["#wk_heg__yizan-invoke"] = "翼赞：是否令一名手牌数小于你的角色将手牌摸至与你相同，然后其根据你的弃牌情况执行对应操作。",
   ["#wk_heg__yizan-choose"] = "翼赞：选择一名手牌数小于你的角色，令其将手牌摸至与你相同。",
@@ -336,10 +336,11 @@ local mingzheng = fk.CreateTriggerSkill{
   anim_type = "drawcard",
   events = {fk.GeneralRevealed, fk.EventPhaseStart},
   can_trigger = function (self, event, target, player, data)
+    if not (player:hasSkill(self) and H.compareKingdomWith(target, player) and not target.dead) then return false end
     if event == fk.GeneralRevealed then
-      return player:hasSkill(self) and H.compareKingdomWith(target, player) and not target.dead and H.getGeneralsRevealedNum(target) == 2
+      return H.getGeneralsRevealedNum(target) == 2
     else
-      return player:hasSkill(self) and H.compareKingdomWith(target, player) and not target.dead and target.phase == Player.Play
+      return target.phase == Player.Play
     end
   end,
   on_cost = Util.TrueFunc,
@@ -348,7 +349,7 @@ local mingzheng = fk.CreateTriggerSkill{
     if event == fk.EventPhaseStart then
       local targets = table.map(table.filter(room.alive_players, function(p) return H.compareKingdomWith(p, player) and p ~= target end), Util.IdMapper)
       if #targets > 0 then
-        local to = room:askForChoosePlayers(player, targets, 1, 1, "#wk_heg__mingzheng-choose", self.name, true)
+        local to = room:askForChoosePlayers(target, targets, 1, 1, "#wk_heg__mingzheng-choose", self.name, true)
         local p = room:getPlayerById(to[1])
         room:askForCardsChosen(target, p, 0, 0, {
           card_data = {
@@ -374,16 +375,16 @@ local mingzheng = fk.CreateTriggerSkill{
 local yujian = fk.CreateTriggerSkill{
   name = "wk_heg__yujian",
   anim_type = "control",
-  events = {fk.Damage, fk.TurnEnd},
+  events = {fk.TargetSpecified, fk.TurnEnd},
   can_trigger = function (self, event, target, player, data)
-    if event == fk.Damage then
-      return player:hasSkill(self) and player:usedSkillTimes(self.name, Player.HistoryTurn) == 0 and data.from == player.room.current and data.from.phase == Player.Play and data.from ~= player
+    if event == fk.TargetSpecified then
+      return player:hasSkill(self) and player:usedSkillTimes(self.name, Player.HistoryTurn) == 0 and target.phase == Player.Play and target ~= player and data.card.trueName == "slash"
     elseif event == fk.TurnEnd then
       return player:getMark("@@wk_heg__yujian_exchange-turn") > 0
     end
   end,
   on_cost = function (self, event, target, player, data)
-    if event == fk.Damage then
+    if event == fk.TargetSpecified then
       return player.room:askForSkillInvoke(player, self.name, nil, "#wk_heg__yujian-invoke")
     else
       return true
@@ -392,7 +393,7 @@ local yujian = fk.CreateTriggerSkill{
   on_use = function (self, event, target, player, data)
     local room = player.room
     local current = room.current
-    if event == fk.Damage then
+    if event == fk.TargetSpecified then
       if target.hp <= player.hp then
         swapHandCards(room, player.id, player.id, current.id, self.name)
         room:setPlayerMark(player, "@@wk_heg__yujian_exchange-turn", 1)
@@ -423,10 +424,10 @@ Fk:loadTranslationTable{
   ["wk_heg__mingzheng"] = "明政",
   [":wk_heg__mingzheng"] = "与你势力相同的角色：1.明置武将牌后，若其武将牌均明置，其复原武将牌，然后获得一个“阴阳鱼”标记; 2.出牌阶段开始时，其观看除其外一名与你势力相同的角色的手牌。",
   ["wk_heg__yujian"] = "御谏",
-  [":wk_heg__yujian"] = "每回合限一次，其他角色于其出牌阶段内造成伤害后，你可以依次执行每个满足条件的项：1.若其体力值不大于你，你可以与其交换手牌，若如此做，此回合结束时，你与其交换手牌；"..
+  [":wk_heg__yujian"] = "每回合限一次，其他角色于其出牌阶段内使用【杀】指定目标后，你可依次执行每个满足条件的项：1.若其体力值不大于你，你可以与其交换手牌，若如此做，此回合结束时，你与其交换手牌；"..
   "2.若其武将牌均明置，你可以暗置其一张武将牌且直至本回合结束不能明置之。",
 
-  ["#wk_heg__mingzheng-choose"] = "明政：选择一名以你势力相同的其他角色观看手牌",
+  ["#wk_heg__mingzheng-choose"] = "明政：选择一名与你势力相同的其他角色观看手牌",
   ["wk_heg__mingzheng-hand"] = "明政：观看%dest的手牌",
   ["wk_heg__yujian_hide"] = "暗置%dest一张武将牌且本回合不能明置",
 
@@ -550,9 +551,9 @@ jvshou:addSkill(yingshou)
 Fk:loadTranslationTable{
   ["wk_heg__jvshou"] = "沮授",
   ["wk_heg__tugui"] = "图归",
-  [":wk_heg__tugui"] = "①每回合限一次，当你失去最后的手牌后或当你进入濒死状态后，你可以获得与你距离为1的其他角色的一张手牌并展示之；②出牌阶段结束时，若你未失去以此法获得的所有牌，你移除此武将牌。",
+  [":wk_heg__tugui"] = "①每回合限一次，当你失去最后的手牌后或当你进入濒死状态后，你可获得与你距离为1的其他角色的一张手牌并展示之；②出牌阶段结束时，若你未失去以此法获得的所有牌，你移除此武将牌。",
   ["wk_heg__yingshou"] = "营守",
-  [":wk_heg__yingshou"] = "结束阶段，你可以令一名与你势力相同的角色摸两张牌，若如此做，当其于下个回合的出牌阶段内造成伤害后，其弃置一张牌。",
+  [":wk_heg__yingshou"] = "结束阶段，你可令一名与你势力相同的角色摸两张牌，若如此做，当其于下个回合的出牌阶段内造成伤害后，其弃置一张牌。",
 
   ["#wk_heg__tugui-ask"] = "图归：是否获得与你距离为1的其他角色的一张手牌",
   ["#wk_heg__tugui-choose"] = "图归：选择一名与你距离为1的其他角色",
@@ -661,6 +662,9 @@ local dingpin_delay = fk.CreateTriggerSkill{
         if p ~= target and not p.dead then
           p:drawCards(1, self.name)
         end
+        if p ~= player then
+          return true
+        end
       else
         return true
       end
@@ -705,11 +709,11 @@ chenqun:addCompanions("hs__simayi")
 Fk:loadTranslationTable{
   ["wk_heg__chenqun"] = "陈群",
   ["wk_heg__dingpin"] = "定品",
-  [":wk_heg__dingpin"] = "结束阶段，你可以横置你与一名其他角色，令其于此回合结束后执行一个额外的回合，此额外回合：出牌阶段开始时，若其与你势力相同，其推举，然后与选用的角色各摸一张牌，若未被选用，其结束此阶段；回合结束时，其叠置。<br />" ..
+  [":wk_heg__dingpin"] = "结束阶段，你可横置你与一名其他角色，令其于此回合结束后执行一个额外的回合，此额外回合：出牌阶段开始时，若其与你势力相同，其推举，然后与选用的角色各摸一张牌，若未被你选用，其结束此阶段；回合结束时，其叠置。<br />" ..
   "<font color = 'gray'>推举：推举角色展示一张与其势力相同的武将牌，每名与其势力相同的角色选择是否将此武将牌作为其新的副将。" ..
   "若有角色选择是，称为该角色<u>选用</u>，停止对后续角色的访问，结束推举流程。</font>",
   ["wk_heg__faen"] = "法恩",
-  [":wk_heg__faen"] = "与你势力相同的角色：1.横置后，其可以重铸一张牌；2.叠置后，你可以令其弃置两张牌，然后其平置。",
+  [":wk_heg__faen"] = "与你势力相同的角色：1.横置后，其可重铸一张牌；2.叠置后，你可令其弃置两张牌，然后其平置。",
 
   ["@@wk_heg__dingpin_extra"] = "定品",
   -- ["#wk_heg__dingpin-invoke"] = "定品：是否令一名其他角色执行一个额外的回合",
@@ -897,11 +901,11 @@ yangyi:addSkill(choucuo)
 Fk:loadTranslationTable{
   ["wk_heg__yangyi"] = "杨仪",
   ["wk_heg__juanxia"] = "狷狭",
-  [":wk_heg__juanxia"] = "结束阶段，你可以选择一名其他角色，视为对其使用一张【杀】，然后若其存活，其可以对你发起一次“军令”，若你不执行，其对你造成1点伤害。",
+  [":wk_heg__juanxia"] = "结束阶段，你可选择一名其他角色，视为对其使用一张【杀】，然后若其存活，其可对你发起“军令”，若你不执行，其对你造成1点伤害。",
   ["wk_heg__fenduan"] = "忿断",
-  [":wk_heg__fenduan"] = "主将技，当你选择执行“军令”时，若你未横置，你可以改为横置；当你成为“军令”的目标结算完成后，你令此“军令”的发起者弃置两张手牌，然后你交换主副将。",
+  [":wk_heg__fenduan"] = "主将技，当你选择执行“军令”时，若你未横置，你可改为横置；当你成为“军令”的目标结算完成后，你令此“军令”的发起者弃置两张手牌，然后你交换主副将。",
   ["wk_heg__choucuo"] = "筹措",
-  [":wk_heg__choucuo"] = "副将技，出牌阶段开始时，你可以摸两张牌并展示之，若如此做，你不能使用其它牌直至你失去这些牌或此阶段结束，且此阶段结束时，若你于此阶段内使用的牌数不小于体力值，你交换主副将。",
+  [":wk_heg__choucuo"] = "副将技，出牌阶段开始时，你可摸两张牌并展示之，若如此做，你不能使用其它牌直至你失去这些牌或此阶段结束，且此阶段结束时，若你于此阶段内使用的牌数不小于体力值，你交换主副将。",
 
   ["#wk_heg__juanxia-choose"] = "狷狭：你可选择一名其他角色，视为对其使用一张【杀】",
 
