@@ -1104,7 +1104,7 @@ local weidiRecorder = fk.CreateTriggerSkill{
           end
         end
       end
-    else
+    elseif room:getTag("RoundCount") then
       room.logic:getEventsOfScope(GameEvent.MoveCards, 1, function(e)
         for _, move in ipairs(e.data) do
           if move.toArea == Card.PlayerHand and move.to then

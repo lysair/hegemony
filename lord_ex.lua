@@ -56,7 +56,7 @@ local quanjinRecorder = fk.CreateTriggerSkill{
     local room = player.room
     if event == fk.Damaged then
       room:setPlayerMark(target, "_quanjin-phase", 1)
-    else
+    elseif player.room:getTag("RoundCount") then
       for _, e in ipairs(U.getActualDamageEvents(room, 998, nil, Player.HistoryPhase)) do
         local damage = e.data[1]
         local to = damage.to
