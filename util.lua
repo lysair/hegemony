@@ -8,7 +8,7 @@ local H = {}
 H.getKingdom = function(player)
   local ret = player.kingdom
   if ret == "wild" then
-    ret = player.role
+    ret = player.role -- 野心家改为role（即建国势力，新月杀为了胜率统计野心家自动建国）
   end
   return ret
 end
@@ -55,15 +55,18 @@ H.compareExpectedKingdomWith = function(from, to, diff)
   if from.kingdom == "unknown" then
     local kingdom = from:getMark("__heg_kingdom")
     local i = 1
-    -- 君主……
+    local lord = false
 
     for _, p in ipairs(room.players) do
       if H.getKingdom(p) == kingdom then
         i = i + 1
+        if string.find(p.general, "lord") then
+          lord = true
+        end
       end
     end
 
-    if i > #room.players // 2 then
+    if i > #room.players // 2 and not lord then
       return diff
     elseif kingdom == H.getKingdom(to) then
       return not diff
@@ -125,6 +128,7 @@ end
 ---@param player ServerPlayer
 ---@return ServerPlayer[]? @ 队列中的角色
 H.getFormationRelation = function(player)
+  if player:isRemoved() then return {} end
   local players = {}
   local p = player
   while true do
