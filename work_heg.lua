@@ -638,7 +638,7 @@ local dingpin = fk.CreateTriggerSkill{
 }
 local dingpin_delay = fk.CreateTriggerSkill{
   name = "#wk_heg__dingpin_delay",
-  events = {fk.EventPhaseStart, fk.TurnEnd},
+  events = {fk.EventPhaseStart, fk.TurnEnd, fk.EventPhaseChanging},
   anim_type = "special",
   mute = true,
   can_trigger = function(self, event, target, player, data)
@@ -662,15 +662,21 @@ local dingpin_delay = fk.CreateTriggerSkill{
         if p ~= target and not p.dead then
           p:drawCards(1, self.name)
         end
-        if p ~= player then
-          return true
-        end
-      else
-        return true
       end
-    else
+    elseif event == fk.TurnEnd then
+      if target:getHandcardNum() > target.maxHp then
+        room:askForDiscard(target, target:getHandcardNum() - target.maxHp, target:getHandcardNum() - target.maxHp, false, self.name, false)
+      end
+      if target:getHandcardNum() < target.maxHp then
+        target:drawCards(target.maxHp - target:getHandcardNum(), self.name)
+      end
       room:setPlayerMark(target, "_wk_heg__dingpin", 0)
       target:turnOver()
+    else
+      local excludePhases = { Player.Start, Player.Judge, Player.Draw, Player.Discard, Player.Finish }
+      for _, phase in ipairs(excludePhases) do
+        table.removeOne(player.phases, phase)
+      end
     end
   end,
 }
@@ -709,7 +715,7 @@ chenqun:addCompanions("hs__simayi")
 Fk:loadTranslationTable{
   ["wk_heg__chenqun"] = "陈群",
   ["wk_heg__dingpin"] = "定品",
-  [":wk_heg__dingpin"] = "结束阶段，你可横置你与一名其他角色，令其于此回合结束后执行一个额外的回合，此额外回合：出牌阶段开始时，若其与你势力相同，其推举，然后与选用的角色各摸一张牌，若未被你选用，其结束此阶段；回合结束时，其叠置。<br />" ..
+  [":wk_heg__dingpin"] = "结束阶段，你可横置你与一名其他角色，令其于此回合结束后执行一个仅有出牌阶段的额外回合，此额外回合：1.出牌阶段开始时，若其与你势力相同，其推举，然后与选用的角色各摸一张牌；2.回合结束时，其将手牌数摸或弃至体力上限，然后叠置。<br />" ..
   "<font color = 'gray'>推举：推举角色展示一张与其势力相同的武将牌，每名与其势力相同的角色选择是否将此武将牌作为其新的副将。" ..
   "若有角色选择是，称为该角色<u>选用</u>，停止对后续角色的访问，结束推举流程。</font>",
   ["wk_heg__faen"] = "法恩",
@@ -922,6 +928,158 @@ Fk:loadTranslationTable{
   ["$wk_heg__choucuo2"] = "我岂能与魏延这种莽夫共事。",
 
   ["~wk_heg__yangyi"] = "魏延庸奴，吾，誓杀汝！",
+}
+
+local huanfan = General(extension, "wk_heg__huanfan", "wei", 3, 3, General.Male)
+
+local liance_viewas = fk.CreateViewAsSkill{
+  name = "wk_heg__liance_viewas",
+  interaction = function()
+    local names = {}
+    local mark = Self:getMark("liance-phase")
+    for _, id in ipairs(Fk:getAllCardIds()) do
+      local card = Fk:getCardById(id, true)
+      if table.contains(mark, card.trueName) then
+        table.insertIfNeed(names, card.name)
+      end
+    end
+    if table.contains(mark, "sa__drowning") then
+      table.insertIfNeed(names, "sa__drowning")
+    end
+    return UI.ComboBox {choices = names}
+  end,
+  card_filter = Util.FalseFunc,
+  view_as = function(self, cards)
+    if not self.interaction.data then return end
+    local card = Fk:cloneCard(self.interaction.data)
+    return card
+  end,
+}
+local liance = fk.CreateTriggerSkill{
+  name = "wk_heg__liance",
+  anim_type = "offensive",
+  events = {fk.EventPhaseEnd},
+  can_trigger = function(self, event, target, player, data)
+    if not player:hasSkill(self) or not target.phase == Player.Play or player == target or player:isNude() then return false end
+    local usedCardNames = {}     
+    local events = player.room.logic:getEventsOfScope(GameEvent.UseCard, 998, function(e) 
+      local use = e.data[1]
+      if table.contains(usedCardNames, e.data[1].card.name) then
+        return use.from == target.id and (use.card.type == Card.TypeTrick or use.card.type == Card.TypeBasic)
+      else
+        table.insertIfNeed(usedCardNames, e.data[1].card.name)
+        return false
+      end
+    end, Player.HistoryPhase)
+    if #events > 0 then
+      local usedCardTwice = {}
+      table.forEach(events, function(e)
+        table.insertIfNeed(usedCardTwice, e.data[1].card.name)
+      end)
+      self.cost_data = usedCardTwice
+      return #usedCardTwice > 0
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    room:askForDiscard(player, 1, 1, true, self.name, false)
+    player.room:setPlayerMark(target, "liance-phase", self.cost_data)
+    local success, dat = player.room:askForUseActiveSkill(target, "wk_heg__liance_viewas", "#wk_heg__liance-choose", true)
+    if not success then
+      H.askCommandTo(player, target, self.name, true)
+    else
+      local card = Fk.skills["wk_heg__liance_viewas"]:viewAs(self.cost_data.cards)
+      room:useCard{
+        from = target.id,
+        tos = table.map(dat.targets, function(id) return {id} end),
+        card = card,
+      }
+    end
+  end,
+}
+
+local shilun_active = fk.CreateActiveSkill{
+  name = "wk_heg__shilun_active",
+  can_use = Util.FalseFunc,
+  target_num = 0,
+  card_num = function()
+    local cards = Self.player_cards[Player.Hand]
+    local suits = {}
+    for _, id in ipairs(cards) do
+      local suit = Fk:getCardById(id).suit
+      if suit ~= Card.NoSuit then
+        if not table.contains(suits, suit) then
+          table.insert(suits, suit)
+        end
+      end
+    end
+    return #suits
+  end,
+  card_filter = function(self, to_select, selected)
+    if Fk:currentRoom():getCardArea(to_select) == Player.Equip then return end
+    return table.every(selected, function (id) return Fk:getCardById(to_select).suit ~= Fk:getCardById(id).suit end)
+  end,
+}
+
+local shilun = fk.CreateTriggerSkill{
+  name = "wk_heg__shilun",
+  events = {fk.Damaged},
+  anim_type = "defensive",
+  can_trigger = function(self, event, target, player, data)
+    return player == target and player:hasSkill(self) and not player:isKongcheng()
+  end,
+  on_use = function (self, event, target, player, data)
+    local room = player.room
+    local cards = player.player_cards[Player.Hand]
+    player:showCards(cards)
+    local _, ret = room:askForUseActiveSkill(player, "wk_heg__shilun_active", "#wk_heg__shilun_active-choose", false)
+    local to_remain
+    if ret then
+      to_remain = ret.cards
+    end
+    local cards = table.filter(player:getCardIds{Player.Hand}, function (id)
+      return not (table.contains(to_remain, id) or player:prohibitDiscard(Fk:getCardById(id)))
+    end)
+    if #cards > 0 then
+      room:throwCard(cards, self.name, player)
+    end
+    local cards = player.player_cards[Player.Hand]
+    if #cards == 4 then
+      if #room:canMoveCardInBoard() > 0 then
+        local targets = room:askForChooseToMoveCardInBoard(player, "#wk_heg__shilun-move", self.name, true, nil)
+        if #targets ~= 0 then
+          targets = table.map(targets, function(id) return room:getPlayerById(id) end)
+          room:askForMoveCardInBoard(player, targets[1], targets[2], self.name)
+        end
+      end
+    else
+      local suits = {Card.Spade, Card.Heart, Card.Diamond, Card.Club}
+      for _, id in ipairs(cards) do
+        local suit = Fk:getCardById(id).suit
+        if suit ~= Card.NoSuit then
+          table.removeOne(suits, suit)
+        end
+      end
+      local patternTable = { ["heart"] = {}, ["diamond"] = {}, ["spade"] = {}, ["club"] = {} }
+      for _, id in ipairs(room.draw_pile) do
+        local card = Fk:getCardById(id)
+        if table.contains(suits, card.suit) then
+          table.insert(patternTable[card:getSuitString()], id)
+        end
+      end
+      local get = {}
+      for _, ids in pairs(patternTable) do
+        if #ids > 0 then
+          table.insert(get, table.random(ids))
+        end
+      end
+      if #get > 0 then
+        local dummy = Fk:cloneCard("dilu")
+        dummy:addSubcards(get)
+        room:obtainCard(player, dummy, false, fk.ReasonPrey)
+      end
+    end
+  end,
 }
 
 return extension

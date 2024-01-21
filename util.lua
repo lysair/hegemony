@@ -353,8 +353,9 @@ end
 ---@param from ServerPlayer @ 军令发起者
 ---@param to ServerPlayer @ 军令执行者
 ---@param skill_name string @ 技能名
+---@param isMust boolean @ 是否强制执行
 ---@return boolean @ 是否执行
-H.askCommandTo = function(from, to, skill_name)
+H.askCommandTo = function(from, to, skill_name, isMust)
   local room = from.room
   room:sendLog{
     type = "#AskCommandTo",
@@ -374,7 +375,7 @@ H.askCommandTo = function(from, to, skill_name)
   room:doBroadcastNotify("ShowToast", ret)
   room:doBroadcastNotify("ServerMessage", ret)
   local index = H.startCommand(from, skill_name)
-  local invoke = H.doCommand(to, skill_name, index, from)
+  local invoke = H.doCommand(to, skill_name, index, from, isMust)
   local commandData = {
     from = from,
     to = to,
@@ -415,13 +416,20 @@ end
 ---@param skill_name string @ 技能名
 ---@param index integer @ 军令序数
 ---@param from ServerPlayer @ 军令发起者
+---@param isMust boolean @ 是否强制执行
 ---@return boolean @ 是否执行
-H.doCommand = function(to, skill_name, index, from)
+H.doCommand = function(to, skill_name, index, from, isMust)
   if to.dead or from.dead then return false end
   local room = to.room
   
   local allcommands = {"command1", "command2", "command3", "command4", "command5", "command6"}
-  local choice = room:askForChoice(to, {allcommands[index], "Cancel"}, "do_command", nil, true)
+
+  local choice
+  if not isMust then
+    choice = room:askForChoice(to, {allcommands[index], "Cancel"}, "do_command", nil, true)
+  else
+    choice = room:askForChoice(to, {allcommands[index]}, "do_command", nil, true)
+  end
 
   local result = choice == "Cancel" and "#commandselect_no" or "#commandselect_yes"
   room:sendLog{

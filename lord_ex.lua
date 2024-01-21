@@ -294,6 +294,108 @@ Fk:loadTranslationTable{
   ["~ld__liuba"] = "家国将逢巨变，奈何此身先陨。",
 }
 
+local wujing = General(extension, "ld__wujing", "wu", 4)
+
+local fengyang = H.CreateArraySummonSkill{
+  name = "ld__fengyang",
+  array_type = "formation",
+}
+local fengyangTrig = fk.CreateTriggerSkill{
+  name = "#ld__fengyang_trigger",
+  visible = false,
+  events = {fk.BeforeCardsMove},
+  can_trigger = function(self, event, target, player, data)
+    for _, move in ipairs(data) do
+      if move.from == player.id and (move.moveReason == fk.ReasonDiscard or move.moveReason == fk.ReasonPrey) and (move.proposer ~= player and move.proposer ~= player.id) then
+        for _, info in ipairs(move.moveInfo) do
+          if info.fromArea == Card.PlayerEquip then
+            local targets = table.map(table.filter(player.room.alive_players, function(p) return H.inFormationRelation(p, player)  end), Util.IdMapper)
+            return #targets > 0 and player:hasSkill(self)
+          end
+        end
+      end
+    end
+  end,
+  on_cost = Util.TrueFunc,
+  on_use = function(self, event, target, player, data)
+    for _, move in ipairs(data) do
+      if move.from == player.id and (move.moveReason == fk.ReasonDiscard or move.moveReason == fk.ReasonPrey) and (move.proposer ~= player and move.proposer ~= player.id) then
+        for i = #move.moveInfo, 1, -1 do
+          local info = move.moveInfo[i]
+          if info.fromArea == Card.PlayerEquip then
+            table.removeOne(move.moveInfo, info)
+            break
+          end
+        end
+      end
+    end
+  end,
+}
+
+local diaogui = fk.CreateViewAsSkill{
+  name = "ld__diaogui",
+  anim_type = "drawcard",
+  pattern = "lure_tiger",
+  card_filter = function(self, to_select, selected)
+    return #selected == 0 and Fk:getCardById(to_select).type == Card.TypeEquip
+  end,
+  view_as = function(self, cards)
+    if #cards ~= 1 then
+      return nil
+    end
+    local c = Fk:cloneCard("lure_tiger")
+    c.skillName = self.name
+    c:addSubcard(cards[1])
+    return c
+  end,
+  enabled_at_play = function(self, player)
+    return player:usedSkillTimes(self.name, Player.HistoryTurn) == 0
+  end,
+}
+
+local diaogui_effect = fk.CreateTriggerSkill{
+  name = "#ld__diaogui_effect",
+  mute = true,
+  events = {fk.CardUseFinished},
+  can_trigger = function(self, event, target, player, data)
+    if target == player then
+      if event == fk.CardUseFinished then
+        return data.card and table.contains(data.card.skillNames, "ld__diaogui")
+      end
+    end
+  end,
+  on_cost = Util.TrueFunc,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local targets = table.map(table.filter(room.alive_players, function(p) return H.inFormationRelation(p, player)  end), Util.IdMapper)
+    if #targets > 0 then
+      for _, pid in ipairs(targets) do
+        local p = room:getPlayerById(pid)
+        p:drawCards(1, self.name)
+      end
+    end
+  end,
+}
+
+diaogui:addRelatedSkill(diaogui_effect)
+wujing:addSkill(diaogui)
+fengyang:addRelatedSkill(fengyangTrig)
+wujing:addSkill(fengyang)
+Fk:loadTranslationTable{
+  ["ld__wujing"] = "吴景",
+  ["ld__diaogui"] = "调归",
+  [":ld__diaogui"] = "出牌阶段限一次，你可将一张装备牌当【调虎离山】使用，然后与你处于同一队列的角色各摸一张牌。",
+  ["ld__fengyang"] = "风扬",
+  ["#ld__fengyang_trigger"] = "风扬",
+  [":ld__fengyang"] = "阵法技，与你处于同一队列的角色装备区内的牌被除其外的角色弃置或获得时，取消之",
+
+  ["$ld__diaogui1"] = "",
+  ["$ld__diaogui2"] = "",
+  ["$ld__fengyang2"] = "",
+  ["$ld__fengyang1"] = "",
+  ["~ld__wujing"] = "",
+}
+
 local zhugeke = General(extension, "ld__zhugeke", "wu", 3)
 zhugeke:addCompanions("hs__dingfeng")
 local aocai = fk.CreateTriggerSkill{
