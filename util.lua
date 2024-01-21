@@ -428,7 +428,7 @@ H.doCommand = function(to, skill_name, index, from, isMust)
   if not isMust then
     choice = room:askForChoice(to, {allcommands[index], "Cancel"}, "do_command", nil, true)
   else
-    choice = room:askForChoice(to, {allcommands[index]}, "do_command", nil, true)
+    choice = room:askForChoice(to, {allcommands[index]}, "do_command", nil, true, {allcommands[index], "Cancel"})
   end
 
   local result = choice == "Cancel" and "#commandselect_no" or "#commandselect_yes"

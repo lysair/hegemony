@@ -1082,4 +1082,25 @@ local shilun = fk.CreateTriggerSkill{
   end,
 }
 
+huanfan:addSkill(liance)
+huanfan:addSkill(shilun)
+Fk:addSkill(liance_viewas)
+Fk:addSkill(shilun_active)
+Fk:loadTranslationTable{
+  ["wk_heg__huanfan"] = "桓范",
+  ["wk_heg__liance"] = "连策",
+  [":wk_heg__liance"] = "其他角色的出牌阶段结束时，若其于此阶段内使用过同名牌，你可以弃置一张牌，令其选择一项：1.视为使用此同名牌；2.你对其发起强制执行的“军令”。",
+  ["wk_heg__shilun"] = "世论",
+  [":wk_heg__shilun"] = "当你受到伤害后，你可展示所有手牌并弃至每种花色各一张，然后若你的手牌：包含四种花色，你可移动场上一张牌；不包含四种花色，你从牌堆中检索并获得手牌中没有的花色牌各一张。",
+
+  ["#wk_heg__liance"] = "连策：是否弃置一张牌令当前回合视为使用同名牌",
+  ["#wk_heg__shilun_active-choose"] = "世论：选择花色各不相同的手牌各一张",
+  ["#wk_heg__shilun-move"] = "世论：你可以移动场上一张牌",
+
+  ["$wk_heg__liance1"] = "将军今出洛阳，恐难再回。",
+  ["$wk_heg__liance2"] = "贼示弱于外，必包藏祸心。",
+  ["$wk_heg__shilun1"] = "某有良谋，可为将军所用。",
+  ["$wk_heg__shilun2"] = "吾负十斗之囊，其盈一石之智。",
+  ["~wk_heg__huanfan"] = "有良言而不用，君何愚哉……",
+}
 return extension
