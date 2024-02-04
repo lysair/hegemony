@@ -15,6 +15,7 @@ dengai.mainMaxHpAdjustedValue = -1
 local tuntian = fk.CreateTriggerSkill{
   name = "ld__tuntian",
   anim_type = "special",
+  derived_piles = "ld__dengai_field",
   events = {fk.AfterCardsMove},
   can_trigger = function(self, event, target, player, data)
     if player:hasSkill(self) and player.phase == Player.NotActive then
@@ -52,7 +53,6 @@ local tuntian_distance = fk.CreateDistanceSkill{
   end,
 }
 tuntian:addRelatedSkill(tuntian_distance)
-H.CreateClearSkill(tuntian, "ld__dengai_field")
 
 local jixi = fk.CreateViewAsSkill{
   name = "ld__jixi",
@@ -551,6 +551,7 @@ local qianhuan = fk.CreateTriggerSkill{
   name = "qianhuan",
   events = {fk.Damaged, fk.TargetConfirming, fk.BeforeCardsMove},
   anim_type = "defensive",
+  derived_piles = "yuji_sorcery",
   mute = true,
   can_trigger = function(self, event, target, player, data)
     if not player:hasSkill(self) then return false end
@@ -648,7 +649,6 @@ local qianhuan = fk.CreateTriggerSkill{
   end,
 }
 yuji:addSkill(qianhuan)
-H.CreateClearSkill(qianhuan, "yuji_sorcery")
 Fk:loadTranslationTable{
   ["ld__yuji"] = "于吉",
   ["qianhuan"] = "千幻",
@@ -668,6 +668,9 @@ hetaihou:addSkill("zhendu")
 hetaihou:addSkill("qiluan")
 Fk:loadTranslationTable{
   ["ld__hetaihou"] = "何太后",
+  ["#ld__hetaihou"] = "弄权之蛇蝎",
+  ["cv:ld__hetaihou"] = "水原",
+  ["illustrator:ld__hetaihou"] = "木美人",
   ["~ld__hetaihou"] = "你们男人造的孽，非要说什么红颜祸水……",
 }
 

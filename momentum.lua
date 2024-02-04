@@ -575,6 +575,7 @@ local hongfa = fk.CreateTriggerSkill{
   anim_type = "support",
   events = {fk.GeneralRevealed},
   frequency = Skill.Compulsory,
+  derived_piles = "heavenly_army",
   mute = true,
   can_trigger = function(self, event, target, player, data)
     if target == player and player:hasSkill(self.name, true) then
@@ -617,7 +618,6 @@ local hongfa = fk.CreateTriggerSkill{
     end
   end,
 }
-H.CreateClearSkill(hongfa, "heavenly_army")
 
 local heavenly_army_skill = fk.CreateViewAsSkill{
   name = "heavenly_army_skill&",

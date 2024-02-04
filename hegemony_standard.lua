@@ -127,7 +127,9 @@ Fk:loadTranslationTable{
 local guojia = General(extension, "hs__guojia", "wei", 3)
 local hs__yiji_active = fk.CreateActiveSkill{
   name = "hs__yiji_active",
-  expand_pile = "hs__yiji",
+  expand_pile = function(self)
+    return U.getMark(Self, "hs__yiji_cards")
+  end,
   min_card_num = 1,
   target_num = 1,
   card_filter = function(self, to_select, selected, targets)
@@ -147,21 +149,9 @@ local yiji = fk.CreateTriggerSkill{
     local room = player.room
     local ids = room:getNCards(2)
     while true do
-      player.special_cards["hs__yiji"] = table.simpleClone(ids)
-      player:doNotify("ChangeSelf", json.encode {
-        id = player.id,
-        handcards = player:getCardIds("h"),
-        special_cards = player.special_cards,
-      })
       room:setPlayerMark(player, "hs__yiji_cards", ids)
       local _, ret = room:askForUseActiveSkill(player, "hs__yiji_active", "#hs__yiji-give", true, nil, true)
       room:setPlayerMark(player, "hs__yiji_cards", 0)
-      player.special_cards["hs__yiji"] = table.simpleClone(ids)
-      player:doNotify("ChangeSelf", json.encode {
-        id = player.id,
-        handcards = player:getCardIds("h"),
-        special_cards = player.special_cards,
-      })
       if ret then
         for _, id in ipairs(ret.cards) do
           table.removeOne(ids, id)
@@ -1782,6 +1772,7 @@ local buqu = fk.CreateTriggerSkill{
   anim_type = "defensive",
   events = {fk.AskForPeaches},
   frequency = Skill.Compulsory,
+  derived_piles = "hs__buqu_scar",
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(self) and player.dying
   end,
@@ -1813,7 +1804,6 @@ local buqu = fk.CreateTriggerSkill{
     end
   end,
 }
-H.CreateClearSkill(buqu, "hs__buqu_scar")
 
 local fenji = fk.CreateTriggerSkill{
   name = "hs__fenji",

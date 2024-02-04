@@ -462,6 +462,7 @@ Fk:loadTranslationTable{
 
 local zuoci = General(extension, "ld__zuoci", "qun", 3)
 ---@param player ServerPlayer
+---@param skillName string
 local addFangkeSkill = function(player, skillName)
   local room = player.room
   local skill = Fk.skills[skillName]
@@ -479,6 +480,7 @@ local addFangkeSkill = function(player, skillName)
 end
 
 ---@param player ServerPlayer
+---@param skillName string
 local removeFangkeSkill = function(player, skillName)
   local room = player.room
   local skill = Fk.skills[skillName]
@@ -495,6 +497,7 @@ end
 
 ---@param player ServerPlayer
 ---@param general General
+---@param addSkill bool
 local function addFangke(player, general, addSkill)
   local room = player.room
   local glist = player:getMark("@&ld__xing")
@@ -732,6 +735,7 @@ local jiahe = fk.CreateTriggerSkill{
   anim_type = "support",
   frequency = Skill.Compulsory,
   events = {fk.GeneralRevealed},
+  derived_piles = "lord_fenghuo",
   can_trigger = function (self, event, target, player, data)
     if target == player and player:hasSkill(self.name, true) then
       for _, v in pairs(data) do
@@ -743,7 +747,6 @@ local jiahe = fk.CreateTriggerSkill{
     player.room:handleAddLoseSkills(player, '#fenghuotu')
   end,
 }
-H.CreateClearSkill(jiahe, "lord_fenghuo")
 
 local fenghuotu = fk.CreateTriggerSkill{
   name = "#fenghuotu",

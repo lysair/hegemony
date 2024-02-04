@@ -786,6 +786,7 @@ local bushi = fk.CreateTriggerSkill{
 local midao = fk.CreateTriggerSkill{
   name = "ld__midao",
   anim_type = "offensive",
+  derived_piles = "ld__midao_rice",
   events = {fk.GeneralRevealed, fk.AskForRetrial},
   can_trigger = function (self, event, target, player, data)
     if event == fk.GeneralRevealed then
@@ -828,7 +829,6 @@ local midao = fk.CreateTriggerSkill{
   end,
 }
 
-H.CreateClearSkill(midao, "ld__midao_rice")
 zhanglu:addSkill(bushi)
 zhanglu:addSkill(midao)
 Fk:loadTranslationTable{
@@ -1693,6 +1693,7 @@ zhonghui:addCompanions("ld__jiangwei")
 local quanji = fk.CreateTriggerSkill{
   name = "ld__quanji",
   mute = true,
+  derived_piles = "ld__zhonghui_power",
   events = {fk.Damaged, fk.Damage},
   can_trigger = function(self, event, target, player, data)
     if target ~= player or not player:hasSkill(self) or player.dead then return false end
@@ -1723,7 +1724,6 @@ local quanji_maxcards = fk.CreateMaxCardsSkill{
   end,
 }
 quanji:addRelatedSkill(quanji_maxcards)
-H.CreateClearSkill(quanji, "ld__zhonghui_power")
 local paiyi = fk.CreateActiveSkill{
   name = "ld__paiyi",
   anim_type = "control",
@@ -2242,6 +2242,7 @@ local zisui = fk.CreateTriggerSkill{
   frequency = Skill.Compulsory,
   mute = true,
   events = {fk.DrawNCards, fk.EventPhaseStart},
+  derived_piles = "ld__gongsunyuan_infidelity",
   can_trigger = function(self, event, target, player, data)
     if not player:hasSkill(self) or player ~= target then return false end
     if event == fk.DrawNCards and #player:getPile("ld__gongsunyuan_infidelity") > 0 then
@@ -2263,7 +2264,6 @@ local zisui = fk.CreateTriggerSkill{
   end,
 }
 
-H.CreateClearSkill(huaiyi, "ld__gongsunyuan_infidelity")
 gongsunyuan:addSkill(huaiyi)
 gongsunyuan:addSkill(zisui)
 

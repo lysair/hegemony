@@ -1014,31 +1014,4 @@ H.CreateBigKingdomSkill = function(spec)
   return skill
 end
 
--- 清理武将牌上的牌技能
----@param skill Skill
----@param expand_pile string
-H.CreateClearSkill = function(skill, expand_pile)
-  assert(skill:isInstanceOf(Skill))
-  assert(type(expand_pile) == "string")
-  local skill_name = skill.name
-  local clear_skill = fk.CreateTriggerSkill{
-    name = "#" .. skill_name .. "-clear",
-    anim_type = "negative",
-    expand_pile = expand_pile,
-    refresh_events = {fk.EventLoseSkill, fk.GeneralHidden},
-    can_refresh = function(self, event, target, player, data)
-      if target ~= player or #player:getPile(expand_pile) == 0 then return false end
-      if event == fk.EventLoseSkill then
-        return data == skill
-      else
-        return table.contains(Fk.generals[data]:getSkillNameList(), skill_name)
-      end
-    end,
-    on_refresh = function(self, event, target, player, data)
-      player.room:moveCardTo(player:getPile(expand_pile), Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, self.name, expand_pile, true)
-    end,
-  }
-  skill:addRelatedSkill(clear_skill)
-end
-
 return H
