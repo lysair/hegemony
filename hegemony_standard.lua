@@ -320,6 +320,9 @@ Fk:loadTranslationTable{
   ["#hs__shensu1-choose"] = "神速：你可以跳过判定阶段和摸牌阶段，视为使用一张无距离限制的【杀】",
   ["#hs__shensu2-choose"] = "神速：你可以跳过出牌阶段并弃置一张装备牌，视为使用一张无距离限制的【杀】",
   ["#hs__shensu3-choose"] = "神速：你可以跳过弃牌阶段并失去1点体力，视为使用一张无距离限制的【杀】",
+
+  ["$hs__shensu1"] = "吾善于千里袭人！",
+  ["$hs__shensu2"] = "取汝首级，有如探囊取物！",
 }
 
 local zhanghe = General(extension, "hs__zhanghe", "wei", 4)

@@ -1496,44 +1496,62 @@ local chenglue = fk.CreateTriggerSkill{
   anim_type = "drawcard",
   events = {fk.TargetSpecified, fk.Damaged, fk.CardUseFinished},
   can_trigger = function (self, event, target, player, data)
+    if not player:hasSkill(self) then return end
     if event == fk.TargetSpecified then
-      return player:hasSkill(self) and H.compareKingdomWith(target, player) 
+      return H.compareKingdomWith(target, player) 
         and #AimGroup:getAllTargets(data.tos) > 1 and data.firstTarget
     elseif event == fk.Damaged then
-      return player:hasSkill(self) and player == target and data.card and player:getMark("ld__chenglue_detect") > 0
+      if player == target and #player.tag["chenglue_cardIds"] ~= 0 then
+        return data.card and table.contains(player.tag["chenglue_cardIds"], data.card.id)
+      end
     elseif event == fk.CardUseFinished then
-      return player:hasSkill(self) and player:getMark("ld__chenglue_addmark") > 0
+      local suffer_tab = player.tag["chenglue_suffer"] or {}
+      return suffer_tab[data.card.id]
     end
   end,
   on_cost = function (self, event, target, player, data)
     if event == fk.TargetSpecified then
       return player.room:askForSkillInvoke(player, self.name, nil, "#ld__chenglue-ask:" .. target.id)
-    else
-      return true
+    elseif event == fk.Damaged then
+      local id = data.card.id
+      local ids = player.tag["chenglue_cardIds"] or {}
+      player.tag["chenglue_cardIds"] = table.filter(ids, function(e)
+        return e ~= id
+      end)
+    elseif event == fk.CardUseFinished then
+      local suffer_tab = player.tag["chenglue_suffer"] or {}
+      suffer_tab[data.card.id] = nil
+      player.tag["chenglue_suffer"] = suffer_tab
     end
+    return true
   end,
   on_use = function (self, event, target, player, data)
     local room = player.room
     if event == fk.TargetSpecified then
-      target:drawCards(1, self.name)
-      room:setPlayerMark(player, "ld__chenglue_detect", 1)
+      if target:isAlive() then
+        target:drawCards(1, self.name)
+      end
+      local id = data.card.id
+      local ids = player.tag["chenglue_cardIds"] or {}
+      table.insert(ids, id)
+      player.tag["chenglue_cardIds"] = ids
     elseif event == fk.Damaged then
-      room:setPlayerMark(player, "ld__chenglue_detect", 0)
-      room:setPlayerMark(player, "ld__chenglue_addmark", data.card.id)
-    elseif event == fk.CardUseFinished and data.card.id == player:getMark("ld__chenglue_addmark") then
-      room:setPlayerMark(player, "ld__chenglue_detect", 0)
-      room:setPlayerMark(player, "ld__chenglue_addmark", 0)
-      local targets = table.map(table.filter(room.alive_players, function(p)
+      local id = data.card.id
+      local suffer_tab = player.tag["chenglue_suffer"] or {}
+      suffer_tab[id] = true
+      player.tag["chenglue_suffer"] = suffer_tab
+    elseif event == fk.CardUseFinished then
+      local isTarget = function(p)
         return H.compareKingdomWith(p, player) and H.getGeneralsRevealedNum(p) == 2 
-        and player:getMark("@!yinyangfish") == 0 and player:getMark("@!companion") == 0 
-        and player:getMark("@!wild") == 0 and player:getMark("@!vanguard") == 0
-      end), Util.IdMapper)
-      if #targets > 0 then
-        local to = room:askForChoosePlayers(player, targets, 1, 1, nil, self.name, true)
-        if #to > 0 then
-          local target = room:getPlayerById(to[1])
-          H.addHegMark(room, target, "yinyangfish")
-        end
+          and player:getMark("@!yinyangfish") == 0 and player:getMark("@!companion") == 0 
+          and player:getMark("@!wild") == 0 and player:getMark("@!vanguard") == 0
+      end
+      local targets = table.map(table.filter(room.alive_players, isTarget), Util.IdMapper)
+      if #targets == 0 then return end
+      local to = room:askForChoosePlayers(player, targets, 1, 1, nil, self.name, true)
+      if #to == 1 then
+        local _target = room:getPlayerById(to[1])
+        H.addHegMark(room, _target, "yinyangfish")
       end
     end
   end,
@@ -1559,7 +1577,7 @@ xuyou:addSkill(shicai)
 Fk:loadTranslationTable{
   ["ld__xuyou"] = "许攸",
   ["ld__chenglue"] = "成略",
-  [":ld__chenglue"] = "当与你势力相同的角色使用牌指定目标后，若此牌的目标数大于1，你可令其摸一张牌，若如此做，此牌结算完成后，若你受到过此牌造成的伤害，你可令一名与你势力相同且没有国战标记的角色获得一个“阴阳鱼”标记。",
+  [":ld__chenglue"] = "当与你势力相同的角色使用牌指定目标后，若目标数大于1，你可令其摸一张牌。若如此做且你受到过此牌造成的伤害，此牌结算完成后，你可令一名与你势力相同且没有国战标记的角色获得一个“阴阳鱼”标记。",
   ["ld__shicai"] = "恃才",
   [":ld__shicai"] = "锁定技，当你受到伤害后，若此伤害为1点，你摸一张牌，否则你弃置所有手牌。",
 

@@ -115,43 +115,45 @@ local bianfuren = General(extension, "ld__bianfuren", "wei", 3)
 local wanwei = fk.CreateTriggerSkill{
   name = "ld__wanwei",
   events = {fk.BeforeCardsMove},
-  anim_type = 'defensive',
+  anim_type = "defensive",
   can_trigger = function(self, event, target, player, data)
-    if not player:hasSkill(self) then return false end
-    for _, move in ipairs(data) do
-      if move.from == player.id and (move.moveReason == fk.ReasonPrey or move.moveReason == fk.ReasonDiscard) and move.proposer ~= player.id then
+    if not player:hasSkill(self) then return end
+    local _data = {}
+    for index, move in ipairs(data) do
+      local num = 0
+      if (move.moveReason == fk.ReasonPrey or move.moveReason == fk.ReasonDiscard) and move.from == player.id and move.proposer ~= player.id then
         for _, info in ipairs(move.moveInfo) do
-          if (info.fromArea == Card.PlayerEquip or info.fromArea == Card.PlayerHand) then
-            return true
+          if info.fromArea == Card.PlayerEquip or info.fromArea == Card.PlayerHand then
+            num = num + 1
           end
         end
       end
+      if num ~= 0 then
+        table.insert(_data, {index, num})
+      end
     end
+    if #_data == 0 then return end
+    self.cost_data = _data
+    return true
   end,
-  on_cost = function (self, event, target, player, data)
-    return player.room:askForSkillInvoke(player, self.name, nil, "#ld__wanwei-invoke")
-  end,
-  on_use = function (self, event, target, player, data)
-    local all_move = 0
-    local move_info = {}
-    for _, move in ipairs(data) do
-      if move.from == player.id and (move.moveReason == fk.ReasonPrey or move.moveReason == fk.ReasonDiscard) and move.proposer ~= player.id then
-        for _, info in ipairs(move.moveInfo) do
-          all_move = all_move + 1
-          if (info.fromArea == Card.PlayerEquip or info.fromArea == Card.PlayerHand) then
-            table.insert(move_info, info)
-          end
+  on_use = function(self, event, target, player, data)
+    if player.dead then return end
+    local room = player.room
+    local _data = self.cost_data
+    for _, tab in ipairs(_data) do
+      local index, num = tab[1], tab[2]
+      local ids = room:askForCardsChosen(player, player, num, num, "he", self.name, "#ld__wanwei-choose")
+      if #ids == num then
+        local moveInfo = {}
+        for _, id in ipairs(ids) do
+          local from = room:getCardArea(id)
+          local info = {}
+          info.cardId = id
+          info.fromArea = from
+          table.insertIfNeed(moveInfo, info)
         end
-      end
-    end
-    if all_move < #player:getCardIds("h") then
-      local cards = player.room:askForCard(player, all_move, all_move, false, self.name, false, ".", "#ld__wanwei-choose") 
-      for i = 1, all_move, 1 do
-        move_info[i].cardId = cards[i]
-      end
-      for _, move in ipairs(data) do
-        if move.from == player.id and (move.moveReason == fk.ReasonPrey or move.moveReason == fk.ReasonDiscard) and move.proposer ~= player.id then
-          move.moveInfo = move_info
+        if #moveInfo == num then
+          data[index].moveInfo = moveInfo
         end
       end
     end
@@ -209,7 +211,6 @@ Fk:loadTranslationTable{
   ["ld__yuejian"] = "约俭",
   [":ld__yuejian"] = "锁定技，与你势力相同角色的弃牌阶段开始时，若其本回合处于与你势力相同状态时未对其他势力角色使用过牌，其本回合的手牌上限改为其体力上限。",
 
-  ["#ld__wanwei-invoke"] = "挽危：是否修改即将被其他角色弃置或获得的牌",
   ["#ld__wanwei-choose"] = "挽危：请选择等量即将被其他角色弃置或获得的牌",
 
   ["$ld__wanwei1"] = "吉凶未可知，何故自乱？",
