@@ -1089,7 +1089,7 @@ Fk:addSkill(shilun_active)
 Fk:loadTranslationTable{
   ["wk_heg__huanfan"] = "桓范",
   ["wk_heg__liance"] = "连策",
-  [":wk_heg__liance"] = "其他角色的出牌阶段结束时，若其于此阶段内使用过同名牌，你可以弃置一张牌，令其选择一项：1.视为使用此同名牌；2.你对其发起强制执行的“军令”。",
+  [":wk_heg__liance"] = "其他角色的出牌阶段结束时，若其于此阶段内使用过同名牌，你可以弃置一张牌，令其选择是否视为使用此回合内其使用过的其中一张同名牌，若其未以此法使用牌，你对其发起强制执行的“军令”。",
   ["wk_heg__shilun"] = "世论",
   [":wk_heg__shilun"] = "当你受到伤害后，你可展示所有手牌并弃至每种花色各一张，然后若你的手牌：包含四种花色，你可移动场上一张牌；不包含四种花色，你从牌堆中检索并获得手牌中没有的花色牌各一张。",
 
@@ -1102,5 +1102,78 @@ Fk:loadTranslationTable{
   ["$wk_heg__shilun1"] = "某有良谋，可为将军所用。",
   ["$wk_heg__shilun2"] = "吾负十斗之囊，其盈一石之智。",
   ["~wk_heg__huanfan"] = "有良言而不用，君何愚哉……",
+}
+
+local zhuran = General(extension, "wk_heg__zhuran", "wu", 4, 4, General.Male)
+local danshou = fk.CreateTriggerSkill{
+  name = "wk_heg__danshou",
+  events = {fk.TargetConfirmed, fk.TurnEnd},
+  anim_type = "defensive",
+  can_trigger = function(self, event, target, player, data)
+    if event == fk.TargetConfirmed then
+      if not player:hasSkill(self) then return false end
+      if target == player and data.card.type ~= Card.TypeEquip and data.from ~= player.id then
+        local n = 0
+        local events = player.room.logic:getEventsOfScope(GameEvent.UseCard, 999, function(e)
+          local use = e.data[1]
+          if use.card.type ~= Card.TypeEquip and table.contains(TargetGroup:getRealTargets(use.tos), player.id) then
+            n = n + 1
+          end
+        end, Player.HistoryTurn)
+        self.cost_data = n
+        return player:getHandcardNum() > n
+      end
+    else
+      if not player:hasSkill(self) then return false end
+      return #player.room.logic:getEventsOfScope(GameEvent.ChangeHp, 1, function(e)
+        local damage = e.data[5]
+        if damage and damage.to == player then
+          return true
+        end
+      end, Player.HistoryTurn) > 0
+    end
+  end,
+  on_cost = function(self, event, target, player, data)
+    if event == fk.TargetConfirmed then
+      local n = player:getHandcardNum() - self.cost_data
+      local cards = player.room:askForDiscard(player, n, n, true, self.name, true, ".", "#wk_heg__danshou-damage::"..target.id..":"..n, true)
+      if #cards == n then
+        self.cost_data = cards
+        return true
+      else
+        return false
+      end
+    else
+      return player.room:askForSkillInvoke(player, self.name, nil, "#wk_heg__danshou")
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    if event == fk.TargetConfirmed then
+      local to = room:getPlayerById(data.from)
+      room:doIndicate(player.id, {data.from})
+      room:throwCard(self.cost_data, self.name, player, player)
+      if not to.dead then 
+        room:damage{
+          from = player,
+          to = to,
+          damage = 1,
+          skillName = self.name,
+        }
+      end
+    else
+      player:drawCards(1, self.name)
+    end
+  end,
+}
+
+zhuran:addSkill(danshou)
+Fk:loadTranslationTable{
+  ["wk_heg__zhuran"] = "朱然",
+  ["wk_heg__danshou"] = "胆守",
+  [":wk_heg__danshou"] = "当你成为其他角色使用牌的目标后，你可将手牌弃至X张，对其造成1点伤害（X为你本回合成为过牌目标的次数）；一名角色的回合结束时，若你此回合内受到过伤害，你可摸一张牌。",
+
+  ["#wk_heg__danshou-damage"] = "胆守：你可以弃置 %arg 张牌，对 %dest 造成1点伤害",
+  ["#wk_heg__danshou"] = "胆守：是否摸一张牌。"
 }
 return extension

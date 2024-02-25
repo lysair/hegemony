@@ -348,6 +348,169 @@ Fk:loadTranslationTable{
   ["fk_heg__liuchen"] = "刘谌",
 }
 
+local liuyong = General(extension, "fk_heg__liuyong", "shu", 3)
+
+local danxin = fk.CreateActiveSkill{
+  name = "fk_heg__danxin",
+  anim_type = "control",
+  card_num = 2,
+  target_num = 1,
+  can_use = function(self, player)
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
+  end,
+  card_filter = function(self, to_select, selected)
+    return Fk:currentRoom():getCardArea(to_select) == Player.Hand or Fk:currentRoom():getCardArea(to_select) == Player.Equip
+  end,
+  target_filter = function(self, to_select, selected)
+    return #selected == 0 and to_select ~= Self.id
+  end,
+  on_use = function (self, room, effect)
+    local player = room:getPlayerById(effect.from)
+    local target = room:getPlayerById(effect.tos[1])
+    local cards = effect.cards
+    room:moveCardTo(cards, Card.PlayerHand, target, fk.ReasonGive, self.name, nil, false, player.id)
+    if player.dead or player:isNude() or target.dead then return end
+    local cards2
+    if #target:getCardIds("he") <= 2 then
+      cards2 = target:getCardIds("he")
+    else
+      cards2 = room:askForCard(target, 2, 2, true, self.name, false, ".", "#fk_heg__danxin-give")
+      if #cards2 < 2 then
+        cards2 = table.random(player:getCardIds("he"), 2)
+      end
+    end
+    room:moveCardTo(cards, Card.PlayerHand, player, fk.ReasonGive, self.name, nil, false, player.id)
+    if #cards2 > 0 then
+      local card1 = Fk:getCardById(cards2[1])
+      if #cards2 > 1 then
+        local card2 = Fk:getCardById(cards2[2])
+        if card1.suit == Card.Heart or card2.suit == Card.Heart then
+          room:addPlayerMark(player, MarkEnum.SlashResidue.."-turn")
+        end
+      else
+        if card1.suit == Card.Heart then
+          room:addPlayerMark(player, MarkEnum.SlashResidue.."-turn")
+        end
+      end
+    end
+  end,
+}
+
+local fengxiang = fk.CreateTriggerSkill{
+  name = "fk_heg__fengxiang",
+  events = {fk.Damaged},
+  frequency = Skill.Compulsory,
+  anim_type = "masochism",
+  can_trigger = function(self, event, target, player, data)
+    return player == target and player:hasSkill(self) and #player.room.alive_players > 1
+    and table.find(player.room.alive_players, function(p) return #p:getCardIds("e") > 0 end)
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local tos = player.room:askForChoosePlayers(player, table.map(table.filter(room:getOtherPlayers(player), function (p)
+      return player:inMyAttackRange(p) end), Util.IdMapper), 1, 1, "#js__fengxiang-choose", self.name, false)
+    if #tos > 0 then
+      local to = room:getPlayerById(tos[1])
+      local num = 0
+      local cards1 = player:getCardIds("e")
+      local cards2 = to:getCardIds("e")
+      local moveInfos = {}
+      if #cards1 > 0 then
+        table.insert(moveInfos, {
+          from = player.id,
+          ids = cards1,
+          toArea = Card.Processing,
+          moveReason = fk.ReasonExchange,
+          proposer = player.id,
+          skillName = self.name,
+        })
+      end
+      if #cards2 > 0 then
+        table.insert(moveInfos, {
+          from = to.id,
+          ids = cards2,
+          toArea = Card.Processing,
+          moveReason = fk.ReasonExchange,
+          proposer = player.id,
+          skillName = self.name,
+        })
+      end
+      if #moveInfos > 0 then
+        room:moveCards(table.unpack(moveInfos))
+      end
+
+      moveInfos = {}
+
+      if not to.dead then
+        local to_ex_cards1 = table.filter(cards1, function (id)
+          return room:getCardArea(id) == Card.Processing and to:getEquipment(Fk:getCardById(id).sub_type) == nil
+        end)
+        if #to_ex_cards1 > 0 then
+          table.insert(moveInfos, {
+            ids = to_ex_cards1,
+            fromArea = Card.Processing,
+            to = to.id,
+            toArea = Card.PlayerEquip,
+            moveReason = fk.ReasonExchange,
+            proposer = player.id,
+            skillName = self.name,
+          })
+        end
+      end
+      if not player.dead then
+        local to_ex_cards = table.filter(cards2, function (id)
+          return room:getCardArea(id) == Card.Processing and player:getEquipment(Fk:getCardById(id).sub_type) == nil
+        end)
+        num = #cards1 - #to_ex_cards
+        if #to_ex_cards > 0 then
+          table.insert(moveInfos, {
+            ids = to_ex_cards,
+            fromArea = Card.Processing,
+            to = player.id,
+            toArea = Card.PlayerEquip,
+            moveReason = fk.ReasonExchange,
+            proposer = player.id,
+            skillName = self.name,
+          })
+        end
+      end
+      if #moveInfos > 0 then
+        room:moveCards(table.unpack(moveInfos))
+      end
+
+      if not player.dead then
+        if num > 0 then
+          player.room:recover{
+            who = player,
+            num = 1,
+            skillName = self.name,
+          }
+        end
+      end
+    end
+  end,
+}
+liuyong:addSkill(danxin)
+danxin:addRelatedSkill(danxin_targetmod)
+liuyong:addSkill(fengxiang)
+
+Fk:loadTranslationTable{
+  ["fk_heg__liuyong"] = "刘永",
+  ["fk_heg__danxin"] = "丹心",
+  [":fk_heg__danxin"] = "出牌阶段限一次，你可交给一名其他角色两张牌，然后其交给你两张牌，若你以此法获得红桃牌，你本回合使用【杀】次数上限+1。",
+  ["fk_heg__fengxiang"] = "封乡",
+  [":fk_heg__fengxiang"] = "锁定技，当你受到伤害后，你与你攻击范围内的一名其他角色交换装备区内所有牌，若你装备区内牌数因此减少，你回复1点体力。",
+
+  ["@fk_heg__danxin_buff-turn"] = "丹心",
+  ["#fk_heg__danxin-give"] = "丹心：请交给刘永两张牌。",
+
+  ["$fk_heg__danxin1"] = "此剑半丈，当斩奸佞人头！",
+  ["$fk_heg__danxin2"] = "此身八尺，甘为柱国之石。",
+  ["$fk_heg__fengxiang1"] = "北风摧蜀地，王爵换乡侯。",
+  ["$fk_heg__fengxiang2"] = "汉皇可负我，我不负父兄。",
+  ["~fk_heg__liuyong"] = "他日若是凛风起，你自长哭我自笑。",
+}
+
 -- local jianyong = General(extension, "fk_heg__jianyong", "shu", 3)
 -- jianyong:addSkill("qiaoshui")
 -- jianyong:addSkill("zongshij")
@@ -376,9 +539,49 @@ Fk:loadTranslationTable{
 }
 
 local zhuhuan = General(extension, "fk_heg__zhuhuan", "wu", 4)
-zhuhuan:addSkill("youdi")
+
+local jurui = fk.CreateTriggerSkill{
+  name = "fk_heg__jurui",
+  events = {fk.Damage},
+  can_trigger = function(self, event, target, player, data)
+    return player:hasSkill(self) and not player:isKongcheng() and not target.dead and player:usedSkillTimes(self.name, Player.HistoryTurn) < 1
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    room:doIndicate(player.id, {data.to.id})
+    local cardid = room:askForCardChosen(data.to, player, "h", self.name)
+    if Fk:getCardById(cardid).trueName ~= "slash" then
+      room:throwCard({cardid}, self.name, player, data.to)
+      local choices = {}
+      if player.hp < player.maxHp then
+        table.insert(choices, "fk_heg_jurui_recover")
+      end
+      if player:getHandcardNum() < player.maxHp then
+        table.insert(choices, "fk_heg_jurui_draw")
+      end
+      if #choices ~= 0 then 
+        local choice = room:askForChoice(player, choices, self.name)
+        if choice == "fk_heg_jurui_recover" then
+          player.room:recover{
+            who = player,
+            num = 1,
+            skillName = self.name,
+          }
+        else
+          player:drawCards(player.maxHp - player:getHandcardNum(), self.name)
+        end
+      end
+    else
+      room:throwCard({cardid}, self.name, player, data.to)
+    end
+  end,
+}
+zhuhuan:addSkill(jurui)
+
 Fk:loadTranslationTable{
   ['fk_heg__zhuhuan'] = '朱桓',
+  ['fk_heg__jurui'] = '拒锐',
+  [':fk_heg__jurui'] = '每回合限一次，当你造成伤害后，你可令受伤角色弃置你一张手牌，若此牌不为【杀】，你可回复1点体力或将手牌摸至体力上限。',
 }
 
 local guyong = General(extension, "fk_heg__guyong", "wu", 3)

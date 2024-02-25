@@ -1787,7 +1787,8 @@ local chenjian = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    local ids = room:getNCards(3)
+    local num = math.max(#player.player_cards[Player.Equip], 1)
+    local ids = room:getNCards(num)
     room:moveCards({
       ids = ids,
       toArea = Card.Processing,
@@ -1937,7 +1938,7 @@ tengyin:addSkill(xixiu)
 Fk:loadTranslationTable{
   ["ty_heg__tengyin"] = "滕胤",
   ["ty_heg__chenjian"] = "陈见",
-  [":ty_heg__chenjian"] = "准备阶段，你可亮出牌堆顶的三张牌并可以选择一项：1.弃置一张牌，令一名角色获得其中此牌花色的牌；2.使用其中一张牌。",
+  [":ty_heg__chenjian"] = "准备阶段，你可亮出牌堆顶的X张牌并可选择一项：1.弃置一张牌，令一名角色获得其中此牌花色的牌；2.使用其中一张牌。（X为你装备区内牌数且至少为1）",
   ["ty_heg__xixiu"] = "皙秀",
   [":ty_heg__xixiu"] = "锁定技，①每回合限一次，当你成为其他角色使用牌的目标后，若你装备区内有与此牌花色相同的牌，你摸一张牌；②其他角色弃置你装备区内的最后一张牌时，取消之。",
 
