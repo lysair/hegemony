@@ -109,6 +109,10 @@ dongzhao:addSkill(zaoyun)
 
 Fk:loadTranslationTable{
   ["ld__dongzhao"] = "董昭",
+  ["#ld__dongzhao"] = "移尊易鼎",
+	["illustrator:ld__dongzhao"] = "小牛",
+	["designer:ld__dongzhao"] = "逍遥鱼叔",
+
   ["quanjin"] = "劝进",
   [":quanjin"] = "出牌阶段限一次，你可将一张手牌交给一名此阶段受到过伤害的角色，对其发起“军令”。若其执行，你摸一张牌；若其不执行，你将手牌摸至与手牌最多的角色相同（最多摸五张）。",
   ["zaoyun"] = "凿运",
@@ -172,6 +176,8 @@ xushu:addSkill(jujian)
 xushu:addCompanions("hs__wolong")
 Fk:loadTranslationTable{
   ["ld__xushu"] = "徐庶",
+  ["#ld__xushu"] = "难为完臣",
+	["illustrator:ld__xushu"] = "YanBai",
   ["ld__qiance"] = "谦策",
   [":ld__qiance"] = "当与你势力相同的角色使用锦囊牌指定目标后，你可令所有大势力角色不能响应此牌。",
   ["ld__jujian"] = "举荐",
@@ -280,6 +286,10 @@ liuba:addSkill(qingyin)
 
 Fk:loadTranslationTable{
   ["ld__liuba"] = "刘巴",
+  ["#ld__liuba"] = "清河一鲲",
+	["illustrator:ld__liuba"] = "Mr_Sleeping",
+	["designer:ld__liuba"] = "逍遥鱼叔",
+
   ["ld__tongdu"] = "统度",
   [":ld__tongdu"] = "与你势力相同的角色结束阶段，其可摸X张牌（X为其于弃牌阶段弃置的牌数且至多为3）",
   ["ld__qingyin"] = "清隐",
@@ -383,6 +393,10 @@ fengyang:addRelatedSkill(fengyangTrig)
 wujing:addSkill(fengyang)
 Fk:loadTranslationTable{
   ["ld__wujing"] = "吴景",
+  ["#ld__wujing"] = "汗马鎏金",
+	["illustrator:ld__wujing"] = "小牛",
+	["designer:ld__wujing"] = "逍遥鱼叔",
+
   ["ld__diaogui"] = "调归",
   [":ld__diaogui"] = "出牌阶段限一次，你可将一张装备牌当【调虎离山】使用，然后与你处于同一队列的角色各摸一张牌。",
   ["ld__fengyang"] = "风扬",
@@ -558,6 +572,10 @@ zhugeke:addSkill(duwu)
 
 Fk:loadTranslationTable{
   ["ld__zhugeke"] = "诸葛恪",
+  ["#ld__zhugeke"] = "兴家赤族",
+	["designer:ld__zhugeke"] = "逍遥鱼叔",
+	["illustrator:ld__zhugeke"] = "猎枭",
+
   ["ld_aocai"] = "傲才",
   [":ld_aocai"] = "当你于回合外需要使用或打出一张基本牌时，你可以观看牌堆顶的两张牌，若你观看的牌中有相同牌名的牌，你可以使用或打出之。",
   ["ld__duwu"] = "黩武",
@@ -646,6 +664,10 @@ xishe:addRelatedSkill(xishe_delay)
 huangzu:addSkill(xishe)
 Fk:loadTranslationTable{
   ["ld__huangzu"] = "黄祖",
+  ["#ld__huangzu"] = "遮山扼江",
+	["designer:ld__huangzu"] = "逍遥鱼叔",
+	["illustrator:ld__huangzu"] = "YanBai",
+
   ["ld__xishe"] = "袭射",
   [":ld__xishe"] = "其他角色的准备阶段，你可以弃置一张装备区内的牌，视为对其使用一张【杀】（体力值小于你的角色不能响应），然后你可以重复此流程。此回合结束时，若你以此法杀死了一名角色，你可以变更副将。 <br>注：变更副将后暗置的效果尚在施工中。",
   ["#ld__xishe_noresponse"] = "袭射",
@@ -688,7 +710,7 @@ local liangfan = fk.CreateTriggerSkill{
     end
     if event == fk.Damage then
       return target == player and player:hasSkill(self.name) and data.card and data.card:getMark("@@ld__mengda_letter-turn") > 0
-       and not data.to:isNude() and not player.dead and not data.to.dead and data.to ~= player
+        and not data.to:isNude() and not player.dead and not data.to.dead and data.to ~= player
     end
   end,
   on_cost = Util.TrueFunc,
@@ -714,6 +736,10 @@ mengda:addSkill(liangfan)
 
 Fk:loadTranslationTable{
   ["ld__mengda"] = "孟达",
+  ["#ld__mengda"] = "怠军反复",
+	["designer:ld__mengda"] = "韩旭",
+	["illustrator:ld__mengda"] = "张帅",
+
   ["ld__qiuan"] = "求安",
   [":ld__qiuan"] = "当你受到伤害时，若没有“函”，你可将造成此伤害的牌置于武将牌上，称为“函”，然后防止此伤害。",
   ["ld__liangfan"] = "量反",
@@ -739,7 +765,7 @@ local bushi = fk.CreateTriggerSkill{
   events = {fk.EventPhaseStart},
   can_trigger = function (self, event, target, player, data)
     return player:hasSkill(self) and target.phase == Player.Finish 
-     and player:getMark("ld__bushi-turn") > 0 and #player:getPile("ld__midao_rice") > 0
+      and player:getMark("ld__bushi-turn") > 0 and #player:getPile("ld__midao_rice") > 0
   end,
   on_cost = function(self, event, target, player, data)
     local card = player.room:askForCard(player, 1, 1, false, self.name, true, ".|.|.|ld__midao_rice", "#ld__bushi_discard", "ld__midao_rice")
@@ -833,6 +859,10 @@ zhanglu:addSkill(bushi)
 zhanglu:addSkill(midao)
 Fk:loadTranslationTable{
   ["ld__zhanglu"] = "张鲁",
+  ["#ld__zhanglu"] = "政宽教惠",
+	-- ["designer:ld__zhanglu"] = "韩旭",
+	["illustrator:ld__zhanglu"] = "磐蒲",
+
   ["ld__bushi"] = "布施",
   [":ld__bushi"] = "一名角色的结束阶段，若你于此回合内造成或受到过伤害，你可移去一张“米”，令至多X名角色各摸一张牌（X为你的体力上限），以此法摸牌的角色可依次将一张牌置于你武将牌上，称为“米”。",
   ["ld__midao"] = "米道",
@@ -909,6 +939,10 @@ qtc:addSkill(fengshih)
 
 Fk:loadTranslationTable{
   ["ld__mifangfushiren"] = "糜芳傅士仁",
+  ["#ld__mifangfushiren"] = "逐驾迎尘",
+	["designer:ld__mifangfushiren"] = "Loun老萌",
+	["illustrator:ld__mifangfushiren"] = "木美人",
+
   ["ld__fengshih"] = "锋势",
   [":ld__fengshih"] = "①当你使用牌指定其他角色为唯一目标后，若其手牌数小于你且你与其均有牌，你可以弃置你与其各一张牌，然后此牌造成伤害值+1②e当你成为其他角色使用牌的唯一目标后，若你手牌数小于其且你与其均有牌，其可以令你弃置你与其各一张牌，然后此牌造成伤害值+1。",
 
@@ -971,6 +1005,10 @@ shixie:addSkill(lixia)
 
 Fk:loadTranslationTable{
   ["hs__shixie"] = "士燮",
+  ["#hs__shixie"] = "百粤灵欹",
+	["designer:hs__shixie"] = "韩旭",
+	["illustrator:hs__shixie"] = "磐蒲",
+
   ["hs__biluan"] = "避乱",
   [":hs__biluan"] = "锁定技，其他角色计算与你的距离+X（X为你装备区内的牌数且至少为1）。",
   ["hs__lixia"] = "礼下",
@@ -1105,6 +1143,10 @@ liuqi:addSkill(wenji)
 
 Fk:loadTranslationTable{
   ["ld__liuqi"] = "刘琦",
+  ["#ld__liuqi"] = "居外而安",
+	["designer:ld__liuqi"] = "荼蘼（韩旭）",
+	["illustrator:ld__liuqi"] = "绘聚艺堂",
+
   ["ld__wenji"] = "问计",
   [":ld__wenji"] = "出牌阶段开始时，你可令一名角色交给你一张牌，然后若其：与你势力相同或未确定势力，你于此回合内使用此牌无距离与次数限制且不能被响应；与你势力不同，你交给其另一张牌。",
   ["ld__tunjiang"] = "屯江",
@@ -1207,6 +1249,10 @@ tangzi:addSkill(xingzhao)
 tangzi:addRelatedSkill(ld__xunxun)
 Fk:loadTranslationTable{
   ["ld__tangzi"] = "唐咨",
+  ["#ld__tangzi"] = "得时识风",
+	["designer:ld__tangzi"] = "荼蘼（韩旭）",
+	["illustrator:ld__tangzi"] = "凝聚永恒",
+
   ["ld__xingzhao"] = "兴棹",
   [":ld__xingzhao"] = "锁定技，场上受伤的角色数为：1个或以上，你拥有技能〖恂恂〗；2个或以上，你受到伤害后，你与伤害来源手牌数较少的角色摸一张牌；3个或以上，你的手牌上限+4；4个或以上，你失去装备区内的牌时，摸一张牌。",
   ["ld__xunxun"] = "恂恂",
@@ -1266,6 +1312,10 @@ xiahouba:addSkill(baolie)
 
 Fk:loadTranslationTable{
   ["ld__xiahouba"] = "夏侯霸",
+  ["#ld__xiahouba"] = "棘途壮志",
+	["designer:ld__xiahouba"] = "逍遥鱼叔",
+	["illustrator:ld__xiahouba"] = "小牛",
+
   ["ld__baolie"] = "豹烈",
   [":ld__baolie"] = "锁定技，①出牌阶段开始时，你令所有与你势力不同且攻击范围内含有你的角色依次对你使用一张【杀】，否则你弃置其一张牌。②你对体力值不小于你的角色使用【杀】无距离与次数限制。",
 
@@ -1361,6 +1411,10 @@ congcha:addRelatedSkill(congcha_delay)
 panjun:addSkill("gongqing")
 Fk:loadTranslationTable{
   ["ld__panjun"] = "潘濬",
+  ["#ld__panjun"] = "逆鳞之砥",
+	["illustrator:ld__panjun"] = "Domi",
+	["designer:ld__panjun"] = "逍遥鱼叔",
+
   ["ld__congcha"] = "聪察",
   [":ld__congcha"] = "①准备阶段，你可选择一名未确定势力的角色，若如此做，当其明置武将牌后，若其确定势力且势力与你：相同，你与其各摸两张牌；不同，其失去1点体力②e摸牌阶段，若场上不存在未确定势力的角色，你可多摸两张牌。",
 
@@ -1412,6 +1466,10 @@ local jinfa = fk.CreateActiveSkill{
 wenqin:addSkill(jinfa)
 Fk:loadTranslationTable{
   ["ld__wenqin"] = "文钦",
+  ["#ld__wenqin"] = "勇而无算",
+	["illustrator:ld__wenqin"] = "匠人绘-零二",
+	["designer:ld__wenqin"] = "逍遥鱼叔",
+
   ["ld__jinfa"] = "矜伐",
   [":ld__jinfa"] = "出牌阶段限一次，你可弃置一张牌并选择一名其他角色，令其选择一项：1.令你获得其一张牌；2.交给你一张装备牌，若此装备牌为♠，其视为对你使用一张【杀】。",
 
@@ -1419,7 +1477,7 @@ Fk:loadTranslationTable{
 
   ["$ld__jinfa1"] = "居功者，当自矜，为将者，当善伐。",
   ["$ld__jinfa2"] = "此战伐敌所获，皆我之功。",
-  
+
   ["~ld__wenqin"] = "公休，汝这是何意，呃……",
 
 }
@@ -1480,6 +1538,10 @@ zhengjian:addRelatedSkill(zhengjian_prohibit)
 sufei:addSkill(zhengjian)
 Fk:loadTranslationTable{
   ["ld__sufei"] = "苏飞",
+  ["#ld__sufei"] = "诤友投明",
+	-- ["designer:ld__sufei"] = "逍遥鱼叔",
+	["illustrator:ld__sufei"] = "Domi",
+
   ["ld__zhengjian"] = "诤荐",
   [":ld__zhengjian"] = "与你势力相同角色的结束阶段，若其本回合使用牌数不小于其体力上限且没有“珠联璧合”标记，你可令其获得一个“珠联璧合”标记，若如此做，其不能使用【桃】直至你成为【杀】的目标或其进入濒死状态。",
 
@@ -1576,6 +1638,10 @@ xuyou:addSkill(shicai)
 
 Fk:loadTranslationTable{
   ["ld__xuyou"] = "许攸",
+  ["#ld__xuyou"] = "毕方矫翼",
+	["designer:ld__xuyou"] = "逍遥鱼叔",
+	["illustrator:ld__xuyou"] = "猎枭",
+
   ["ld__chenglue"] = "成略",
   [":ld__chenglue"] = "当与你势力相同的角色使用牌指定目标后，若目标数大于1，你可令其摸一张牌。若如此做且你受到过此牌造成的伤害，此牌结算完成后，你可令一名与你势力相同且没有国战标记的角色获得一个“阴阳鱼”标记。",
   ["ld__shicai"] = "恃才",
@@ -1685,6 +1751,9 @@ pengyang:addSkill(jinxian)
 
 Fk:loadTranslationTable{
   ["ld__pengyang"] = "彭羕",
+  ["#ld__pengyang"] = "误身的狂士",
+	["illustrator:ld__pengyang"] = "匠人绘-零一",
+	["designer:ld__pengyang"] = "韩旭",
 
   ["ld__tongling"] = "通令",
   ["#ld__tongling_delay"] = "通令",
@@ -1782,6 +1851,10 @@ zhonghui:addSkill(paiyi)
 
 Fk:loadTranslationTable{
   ["ld__zhonghui"] = "钟会",
+  ["#ld__zhonghui"] = "桀骜的野心家",
+	["designer:ld__zhonghui"] = "韩旭",
+	["illustrator:ld__zhonghui"] = "磐蒲",
+
   ["ld__quanji"] = "权计",
   [":ld__quanji"] = "每回合各限一次，当你受到伤害后或当你造成伤害后，你可摸一张牌，然后将一张牌置于武将牌上（称为“权”）；你的手牌上限+X（X为“权”数）。",
   ["ld__paiyi"] = "排异",
@@ -1930,6 +2003,10 @@ simazhao:addCompanions("hs__simayi")
 
 Fk:loadTranslationTable{
   ["ld__simazhao"] = "司马昭",
+  ["#ld__simazhao"] = "嘲风开天",
+	["designer:ld__simazhao"] = "韩旭",
+	["illustrator:ld__simazhao"] = "凝聚永恒",
+
   ["ld__zhaoxin"] = "昭心",
   [":ld__zhaoxin"] = "当你受到伤害后，你可展示所有手牌，然后与一名手牌数不大于你的角色交换手牌。",
   ["#ld__zhaoxin-ask"] = "昭心：你可以展示所有手牌，然后与一名手牌数不大于你的角色交换手牌",
@@ -2171,6 +2248,10 @@ sunchen:addSkill(xiongnve)
 
 Fk:loadTranslationTable{
   ["ld__sunchen"] = "孙綝",
+  ["#ld__sunchen"] = "食髓的朝堂客",
+	["designer:ld__sunchen"] = "逍遥鱼叔",
+	["illustrator:ld__sunchen"] = "depp",
+
   ["shilus"] = "嗜戮",
   [":shilus"] = "当一名角色死亡后，你可将其所有武将牌置于你的武将牌旁（称为“戮”），若你为来源，你从剩余武将牌堆额外获得两张“戮”。"..
   "准备阶段，你可以弃置至多X张牌（X为“戮”数），摸等量的牌。",
@@ -2287,6 +2368,10 @@ gongsunyuan:addSkill(zisui)
 
 Fk:loadTranslationTable{
   ["ld__gongsunyuan"] = "公孙渊",
+  ["#ld__gongsunyuan"] = "狡黠的投机者",
+	["designer:ld__gongsunyuan"] = "逍遥鱼叔",
+	["illustrator:ld__gongsunyuan"] = "猎枭",
+
   ["ld__huaiyi"] = "怀异",
   [":ld__huaiyi"] = "出牌阶段限一次，你可展示所有手牌，若其中包含两种颜色，则你弃置其中一种颜色的牌，然后获得至多X名角色的各一张牌"..
   "（X为你以此法弃置的手牌数）。你将以此法获得的装备牌置于武将牌上（称为“异”）。",

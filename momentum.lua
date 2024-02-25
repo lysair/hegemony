@@ -88,6 +88,7 @@ zangba:addSkill(hengjiang)
 zangba:addCompanions("hs__zhangliao")
 Fk:loadTranslationTable{
   ['ld__zangba'] = '臧霸',
+  ["cv:ld__zangba"] = "墨禅",
   ['hengjiang'] = '横江',
   [':hengjiang'] = '当你受到伤害后，你可以令当前回合角色本回合手牌上限-X（X为伤害值）。' ..
     '然后若其本回合弃牌阶段内没有弃牌，你摸一张牌。',

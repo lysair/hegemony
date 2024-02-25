@@ -599,6 +599,10 @@ yuejin:addSkill(xiaoguo)
 
 Fk:loadTranslationTable{
   ["hs__yuejin"] = "乐进",
+  ["#hs__yuejin"] = "奋强突固",
+  ["illustrator:hs__yuejin"] = "巴萨小马",
+  ["desinger:hs__yuejin"] = "淬毒",
+
   ["hs__xiaoguo"] = "骁果",
   [":hs__xiaoguo"] = "其他角色的结束阶段，你可弃置一张基本牌，然后其选择一项：1.弃置一张装备牌，然后你摸一张牌；2.你对其造成1点伤害。",
   ["#hs__xiaoguo-invoke"] = "骁果：你可以弃置一张基本牌，%dest 需弃置一张装备牌，否则你对其造成1点伤害",
@@ -1228,6 +1232,10 @@ ganfuren:addSkill("shenzhi")
 
 Fk:loadTranslationTable{
   ['hs__ganfuren'] = '甘夫人',
+  ["#hs__ganfuren"] = "昭烈皇后",
+  ["illustrator:hs__ganfuren"] = "琛·美弟奇",
+  ["designer:hs__ganfuren"] = "淬毒",
+
   ["hs__shushen"] = "淑慎",
   [":hs__shushen"] = "当你回复1点体力后，你可令一名其他角色摸一张牌。",
 
@@ -2336,6 +2344,10 @@ mateng:addSkill(xiongyi)
 
 Fk:loadTranslationTable{
   ["hs__mateng"] = "马腾",
+  ["#hs__mateng"] = "驰骋西陲",
+  ["desinger:hs__mateng"] = "淬毒",
+  ["illustrator:hs__mateng"] = "DH",
+
   ["xiongyi"] = "雄异",
   [":xiongyi"] = "限定技，出牌阶段，你可令与你势力相同的所有角色各摸三张牌，然后若你的势力角色数为全场最少，你回复1点体力。",
   ["heg_mateng__mashu"] = "马术",
@@ -2463,6 +2475,10 @@ kongrong:addSkill(lirang)
 
 Fk:loadTranslationTable{
   ["hs__kongrong"] = "孔融",
+  ["#hs__kongrong"] = "凛然重义",
+  ["desinger:hs__kongrong"] = "淬毒",
+  ["illustrator:hs__kongrong"] = "苍月白龙",
+
   ["mingshi"] = "名士",
   [":mingshi"] = "锁定技，当你受到伤害时，若来源有暗置的武将牌，你令伤害值-1。",
   ["lirang"] = "礼让",
@@ -2546,9 +2562,13 @@ jiling:addSkill(shuangren)
 
 Fk:loadTranslationTable{
   ["hs__jiling"] = "纪灵",
+  ["#hs__jiling"] = "仲家的主将",
+	["illustrator:hs__jiling"] = "樱花闪乱",
+  ["desinger:hs__jiling"] = "淬毒",
+
   ["shuangren"] = "双刃",
   [":shuangren"] = "出牌阶段开始时，你可与一名角色拼点。若你：赢，你视为对与其势力相同的一名角色使用【杀】；没赢，其他角色于此回合内不是你使用牌的合法目标。",
-  
+
   ["#shuangren-ask"] = "双刃：你可与一名角色拼点",
   ["#shuangren_slash-ask"] = "双刃：你视为对与 %src 势力相同的一名角色使用【杀】",
 
@@ -2629,6 +2649,10 @@ tianfeng:addSkill(suishi)
 
 Fk:loadTranslationTable{
   ["hs__tianfeng"] = "田丰",
+  ["#hs__tianfeng"] = "河北瑰杰",
+  ["illustrator:hs__tianfeng"] = "地狱许",
+  ["desinger:hs__tianfeng"] = "淬毒",
+
   ["sijian"] = "死谏",
   [":sijian"] = "当你失去手牌后，若你没有手牌，你可弃置一名其他角色的一张牌。",
   ["suishi"] = "随势",

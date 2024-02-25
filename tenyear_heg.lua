@@ -118,6 +118,10 @@ huaxin:addSkill(xibing)
 
 Fk:loadTranslationTable{
   ["ty_heg__huaxin"] = "华歆",
+  ["#ty_heg__huaxin"] = "渊清玉洁",
+	["designer:ty_heg__huaxin"] = "韩旭",
+	["illustrator:ty_heg__huaxin"] = "秋呆呆",
+
   ["ty_heg__wanggui"] = "望归",
   [":ty_heg__wanggui"] = "每回合限一次，当你造成或受到伤害后，若你：仅明置此武将牌，你可对与你势力不同的一名角色造成1点伤害；武将牌均明置，"..
   "你可令所有与你势力相同的角色各摸一张牌。",
@@ -234,6 +238,9 @@ yanghu:addSkill(deshao)
 yanghu:addSkill(mingfa)
 Fk:loadTranslationTable{
   ["ty_heg__yanghu"] = "羊祜",
+  ["#ty_heg__yanghu"] = "制纮同轨",
+	["designer:ty_heg__yanghu"] = "韩旭",
+	["illustrator:ty_heg__yanghu"] = "匠人绘",
   ["ty_heg__deshao"] = "德劭",
   [":ty_heg__deshao"] = "每回合限X次（X为你的体力值），当其他角色使用黑色牌指定你为唯一目标后，若其已明置的武将牌数不大于你，你可弃置其一张牌。",
   ["ty_heg__mingfa"] = "明伐",
@@ -309,6 +316,10 @@ zongyu:addSkill(chengshang)
 
 Fk:loadTranslationTable{
   ["ty_heg__zongyu"] = "宗预",
+  ["#ty_heg__zongyu"] = "九酝鸿胪",
+	["designer:ty_heg__zongyu"] = "韩旭",
+	["illustrator:ty_heg__zongyu"] = "铁杵文化",
+
   ["ty_heg__qiao"] = "气傲",
   [":ty_heg__qiao"] = "每回合限两次，当你成为与你势力不同或未确定势力角色使用牌的目标后，你可弃置其一张牌，然后你弃置一张牌。",
   ["ty_heg__chengshang"] = "承赏",
@@ -437,6 +448,10 @@ dengzhi:addSkill(jianliang)
 dengzhi:addSkill(weimeng)
 Fk:loadTranslationTable{
   ["ty_heg__dengzhi"] = "邓芝",
+  ["#ty_heg__dengzhi"] = "绝境的外交家",
+	["designer:ty_heg__dengzhi"] = "韩旭",
+	["illustrator:ty_heg__dengzhi"] = "凝聚永恒",
+
   ["ty_heg__jianliang"] = "简亮",
   [":ty_heg__jianliang"] = "摸牌阶段开始时，若你的手牌数为全场最少，你可令与你势力相同的所有角色各摸一张牌。",
   ["ty_heg__weimeng"] = "危盟",
@@ -611,6 +626,10 @@ luyusheng:addSkill(zhiwei)
 
 Fk:loadTranslationTable{
   ["ty_heg__luyusheng"] = "陆郁生",
+  ["#ty_heg__luyusheng"] = "义姑",
+	["designer:ty_heg__luyusheng"] = "韩旭",
+	["illustrator:ty_heg__luyusheng"] = "君桓文化",
+
   ["ty_heg__zhente"] = "贞特",
   [":ty_heg__zhente"] = "每回合限一次，当你成为其他角色使用黑色基本牌或黑色普通锦囊牌的目标后，你可令使用者选择一项：1.本回合不能使用黑色牌；"..
   "2.此牌对你无效",
@@ -739,6 +758,10 @@ fengxiw:addSkill(yusui)
 fengxiw:addSkill(boyan)
 Fk:loadTranslationTable{
   ["ty_heg__fengxiw"] = "冯熙",
+  ["#ty_heg__fengxiw"] = "东吴苏武",
+	["designer:ty_heg__fengxiw"] = "韩旭",
+	["illustrator:ty_heg__fengxiw"] = "匠人绘",
+
   ["ty_heg__yusui"] = "玉碎",
   [":ty_heg__yusui"] = "每回合限一次，当你成为其他角色使用黑色牌的目标后，若你与其势力不同，你可失去1点体力，然后选择一项：1.令其弃置X张手牌"..
   "（X为其体力上限）；2.令其失去体力值至与你相同。",
@@ -850,6 +873,10 @@ miheng:addSkill(kuangcai)
 miheng:addSkill(ty_heg__shejian)
 Fk:loadTranslationTable{
   ["ty_heg__miheng"] = "祢衡",
+  ["#ty_heg__miheng"] = "狂傲奇人",
+	["designer:ty_heg__miheng"] = "韩旭",
+	["illustrator:ty_heg__miheng"] = "MuMu",
+
   ["ty_heg__kuangcai"] = "狂才",
   [":ty_heg__kuangcai"] = "锁定技，①你的回合内，你使用牌无距离和次数限制。②弃牌阶段开始时，若你本回合：没有使用过牌，你的手牌上限+1；使用过牌且没有造成伤害，你手牌上限-1。",
   ["ty_heg__shejian"] = "舌剑",
@@ -991,6 +1018,9 @@ xunchen:addSkill(fenglve)
 
 Fk:loadTranslationTable{
   ["ty_heg__xunchen"] = "荀谌",
+  ["#ty_heg__xunchen"] = "三公谋主",
+	["designer:ty_heg__xunchen"] = "韩旭",
+	["illustrator:ty_heg__xunchen"] = "凝聚永恒",
   ["ty_heg__fenglve"] = "锋略",
   [":ty_heg__fenglve"] = "出牌阶段限一次，你可和一名其他角色拼点，若你赢，该角色交给你其区域内的两张牌；若其赢，你交给其一张牌。"..
   "<br><font color=\"blue\">◆纵横：交换〖锋略〗描述中的“一张牌”和“两张牌”。<font><br><font color=\"grey\">\"<b>纵横</b>\"："..
@@ -1021,6 +1051,9 @@ jianggan:addSkill("weicheng")
 jianggan:addSkill("daoshu")
 Fk:loadTranslationTable{
   ["ty_heg__jianggan"] = "蒋干",
+  ["#ty_heg__jianggan"] = "锋镝悬信",
+	["illustrator:ty_heg__jianggan"] = "biou09",
+	["designer:ty_heg__jianggan"] = "韩旭",
   ["~ty_heg__jianggan"] = "丞相，再给我一次机会啊！",
 }
 
@@ -1167,8 +1200,8 @@ local zhuangrong_refresh = fk.CreateTriggerSkill{
     room:setPlayerMark(player, "@@ty_heg__zhuanrong_hs_wushuang", 0)
   end,
 }
-  
- local shenwei = fk.CreateTriggerSkill{
+
+local shenwei = fk.CreateTriggerSkill{
   name = "ty_heg__shenwei",
   relate_to_place = "m",
   anim_type = "drawcard",
@@ -1192,7 +1225,6 @@ local shenwei_maxcards = fk.CreateMaxCardsSkill{
   end
 }
 
-
 guowu:addRelatedSkill(guowu_delay)
 guowu:addRelatedSkill(guowu_targetmod)
 lvlingqi:addSkill(guowu)
@@ -1204,6 +1236,10 @@ lvlingqi:addSkill(shenwei)
 
 Fk:loadTranslationTable{
   ["ty_heg__lvlingqi"] = "吕玲绮",
+  ["#ty_heg__lvlingqi"] = "无双虓姬",
+	["designer:ty_heg__lvlingqi"] = "xat1k",
+	["illustrator:ty_heg__lvlingqi"] = "君桓文化",
+
   ["ty_heg__guowu"] = "帼武",
   ["#ty_heg__guowu_delay"] = "帼武",
   [":ty_heg__guowu"] = "出牌阶段开始时，你可展示所有手牌，若包含的类别数：不小于1，你从弃牌堆中获得一张【杀】；不小于2，你本阶段使用牌无距离限制；"..
@@ -1422,6 +1458,10 @@ Fk:addSkill(zhuihuan_discard)
 
 Fk:loadTranslationTable{
   ["ty_heg__yangwan"] = "杨婉",
+  ["#ty_heg__yangwan"] = "融沫之鲡",
+	--["designer:yangwan"] = "",
+	["illustrator:ty_heg__yangwan"] = "木美人",
+
   ["ty_heg__youyan"] = "诱言",
   [":ty_heg__youyan"] = "每回合限一次，当你的牌于你回合内因弃置而置入弃牌堆后，你可展示牌堆顶四张牌，获得其中与此置入弃牌堆花色均不相同的牌。",
   ["ty_heg__zhuihuan"] = "追还",
@@ -1558,6 +1598,10 @@ zhouyi:addRelatedSkill(xinghuo)
 
 Fk:loadTranslationTable{
   ["ty_heg__zhouyi"] = "周夷",
+  ["#ty_heg__zhouyi"] = "靛情雨黛",
+  ["designer:ty_heg__zhouyi"] = "韩旭",
+	["illustrator:ty_heg__zhouyi"] = "Tb罗根",
+
   ["ty_heg__zhukou"] = "逐寇",
   [":ty_heg__zhukou"] = "当你于每回合的出牌阶段首次造成伤害后，你可摸X张牌（X为本回合你已使用的牌数且至多为5）。",
   ["ty_heg__duannian"] = "断念",
@@ -2035,7 +2079,7 @@ local jinghe = fk.CreateActiveSkill{
     room:setPlayerMark(player, "ty_heg__jinghe_used", 1)
     player:showCards(effect.cards)
     room:sortPlayersByAction(effect.tos)
-  
+
     local num = 0 + #effect.tos
     local skills = table.random({"ty_heg__leiji", "yinbingn", "huoqi", "guizhu", "xianshou", "lundao", "guanyue", "yanzhengn"}, num)
     local selected = {}
@@ -2125,6 +2169,10 @@ nanhualaoxian:addRelatedSkill("guanyue")
 nanhualaoxian:addRelatedSkill("yanzhengn")
 Fk:loadTranslationTable{
   ["ty_heg__nanhualaoxian"] = "南华老仙",
+  ["#ty_heg__nanhualaoxian"] = "仙人指路",
+	["designer:ty_heg__nanhualaoxian"] = "韩旭",
+	["illustrator:ty_heg__nanhualaoxian"] = "君桓文化",
+
   ["ty_heg__gongxiu"] = "共修",
   [":ty_heg__gongxiu"] = "摸牌阶段，你可少摸一张牌，然后选择一项：1.令至多X名角色各摸一张牌；"..
   "2.令至多X名角色各弃一张牌。（X为你的体力上限，不能连续选择同一项）",
