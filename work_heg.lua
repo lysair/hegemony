@@ -63,7 +63,7 @@ local choulue = fk.CreateTriggerSkill{
       return player == target and player:hasSkill(self) and player:getMark("@!yinyangfish") < player.maxHp
     else
       return player:hasSkill(self) and H.compareKingdomWith(player, target) and player:getMark("choulue_virtual") == 0 and #AimGroup:getAllTargets(data.tos) == 1
-       and data.card.type == Card.TypeTrick and data.card.sub_type ~= Card.SubtypeDelayedTrick and player:getMark("@!yinyangfish") ~= 0
+        and data.card.type == Card.TypeTrick and data.card.sub_type ~= Card.SubtypeDelayedTrick and player:getMark("@!yinyangfish") ~= 0
     end
   end,
   on_cost = function (self, event, target, player, data)
@@ -113,11 +113,11 @@ Fk:loadTranslationTable{
   [":wk_heg__poyuan"] = "①当你对其他角色造成伤害后，你可选择一项：1.弃置其一张装备区内的牌；2.令其弃置一张手牌；②当你于回合内首次对大势力角色造成伤害时，此伤害+1。",
   ["wk_heg__choulue"] = "筹略",
   [":wk_heg__choulue"] = "①当你受到伤害后，若你的“阴阳鱼”标记数小于你体力上限，你可获得一个“阴阳鱼”标记；②当与你势力相同的角色使用普通锦囊牌指定唯一目标后，你可移去一个“阴阳鱼”标记，令此牌结算两次。",
-  
+
   ["#wk_heg__poyuan-discard"] = "破垣：是否令受伤角色弃置一张手牌，或你弃置受伤角色装备区内一张牌",
   ["poyuan_discard-hand"] = "令其弃置一张手牌",
   ["poyuan_discard-equip"] = "弃置其一张装备区内的牌",
-  
+
   ["#wk_heg__choulue-getfish"] = "筹略：是否获得一个“阴阳鱼”标记",
   ["#wk_heg__choulue-twice"] = "筹略：是否移去一个“阴阳鱼”标记，令此牌结算两次",
 
@@ -180,7 +180,7 @@ local juanshe = fk.CreateTriggerSkill{
       return use.from == target.id 
     end, Player.HistoryTurn)
     return #events < target:getMaxCards() and H.compareKingdomWith(player, target) 
-     and target.phase == Player.Finish and player:hasSkill(self) and not target:isKongcheng()
+      and target.phase == Player.Finish and player:hasSkill(self) and not target:isKongcheng()
   end,
   on_cost = function (self, event, target, player, data)
     return player.room:askForSkillInvoke(player, self.name, nil, "#wk_heg__juanshe-invoke")

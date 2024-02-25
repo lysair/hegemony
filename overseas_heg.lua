@@ -15,8 +15,8 @@ yangxiu:addSkill("jilei")
 Fk:loadTranslationTable{
   ['os_heg__yangxiu'] = '杨修',
   ["#os_heg__yangxiu"] = "恃才放旷",
-	["designer:os_heg__yangxiu"] = "KayaK",
-	["illustrator:os_heg__yangxiu"] = "张可",
+  ["designer:os_heg__yangxiu"] = "KayaK",
+  ["illustrator:os_heg__yangxiu"] = "张可",
   ["~os_heg__yangxiu"] = "我固自以死之晚也……",
 }
 
@@ -73,8 +73,8 @@ xiahoushang:addSkill(tanfeng)
 Fk:loadTranslationTable{
   ["os_heg__xiahoushang"] = "夏侯尚",
   ["#os_heg__xiahoushang"] = "魏胤前驱",
-	["designer:os_heg__xiahoushang"] = "豌豆&Loun老萌",
-	["illustrator:os_heg__xiahoushang"] = "M云涯",
+  ["designer:os_heg__xiahoushang"] = "豌豆&Loun老萌",
+  ["illustrator:os_heg__xiahoushang"] = "M云涯",
 
   ["os_heg__tanfeng"] = "探锋",
   [":os_heg__tanfeng"] = "准备阶段开始时，你可弃置一名没有势力或势力与你不同的角色区域内的一张牌，然后其选择是否受到你造成的1点火焰伤害，令你跳过一个阶段。",
@@ -121,7 +121,7 @@ Fk:loadTranslationTable{
   ['os_heg__liaohua'] = '廖化',
   ["#os_heg__liaohua"] = "历尽沧桑",
   ["designer:os_heg__liaohua"] = "梦魇狂朝",
-	["illustrator:os_heg__liaohua"] = "聚一工作室",
+  ["illustrator:os_heg__liaohua"] = "聚一工作室",
 
   ["os_heg__dangxian"] = "当先",
   [":os_heg__dangxian"] = "锁定技，当你首次明置此武将牌后，你获得一枚“先驱”标记；回合开始时，你执行一个额外的出牌阶段。",
@@ -137,8 +137,8 @@ chendao:addSkill("wangliec")
 Fk:loadTranslationTable{
   ["os_heg__chendao"] = "陈到",
   ["#os_heg__chendao"] = "白毦督",
-	["designer:os_heg__chendao"] = "荼蘼",
-	["illustrator:os_heg__chendao"] = "王立雄",
+  ["designer:os_heg__chendao"] = "荼蘼",
+  ["illustrator:os_heg__chendao"] = "王立雄",
   ["~os_heg__chendao"] = "我的白毦兵，再也不能为先帝出力了。",
 }
 
@@ -283,7 +283,7 @@ Fk:loadTranslationTable{
   ["os_heg__zhugejin"] = "诸葛瑾",
   ["#os_heg__zhugejin"] = "联盟的维系者",
   ["designer:os_heg__zhugejin"] = "梦魇狂朝",
-	["illustrator:os_heg__zhugejin"] = "G.G.G.",
+  ["illustrator:os_heg__zhugejin"] = "G.G.G.",
 
   ["os_heg__huanshi"] = "缓释",
   [":os_heg__huanshi"] = "当与你势力相同的角色的判定牌生效前，你可打出一张牌代替之。",
@@ -311,8 +311,8 @@ zumao:addSkill("juedi")
 Fk:loadTranslationTable{
   ['os_heg__zumao'] = '祖茂',
   ["#os_heg__zumao"] = "碧血染赤帻",
-	["designer:os_heg__zumao"] = "红莲的焰神",
-	["illustrator:os_heg__zumao"] = "DH",
+  ["designer:os_heg__zumao"] = "红莲的焰神",
+  ["illustrator:os_heg__zumao"] = "DH",
   ["~os_heg__zumao"] = "孙将军，已经，安全了吧……",
 }
 
@@ -321,8 +321,8 @@ fuwan:addSkill("moukui")
 Fk:loadTranslationTable{
   ['os_heg__fuwan'] = '伏完',
   ["#os_heg__fuwan"] = "沉毅的国丈",
-	["designer:os_heg__fuwan"] = "嘉言懿行",
-	["illustrator:os_heg__fuwan"] = "LiuHeng",
+  ["designer:os_heg__fuwan"] = "嘉言懿行",
+  ["illustrator:os_heg__fuwan"] = "LiuHeng",
   ["~os_heg__fuwan"] = "后会有期……",
 }
 
@@ -405,8 +405,8 @@ huaxiong:addSkill(shiyong)
 Fk:loadTranslationTable{
   ['os_heg__huaxiong'] = '华雄',
   ["#os_heg__huaxiong"] = "魔将",
-	["illustrator:os_heg__huaxiong"] = "地狱许",
-	["designer:os_heg__huaxiong"] = "Loun老萌",
+  ["illustrator:os_heg__huaxiong"] = "地狱许",
+  ["designer:os_heg__huaxiong"] = "Loun老萌",
 
   ["os_heg__yaowu"] = "耀武",
   [":os_heg__yaowu"] = "限定技，当你造成伤害后，若此武将处于暗置状态，你可明置此武将牌，加2点体力上限，回复2点体力，“升级”〖恃勇〗，且当你死亡后，与你势力相同的角色各失去1点体力。",
@@ -473,9 +473,9 @@ himiko:addSkill(yuanyuk)
 
 Fk:loadTranslationTable{
   ['os_heg__himiko'] = '卑弥呼', -- 十年心版
-	["#os_heg__himiko"] = "邪马台的女王",
-	["illustrator:os_heg__himiko"] = "聚一_小道恩",
-	["designer:os_heg__himiko"] = "淬毒",
+  ["#os_heg__himiko"] = "邪马台的女王",
+  ["illustrator:os_heg__himiko"] = "聚一_小道恩",
+  ["designer:os_heg__himiko"] = "淬毒",
 
   ["guishu"] = "鬼术",
   [":guishu"] = "出牌阶段，你可将一张♠手牌当【远交近攻】或【知己知彼】使用（不可与你此回合上一次以此法使用的牌相同）。",

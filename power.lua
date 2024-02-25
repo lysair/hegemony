@@ -125,6 +125,9 @@ cuiyanmaojie:addSkill(fengying)
 cuiyanmaojie:addCompanions("hs__caopi")
 Fk:loadTranslationTable{
   ["ld__cuiyanmaojie"] = "崔琰毛玠",
+  ["#ld__cuiyanmaojie"] = "日出月盛",
+  ["designer:ld__cuiyanmaojie"] = "Virgopaladin（韩旭）",
+  ["illustrator:ld__cuiyanmaojie"] = "兴游",
   ["ld__zhengbi"] = "征辟",
   [":ld__zhengbi"] = "出牌阶段开始时，你可选择一项：1.选择一名没有势力的角色，直至其确定势力或此回合结束，你对其使用牌无距离与次数限制；2.将一张基本牌交给一名已确定势力的角色，然后其交给你一张非基本牌或两张基本牌。",
   ["ld__fengying"] = "奉迎",
@@ -200,6 +203,9 @@ yujin:addCompanions("hs__xiahoudun")
 
 Fk:loadTranslationTable{
   ['ld__yujin'] = '于禁',
+  ["#ld__yujin"] = "讨暴坚垒",
+  ["designer:ld__yujin"] = "Virgopaladin（韩旭）",
+  ["illustrator:ld__yujin"] = "biou09",
   ['ld__jieyue'] = '节钺',
   [':ld__jieyue'] = '准备阶段，你可将一张手牌交给不是魏势力或没有势力的一名角色，对其发起“军令”。若其：执行，你摸一张牌；不执行，摸牌阶段，你令额定摸牌数+3。',
 
@@ -276,6 +282,8 @@ wangping:addSkill(jianglue)
 
 Fk:loadTranslationTable{
   ["ld__wangping"] = "王平",
+  ["#ld__wangping"] = "键闭剑门",
+  ["illustrator:ld__wangping"] = "zoo",
   ["jianglue"] = "将略",
   [":jianglue"] = "限定技，出牌阶段，你可选择一个“军令”，然后发动势力召唤。你对所有与你势力相同的角色发起此“军令”。你加1点体力上限，回复1点体力，所有执行“军令”的角色各加1点体力上限，回复1点体力。然后你摸X张牌（X为以此法回复体力的角色数）。",
 
@@ -804,6 +812,9 @@ fazheng:addRelatedSkill(kuangguXH)
 
 Fk:loadTranslationTable{
   ["ld__fazheng"] = "法正",
+  ["#ld__fazheng"] = "蜀汉的辅翼",
+  ["illustrator:ld__fazheng"] = "黑白画谱",
+
   ["ld__enyuan"] = "恩怨",
   [":ld__enyuan"] = "锁定技，当你成为【桃】的目标后，若使用者不为你，其摸一张牌；当你受到伤害后，伤害来源需交给你一张手牌，否则失去1点体力。",
   ["ld__xuanhuo"] = "眩惑",
@@ -920,6 +931,8 @@ lukang:addSkill(zhuwei)
 lukang:addCompanions("hs__luxun")
 Fk:loadTranslationTable{
   ["ld__lukang"] = "陆抗",
+  ["#ld__lukang"] = "孤柱扶厦",
+  ["illustrator:ld__lukang"] = "王立雄",
   ["ld__keshou"] = "恪守",
   [":ld__keshou"] = "当你受到伤害时，你可弃置两张颜色相同的牌，令此伤害值-1，然后若没有与你势力相同的其他角色，你判定，若结果为红色，你摸一张牌。",
   ["#ld__keshou"] = "恪守：是否弃置两张颜色相同的牌，令你受到的%arg点伤害-1",
@@ -968,16 +981,18 @@ wuguotai:addCompanions("hs__sunjian")
 
 Fk:loadTranslationTable{
   ['ld__wuguotai'] = '吴国太',
+  ["#ld__wuguotai"] = "武烈皇后",
+  ["illustrator:ld__wuguotai"] = "李秀森",
   ['ld__buyi'] = '补益',
   [':ld__buyi'] = '每回合限一次，当与你势力相同的角色的濒死结算后，若其存活，你可对伤害来源发起“军令”。若来源不执行，则你令该角色回复1点体力。',
 
   ["#ld__buyi-ask"] = "补益：你可对 %dest 发起军令。若来源不执行，则 %src 回复1点体力",
 
   ["$ganlu_ld__wuguotai1"] = "玄德，实乃佳婿呀！", -- 特化
-	["$ganlu_ld__wuguotai2"] = "好一个郎才女貌，真是天作之合啊。",
-	["$ld__buyi1"] = "有我在，定保贤婿无余！",
-	["$ld__buyi2"] = "东吴，岂容汝等儿戏！",
-	["~ld__wuguotai"] = "诸位卿家，还请尽力辅佐仲谋啊……",
+  ["$ganlu_ld__wuguotai2"] = "好一个郎才女貌，真是天作之合啊。",
+  ["$ld__buyi1"] = "有我在，定保贤婿无余！",
+  ["$ld__buyi2"] = "东吴，岂容汝等儿戏！",
+  ["~ld__wuguotai"] = "诸位卿家，还请尽力辅佐仲谋啊……",
 }
 
 local yuanshu = General(extension, "ld__yuanshu", "qun", 4)
@@ -1128,6 +1143,8 @@ yuanshu:addSkill(weidi)
 
 Fk:loadTranslationTable{
   ['ld__yuanshu'] = '袁术',
+  ["#ld__yuanshu"] = "仲家帝",
+  ["illustrator:ld__yuanshu"] = "YanBai",
   ['ld__yongsi'] = "庸肆",
   [':ld__yongsi'] = "锁定技，①若所有角色的装备区里均没有【玉玺】，你视为装备着【玉玺】；②当你成为【知己知彼】的目标后，展示所有手牌。",
   ['ld__weidi'] = "伪帝",
@@ -1219,6 +1236,9 @@ zhangxiu:addSkill(congjian)
 zhangxiu:addCompanions("hs__jiaxu")
 Fk:loadTranslationTable{
   ['ld__zhangxiu'] = '张绣',
+  ["#ld__zhangxiu"] = "北地枪王",
+  ["designer:ld__zhangxiu"] = "千幻",
+  ["illustrator:ld__zhangxiu"] = "青岛磐蒲",
   ['ld__fudi'] = '附敌',
   [':ld__fudi'] = '当你受到其他角色造成的伤害后，你可以交给伤害来源一张手牌。若如此做，你对与其势力相同的角色中体力值最多且不小于你的一名角色造成1点伤害。',
   ['#ld__fudi-give'] = '附敌：你可以交给 %src 一张手牌，然后对其势力体力最大造成一点伤害',
@@ -1227,8 +1247,8 @@ Fk:loadTranslationTable{
   [':ld__congjian'] = '锁定技，当你于回合外造成伤害时或于回合内受到伤害时，伤害值+1。',
 
   ['$ld__fudi1'] = '弃暗投明，为明公计！',
-	['$ld__fudi2'] = '绣虽有降心，奈何贵营难容。',
-	['~ld__zhangxiu'] = '若失文和，吾将何归？',
+  ['$ld__fudi2'] = '绣虽有降心，奈何贵营难容。',
+  ['~ld__zhangxiu'] = '若失文和，吾将何归？',
 }
 
 local lordcaocao = General(extension, "ld__lordcaocao", "wei", 4)
@@ -1703,6 +1723,8 @@ lordcaocao:addSkill(zongyu)
 
 Fk:loadTranslationTable{
   ["ld__lordcaocao"] = "君曹操",
+  ["#ld__lordcaocao"] = "凤舞九霄",
+  ["illustrator:ld__lordcaocao"] = "波子",
   ["zongyu"] = "总御",
   [":zongyu"] = "锁定技，①当你使用坐骑牌时，若其他角色的装备区内或弃牌堆内有【六龙骖驾】，你将原坐骑牌置入弃牌堆，将【六龙骖驾】置入你的装备区内；"..
   "②当【六龙骖驾】移动至其他角色的装备区内后，你可交换你与其装备区内的防御坐骑牌。",

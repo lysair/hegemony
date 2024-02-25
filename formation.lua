@@ -107,8 +107,8 @@ dengai:addSkill(ziliang)
 Fk:loadTranslationTable{
   ["ld__dengai"] = "邓艾",
   ["#ld__dengai"] = "矫然的壮士",
-	["designer:ld__dengai"] = "KayaK（淬毒）",
-	["illustrator:ld__dengai"] = "Amo",
+  ["designer:ld__dengai"] = "KayaK（淬毒）",
+  ["illustrator:ld__dengai"] = "Amo",
 
   ["ld__tuntian"] = "屯田",
   [":ld__tuntian"] = "当你于回合外失去牌后，你可判定：若结果不为<font color='red'>♥</font>，你可将弃牌堆里的此判定牌置于武将牌上（称为“田”）。你至其他角色的距离-X（X为“田”数）。",
@@ -229,8 +229,8 @@ caohong:addCompanions("hs__caoren")
 Fk:loadTranslationTable{
   ["ld__caohong"] = "曹洪",
   ["#ld__caohong"] = "魏之福将",
-	["designer:ld__caohong"] = "韩旭（淬毒）",
-	["illustrator:ld__caohong"] = "YellowKiss",
+  ["designer:ld__caohong"] = "韩旭（淬毒）",
+  ["illustrator:ld__caohong"] = "YellowKiss",
   ["cv:ld__caohong"] = "绯川陵彦",
 
   ["heyi"] = "鹤翼",
@@ -334,8 +334,8 @@ jiangwei:addRelatedSkill(guanxing)
 Fk:loadTranslationTable{
   ["ld__jiangwei"] = "姜维",
   ["#ld__jiangwei"] = "龙的衣钵",
-	["designer:ld__jiangwei"] = "KayaK（淬毒）",
-	["illustrator:ld__jiangwei"] = "木美人",
+  ["designer:ld__jiangwei"] = "KayaK（淬毒）",
+  ["illustrator:ld__jiangwei"] = "木美人",
 
   ["tianfu"] = "天覆",
   [":tianfu"] = "主将技，阵法技，你于与你处于同一队列的角色的回合内拥有〖看破〗。",
@@ -433,8 +433,8 @@ jiangfei:addCompanions("hs__zhugeliang")
 Fk:loadTranslationTable{
   ["ld__jiangwanfeiyi"] = "蒋琬费祎",
   ["#ld__jiangwanfeiyi"] = "社稷股肱",
-	["designer:ld__jiangwanfeiyi"] = "淬毒",
-	["illustrator:ld__jiangwanfeiyi"] = "cometrue",
+  ["designer:ld__jiangwanfeiyi"] = "淬毒",
+  ["illustrator:ld__jiangwanfeiyi"] = "cometrue",
 
   ["ld__shengxi"] = "生息",
   [":ld__shengxi"] = "结束阶段开始时，若你于此回合内未造成过伤害，你可摸两张牌。",
@@ -478,8 +478,8 @@ xusheng:addCompanions("hs__dingfeng")
 Fk:loadTranslationTable{
   ["ld__xusheng"] = "徐盛",
   ["#ld__xusheng"] = "江东的铁壁",
-	["designer:ld__xusheng"] = "淬毒",
-	["illustrator:ld__xusheng"] = "天信",
+  ["designer:ld__xusheng"] = "淬毒",
+  ["illustrator:ld__xusheng"] = "天信",
   ["yicheng"] = "疑城",
   [":yicheng"] = "当与你势力相同的角色成为【杀】的目标后，你可令其摸一张牌，然后其弃置一张牌。",
 
@@ -558,8 +558,8 @@ jiangqin:addCompanions("hs__zhoutai")
 Fk:loadTranslationTable{
   ["ld__jiangqin"] = "蒋钦",
   ["#ld__jiangqin"] = "祁奚之器",
-	["designer:ld__jiangqin"] = "淬毒",
-	["illustrator:ld__jiangqin"] = "天空之城",
+  ["designer:ld__jiangqin"] = "淬毒",
+  ["illustrator:ld__jiangqin"] = "天空之城",
   ["cv:ld__jiangqin"] = "小六",
 
   ["niaoxiang"] = "鸟翔",
@@ -677,8 +677,8 @@ yuji:addSkill(qianhuan)
 Fk:loadTranslationTable{
   ["ld__yuji"] = "于吉",
   ["#ld__yuji"] = "魂绕左右",
-	["designer:ld__yuji"] = "淬毒",
-	["illustrator:ld__yuji"] = "G.G.G.",
+  ["designer:ld__yuji"] = "淬毒",
+  ["illustrator:ld__yuji"] = "G.G.G.",
 
   ["qianhuan"] = "千幻",
   [":qianhuan"] = "①当与你势力相同的角色受到伤害后，你可将一张与你武将牌上花色均不同的牌置于你的武将牌上（称为“幻”）。②当与你势力相同的角色成为基本牌或锦囊牌的唯一目标时，你可将一张“幻”置入弃牌堆，取消此目标。",
@@ -700,7 +700,7 @@ Fk:loadTranslationTable{
   ["#ld__hetaihou"] = "弄权之蛇蝎",
   ["cv:ld__hetaihou"] = "水原",
   ["illustrator:ld__hetaihou"] = "KayaK&木美人",
-	["designer:ld__hetaihou"] = "淬毒",
+  ["designer:ld__hetaihou"] = "淬毒",
   ["~ld__hetaihou"] = "你们男人造的孽，非要说什么红颜祸水……",
 }
 
@@ -834,8 +834,8 @@ lordliubei:addRelatedSkill("ex__rende")
 Fk:loadTranslationTable{
   ["ld__lordliubei"] = "君刘备",
   ["#ld__lordliubei"] = "龙横蜀汉",
-	["designer:ld__lordliubei"] = "韩旭",
-	["illustrator:ld__lordliubei"] = "LiuHeng",
+  ["designer:ld__lordliubei"] = "韩旭",
+  ["illustrator:ld__lordliubei"] = "LiuHeng",
 
   ["zhangwu"] = "章武",
   [":zhangwu"] = "锁定技，①当【飞龙夺凤】移至弃牌堆或其他角色的装备区后，你获得此【飞龙夺凤】；②当你非因使用【飞龙夺凤】而失去【飞龙夺凤】前，你展示此【飞龙夺凤】，将此【飞龙夺凤】的此次移动的目标区域改为牌堆底，摸两张牌。",

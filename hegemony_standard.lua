@@ -21,6 +21,8 @@ caocao:addSkill("jianxiong")
 caocao:addCompanions({"hs__dianwei", "hs__xuchu"})
 Fk:loadTranslationTable{
   ["hs__caocao"] = "曹操",
+  ["#hs__caocao"] = "魏武帝",
+  -- ["illustrator:hs__caocao"] = "KayaK",
   ["~hs__caocao"] = "霸业未成，未成啊……",
 }
 
@@ -29,6 +31,8 @@ simayi:addSkill("fankui")
 simayi:addSkill("ex__guicai") -- 手杀
 Fk:loadTranslationTable{
   ["hs__simayi"] = "司马懿",
+  ["#hs__simayi"] = "狼顾之鬼",
+  ["illustrator:hs__simayi"] = "木美人",
   ["~hs__simayi"] = "我的气数就到这里了吗？",
 }
 
@@ -68,6 +72,8 @@ xiahoudun:addSkill(hs__ganglie)
 xiahoudun:addCompanions("hs__xiahouyuan")
 Fk:loadTranslationTable{
   ["hs__xiahoudun"] = "夏侯惇",
+  ["#hs__xiahoudun"] = "独眼的罗刹",
+  ["illustrator:hs__xiahoudun"] = "DH",
   ["~hs__xiahoudun"] = "诸多败绩，有负丞相重托……",
 
   ["hs__ganglie"] = "刚烈",
@@ -78,6 +84,8 @@ local zhangliao = General(extension, "hs__zhangliao", "wei", 4)
 zhangliao:addSkill("ex__tuxi") -- 手杀
 Fk:loadTranslationTable{
   ["hs__zhangliao"] = "张辽",
+  ["#zhangliao"] = "前将军",
+  ["illustrator:zhangliao"] = "张帅",
   ["~hs__zhangliao"] = "被敌人占了先机……呃……",
 }
 
@@ -116,6 +124,8 @@ hs__luoyi:addRelatedSkill(hs__luoyi_trigger)
 xuchu:addSkill(hs__luoyi)
 Fk:loadTranslationTable{
   ["hs__xuchu"] = "许褚",
+  ["#xuchu"] = "虎痴",
+  ["illustrator:xuchu"] = "KayaK",
   ["~hs__xuchu"] = "冷，好冷啊……",
 
   ["hs__luoyi-ask"] = "你可以弃置一张牌，于此回合内执行【杀】或【决斗】的效果造成伤害时伤害+1",
@@ -178,6 +188,8 @@ guojia:addSkill(yiji)
 guojia:addSkill("tiandu")
 Fk:loadTranslationTable{
   ["hs__guojia"] = "郭嘉",
+  ["#hs__guojia"] = "早终的先知",
+  ["illustrator:hs__guojia"] = "绘聚艺堂",
   ["hs__yiji"] = "遗计",
   [":hs__yiji"] = "当你受到伤害后，你可观看牌堆顶的两张牌并分配。",
 
@@ -232,6 +244,8 @@ zhenji:addCompanions("hs__caopi")
 
 Fk:loadTranslationTable{
   ["hs__zhenji"] = "甄姬",
+  ["#hs__zhenji"] = "薄幸的美人",
+  ["illustrator:hs__zhenji"] = "DH",
   ["hs__luoshen"] = "洛神",
   [":hs__luoshen"] = "准备阶段开始时，你可进行判定，你可重复此流程，直到判定结果为红色，然后你获得所有黑色的判定牌。",
 
@@ -312,6 +326,8 @@ local hs__shensu = fk.CreateTriggerSkill{
 xiahouyuan:addSkill(hs__shensu)
 Fk:loadTranslationTable{
   ["hs__xiahouyuan"] = "夏侯渊",
+  ["#hs__xiahouyuan"] = "虎步关右",
+  ["illustrator:hs__xiahouyuan"] = "凡果",
   ["~hs__xiahouyuan"] = "竟然比我还…快……",
 
   ["hs__shensu"] = "神速",
@@ -329,6 +345,8 @@ local zhanghe = General(extension, "hs__zhanghe", "wei", 4)
 zhanghe:addSkill("qiaobian")
 Fk:loadTranslationTable{
   ["hs__zhanghe"] = "张郃",
+  ["#hs__zhanghe"] = "料敌机先",
+  ["illustrator:hs__zhanghe"] = "张帅",
   ["~hs__zhanghe"] = "呃，膝盖中箭了……",
 }
 
@@ -382,6 +400,8 @@ xuhuang:addSkill(duanliang)
 
 Fk:loadTranslationTable{
   ["hs__xuhuang"] = "徐晃",
+  ["#hs__xuhuang"] = "周亚夫之风",
+  ["illustrator:hs__xuhuang"] = "Tuu.",
   ["hs__duanliang"] = "断粮",
   [":hs__duanliang"] = "你可将一张不为锦囊牌的黑色牌当【兵粮寸断】使用（无距离关系的限制），若你至目标对应的角色的距离大于2，此技能于此阶段内无效。",
 
@@ -459,6 +479,8 @@ caoren:addSkill(jushou)
 
 Fk:loadTranslationTable{
   ["hs__caoren"] = "曹仁",
+  ["#hs__caoren"] = "大将军",
+  ["illustrator:hs__caoren"] = "Ccat",
   ["hs__jushou"] = "据守",
   [":hs__jushou"] = "结束阶段，你可摸X张牌（X为势力数），然后弃置一张手牌，若以此法弃置的牌为装备牌，则改为你使用之。若X大于2，则你将武将牌叠置。",
 
@@ -506,13 +528,15 @@ local hs__qiangxi = fk.CreateActiveSkill{
 dianwei:addSkill(hs__qiangxi)
 Fk:loadTranslationTable{
   ['hs__dianwei'] = '典韦',
-  ["~hs__dianwei"] = "主公，快走！",
+  ["#hs__dianwei"] = "古之恶来",
+  ["illustrator:hs__dianwei"] = "凡果",
 
   ["hs__qiangxi"] = "强袭",
   [":hs__qiangxi"] = "出牌阶段限一次，你可以失去1点体力或弃置一张武器牌，并选择一名其他角色，对其造成1点伤害。",
 
   ["$hs__qiangxi1"] = "吃我一戟！",
   ["$hs__qiangxi2"] = "看我三步之内取你小命！",
+  ["~hs__dianwei"] = "主公，快走！",
 }
 
 local xunyu = General(extension, "hs__xunyu", "wei", 3)
@@ -520,6 +544,8 @@ xunyu:addSkill("quhu")
 xunyu:addSkill("jieming")
 Fk:loadTranslationTable{
   ['hs__xunyu'] = '荀彧',
+  ["#hs__xunyu"] = "王佐之才",
+  ["illustrator:hs__xunyu"] = "LiuHeng",
   ["~hs__xunyu"] = "主公要臣死，臣不得不死。",
 }
 
@@ -553,6 +579,9 @@ caopi:addSkill(fangzhu)
 
 Fk:loadTranslationTable{
   ['hs__caopi'] = '曹丕',
+  ["#hs__caopi"] = "霸业的继承者",
+  ["illustrator:hs__caopi"] = "DH",
+
   ["hs__fangzhu"] = "放逐",
   [":hs__fangzhu"] = "当你受到伤害后，你可令一名其他角色选择一项：1.摸X张牌并叠置（X为你已损失的体力值）；2.弃置一张牌并失去1点体力。",
 
@@ -618,6 +647,8 @@ liubei:addSkill("ex__rende")
 liubei:addCompanions({"hs__guanyu", "hs__zhangfei", "hs__ganfuren"})
 Fk:loadTranslationTable{
   ["hs__liubei"] = "刘备",
+  ["#hs__liubei"] = "乱世的枭雄",
+  ["illustrator:hs__liubei"] = "木美人",
   ["~hs__liubei"] = "汉室未兴，祖宗未耀，朕实不忍此时西去……",
 }
 
@@ -644,6 +675,9 @@ guanyu:addSkill(wusheng)
 guanyu:addCompanions("hs__zhangfei")
 Fk:loadTranslationTable{
   ["hs__guanyu"] = "关羽",
+  ["#hs__guanyu"] = "威震华夏",
+  -- ["illustrator:hs__guanyu"] = "凡果",
+
   ["hs__wusheng"] = "武圣",
   [":hs__wusheng"] = "你可将一张红色牌当【杀】使用或打出。",
   ["$hs__wusheng1"] = "关羽在此，尔等受死！",
@@ -725,6 +759,9 @@ zhangfei:addSkill(paoxiao)
 
 Fk:loadTranslationTable{
   ["hs__zhangfei"] = "张飞",
+  ["#hs__zhangfei"] = "万夫不当",
+  -- ["illustrator:hs__zhangfei"] = "宋其金",
+
   ["hs__paoxiao"] = "咆哮",
   [":hs__paoxiao"] = "锁定技，你使用【杀】无次数限制。当你于一个回合内使用第二张【杀】时，你摸一张牌。",
 
@@ -807,6 +844,9 @@ zhugeliang:addCompanions("hs__huangyueying")
 
 Fk:loadTranslationTable{
   ["hs__zhugeliang"] = "诸葛亮",
+  ["#hs__zhugeliang"] = "迟暮的丞相",
+  ["illustrator:hs__zhugeliang"] = "木美人",
+
   ["hs__guanxing"] = "观星",
   [":hs__guanxing"] = "准备阶段，你可将牌堆顶的X张牌（X为角色数且至多为5）扣置入处理区（对你可见），你将其中任意数量的牌置于牌堆顶，将其余的牌置于牌堆底。",
   ["hs__kongcheng"] = "空城",
@@ -936,6 +976,9 @@ zhaoyun:addCompanions("hs__liushan")
 
 Fk:loadTranslationTable{
   ["hs__zhaoyun"] = "赵云",
+  ["#hs__zhaoyun"] = "虎威将军",
+  ["illustrator:hs__zhaoyun"] = "DH",
+
   ["hs__longdan"] = "龙胆",
   [":hs__longdan"] = "①你可将【闪】当【杀】使用或打出，当此【杀】被一名角色使用的【闪】抵消后，你可对另一名角色造成1点伤害。②你可将【杀】当【闪】使用或打出，当一名角色使用的【杀】被此【闪】抵消后，你可令另一名其他角色回复1点体力。",
 
@@ -1033,6 +1076,9 @@ machao:addSkill("mashu")
 machao:addSkill(tieqi)
 Fk:loadTranslationTable{
   ["hs__machao"] = "马超",
+  ["#hs__machao"] = "一骑当千",
+  ["illustrator:hs__machao"] = "KayaK&木美人&张帅",
+
   ["hs__tieqi"] = "铁骑",
   [":hs__tieqi"] = "当你使用【杀】指定目标后，你可判定，令其本回合一张明置的武将牌非锁定技失效，其需弃置一张与判定结果花色相同的牌，否则其不能使用【闪】抵消此【杀】。",
   ["@hs__tieqi-turn"] = "铁骑",
@@ -1050,6 +1096,8 @@ huangyueying:addCompanions("hs__wolong")
 
 Fk:loadTranslationTable{
   ["hs__huangyueying"] = "黄月英",
+  ["#hs__huangyueying"] = "归隐的杰女",
+  ["illustrator:hs__huangyueying"] = "木美人",
   ["~hs__huangyueying"] = "亮……",
 }
 
@@ -1089,6 +1137,9 @@ huangzhong:addSkill(liegong)
 huangzhong:addCompanions("hs__weiyan")
 Fk:loadTranslationTable{
   ["hs__huangzhong"] = "黄忠",
+  ["#hs__huangzhong"] = "老当益壮",
+  -- ["illustrator:hs__huangzhong"] = "凡果",
+
   ["hs__liegong"] = "烈弓",
   [":hs__liegong"] = "当你于出牌阶段内使用【杀】指定目标后，若其手牌数不小于你的体力值或不大于你的攻击范围，你可令其不能使用【闪】响应此【杀】。",
   ["$hs__liegong1"] = "百步穿杨！",
@@ -1148,6 +1199,9 @@ weiyan:addSkill(kuanggu)
 
 Fk:loadTranslationTable{
   ["hs__weiyan"] = "魏延",
+  ["#hs__weiyan"] = "嗜血的独狼",
+  ["illustrator:hs__weiyan"] = "瞌瞌一休",
+
   ["hs__kuanggu"] = "狂骨",
   [":hs__kuanggu"] = "当你对距离1以内的角色造成1点伤害后，你可摸一张牌或回复1点体力。",
 
@@ -1162,6 +1216,8 @@ pangtong:addSkill("niepan")
 pangtong:addCompanions("hs__wolong")
 Fk:loadTranslationTable{
   ['hs__pangtong'] = '庞统',
+  ["#hs__pangtong"] = "凤雏",
+  ["illustrator:hs__pangtong"] = "KayaK",
 }
 
 local wolong = General(extension, "hs__wolong", "shu", 3)
@@ -1170,6 +1226,8 @@ wolong:addSkill("huoji")
 wolong:addSkill("kanpo")
 Fk:loadTranslationTable{
   ['hs__wolong'] = '卧龙诸葛亮',
+  ["#hs__wolong"] = "卧龙",
+  ["illustrator:hs__wolong"] = "绘聚艺堂",
   ["~hs__wolong"] = "我的计谋竟被……",
 }
 
@@ -1178,6 +1236,8 @@ liushan:addSkill("xiangle")
 liushan:addSkill("fangquan")
 Fk:loadTranslationTable{
   ['hs__liushan'] = '刘禅',
+  ["#hs__liushan"] = "无为的真命主",
+  ["illustrator:hs__liushan"] = "LiuHeng",
   ["~hs__liushan"] = "别打脸，我投降还不行吗？",
 }
 
@@ -1187,6 +1247,8 @@ menghuo:addSkill("huoshou")
 menghuo:addSkill("zaiqi")
 Fk:loadTranslationTable{
   ['hs__menghuo'] = '孟获',
+  ["#hs__menghuo"] = "南蛮王",
+  ["illustrator:hs__menghuo"] = "废柴男",
 }
 
 local zhurong = General(extension, "hs__zhurong", "shu", 4, 4, General.Female)
@@ -1194,6 +1256,8 @@ zhurong:addSkill("juxiang")
 zhurong:addSkill("lieren")
 Fk:loadTranslationTable{
   ['hs__zhurong'] = '祝融',
+  ["#hs__zhurong"] = "野性的女王",
+  ["illustrator:hs__zhurong"] = "废柴男",
   ["~hs__zhurong"] = "大王，我，先走一步了。",
 }
 
@@ -1283,6 +1347,9 @@ sunquan:addCompanions("hs__zhoutai")
 
 Fk:loadTranslationTable{
   ["hs__sunquan"] = "孙权",
+  ["#hs__sunquan"] = "年轻的贤君",
+  ["illustrator:hs__sunquan"] = "KayaK",
+
   ["hs__zhiheng"] = "制衡",
   [":hs__zhiheng"] = "出牌阶段限一次，你可弃置至多X张牌（X为你的体力上限），然后你摸等量的牌。",
 
@@ -1297,6 +1364,8 @@ ganning:addSkill("qixi")
 
 Fk:loadTranslationTable{
   ["hs__ganning"] = "甘宁",
+  ["#hs__ganning"] = "锦帆游侠",
+  ["illustrator:hs__ganning"] = "KayaK",
   ["~hs__ganning"] = "二十年后，又是一条好汉！",
 }
 
@@ -1391,6 +1460,9 @@ lvmeng:addSkill(mouduan)
 
 Fk:loadTranslationTable{
   ["hs__lvmeng"] = "吕蒙",
+  ["#hs__lvmeng"] = "白衣渡江",
+  ["illustrator:hs__lvmeng"] = "樱花闪乱",
+
   ["hs__keji"] = "克己",
   [":hs__keji"] = "锁定技，弃牌阶段开始时，若你于出牌阶段内未使用过有颜色的牌，或于出牌阶段内使用过的所有的牌的颜色均相同，你的手牌上限于此回合内+4。",
   ["hs__mouduan"] = "谋断",
@@ -1439,6 +1511,9 @@ huanggai:addCompanions("hs__zhouyu")
 
 Fk:loadTranslationTable{
   ["hs__huanggai"] = "黄盖",
+  ["#hs__huanggai"] = "轻身为国",
+  ["illustrator:hs__huanggai"] = "G.G.G.",
+
   ["hs__kurou"] = "苦肉",
   [":hs__kurou"] = "出牌阶段限一次，你可弃置一张牌，然后你失去1点体力，摸三张牌，于此阶段内使用【杀】的次数上限+1。",
 
@@ -1453,6 +1528,8 @@ zhouyu:addSkill("ex__fanjian")
 zhouyu:addCompanions("hs__xiaoqiao")
 Fk:loadTranslationTable{
   ["hs__zhouyu"] = "周瑜",
+  ["#hs__zhouyu"] = "大都督",
+  ["illustrator:hs__zhouyu"] = "绘聚艺堂",
   ["~hs__zhouyu"] = "既生瑜，何生亮。既生瑜，何生亮！",
 }
 
@@ -1464,6 +1541,8 @@ daqiao:addCompanions("hs__xiaoqiao")
 
 Fk:loadTranslationTable{
   ["hs__daqiao"] = "大乔",
+  ["#hs__daqiao"] = "矜持之花",
+  ["illustrator:hs__daqiao"] = "KayaK",
   ["~hs__daqiao"] = "伯符，我去了……",
 }
 
@@ -1577,6 +1656,9 @@ luxun:addSkill(duoshi)
 
 Fk:loadTranslationTable{
   ["hs__luxun"] = "陆逊",
+  ["#hs__luxun"] = "擎天之柱",
+  ["illustrator:hs__luxun"] = "KayaK",
+
   ["hs__qianxun"] = "谦逊",
   [":hs__qianxun"] = "锁定技，当你成为【顺手牵羊】或【乐不思蜀】的目标时，你取消此目标。",
   ["duoshi"] = "度势",
@@ -1621,6 +1703,9 @@ sunshangxiang:addSkill("jieyin")
 
 Fk:loadTranslationTable{
   ["hs__sunshangxiang"] = "孙尚香",
+  ["#hs__sunshangxiang"] = "弓腰姬",
+  ["illustrator:hs__sunshangxiang"] = "凡果",
+
   ["hs__xiaoji"] = "枭姬",
   [":hs__xiaoji"] = "当你失去装备区的装备牌后，若此时是你的回合内，你摸一张牌，否则你摸三张牌。",
 
@@ -1667,6 +1752,9 @@ local sunjian = General:new(extension, "hs__sunjian", "wu", 5)
 sunjian:addSkill(yinghun)
 Fk:loadTranslationTable{
   ['hs__sunjian'] = '孙坚',
+  ["#hs__sunjian"] = "魂佑江东",
+  ["illustrator:hs__sunjian"] = "凡果",
+
   ["hs__yinghun"] = "英魂",
   [":hs__yinghun"] = "准备阶段，你可选择一名其他角色并选择一项：1.令其摸X张牌，然后弃置一张牌；2.令其摸一张牌，然后弃置X张牌（X为你已损失的体力值）。",
   ["#yinghun-choose"] = "英魂：你可以令一名其他角色：摸%arg张牌然后弃置一张牌，或摸一张牌然后弃置%arg2张牌",
@@ -1755,6 +1843,9 @@ xiaoqiao:addSkill(hongyan)
 
 Fk:loadTranslationTable{
   ['hs__xiaoqiao'] = '小乔',
+  ["#hs__xiaoqiao"] = "矫情之花",
+  ["illustrator:hs__xiaoqiao"] = "绘聚艺堂",
+
   ["hs__tianxiang"] = "天香",
   [":hs__tianxiang"] = "当你受到伤害时，你可弃置一张<font color='red'>♥</font>手牌并选择一名其他角色。你防止此伤害，选择本回合未选择过的一项：1.令来源对其造成1点伤害，其摸X张牌（X为其已损失的体力值且至多为5）；2.令其失去1点体力，其获得牌堆或弃牌堆中你以此法弃置的牌。",
   ["hs__hongyan"] = "红颜",
@@ -1774,6 +1865,8 @@ local taishici = General(extension, "hs__taishici", "wu", 4)
 taishici:addSkill("tianyi")
 Fk:loadTranslationTable{
   ['hs__taishici'] = '太史慈',
+  ["#hs__taishici"] = "笃烈之士",
+  ["illustrator:hs__taishici"] = "Tuu.",
   ["~hs__taishici"] = "大丈夫，当带三尺之剑，立不世之功！",
 }
 
@@ -1834,6 +1927,9 @@ zhoutai:addSkill(fenji)
 
 Fk:loadTranslationTable{
   ['hs__zhoutai'] = '周泰',
+  ["#hs__zhoutai"] = "历战之躯",
+  ["illustrator:hs__zhoutai"] = "Thinking",
+
   ["hs__buqu"] = "不屈",
   [":hs__buqu"] = "锁定技，当你处于濒死状态时，你将牌堆顶的一张牌置于你的武将牌上，称为“创”，若此牌的点数与已有的“创”点数：均不同，则你将体力回复至1点；存在相同，将此牌置入弃牌堆。",
   ["hs__fenji"] = "奋激",
@@ -1853,6 +1949,8 @@ lusu:addSkill("haoshi")
 lusu:addSkill("dimeng")
 Fk:loadTranslationTable{
   ['hs__lusu'] = '鲁肃',
+  ["#hs__lusu"] = "独断的外交家",
+  ["illustrator:hs__lusu"] = "LiuHeng",
   ["~hs__lusu"] = "此联盟已破，吴蜀休矣。",
 }
 
@@ -1861,6 +1959,8 @@ erzhang:addSkill("zhijian")
 erzhang:addSkill("guzheng")
 Fk:loadTranslationTable{
   ['hs__zhangzhaozhanghong'] = '张昭张纮',
+  ["#hs__zhangzhaozhanghong"] = "经天纬地",
+  ["illustrator:hs__zhangzhaozhanghong"] = "废柴男",
   ["~hs__zhangzhaozhanghong"] = "竭力尽智，死而无憾。",
 }
 
@@ -1869,6 +1969,9 @@ dingfeng:addSkill("duanbing")
 dingfeng:addSkill("fenxun")
 Fk:loadTranslationTable{
   ["hs__dingfeng"] = "丁奉",
+  ["#hs__dingfeng"] = "清侧重臣",
+  ["illustrator:hs__dingfeng"] = "魔鬼鱼",
+
   ["$duanbing1"] = "众将官，短刀出鞘。",
   ["$duanbing2"] = "短兵轻甲也可取汝性命！",
   ["$fenxun1"] = "取封侯爵赏，正在今日！",
@@ -1923,6 +2026,9 @@ huatuo:addSkill(chuli)
 
 Fk:loadTranslationTable{
   ["hs__huatuo"] = "华佗",
+  ["#hs__huatuo"] = "神医",
+  ["illustrator:hs__huatuo"] = "琛·美弟奇",
+
   ["hs__chuli"] = "除疠",
   [":hs__chuli"] = "出牌阶段限一次，你可选择至多三名势力各不相同或未确定势力的其他角色，然后你弃置你和这些角色的各一张牌。被弃置♠牌的角色各摸一张牌。",
 
@@ -1940,6 +2046,8 @@ lvbu:addCompanions("hs__diaochan")
 
 Fk:loadTranslationTable{
   ["hs__lvbu"] = "吕布",
+  ["#hs__lvbu"] = "戟指中原",
+  ["illustrator:hs__lvbu"] = "凡果",
   ["~hs__lvbu"] = "不可能！",
 }
 
@@ -1979,6 +2087,9 @@ diaochan:addSkill("biyue")
 
 Fk:loadTranslationTable{
   ["hs__diaochan"] = "貂蝉",
+  ["#hs__diaochan"] = "绝世的舞姬",
+  ["illustrator:hs__diaochan"] = "LiuHeng",
+
   ["hs__lijian"] = "离间",
   [":hs__lijian"] = "出牌阶段限一次，你可弃置一张牌并选择两名其他男性角色，后选择的角色视为对先选择的角色使用一张【决斗】。",
 
@@ -2046,6 +2157,9 @@ yuanshao:addCompanions("hs__yanliangwenchou")
 
 Fk:loadTranslationTable{
   ["hs__yuanshao"] = "袁绍",
+  ["#hs__yuanshao"] = "高贵的名门",
+  ["illustrator:hs__yuanshao"] = "北辰菌",
+
   ["hs__luanji"] = "乱击",
   [":hs__luanji"] = "你可将两张手牌当【万箭齐发】使用（不能使用此回合以此法使用过的花色），当与你势力相同的角色打出【闪】响应此牌结算结束后，其可摸一张牌。",
 
@@ -2062,6 +2176,9 @@ local sx = General(extension, 'hs__yanliangwenchou', 'qun', 4)
 sx:addSkill('shuangxiong')
 Fk:loadTranslationTable{
   ['hs__yanliangwenchou'] = '颜良文丑',
+  ["#hs__yanliangwenchou"] = "虎狼兄弟",
+  ["illustrator:hs__yanliangwenchou"] = "KayaK",
+
   ["~hs__yanliangwenchou"] = "这红脸长须大将是……",
 }
 
@@ -2149,6 +2266,9 @@ local weimu = fk.CreateTriggerSkill{
 jiaxu:addSkill(weimu)
 Fk:loadTranslationTable{
   ['hs__jiaxu'] = '贾诩',
+  ["#hs__jiaxu"] = "冷酷的毒士",
+  ["illustrator:hs__jiaxu"] = "绘聚艺堂",
+
   ['hs__weimu'] = '帷幕',
   [':hs__weimu'] = '锁定技，当你成为黑色锦囊牌的目标时，取消之。',
 
@@ -2192,6 +2312,9 @@ pangde:addSkill(jianchu)
 
 Fk:loadTranslationTable{
   ["hs__pangde"] = "庞德",
+  ["#hs__pangde"] = "人马一体",
+  ["illustrator:hs__pangde"] = "凝聚永恒",
+
   ["jianchu"] = "鞬出",
   [":jianchu"] = "当你使用【杀】指定目标后，你可以弃置该角色的一张牌，若此牌：为装备牌，其不能使用【闪】抵消此【杀】；不为装备牌，其获得此【杀】。",
 
@@ -2205,6 +2328,8 @@ zhangjiao:addSkill("leiji")
 zhangjiao:addSkill("guidao")
 Fk:loadTranslationTable{
   ['hs__zhangjiao'] = '张角',
+  ["#hs__zhangjiao"] = "天公将军",
+  ["illustrator:hs__zhangjiao"] = "LiuHeng",
   ["~hs__zhangjiao"] = "黄天…也死了……",
 }
 
@@ -2280,6 +2405,9 @@ caiwenji:addSkill("beige")
 caiwenji:addSkill(duanchang)
 Fk:loadTranslationTable{
   ["hs__caiwenji"] = "蔡文姬",
+  ["#hs__caiwenji"] = "异乡的孤女",
+  ["illustrator:hs__caiwenji"] = "SoniaTang",
+
   ["hs__duanchang"] = "断肠",
   [":hs__duanchang"] = "锁定技，当你死亡时，你令杀死你的角色失去一张武将牌上的所有技能。",
 
@@ -2563,7 +2691,7 @@ jiling:addSkill(shuangren)
 Fk:loadTranslationTable{
   ["hs__jiling"] = "纪灵",
   ["#hs__jiling"] = "仲家的主将",
-	["illustrator:hs__jiling"] = "樱花闪乱",
+  ["illustrator:hs__jiling"] = "樱花闪乱",
   ["desinger:hs__jiling"] = "淬毒",
 
   ["shuangren"] = "双刃",

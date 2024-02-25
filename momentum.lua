@@ -13,6 +13,9 @@ lidian:addSkill("wangxi")
 lidian:addCompanions("hs__yuejin")
 Fk:loadTranslationTable{
   ["ld__lidian"] = "李典",
+  ["#ld__lidian"] = "深明大义",
+  ["designer:ld__lidian"] = "KayaK",
+  ["illustrator:ld__lidian"] = "张帅",
   ["~ld__lidian"] = "报国杀敌，虽死犹荣……",
 }
 
@@ -88,6 +91,8 @@ zangba:addSkill(hengjiang)
 zangba:addCompanions("hs__zhangliao")
 Fk:loadTranslationTable{
   ['ld__zangba'] = '臧霸',
+  ["#ld__zangba"] = "节度青徐",
+  ["illustrator:ld__zangba"] = "HOOO",
   ["cv:ld__zangba"] = "墨禅",
   ['hengjiang'] = '横江',
   [':hengjiang'] = '当你受到伤害后，你可以令当前回合角色本回合手牌上限-X（X为伤害值）。' ..
@@ -115,6 +120,9 @@ madai:addSkill("re__qianxi")
 madai:addCompanions("hs__machao")
 Fk:loadTranslationTable{
   ["ld__madai"] = "马岱",
+  ["#ld__madai"] = "临危受命",
+  ["designer:ld__madai"] = "凌天翼（韩旭）",
+  ["illustrator:ld__madai"] = "Thinking",
   ["heg_madai__mashu"] = "马术",
   [":heg_madai__mashu"] = "锁定技，你与其他角色的距离-1。",
   ["$re__qianxi1"] = "暗影深处，袭敌斩首！",
@@ -205,6 +213,10 @@ mifuren:addSkill(cunsi)
 mifuren:addRelatedSkill(yongjue)
 Fk:loadTranslationTable{
   ['ld__mifuren'] = '糜夫人',
+  ["#ld__mifuren"] = "乱世沉香",
+  ["designer:ld__mifuren"] = "淬毒",
+  ["illustrator:ld__mifuren"] = "木美人",
+
   ["guixiu"] = "闺秀",
   [":guixiu"] = "当你：1.明置此武将牌后，你可摸两张牌：2.移除此武将牌后，你回复1点体力。",
   ["cunsi"] = "存嗣",
@@ -332,6 +344,10 @@ local yinghun = fk.CreateTriggerSkill{
 sunce:addRelatedSkill(yinghun)
 Fk:loadTranslationTable{
   ['ld__sunce'] = '孙策',
+  ["#ld__sunce"] = "江东的小霸王",
+  ["designer:ld__sunce"] = "KayaK（韩旭）",
+  ["illustrator:ld__sunce"] = "木美人",
+
   ['yingyang'] = '鹰扬',
   [':yingyang'] = '当你的拼点牌亮出后，你可令其点数+3或-3。',
   ['hunshang'] = '魂殇',
@@ -401,6 +417,10 @@ chengdong:addSkill(duanxie)
 chengdong:addSkill(fenming)
 Fk:loadTranslationTable{
   ['ld__chenwudongxi'] = '陈武董袭',
+  ["#ld__chenwudongxi"] = "壮怀激烈",
+  ["designer:ld__chenwudongxi"] = "淬毒",
+  ["illustrator:ld__chenwudongxi"] = "地狱许",
+
   ['ld__duanxie'] = '断绁',
   [':ld__duanxie'] = '出牌阶段限一次，你可以令一名其他角色横置，然后你横置。',
   ['ld__fenming'] = '奋命',
@@ -461,6 +481,10 @@ dongzhuo:addSkill(baoling)
 dongzhuo:addRelatedSkill("benghuai")
 Fk:loadTranslationTable{
   ['ld__dongzhuo'] = '董卓',
+  ["#ld__dongzhuo"] = "魔王",
+  ["designer:ld__dongzhuo"] = "KayaK（韩旭）",
+  ["illustrator:ld__dongzhuo"] = "巴萨小马",
+
   ['hengzheng'] = '横征',
   [':hengzheng'] = '摸牌阶段，若你体力值为1或者没有手牌，你可改为获得所有其他角色区域内各一张牌。',
   ['baoling'] = '暴凌',
@@ -532,6 +556,10 @@ zhangren:addSkill(fengshi)
 
 Fk:loadTranslationTable{
   ['ld__zhangren'] = '张任',
+  ["#ld__zhangren"] = "索命神射",
+  ["designer:ld__zhangren"] = "淬毒",
+  ["illustrator:ld__zhangren"] = "DH",
+
   ['chuanxin'] = '穿心',
   [':chuanxin'] = '当你于出牌阶段内使用【杀】或【决斗】对目标角色造成伤害时，若其与你势力不同或你明置此武将牌后与其势力不同，且其有副将，你可防止此伤害，令其选择一项：1. 弃置装备区里的所有牌，失去1点体力；2. 移除副将。',
   ['fengshi'] = '锋矢',
@@ -759,6 +787,10 @@ lordzhangjiao:addSkill(wendao)
 
 Fk:loadTranslationTable{
   ["ld__lordzhangjiao"] = "君张角",
+  ["#ld__lordzhangjiao"] = "时代的先驱",
+  ["designer:ld__lordzhangjiao"] = "韩旭",
+  ["illustrator:ld__lordzhangjiao"] = "青骑士",
+
   ["wuxin"] = "悟心",
   [":wuxin"] = "摸牌阶段开始时，你可观看牌堆顶的X张牌（X为群势力角色数）并可改变这些牌的顺序。",
   ["hongfa"] = "弘法",

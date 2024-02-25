@@ -99,6 +99,10 @@ xunyou:addCompanions("hs__xunyu")
 
 Fk:loadTranslationTable{
   ["ld__xunyou"] = "荀攸",
+  ["#ld__xunyou"] = "曹魏的谋主",
+  ["designer:ld__xunyou"] = "淬毒",
+  ["illustrator:ld__xunyou"] = "心中一凛",
+
   ["ld__qice"] = "奇策",
   [":ld__qice"] = "出牌阶段限一次，你可将所有手牌当任意一张普通锦囊牌使用，你不能以此法使用目标数大于X的牌（X为你的手牌数），然后你可变更副将。",
 
@@ -187,7 +191,7 @@ local yuejian = fk.CreateTriggerSkill{
   refresh_events = {fk.TargetSpecified},
   can_refresh = function(self, event, target, player, data)
     return H.compareKingdomWith(target, player) and target == player.room.current 
-     and target:getMark("ld__yuejian-turn") == 0 and data.firstTarget and data.card.type ~= Card.TypeEquip
+      and target:getMark("ld__yuejian-turn") == 0 and data.firstTarget and data.card.type ~= Card.TypeEquip
   end,
   on_refresh = function(self, event, target, player, data)
     if #AimGroup:getAllTargets(data.tos) == 0 then return end
@@ -206,6 +210,9 @@ bianfuren:addSkill(yuejian)
 
 Fk:loadTranslationTable{
   ["ld__bianfuren"] = "卞夫人",
+  ["#ld__bianfuren"] = "奕世之雍容",
+  ["illustrator:ld__bianfuren"] = "雪君S",
+
   ["ld__wanwei"] = "挽危",
   [":ld__wanwei"] = "当你的牌被其他角色弃置或获得时，你可改为你选择的等量的手牌。",
   ["ld__yuejian"] = "约俭",
@@ -224,6 +231,9 @@ local shamoke = General(extension, "ld__shamoke", "shu", 4)
 shamoke:addSkill("jilis")
 Fk:loadTranslationTable{
   ['ld__shamoke'] = '沙摩柯',
+  ["#ld__shamoke"] = "五溪蛮王",
+  ["illustrator:ld__shamoke"] = "LiuHeng",
+  ["designer:ld__shamoke"] = "韩旭",
   ['~ld__shamoke'] = '五溪蛮夷，不可能输！',
 }
 
@@ -257,6 +267,9 @@ masu:addSkill("sanyao")
 masu:addSkill(zhiman)
 Fk:loadTranslationTable{
   ['ld__masu'] = '马谡',
+  ["#ld__masu"] = "帷幄经谋",
+  ["designer:ld__masu"] = "点点",
+  ["illustrator:ld__masu"] = "蚂蚁君",
   ["ld__zhiman"] = "制蛮",
   [":ld__zhiman"] = "当你对其他角色造成伤害时，你可防止此伤害，你获得其装备区或判定区里的一张牌。若其与你势力相同，你可令其选择是否变更。",
 
@@ -344,6 +357,9 @@ lingtong:addSkill(yongjin)
 lingtong:addCompanions("hs__ganning")
 Fk:loadTranslationTable{
   ['ld__lingtong'] = '凌统',
+  ["#ld__lingtong"] = "豪情烈胆",
+  ["designer:ld__lingtong"] = "韩旭",
+  ["illustrator:ld__lingtong"] = "F.源",
   ['xuanlve'] = '旋略',
   [':xuanlve'] = '当你失去装备区的牌后，你可以弃置一名其他角色的一张牌。',
   ['#xuanlve-discard'] = '旋略：你可以弃置一名其他角色的一张牌',
@@ -442,6 +458,10 @@ lvfan:addSkill(diancai)
 
 Fk:loadTranslationTable{
   ['ld__lvfan'] = '吕范',
+  ["#ld__lvfan"] = "忠笃亮直",
+  ["designer:ld__lvfan"] = "韩旭",
+  ["illustrator:ld__lvfan"] = "铭zmy",
+
   ['diaodu'] = '调度',
   [':diaodu'] = '①当与你势力相同的角色使用装备牌时，其可摸一张牌。②出牌阶段开始时，你可获得与你势力相同的一名角色装备区里的一张牌，若其：为你，你将此牌交给一名角色；不为你，你可将此牌交给另一名角色。',
   ["diancai"] = "典财",
@@ -455,10 +475,10 @@ Fk:loadTranslationTable{
   ["@@ld__diancai_transform"] = "典财 已变更",
 
   ["$diaodu1"] = "诸军兵器战具，皆由我调配！",
-	["$diaodu2"] = "甲胄兵器，按我所说之法分发！",
-	["$diancai1"] = "军资之用，不可擅作主张！",
-	["$diancai2"] = "善用资财，乃为政上法！",
-	["~ld__lvfan"] = "闻主公欲授大司马之职，容臣不能……谢恩了……",
+  ["$diaodu2"] = "甲胄兵器，按我所说之法分发！",
+  ["$diancai1"] = "军资之用，不可擅作主张！",
+  ["$diancai2"] = "善用资财，乃为政上法！",
+  ["~ld__lvfan"] = "闻主公欲授大司马之职，容臣不能……谢恩了……",
 }
 
 local zuoci = General(extension, "ld__zuoci", "qun", 3)
@@ -629,6 +649,8 @@ zuoci:addSkill(xinsheng)
 zuoci:addSkill(huashen)
 Fk:loadTranslationTable{
   ["ld__zuoci"] = "左慈",
+  ["#ld__zuoci"] = "鬼影神道",
+  ["illustrator:ld__zuoci"] = "吕阳",
   ["ld__huashen"] = "化身",
   [":ld__huashen"] = "当你需要发动“形”拥有的技能时，你可以于对应的时机发动“形”拥有的一个无技能标签的技能，然后于此技能结算后将拥有此技能的“形”置入武将牌堆。<br><font color = 'grey'>注：不要报有关左慈的任何技能触发bug，有极小可能性导致游戏崩溃的除外。</font>",
   ["ld__xinsheng"] = "新生",
@@ -703,7 +725,7 @@ local xiongsuan_delay = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     local room = player.room
     local skill = player:getMark("_xiongsuan-turn")[1]
-    local target = room:getPlayerById(player:getMark("_xiongsuan-turn")[2])
+    target = room:getPlayerById(player:getMark("_xiongsuan-turn")[2])
     target:addSkillUseHistory(skill, -1)
     room:sendLog{
       type = "#XiongsuanReset",
@@ -716,6 +738,9 @@ xiongsuan:addRelatedSkill(xiongsuan_delay)
 lijueguosi:addSkill(xiongsuan)
 Fk:loadTranslationTable{
   ['ld__lijueguosi'] = '李傕郭汜',
+  ["#ld__lijueguosi"] = "犯祚倾祸",
+  ["designer:ld__lijueguosi"] = "千幻",
+  ["illustrator:ld__lijueguosi"] = "旭",
   ["xiongsuan"] = "凶算",
   [":xiongsuan"] = "限定技，出牌阶段，你可弃置一张手牌并选择与你势力相同的一名角色，你对其造成1点伤害，摸三张牌，选择其一个已发动过的限定技，然后此回合结束前，你令此技能于此局游戏内的发动次数上限+1。",
   ["#xiongsuan-reset"] = "凶算：请重置%dest的一项技能",
@@ -1227,6 +1252,9 @@ lordsunquan:addSkill(jubao)
 
 Fk:loadTranslationTable{
   ["ld__lordsunquan"] = "君孙权",
+  ["#ld__lordsunquan"] = "虎踞江东",
+  ["designer:ld__lordsunquan"] = "韩旭",
+  ["illustrator:ld__lordsunquan"] = "瞌瞌一休",
   ["jubao"] = "聚宝",
   [":jubao"] = "锁定技，①结束阶段，若弃牌堆或场上存在【定澜夜明珠】，你摸一张牌，然后获得拥有【定澜夜明珠】的角色的一张牌；②其他角色获得你装备区内的宝物牌时，取消之。",
   ["jiahe"] = "嘉禾",
