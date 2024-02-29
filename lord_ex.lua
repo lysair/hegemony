@@ -866,7 +866,7 @@ Fk:loadTranslationTable{
   ["ld__bushi"] = "布施",
   [":ld__bushi"] = "一名角色的结束阶段，若你于此回合内造成或受到过伤害，你可移去一张“米”，令至多X名角色各摸一张牌（X为你的体力上限），以此法摸牌的角色可依次将一张牌置于你武将牌上，称为“米”。",
   ["ld__midao"] = "米道",
-  [":ld__midao"] = "①当你明置此武将牌后，你摸两张牌，然后将两张牌置于武将牌上，称为“米”②e一名角色的判定牌生效前，你可以打出一张“米”替换之。",
+  [":ld__midao"] = "①当你明置此武将牌后，你摸两张牌，然后将两张牌置于武将牌上，称为“米”②一名角色的判定牌生效前，你可以打出一张“米”替换之。",
 
   ["$ld__bushi1"] = "争斗，永远没有赢家。",
   ["$ld__bushi2"] = "和平，永远没有输家。",
@@ -1557,38 +1557,41 @@ xuyou.subkingdom = "wei"
 local chenglue = fk.CreateTriggerSkill{
   name = "ld__chenglue",
   anim_type = "drawcard",
-  events = {fk.TargetSpecified, fk.Damaged, fk.CardUseFinished},
+  events = {fk.TargetSpecified, fk.CardUseFinished},
   can_trigger = function (self, event, target, player, data)
     if not player:hasSkill(self) then return end
     if event == fk.TargetSpecified then
       return H.compareKingdomWith(target, player) 
         and #AimGroup:getAllTargets(data.tos) > 1 and data.firstTarget
-    elseif event == fk.Damaged then
-      if player == target and #player.tag["chenglue_cardIds"] ~= 0 then
-        return data.card and table.contains(player.tag["chenglue_cardIds"], data.card.id)
-      end
     elseif event == fk.CardUseFinished then
-      local suffer_tab = player.tag["chenglue_suffer"] or {}
-      return suffer_tab[data.card.id]
+      local id = data.card.id
+      local ids = player.tag["chenglue_cardIds"]
+      if table.removeOne(ids, id) and data.damageDealt[player.id] > 0 then
+        player.tag["chenglue_cardIds"] = ids
+        return true
+      end
     end
   end,
-  on_cost = function (self, event, target, player, data)
+  on_cost = function(self, event, target, player, data)
+    local room = player.room
     if event == fk.TargetSpecified then
       return player.room:askForSkillInvoke(player, self.name, nil, "#ld__chenglue-ask:" .. target.id)
-    elseif event == fk.Damaged then
-      local id = data.card.id
-      local ids = player.tag["chenglue_cardIds"] or {}
-      player.tag["chenglue_cardIds"] = table.filter(ids, function(e)
-        return e ~= id
-      end)
-    elseif event == fk.CardUseFinished then
-      local suffer_tab = player.tag["chenglue_suffer"] or {}
-      suffer_tab[data.card.id] = nil
-      player.tag["chenglue_suffer"] = suffer_tab
+    else
+      local isTarget = function(p)
+        return H.compareKingdomWith(p, player)
+          and p:getMark("@!yinyangfish") == 0 and p:getMark("@!companion") == 0
+          and p:getMark("@!wild") == 0 and p:getMark("@!vanguard") == 0
+      end
+      local targets = table.map(table.filter(room.alive_players, isTarget), Util.IdMapper)
+      if #targets == 0 then return end
+      local to = room:askForChoosePlayers(player, targets, 1, 1, "#ld__chenglue-give:::"..player.kingdom, self.name, true)
+      if #to == 1 then
+        self.cost_data = to[1]
+        return true
+      end
     end
-    return true
   end,
-  on_use = function (self, event, target, player, data)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     if event == fk.TargetSpecified then
       if target:isAlive() then
@@ -1598,24 +1601,9 @@ local chenglue = fk.CreateTriggerSkill{
       local ids = player.tag["chenglue_cardIds"] or {}
       table.insert(ids, id)
       player.tag["chenglue_cardIds"] = ids
-    elseif event == fk.Damaged then
-      local id = data.card.id
-      local suffer_tab = player.tag["chenglue_suffer"] or {}
-      suffer_tab[id] = true
-      player.tag["chenglue_suffer"] = suffer_tab
     elseif event == fk.CardUseFinished then
-      local isTarget = function(p)
-        return H.compareKingdomWith(p, player) and H.getGeneralsRevealedNum(p) == 2 
-          and player:getMark("@!yinyangfish") == 0 and player:getMark("@!companion") == 0 
-          and player:getMark("@!wild") == 0 and player:getMark("@!vanguard") == 0
-      end
-      local targets = table.map(table.filter(room.alive_players, isTarget), Util.IdMapper)
-      if #targets == 0 then return end
-      local to = room:askForChoosePlayers(player, targets, 1, 1, nil, self.name, true)
-      if #to == 1 then
-        local _target = room:getPlayerById(to[1])
-        H.addHegMark(room, _target, "yinyangfish")
-      end
+      local _target = room:getPlayerById(self.cost_data)
+      H.addHegMark(room, _target, "yinyangfish")
     end
   end,
 }
