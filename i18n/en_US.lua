@@ -770,6 +770,7 @@ return {
   ["#Command1Damage"] = "%from 选择对 %to 造成伤害",
   ["#command2-give"] = "军令：请选择两张牌交给 %dest",
   ["#command6-select"] = "军令：请选择要保留的一张手牌和一张装备",
+  ["@command5_effect-turn"] = "Cmd ban recover",
 
   ["vanguard_skill&"] = "先驱",
   ["#vanguard_skill&"] = "你可弃一枚“先驱”，将手牌摸至4张，观看一名其他角色的一张暗置武将牌",

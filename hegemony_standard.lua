@@ -2920,10 +2920,16 @@ local command4_prohibit = fk.CreateProhibitSkill{
   name = "#command4_prohibit",
   -- global = true,
   prohibit_use = function(self, player, card)
-    return player:getMark("_command4_effect-turn") > 0 and table.contains(player.player_cards[Player.Hand], card.id)
+    if player:getMark("_command4_effect-turn") > 0 then
+      local subcards = card:isVirtual() and card.subcards or {card.id}
+      return #subcards > 0 and table.every(subcards, function(id) return table.contains(player:getCardIds(Player.Hand), id) end)
+    end
   end,
   prohibit_response = function(self, player, card)
-    return player:getMark("_command4_effect-turn") > 0 and table.contains(player.player_cards[Player.Hand], card.id)
+    if player:getMark("_command4_effect-turn") > 0 then
+      local subcards = card:isVirtual() and card.subcards or {card.id}
+      return #subcards > 0 and table.every(subcards, function(id) return table.contains(player:getCardIds(Player.Hand), id) end)
+    end
   end,
 }
 Fk:addSkill(command4_prohibit)
@@ -2934,7 +2940,7 @@ local command5_cannotrecover = fk.CreateTriggerSkill{
   -- global = true,
   refresh_events = {fk.PreHpRecover},
   can_refresh = function(self, event, target, player, data)
-    return target == player and player:getMark("_command5_effect-turn") > 0
+    return target == player and player:getMark("@command5_effect-turn") > 0
   end,
   on_refresh = function(self, event, target, player, data)
     data.num = 0
@@ -3265,6 +3271,16 @@ local battleRoyalVS = fk.CreateViewAsSkill{
     card.skillName = self.name
     card:addSubcard(cards[1])
     return card
+  end,
+  enabled_at_play = function(self, player)
+    return table.find(player:getHandlyIds(true), function (id)
+      return Fk:getCardById(id).trueName == "peach"
+    end)
+  end,
+  enabled_at_response = function(self, player)
+    return table.find(player:getHandlyIds(true), function (id)
+      return Fk:getCardById(id).trueName == "peach"
+    end)
   end,
 }
 local battleRoyalProhibit = fk.CreateProhibitSkill{

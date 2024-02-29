@@ -1420,7 +1420,7 @@ Fk:loadTranslationTable{
 
   ["@@ld__congcha_delay"] = "聪察",
   ["#ld__congcha_delay"] = "聪察",
-  ["#ld__congcha_choose"] = "聪察：选择一名未确定势力的角色。"
+  ["#ld__congcha_choose"] = "聪察：选择一名未确定势力的角色。",
 
   ["$ld__congca1"] = "窥一斑而知全豹。",
   ["$ld__congca2"] = "问一事则明其心。",
@@ -1557,67 +1557,64 @@ xuyou.subkingdom = "wei"
 local chenglue = fk.CreateTriggerSkill{
   name = "ld__chenglue",
   anim_type = "drawcard",
-  events = {fk.TargetSpecified, fk.CardUseFinished},
+  events = {fk.TargetSpecified},
   can_trigger = function (self, event, target, player, data)
-    if not player:hasSkill(self) then return end
-    if event == fk.TargetSpecified then
-      return H.compareKingdomWith(target, player) 
-        and #AimGroup:getAllTargets(data.tos) > 1 and data.firstTarget
-    elseif event == fk.CardUseFinished then
-      local id = data.card.id
-      local ids = player.tag["chenglue_cardIds"]
-      if table.removeOne(ids, id) and data.damageDealt[player.id] > 0 then
-        player.tag["chenglue_cardIds"] = ids
-        return true
-      end
-    end
+    return player:hasSkill(self) and H.compareKingdomWith(target, player) and #AimGroup:getAllTargets(data.tos) > 1 and data.firstTarget
   end,
   on_cost = function(self, event, target, player, data)
-    local room = player.room
-    if event == fk.TargetSpecified then
-      return player.room:askForSkillInvoke(player, self.name, nil, "#ld__chenglue-ask:" .. target.id)
-    else
-      local isTarget = function(p)
-        return H.compareKingdomWith(p, player)
-          and p:getMark("@!yinyangfish") == 0 and p:getMark("@!companion") == 0
-          and p:getMark("@!wild") == 0 and p:getMark("@!vanguard") == 0
-      end
-      local targets = table.map(table.filter(room.alive_players, isTarget), Util.IdMapper)
-      if #targets == 0 then return end
-      local to = room:askForChoosePlayers(player, targets, 1, 1, "#ld__chenglue-give:::"..player.kingdom, self.name, true)
-      if #to == 1 then
-        self.cost_data = to[1]
-        return true
-      end
+    return player.room:askForSkillInvoke(player, self.name, nil, "#ld__chenglue-ask:" .. target.id)
+  end,
+  on_use = function(self, event, target, player, data)
+    if target:isAlive() then
+      target:drawCards(1, self.name)
+    end
+    data.extra_data = data.extra_data or {}
+    data.extra_data.ld__chenglueUser = data.extra_data.ld__chenglueUser or {}
+    data.extra_data.ld__chenglueUser[player.id] = true
+  end,
+}
+local chenglue_after = fk.CreateTriggerSkill{
+  name = "#ld__chenglue_after",
+  events = {fk.CardUseFinished},
+  mute = true,
+  anim_type = "drawcard",
+  can_trigger = function(self, event, target, player, data)
+    return ((data.extra_data or {}).ld__chenglueUser or {})[player.id]
+      and data.damageDealt and data.damageDealt[player.id]
+  end,
+  on_cost = function(self, event, target, player, data)
+    local targets = table.map(table.filter(player.room.alive_players, function(p)
+      return H.compareKingdomWith(p, player)
+        and p:getMark("@!yinyangfish") == 0 and p:getMark("@!companion") == 0
+        and p:getMark("@!wild") == 0 and p:getMark("@!vanguard") == 0
+    end), Util.IdMapper)
+    if #targets == 0 then return end
+    local to = player.room:askForChoosePlayers(player, targets, 1, 1, "#ld__chenglue-give", self.name, true)
+    if #to == 1 then
+      self.cost_data = to[1]
+      return true
     end
   end,
   on_use = function(self, event, target, player, data)
-    local room = player.room
-    if event == fk.TargetSpecified then
-      if target:isAlive() then
-        target:drawCards(1, self.name)
-      end
-      local id = data.card.id
-      local ids = player.tag["chenglue_cardIds"] or {}
-      table.insert(ids, id)
-      player.tag["chenglue_cardIds"] = ids
-    elseif event == fk.CardUseFinished then
-      local _target = room:getPlayerById(self.cost_data)
-      H.addHegMark(room, _target, "yinyangfish")
-    end
+    H.addHegMark(player.room, player.room:getPlayerById(self.cost_data), "yinyangfish")
   end,
 }
+chenglue:addRelatedSkill(chenglue_after)
 
 local shicai = fk.CreateTriggerSkill{
   name = "ld__shicai",
-  anim_type = "drawcard",
+  mute = true,
   frequency = Skill.Compulsory,
   events = {fk.Damaged},
   on_use = function (self, event, target, player, data)
+    local room = player.room
+    player:broadcastSkillInvoke(self.name)
     if data.damage == 1 then
+      room:notifySkillInvoked(player, self.name, "masochism")
       player:drawCards(1, self.name)
     else
-      player.room:throwCard(player:getCardIds("h"), self.name, player, player)
+      room:notifySkillInvoked(player, self.name, "negative")
+      room:throwCard(player:getCardIds("h"), self.name, player, player)
     end
   end,
 }
@@ -1636,7 +1633,9 @@ Fk:loadTranslationTable{
   ["ld__shicai"] = "恃才",
   [":ld__shicai"] = "锁定技，当你受到伤害后，若此伤害为1点，你摸一张牌，否则你弃置所有手牌。",
 
+  ["#ld__chenglue_after"] = "成略",
   ["#ld__chenglue-ask"] = "成略：你可令 %src 摸一张牌",
+  ["#ld__chenglue-give"] = "成略：你可令一名与你势力相同且没有国战标记的角色获得一个“阴阳鱼”标记",
 
   ["$ld__chenglue"] = "阿瞒，苦思之事，我早有良策。",
   ["$ld__chenglue2"] = "策略已有，按部就班即可得胜。",
@@ -1653,7 +1652,7 @@ local tongling = fk.CreateTriggerSkill{
   events = {fk.Damage},
   can_trigger = function (self, event, target, player, data)
       return player == target and player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and not data.to.dead
-       and not H.compareKingdomWith(player, data.to) and player:hasSkill(self) and player.phase == Player.Play
+        and not H.compareKingdomWith(player, data.to) and player:hasSkill(self) and player.phase == Player.Play
   end,
   on_use = function (self, event, target, player, data)
     local room = player.room

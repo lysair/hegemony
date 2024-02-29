@@ -353,7 +353,7 @@ end
 ---@param from ServerPlayer @ 军令发起者
 ---@param to ServerPlayer @ 军令执行者
 ---@param skill_name string @ 技能名
----@param isMust boolean @ 是否强制执行
+---@param isMust? boolean @ 是否强制执行
 ---@return boolean @ 是否执行
 H.askCommandTo = function(from, to, skill_name, isMust)
   local room = from.room
@@ -416,12 +416,12 @@ end
 ---@param skill_name string @ 技能名
 ---@param index integer @ 军令序数
 ---@param from ServerPlayer @ 军令发起者
----@param isMust boolean @ 是否强制执行
+---@param isMust? boolean @ 是否强制执行
 ---@return boolean @ 是否执行
 H.doCommand = function(to, skill_name, index, from, isMust)
   if to.dead or from.dead then return false end
   local room = to.room
-  
+
   local allcommands = {"command1", "command2", "command3", "command4", "command5", "command6"}
 
   local choice
@@ -484,7 +484,7 @@ H.doCommand = function(to, skill_name, index, from, isMust)
     room:handleAddLoseSkills(to, "#command4_prohibit", nil, false, true) --为了不全局，流汗了
   elseif index == 5 then
     to:turnOver()
-    room:setPlayerMark(to, "_command5_effect-turn", 1)
+    room:setPlayerMark(to, "@command5_effect-turn", 1)
     room:handleAddLoseSkills(to, "#command5_cannotrecover", nil, false, true) --为了不全局，流汗了
   elseif index == 6 then
     if to:getHandcardNum() < 2 and #to:getCardIds(Player.Equip) < 2 then return true end
@@ -540,6 +540,7 @@ Fk:loadTranslationTable{
   ["#command1-damage"] = "军令：请选择 %dest 伤害的目标",
   ["#Command1Damage"] = "%from 选择对 %to 造成伤害",
   ["#command2-give"] = "军令：请选择两张牌交给 %dest",
+  ["@command5_effect-turn"] = "军令 不能回血",
   ["#command6-select"] = "军令：请选择要保留的一张手牌和一张装备",
 }
 

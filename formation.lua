@@ -538,7 +538,7 @@ local shangyi = fk.CreateActiveSkill{
     if #choices == 0 then return end
     local choice = room:askForChoice(player, choices, self.name)
     if choice == "ld__shangyi_hidden" then
-      local general = {target:getMark("__heg_general"), target:getMark("__heg_deputy"), target.seat} 
+      local general = {target:getMark("__heg_general"), target:getMark("__heg_deputy"), target.seat}
       room:askForCustomDialog(player, self.name, "packages/hegemony/qml/KnownBothBox.qml", general)
     elseif choice == "ld__shangyi_card" then
       local card, _ = U.askforChooseCardsAndChoice(player, table.filter(target:getCardIds("h"), function(id) return Fk:getCardById(id).color == Card.Black end), 
