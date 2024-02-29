@@ -1397,7 +1397,7 @@ local congcha_delay = fk.CreateTriggerSkill{
     if event == fk.BuryVictim then
       player.room:setPlayerMark(target, "@@ld__congcha_delay", 0)
     elseif event == fk.TurnStart then
-      local targets = table.filter(player.room.alive_players, function(p) return p:getMark("@@ld__congcha_delay") == 1 end)
+      local targets = table.filter(player.room.alive_players, function(p) return p:getMark("@@ld__congcha_delay") ~= 0 end)
       for _, p in ipairs(targets) do
         player.room:setPlayerMark(p, "@@ld__congcha_delay", 0)
       end
@@ -1420,6 +1420,7 @@ Fk:loadTranslationTable{
 
   ["@@ld__congcha_delay"] = "聪察",
   ["#ld__congcha_delay"] = "聪察",
+  ["#ld__congcha_choose"] = "聪察：选择一名未确定势力的角色。"
 
   ["$ld__congca1"] = "窥一斑而知全豹。",
   ["$ld__congca2"] = "问一事则明其心。",

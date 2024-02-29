@@ -47,7 +47,7 @@ local zhengbi = fk.CreateTriggerSkill{
         if num > 1 then
           table.insert(card_choices, "zhengbi__basic-back:"..player.id)
         end
-        if #player:getCardIds("he") - num > 0 then
+        if #to:getCardIds("he") - num > 0 then
           table.insert(card_choices, "zhengbi__nobasic-back:"..player.id)
         end
         if #card_choices == 0 then return false end
