@@ -1420,7 +1420,7 @@ Fk:loadTranslationTable{
 
   ["@@ld__congcha_delay"] = "聪察",
   ["#ld__congcha_delay"] = "聪察",
-  ["#ld__congcha_choose"] = "聪察：选择一名未确定势力的角色。"
+  ["#ld__congcha_choose"] = "聪察：选择一名未确定势力的角色。",
 
   ["$ld__congca1"] = "窥一斑而知全豹。",
   ["$ld__congca2"] = "问一事则明其心。",
