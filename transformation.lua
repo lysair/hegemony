@@ -767,7 +767,7 @@ local jiahe = fk.CreateTriggerSkill{
       for _, v in pairs(data) do
         if table.contains(Fk.generals[v]:getSkillNameList(), self.name) then return true end
       end
-    end 
+    end
   end,
   on_use = function (self, event, target, player, data)
     player.room:handleAddLoseSkills(player, '#fenghuotu')
@@ -804,7 +804,7 @@ local fenghuotu = fk.CreateTriggerSkill{
       local num = #player:getPile("lord_fenghuo") >= 5 and 2 or 1
       local result = room:askForCustomDialog(target, self.name,
       "packages/utility/qml/ChooseSkillBox.qml", {
-        table.slice(skills, 1, #player:getPile("lord_fenghuo") + 1), 0, num, "#fenghuotu-choose:::" .. num
+        table.slice(skills, 1, #player:getPile("lord_fenghuo") + 1), 0, num, "#fenghuotu-choose:::" .. tostring(num)
       })
       if result == "" then return false end
       local choice = json.decode(result)
@@ -833,8 +833,8 @@ local fenghuotu = fk.CreateTriggerSkill{
     local jiahe_map = {}
     for _, p in ipairs(players) do
       local will_attach = false
-      for _, lordsunquan in ipairs(lordsunquans) do
-        if H.compareKingdomWith(lordsunquan, p) then
+      for _, ld in ipairs(lordsunquans) do
+        if H.compareKingdomWith(ld, p) then
           will_attach = true
           break
         end
@@ -1302,6 +1302,7 @@ Fk:loadTranslationTable{
   ["$fenghuotu3"] = "有敌来犯，速速御敌。",
   ["$fenghuotu4"] = "来，扶孤上马迎敌！",
 
+  ["#fenghuotu-choose"] = "缘江烽火图：可选择%arg个技能",
   ["ld__lordsunquan_yingzi"] = "英姿",
   ["ld__lordsunquan_haoshi"] = "好施",
   ["ld__lordsunquan_shelie"] = "涉猎",

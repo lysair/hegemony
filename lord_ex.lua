@@ -1718,7 +1718,7 @@ local jinxian = fk.CreateTriggerSkill{
   on_cost = Util.TrueFunc,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    local targets = table.map(table.filter(room.alive_players, function(p) return player:distanceTo(p) <= 1 end), Util.IdMapper)
+    local targets = table.map(table.filter(room.alive_players, function(p) return player:distanceTo(p) <= 1 and player:distanceTo(p) >= 0 end), Util.IdMapper)
     room:sortPlayersByAction(targets)
     for _, id in ipairs(targets) do
       local p = room:getPlayerById(id)

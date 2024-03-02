@@ -1764,7 +1764,7 @@ Fk:loadTranslationTable{
   ["@@jianan__hs__duanliang-phase"] = "断粮 无效",
 
   ["jianan__hs__xiaoguo"] = "骁果",
-  [":jianan__hs__xiaoguo"] = "其他角色的结束阶段，你可以弃置一张基本牌，然后其需弃置一张装备牌，否则你对其造成1点伤害。",
+  [":jianan__hs__xiaoguo"] = "其他角色的结束阶段，你可以弃置一张基本牌，然后其选择一项：1.弃置一张装备牌，然后你摸一张牌；2.你对其造成1点伤害。",
   ["#jianan__hs__xiaoguo-invoke"] = "骁果：你可以弃置一张基本牌，%dest 需弃置一张装备牌，否则你对其造成1点伤害",
   ["#jianan__hs__xiaoguo-discard"] = "骁果：你需弃置一张装备牌，否则 %src 对你造成1点伤害",
 

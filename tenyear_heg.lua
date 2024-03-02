@@ -286,8 +286,8 @@ local chengshang = fk.CreateTriggerSkill{
   anim_type = "drawcard",
   events = {fk.CardUseFinished},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self) and player.phase == Player.Play and data.tos and data.card.type ~= Card.TypeEquip and -- FIXME
-      table.find(TargetGroup:getRealTargets(data.tos), function(id) return not H.compareKingdomWith(Fk:currentRoom():getPlayerById(id), Self) end) 
+    return target == player and player:hasSkill(self) and player.phase == Player.Play and data.tos and
+      table.find(TargetGroup:getRealTargets(data.tos), function(id) return not H.compareKingdomWith(player.room:getPlayerById(id), player) end)
       and not data.damageDealt and data.card.suit ~= Card.NoSuit and player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
   end,
   on_cost = function(self, event, target, player, data)
@@ -296,16 +296,9 @@ local chengshang = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    local cards = room:getCardsFromPileByRule(".|"..tostring(data.card.number).."|"..data.card:getSuitString())
+    local cards = room:getCardsFromPileByRule(".|"..data.card:getNumberStr().."|"..data.card:getSuitString(), 9)
     if #cards > 0 then
-      room:moveCards({
-        ids = cards,
-        to = player.id,
-        toArea = Card.PlayerHand,
-        moveReason = fk.ReasonJustMove,
-        proposer = player.id,
-        skillName = self.name,
-      })
+      room:moveCardTo(cards, Card.PlayerHand, player, fk.ReasonJustMove, self.name, nil, false, player.id)
     else
       player:setSkillUseHistory(self.name, 0, Player.HistoryPhase)
     end
@@ -2187,7 +2180,7 @@ Fk:loadTranslationTable{
 
   ["#ty_heg__gongxiu_draw-choose"] = "共修：选择至多体力上限数名角色各摸一张牌",
   ["#ty_heg__gongxiu_discard-choose"] = "共修：选择至多体力上限数名角色各弃置一张牌",
-  
+
   ["#ty_heg__jinghe"] = "经合：展示至多四张牌名各不同的手牌，令等量的角色获得技能",
   ["#ty_heg__jinghe-choice"] = "经合：选择你要获得的技能",
   ["ty_heg__leiji"] = "雷击",
