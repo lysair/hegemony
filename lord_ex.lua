@@ -1651,24 +1651,37 @@ local tongling = fk.CreateTriggerSkill{
   anim_type = "offensive",
   events = {fk.Damage},
   can_trigger = function (self, event, target, player, data)
-      return player == target and player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and not data.to.dead
-        and not H.compareKingdomWith(player, data.to) and player:hasSkill(self) and player.phase == Player.Play
+    return player == target and player:hasSkill(self) and player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and not data.to.dead
+      and not H.compareKingdomWith(player, data.to) and player.phase == Player.Play
   end,
   on_use = function (self, event, target, player, data)
     local room = player.room
     local targets = table.map(table.filter(room.alive_players, function(p)
       return H.compareKingdomWith(p, player) end), Util.IdMapper)
     if #targets > 0 then
-      local to = room:askForChoosePlayers(player, targets, 1, 1, "#ld__tongling-choose", self.name, true)
+      local victim = data.to.id
+      local to = room:askForChoosePlayers(player, targets, 1, 1, "#ld__tongling-choose::" .. victim, self.name, true)
       if #to > 0 then
-        local use = room:askForUseCard(room:getPlayerById(to[1]), "", "^(jink,nullification)|.|.|hand", "#ld__tongling-use", true, {must_targets = {data.to.id}})
+        local cardNames = {}
+        local selfCards = {"peach", "analeptic", "ex_nihilo"} -- FIXME: how to tell ex_niholo from AOE and AG?
+        for _, id in ipairs(player:getCardIds(Player.Hand)) do
+          local card = Fk:getCardById(id)
+          if card.skill:modTargetFilter(victim, {}, player.id, card, true) and not table.contains(selfCards, card.name) and card.type ~= Card.TypeEquip then -- FIXME
+            table.insert(cardNames, card.name)
+          end
+        end
+        local prompt = data.card and "#ld__tongling_card-use:" .. player.id .. ":" .. victim .. ":" .. data.card:toLogString() or "#ld__tongling_nocard-use:" .. player.id .. ":" .. data.to.id
+        local use = room:askForUseCard(room:getPlayerById(to[1]), "", table.concat(cardNames, ","), prompt, true, {exclusive_targets = {victim}, bypass_times = true })
         if use then
-          room:setPlayerMark(player, "ld__tongling_delay-phase", 1)
-          room:setPlayerMark(player, "ld__tongling_to-phase", to[1])
-          room:setPlayerMark(player, "ld__tongling_damaged-phase", data.to.id)
-          room:setPlayerMark(player, "ld__tongling_card-phase", use.card.id)
+          use.extra_data = use.extra_data or {}
+          use.extra_data.ld__tonglingUser = player.id
+          if data.card then
+            use.extra_data.ld__tonglingCard = data.card
+          end
+          use.extra_data.ld__tonglingTo = victim
+          use.extra_data.ld__tonglingFrom = to[1]
+          use.extraUse = true
           room:useCard(use)
-          room:delay(1000)
         end
       end
     end
@@ -1678,27 +1691,27 @@ local tongling = fk.CreateTriggerSkill{
 local tongling_delay = fk.CreateTriggerSkill{
   name = "#ld__tongling_delay",
   anim_type = "offensive",
-  events = {fk.Damage, fk.CardUseFinished},
+  mute = true,
+  events = {fk.CardUseFinished},
   can_trigger = function (self, event, target, player, data)
-    return player:hasSkill(self) and player:getMark("ld__tongling_delay-phase") > 0
+    return (data.extra_data or {}).ld__tonglingUser == player.id
   end,
   on_cost = Util.TrueFunc,
   on_use = function (self, event, target, player, data)
     local room = player.room
-    if event == fk.Damage then
-      room:addPlayerMark(player, "ld__tongling_damage-phase", 1)
-    end
-    if event == fk.CardUseFinished then
-      if player:getMark("ld__tongling_damage-phase") > 0 then
-        if room:getPlayerById(player:getMark("ld__tongling_to-phase")) ~= player then
-          player:drawCards(2, self.name)
-        end
-        room:getPlayerById(player:getMark("ld__tongling_to-phase")):drawCards(2, self.name)
-      else
-        room:obtainCard(room:getPlayerById(player:getMark("ld__tongling_damaged-phase")), 
-          Fk:getCardById(player:getMark("ld__tongling_card-phase")), false, fk.ReasonGive)
+    if data.damageDealt then
+      local other = room:getPlayerById(data.extra_data.ld__tonglingFrom)
+      if other ~= player then
+        player:drawCards(2, self.name)
       end
-      room:setPlayerMark(player, "ld__tongling_delay-phase", 0)
+      other:drawCards(2, self.name)
+    else
+      local card = data.extra_data.ld__tonglingCard
+      if not card then return end
+      if U.hasFullRealCard(room, card) then
+        room:obtainCard(room:getPlayerById(data.extra_data.ld__tonglingTo),
+          card, false, fk.ReasonJustMove)
+      end
     end
   end,
 }
@@ -1745,20 +1758,19 @@ Fk:loadTranslationTable{
 
   ["ld__tongling"] = "通令",
   ["#ld__tongling_delay"] = "通令",
-  [":ld__tongling"] = "每阶段限一次，当你于出牌阶段内对其它势力角色造成伤害后，你可令一名与你势力相同的角色对其使用一张牌，然后若此牌：造成伤害，你与其各摸两张牌；未造成伤害，其获得与你势力相同角色使用的牌。",
+  [":ld__tongling"] = "每阶段限一次，当你于出牌阶段内对其它势力角色造成伤害后，你可令一名与你势力相同的角色对其使用一张牌，然后若此牌：造成伤害，你与其各摸两张牌；未造成伤害，其获得你对其造成伤害的牌。",
 
-  ["#ld__tongling-choose"] = "通令：选择一名与你势力相同的角色，其可以对受伤角色使用一张牌。",
-  ["#ld__tongling-use"] = "通令：你可以对受伤角色使用一张牌，若此牌造成伤害，你与彭羕各摸两张牌，若此牌未造成伤害，受伤角色获得之",
+  ["#ld__tongling-choose"] = "通令：选择一名与你势力相同的角色，其可以对%dest使用一张牌",
+  ["#ld__tongling_card-use"] = "通令：你可对 %dest 使用一张牌，若此牌造成伤害，你与 %src 各摸两张牌，若此牌未造成伤害，受伤角色获得%arg",
+  ["#ld__tongling_nocard-use"] = "通令：你可对 %dest 使用一张牌，若此牌造成伤害，你与 %src 各摸两张牌",
 
   ["ld__jinxian"] = "近陷",
   [":ld__jinxian"] = "当你明置此武将牌后，你令所有你计算距离不大于1的角色执行：若其武将牌均明置，暗置一张武将牌（若为你则改为此阶段结束时暗置）；若其武将牌仅明置一张或均暗置，其弃置两张牌。",
 
   ["$ld__tongling1"] = "孝直溢美之言，特以此小利报之，还望笑纳。",
   ["$ld__tongling2"] = "孟起，莫非甘心为他人座下之客。",
-
   ["$ld__jinxian1"] = "如此荒辈之徒为主，成何用也。",
   ["$ld__jinxian2"] = "公既如此，恕在下诚难留之。",
-
   ["~ld__pengyang"] = "人言我心大志寡，难可保安，果然如此，唉……",
 }
 

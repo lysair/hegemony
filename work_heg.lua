@@ -63,16 +63,12 @@ local choulue = fk.CreateTriggerSkill{
     if event == fk.Damaged then
       return player == target and player:hasSkill(self) and player:getMark("@!yinyangfish") < player.maxHp
     else
-      return player:hasSkill(self) and H.compareKingdomWith(player, target) and player:getMark("choulue_virtual") == 0 and #AimGroup:getAllTargets(data.tos) == 1
-        and data.card.type == Card.TypeTrick and data.card.sub_type ~= Card.SubtypeDelayedTrick and player:getMark("@!yinyangfish") ~= 0
+      return player:hasSkill(self) and H.compareKingdomWith(player, target) and #AimGroup:getAllTargets(data.tos) == 1
+        and data.card:isCommonTrick() and player:getMark("@!yinyangfish") ~= 0
     end
   end,
   on_cost = function (self, event, target, player, data)
-    if event == fk.Damaged then
-      return player.room:askForSkillInvoke(player, self.name, nil, "#wk_heg__choulue-getfish")
-    else
-      return player.room:askForSkillInvoke(player, self.name, nil, "#wk_heg__choulue-twice")
-    end
+    return player.room:askForSkillInvoke(player, self.name, nil, event == fk.Damaged and "#wk_heg__choulue-getfish" or "#wk_heg__choulue-twice")
   end,
   on_use = function (self, event, target, player, data)
     local room = player.room
@@ -83,26 +79,8 @@ local choulue = fk.CreateTriggerSkill{
       if player:getMark("@!yinyangfish") == 0 then
         player:loseFakeSkill("yinyangfish_skill&")
       end
-      room:setPlayerMark(player, "choulue_tos", AimGroup:getAllTargets(data.tos))
+      data.additionalEffect = 1
     end
-  end,
-
-  refresh_events = {fk.CardUseFinished},
-  can_refresh = function(self, event, target, player, data)
-    if H.compareKingdomWith(player, target) and player:hasSkill(self) then
-      return player:getMark("choulue_tos") ~= 0
-    end
-  end,
-  on_refresh = function(self, event, target, player, data)
-    local room = player.room
-    local targets = player:getMark("choulue_tos")
-    room:setPlayerMark(player, "choulue_tos", 0)
-    local tos = table.simpleClone(targets)
-    if player.dead then return end
-    room:sortPlayersByAction(tos)
-    room:setPlayerMark(player, "choulue_virtual", 1)
-    room:useVirtualCard(data.card.name, nil, target, table.map(tos, function(id) return room:getPlayerById(id) end), self.name, true)
-    room:setPlayerMark(player, "choulue_virtual", 0)
   end,
 }
 
@@ -127,7 +105,7 @@ Fk:loadTranslationTable{
   ["$wk_heg__poyuan2"] = "声若霹雳，人马俱摧。",
   ["$wk_heg__choulue1"] = "筹画所料，无有不中。",
   ["$wk_heg__choulue2"] = "献策破敌，所谋皆应。",
-  ["~wk_heg__liuye"] = "功名富贵，到头来，不过黄土一抔...",
+  ["~wk_heg__liuye"] = "功名富贵，到头来，不过黄土一抔…",
 }
 
 local dongyun = General(extension, "wk_heg__dongyun", "shu", 3, 3, General.Male)
