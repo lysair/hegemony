@@ -84,7 +84,7 @@ area (including judgement area), then execute rewards or punishments.
 Rewards and punishments:
 
 1. **The player who has confirmed his nationality and kills the same
-   nationality must discard all hand cards and equipped cards**;
+  nationality must discard all hand cards and equipped cards**;
 2. **The player who has confirmed his nationality and kills the different
   nationality draws X cards** (X = # of that nationality, including just
   killed player);
@@ -264,6 +264,8 @@ only be used/played as Slash or Dodge, and can not use for healing.
 ]==]
 
 return {
+  ["hegemony"] = "Hegemony",
+
   ["hegemony_standard"] = "Hegemony Standard",
   ["hs"] = "H. Std.",
 

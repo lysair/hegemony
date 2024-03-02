@@ -362,6 +362,7 @@ H.askCommandTo = function(from, to, skill_name, isMust)
     from = from.id,
     to = {to.id},
     arg = skill_name,
+    toast = true,
   }
   local ret = "<b><font color='#0C8F0C'>" .. Fk:translate(from.general)
   if from.deputyGeneral and from.deputyGeneral ~= "" then
@@ -372,7 +373,6 @@ H.askCommandTo = function(from, to, skill_name, isMust)
     ret = ret .. "/" .. Fk:translate(to.deputyGeneral)
   end
   ret = ret .. "</b></font> " .. " <b>" .. Fk:translate("start_command") .. "</b>"
-  room:doBroadcastNotify("ShowToast", ret)
   room:doBroadcastNotify("ServerMessage", ret)
   local index = H.startCommand(from, skill_name)
   local invoke = H.doCommand(to, skill_name, index, from, isMust)
@@ -390,7 +390,7 @@ end
 ---@return integer @ 选择的军令序号
 H.startCommand = function(from, skill_name)
   local allcommands = {"command1", "command2", "command3", "command4", "command5", "command6"}
-  local commands = table.random(allcommands, 2)
+  local commands = table.random(allcommands, 2) ---@type string[]
 
   local room = from.room
   local choice = room:askForChoice(from, commands, "start_command", nil, true)
@@ -399,13 +399,13 @@ H.startCommand = function(from, skill_name)
     type = "#CommandChoice",
     from = from.id,
     arg = ":"+choice,
+    toast = true,
   }
   local ret = "<b><font color='#0C8F0C'>" .. Fk:translate(from.general)
   if from.deputyGeneral and from.deputyGeneral ~= "" then
     ret = ret .. "/" .. Fk:translate(from.deputyGeneral)
   end
   ret = ret .. "</b></font> " .. Fk:translate("chose") .. " <b>" .. Fk:translate(":"+choice) .. "</b>"
-  room:doBroadcastNotify("ShowToast", ret)
   room:doBroadcastNotify("ServerMessage", ret)
 
   return table.indexOf(allcommands, choice)
@@ -436,13 +436,13 @@ H.doCommand = function(to, skill_name, index, from, isMust)
     type = "#CommandChoice",
     from = to.id,
     arg = result,
+    toast = true,
   }
   local ret = "<b><font color='#CC3131'>" .. Fk:translate(to.general)
   if to.deputyGeneral and to.deputyGeneral ~= "" then
     ret = ret .. "/" .. Fk:translate(to.deputyGeneral)
   end
   ret = ret .. "</b></font> " .. Fk:translate("chose") .. " <b>" .. Fk:translate(result) .. "</b>"
-  room:doBroadcastNotify("ShowToast",  ret)
   room:doBroadcastNotify("ServerMessage", ret)
 
   if choice == "Cancel" then return false end
@@ -565,6 +565,7 @@ local hegNullificationSkill = fk.CreateActiveSkill{
             from = from.id,
             arg = to.kingdom,
             card = Card:getIdList(use.card),
+            toast = true,
           }
           use.extra_data = use.extra_data or {}
           use.extra_data.hegN_all = true
@@ -575,9 +576,9 @@ local hegNullificationSkill = fk.CreateActiveSkill{
             from = from.id,
             to = {to.id},
             card = Card:getIdList(use.card),
+            toast = true,
           }
         end
-        room:doBroadcastNotify("ShowToast", ret .. arg)
       else
         room:delay(1200)
       end

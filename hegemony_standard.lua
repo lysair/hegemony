@@ -2812,23 +2812,22 @@ local huoshui = fk.CreateTriggerSkill{ -- FIXME
   frequency = Skill.Compulsory,
   events = {fk.TurnStart, fk.GeneralRevealed, fk.EventAcquireSkill, fk.EventLoseSkill, fk.Deathed, fk.TargetSpecified},
   can_trigger = function(self, event, target, player, data)
-    if target ~= player then return false end
+    if target ~= player or player.room.current ~= player then return false end
     if event == fk.TurnStart then
-      return player:hasSkill(self) 
+      return player:hasSkill(self)
     end
-    if player.phase == Player.NotActive then return false end
     if event == fk.EventAcquireSkill or event == fk.EventLoseSkill then
-      return data == self 
+      return data == self
     elseif event == fk.GeneralRevealed then
       if player:hasSkill(self) then
         for _, v in pairs(data) do
-          if v == "hs__zoushi" then return true end
+          if table.contains(Fk.generals[v]:getSkillNameList(), self.name) then return true end
         end
       end
     elseif event == fk.TargetSpecified then
       return player:hasSkill(self) and data.firstTarget and (data.card.trueName == "slash" or data.card.trueName == "archery_attack")
     else
-      return player:hasSkill(self, true, true) 
+      return player:hasSkill(self, true, true)
     end
   end,
   on_use = function(self, event, target, player, data)
@@ -2837,7 +2836,7 @@ local huoshui = fk.CreateTriggerSkill{ -- FIXME
       local targets = {}
       for _, p in ipairs(room:getOtherPlayers(player)) do
         room:setPlayerMark(p, "@@huoshui-turn", 1)
-        local record = type(p:getMark(MarkEnum.RevealProhibited .. "-turn")) == "table" and p:getMark(MarkEnum.RevealProhibited .. "-turn") or {}
+        local record = U.getMark(p, MarkEnum.RevealProhibited .. "-turn")
         table.insertTable(record, {"m", "d"})
         room:setPlayerMark(p, MarkEnum.RevealProhibited .. "-turn", record)
         table.insert(targets, p.id)
@@ -2854,7 +2853,7 @@ local huoshui = fk.CreateTriggerSkill{ -- FIXME
     else
       for _, p in ipairs(room:getOtherPlayers(player)) do
         room:setPlayerMark(p, "@@huoshui-turn", 0)
-        local record = type(p:getMark(MarkEnum.RevealProhibited .. "-turn")) == "table" and p:getMark(MarkEnum.RevealProhibited .. "-turn") or {}
+        local record = U.getMark(p, MarkEnum.RevealProhibited .. "-turn")
         table.removeOne(record, "m")
         table.removeOne(record, "d")
         if #record == 0 then record = 0 end
@@ -3061,6 +3060,7 @@ local yinyangfishMax = fk.CreateTriggerSkill{
     local room = player.room
     removeYinyangfish(room, player)
     room:addPlayerMark(target, MarkEnum.AddMaxCardsInTurn, 2)
+    room:broadcastProperty(player, "MaxCards")
   end,
 }
 yinyangfishSkill:addRelatedSkill(yinyangfishMax)
@@ -3132,7 +3132,7 @@ Fk:loadTranslationTable{
 }
 
 -- 野心家标记
-local removeWild = function(room, player) 
+local removeWild = function(room, player)
   room:removePlayerMark(player, "@!wild")
   if player:getMark("@!wild") == 0 then
     player:loseFakeSkill("wild_draw&")

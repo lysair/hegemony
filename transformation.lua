@@ -1194,7 +1194,7 @@ local jubao_move = fk.CreateTriggerSkill{
   can_trigger = function(self, event, target, player, data)
     if not player:hasSkill(self) or not (player:getEquipment(Card.SubtypeTreasure)) then return false end
     for _, move in ipairs(data) do
-      if move.from == player.id and move.moveReason == fk.ReasonPrey and move.proposer ~= player then
+      if move.from == player.id and move.moveReason == fk.ReasonPrey and move.to ~= move.from then
         for _, info in ipairs(move.moveInfo) do
           if info.fromArea == Card.PlayerEquip and table.contains({Card.SubtypeTreasure}, Fk:getCardById(info.cardId).sub_type) then
             return true
@@ -1206,7 +1206,7 @@ local jubao_move = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     local ids = {}
     for _, move in ipairs(data) do
-      if move.from == player.id and move.moveReason == fk.ReasonPrey and move.proposer ~= player then
+      if move.from == player.id and move.moveReason == fk.ReasonPrey and move.to ~= move.from then
         local move_info = {}
         for _, info in ipairs(move.moveInfo) do
           local id = info.cardId
@@ -1287,6 +1287,7 @@ Fk:loadTranslationTable{
   ["$ld__lordsunquan_duoshi1"] = "广施方略，以观其变。",
   ["$ld__lordsunquan_duoshi2"] = "莫慌，观察好局势再做行动。",
 
+  ["#jubao_move"] = "聚宝",
   ["#ld__jiahe_damaged"] = "缘江烽火图：将一张“烽火”置入弃牌堆",
   ["ld__jiahe_other&"] = "烽火图",
   [":ld__jiahe_other&"] = "①出牌阶段限一次，你可以将一张装备牌置于“缘江烽火图”上，称为“烽火”。<br>" ..
@@ -1295,6 +1296,7 @@ Fk:loadTranslationTable{
   ["#fenghuotu"] = "缘江烽火图",
   ["#ld__jiahe_other"] = "缘江烽火图：将一张装备牌置于%src的“缘江烽火图”上，称为“烽火”",
   ["lord_fenghuo"] = "烽火",
+
   ["$fenghuotu1"] = "保卫国家，人人有责。",
   ["$fenghuotu2"] = "连绵的烽火，就是对敌人最好的震慑！",
   ["$fenghuotu3"] = "有敌来犯，速速御敌。",
@@ -1304,7 +1306,7 @@ Fk:loadTranslationTable{
   ["ld__lordsunquan_haoshi"] = "好施",
   ["ld__lordsunquan_shelie"] = "涉猎",
   ["ld__lordsunquan_duoshi"] = "度势",
-  
+
   ["#lianzi"] = "敛资：你可以弃置一张手牌，然后亮出牌堆顶%arg张牌，获得其中与你弃置的牌类型相同的牌",
 
   [":ld__lordsunquan_yingzi"] = "锁定技，摸牌阶段，你多摸一张牌。你的手牌上限为你的体力上限。 ",
@@ -1379,7 +1381,7 @@ Fk:loadTranslationTable{
   ["luminous_pearl"] = "定澜夜明珠",
   [":luminous_pearl"] = "装备牌·宝物<br/><b>宝物技能</b>：锁定技，若你没有〖制衡〗，你视为拥有〖制衡〗；若你有〖制衡〗，取消〖制衡〗的数量限制。",
   ["luminous_pearl_skill"] = "制衡",
-  [":luminous_pearl_skill"] = "出牌阶段限一次，你可弃置至多X张牌（X为你的体力上限），然后你摸等量的牌。<font color='grey'>此为【制衡（定澜夜明珠）】</font>",
+  [":luminous_pearl_skill"] = "出牌阶段限一次，你可弃置至多X张牌（X为你的体力上限），然后你摸等量的牌。<font color='grey'><small>此为【制衡（定澜夜明珠）】</small></font>",
 }
 
 return {
