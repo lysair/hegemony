@@ -1391,38 +1391,32 @@ local danshou = fk.CreateTriggerSkill{
   events = {fk.TargetConfirmed, fk.TurnEnd},
   anim_type = "defensive",
   can_trigger = function(self, event, target, player, data)
+    if not player:hasSkill(self) then return false end
     if event == fk.TargetConfirmed then
-      if not player:hasSkill(self) then return false end
-      if target == player and data.card.type ~= Card.TypeEquip and data.from ~= player.id then
-        local n = 0
+      if target == player and data.from ~= player.id then
         local events = player.room.logic:getEventsOfScope(GameEvent.UseCard, 999, function(e)
           local use = e.data[1]
-          if use.card.type ~= Card.TypeEquip and table.contains(TargetGroup:getRealTargets(use.tos), player.id) then
-            n = n + 1
-          end
+          return table.contains(TargetGroup:getRealTargets(use.tos), player.id)
         end, Player.HistoryTurn)
-        self.cost_data = n
-        return player:getHandcardNum() > n
-      end
-    else
-      if not player:hasSkill(self) then return false end
-      return #player.room.logic:getEventsOfScope(GameEvent.ChangeHp, 1, function(e)
-        local damage = e.data[5]
-        if damage and damage.to == player then
+        local n = #events
+        if player:getHandcardNum() > n then
+          self.cost_data = n
           return true
         end
+      end
+    else
+      return #player.room.logic:getActualDamageEvents(1, function(e)
+        return e.data[1].to == player
       end, Player.HistoryTurn) > 0
     end
   end,
   on_cost = function(self, event, target, player, data)
     if event == fk.TargetConfirmed then
       local n = player:getHandcardNum() - self.cost_data
-      local cards = player.room:askForDiscard(player, n, n, true, self.name, true, ".", "#wk_heg__danshou-damage::"..target.id..":"..n, true)
+      local cards = player.room:askForDiscard(player, n, n, true, self.name, true, ".", "#wk_heg__danshou-damage::"..data.from..":"..n, true)
       if #cards == n then
         self.cost_data = cards
         return true
-      else
-        return false
       end
     else
       return player.room:askForSkillInvoke(player, self.name, nil, "#wk_heg__danshou")
@@ -1452,9 +1446,9 @@ zhuran:addSkill(danshou)
 Fk:loadTranslationTable{
   ["wk_heg__zhuran"] = "朱然",
   ["wk_heg__danshou"] = "胆守",
-  [":wk_heg__danshou"] = "当你成为其他角色使用牌的目标后，你可将手牌弃至X张，对其造成1点伤害（X为你本回合成为过牌目标的次数）；一名角色的回合结束时，若你此回合内受到过伤害，你可摸一张牌。",
+  [":wk_heg__danshou"] = "当你成为其他角色使用牌的目标后，你可将手牌弃置至X张，对其造成1点伤害（X为你本回合成为过牌目标的次数）；一名角色的回合结束时，若你此回合内受到过伤害，你可摸一张牌。",
 
   ["#wk_heg__danshou-damage"] = "胆守：你可以弃置 %arg 张牌，对 %dest 造成1点伤害",
-  ["#wk_heg__danshou"] = "胆守：是否摸一张牌。"
+  ["#wk_heg__danshou"] = "胆守：是否摸一张牌"
 }
 return extension

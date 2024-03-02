@@ -544,7 +544,7 @@ local jurui = fk.CreateTriggerSkill{
   name = "fk_heg__jurui",
   events = {fk.Damage},
   can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self) and not player:isKongcheng() and not target.dead and player:usedSkillTimes(self.name, Player.HistoryTurn) < 1
+    return player:hasSkill(self) and target == player and data.to and not player:isKongcheng() and not data.to.dead and player:usedSkillTimes(self.name, Player.HistoryTurn) < 1
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
@@ -553,23 +553,22 @@ local jurui = fk.CreateTriggerSkill{
     if Fk:getCardById(cardid).trueName ~= "slash" then
       room:throwCard({cardid}, self.name, player, data.to)
       local choices = {}
-      if player.hp < player.maxHp then
+      if player:isWounded() then
         table.insert(choices, "fk_heg_jurui_recover")
       end
       if player:getHandcardNum() < player.maxHp then
         table.insert(choices, "fk_heg_jurui_draw")
       end
-      if #choices ~= 0 then 
-        local choice = room:askForChoice(player, choices, self.name)
-        if choice == "fk_heg_jurui_recover" then
-          player.room:recover{
-            who = player,
-            num = 1,
-            skillName = self.name,
-          }
-        else
-          player:drawCards(player.maxHp - player:getHandcardNum(), self.name)
-        end
+      if #choices == 0 then return end
+      local choice = room:askForChoice(player, choices, self.name)
+      if choice == "fk_heg_jurui_recover" then
+        room:recover{
+          who = player,
+          num = 1,
+          skillName = self.name,
+        }
+      else
+        player:drawCards(player.maxHp - player:getHandcardNum(), self.name)
       end
     else
       room:throwCard({cardid}, self.name, player, data.to)
@@ -582,6 +581,9 @@ Fk:loadTranslationTable{
   ['fk_heg__zhuhuan'] = '朱桓',
   ['fk_heg__jurui'] = '拒锐',
   [':fk_heg__jurui'] = '每回合限一次，当你造成伤害后，你可令受伤角色弃置你一张手牌，若此牌不为【杀】，你可回复1点体力或将手牌摸至体力上限。',
+
+  ["fk_heg_jurui_recover"] = "回复1点体力",
+  ["fk_heg_jurui_draw"] = "将手牌摸至体力上限",
 }
 
 local guyong = General(extension, "fk_heg__guyong", "wu", 3)
