@@ -575,12 +575,12 @@ local function DoElectedChange(room, player, skillName)
     return Fk.generals[g].kingdom == player.kingdom
   end, 1)
   local general = room:askForGeneral(player, generals, 1, true) ---@type string
-  room:doBroadcastNotify("ShowToast", Fk:translate(player.general) .. '/' .. Fk:translate(player.deputyGeneral) .. " " .. Fk:translate("#Elected") .. " " .. Fk:translate(general))
   room:sendLog{
-    type = "#ElectedChangeLog",
+    type = "#ElectedChange",
     from = player.id,
     arg = general,
     arg2 = skillName,
+    toast = true,
   }
   local targets = table.map(table.filter(room.alive_players, function(p) return H.compareKingdomWith(p, player) end), Util.IdMapper)
   room:sortPlayersByAction(targets)
@@ -601,8 +601,7 @@ end
 
 Fk:loadTranslationTable{
   ["ElectedChange"] = "推举",
-  ["#Elected"] = "推举了",
-  ["#ElectedChangeLog"] = "%from 由于 “%arg2”，推举了 %arg",
+  ["#ElectedChange"] = "%from 由于 “%arg2”，推举了 %arg",
   ["#elected_change"] = "将%arg作为副将",
   ["#elected_change-ask"] = "%src 推举了 %arg，你可 选用 为你的副将",
 }

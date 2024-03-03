@@ -687,10 +687,10 @@ local qiuan = fk.CreateTriggerSkill{
   name = "ld__qiuan",
   anim_type = "masochism",
   events = {fk.DamageInflicted},
+  derived_piles = "ld__mengda_letter",
   can_trigger = function(self, event, target, player, data)
-    local room = target.room
-    return target == player and player:hasSkill(self.name) and data.card and #player:getPile("ld__mengda_letter") == 0 and 
-      table.every(data.card:isVirtual() and data.card.subcards or {data.card.id}, function(id) return room:getCardArea(id) == Card.Processing end)
+    return target == player and player:hasSkill(self.name) and data.card
+      and #player:getPile("ld__mengda_letter") == 0 and U.hasFullRealCard(player.room, data.card)
   end,
   on_use = function(self, event, target, player, data)
     player:addToPile("ld__mengda_letter", data.card, true, self.name)
@@ -2102,7 +2102,7 @@ local shilus = fk.CreateTriggerSkill{
   end,
   on_refresh = function(self, event, target, player, data)
     local room = player.room
-    room:returnToGeneralPile(U.getMark(player, "@&massacre"))
+    room:returnToGeneralPile(U.getMark(player, "@&massacre"), "bottom")
     room:setPlayerMark(player, "@&massacre", 0)
   end,
 }
@@ -2160,7 +2160,7 @@ local xiongnve = fk.CreateTriggerSkill{
     else
       room:notifySkillInvoked(player, self.name, "defensive")
     end
-    room:returnToGeneralPile(self.cost_data[1])
+    room:returnToGeneralPile(self.cost_data[1], "bottom")
     local generals = player:getMark("@&massacre")
     if generals == 0 then generals = {} end
     for _, name in ipairs(self.cost_data[1]) do

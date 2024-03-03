@@ -190,20 +190,22 @@ local hongyuanTrigger = fk.CreateTriggerSkill{
   anim_type = "support",
   mute = true,
   events = {fk.BeforeDrawCard},
+  main_skill = hongyuan,
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(self) and data.skillName == "alliance&" and table.find(player.room.alive_players, function(p) return H.compareKingdomWith(p, player) and p ~= player end)
   end,
   on_cost = function(self, event, target, player, data)
     local room = player.room
     local targets = table.map(table.filter(room.alive_players, function(p) return H.compareKingdomWith(p, player) and p ~= player end), Util.IdMapper)
-    local target = room:askForChoosePlayers(player, targets, 1, 1, "#os_heg__hongyuan-ask:::" .. data.num, self.name, true)
+    target = room:askForChoosePlayers(player, targets, 1, 1, "#os_heg__hongyuan-ask:::" .. data.num, self.name, true)
     if #target > 0 then
       self.cost_data = target[1]
+      player:revealBySkillName("os_heg__hongyuan") -- FIXME
       return true
     end
   end,
   on_use = function(self, event, target, player, data)
-    local target = self.cost_data
+    target = self.cost_data
     local room = player.room
     room:notifySkillInvoked(player, "os_heg__hongyuan", "support")
     player:broadcastSkillInvoke("os_heg__hongyuan")
@@ -288,7 +290,7 @@ Fk:loadTranslationTable{
   ["os_heg__huanshi"] = "缓释",
   [":os_heg__huanshi"] = "当与你势力相同的角色的判定牌生效前，你可打出一张牌代替之。",
   ["os_heg__hongyuan"] = "弘援",
-  [":os_heg__hongyuan"] = "当你因合纵摸牌时，你可改为令与你势力相同的一名其他角色摸牌。出牌阶段限一次，你可令一张无合纵标记的手牌于本回合视为有合纵标记。",
+  [":os_heg__hongyuan"] = "①当你因合纵摸牌时，你可改为令与你势力相同的一名其他角色摸牌。②出牌阶段限一次，你可令一张无合纵标记的手牌于本回合视为有合纵标记。",
   ["os_heg__mingzhe"] = "明哲",
   [":os_heg__mingzhe"] = "当你于回合外{因使用、打出而失去一张红色牌或失去装备区里的红色牌}后，你可摸一张牌。",
 

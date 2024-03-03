@@ -1180,7 +1180,7 @@ local jubao = fk.CreateTriggerSkill{
         else
           local card = room:askForCardChosen(player, p, "he", self.name)
           room:obtainCard(player.id, card, false, fk.ReasonPrey)
-        end  
+        end
       end
     end
   end,
@@ -1191,10 +1191,12 @@ local jubao_move = fk.CreateTriggerSkill{
   events = {fk.BeforeCardsMove},
   frequency = Skill.Compulsory,
   anim_type = "defensive",
+  -- main_skill = "jubao",
+  mute = true,
   can_trigger = function(self, event, target, player, data)
     if not player:hasSkill(self) or not (player:getEquipment(Card.SubtypeTreasure)) then return false end
     for _, move in ipairs(data) do
-      if move.from == player.id and move.moveReason == fk.ReasonPrey and move.to ~= move.from then
+      if move.from == player.id and move.to ~= move.from and move.toArea == Card.PlayerHand then
         for _, info in ipairs(move.moveInfo) do
           if info.fromArea == Card.PlayerEquip and table.contains({Card.SubtypeTreasure}, Fk:getCardById(info.cardId).sub_type) then
             return true
@@ -1205,8 +1207,10 @@ local jubao_move = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     local ids = {}
+    player.room:notifySkillInvoked(player, "jubao", "defensive")
+    player:broadcastSkillInvoke("jubao")
     for _, move in ipairs(data) do
-      if move.from == player.id and move.moveReason == fk.ReasonPrey and move.to ~= move.from then
+      if move.from == player.id and move.to ~= move.from and move.toArea == Card.PlayerHand then
         local move_info = {}
         for _, info in ipairs(move.moveInfo) do
           local id = info.cardId

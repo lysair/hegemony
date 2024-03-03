@@ -265,6 +265,7 @@ end
 
 ---@class ArraySummonSkill: ActiveSkillSpec
 
+--- 阵法召唤技
 ---@param spec ArraySummonSkillSpec
 ---@return ArraySummonSkill
 H.CreateArraySummonSkill = function(spec)
@@ -274,7 +275,7 @@ H.CreateArraySummonSkill = function(spec)
   local skill = H.ArraySummonSkill:new(spec.name)
   readActiveSpecToSkill(skill, spec)
 
-  skill.arrayType = spec.array_type
+  skill.arrayType = spec.array_type -- 围攻 siege，队列 formation
 
   skill.canUse = function(curSkill, player, card)
     local room = Fk:currentRoom()
@@ -286,7 +287,7 @@ H.CreateArraySummonSkill = function(spec)
     if pattern == "formation" then -- 队列
       local p = player
       while true do
-        p = p:getNextAlive()
+        p = p:getNextAlive() -- 下家
         if p == player then break end
         if not H.compareKingdomWith(p, player) then
           if p.kingdom == "unknown" then return true
@@ -294,7 +295,7 @@ H.CreateArraySummonSkill = function(spec)
         end
       end
       while true do
-        p = p:getLastAlive()
+        p = p:getLastAlive() -- 上家
         if p == player then break end
         if not H.compareKingdomWith(p, player) then
           if p.kingdom == "unknown" then return true
@@ -556,10 +557,7 @@ local hegNullificationSkill = fk.CreateActiveSkill{
       if to.kingdom ~= "unknown" then
         local choices = {"hegN-single::" .. to.id, "hegN-all:::" .. to.kingdom}
         local choice = room:askForChoice(from, choices, self.name, "#hegN-ask")
-        local ret = Fk:translate(from.general) .. '/' .. Fk:translate(from.deputyGeneral) .. Fk:translate("chose") .. Fk:translate("hegN_toast")
-        local arg
         if choice:startsWith("hegN-all") then
-          arg = Fk:translate(to.kingdom)
           room:sendLog{
             type = "#HegNullificationAll",
             from = from.id,
@@ -570,7 +568,6 @@ local hegNullificationSkill = fk.CreateActiveSkill{
           use.extra_data = use.extra_data or {}
           use.extra_data.hegN_all = true
         else
-          arg = Fk:translate(to.general) .. '/' .. Fk:translate(to.deputyGeneral)
           room:sendLog{
             type = "#HegNullificationSingle",
             from = from.id,
