@@ -14,6 +14,9 @@ guohuai:addCompanions { "hs__zhanghe", "hs__xiahouyuan" }
 Fk:loadTranslationTable{
   ["fk_heg__guohuai"] = "郭淮",
   ["fk_heg__jingce"] = "精策",
+  ["#fk_heg__guohuai"] = "垂问秦雍",
+  ["illustrator:fk_heg__guohuai"] = "张帅", -- 御蜀屏障
+
   [":fk_heg__jingce"] = "出牌阶段结束时，若你本回合已使用的牌数大于或等于你的体力值，你可以摸两张牌。",
 }
 
@@ -245,6 +248,10 @@ zhouxuan:addSkill(wumei)
 zhouxuan:addSkill(zhanmeng)
 Fk:loadTranslationTable{
   ["fk_heg__zhouxuan"] = "周宣",
+  ["#fk_heg__zhouxuan"] = "夜华青乌",
+  ["designer:fk_heg__zhouxuan"] = "世外高v狼",
+  ["illustrator:fk_heg__zhouxuan"] = "匠人绘",
+
   ["fk_heg__wumei"] = "寤寐",
   ["#fk_heg__wumei_delay"] = "寤寐",
   [":fk_heg__wumei"] = "限定技，回合开始前，若你的体力值不大于游戏轮数，你可以令一名角色执行一个额外的回合：该回合结束时，将所有存活角色的体力值调整为此额外回合开始时的数值。",
@@ -293,6 +300,10 @@ local choutao = fk.CreateTriggerSkill{
 yanrou:addSkill(choutao)
 Fk:loadTranslationTable{
   ["fk_heg__yanrou"] = "阎柔",
+  ["designer:fk_heg__yanrou"] = "notify",
+  ["#fk_heg__yanrou"] = "冠玉啸北",
+  ["illustrator:fk_heg__yanrou"] = "凝聚永恒",
+
   ["fk_heg__choutao"] = "仇讨",
   [":fk_heg__choutao"] = "当你使用【杀】指定目标后或成为【杀】的目标后，你可以弃置使用者一张牌，令此【杀】不能被响应。",
   ["#fk_heg__choutao-invoke"] = "仇讨：你可以弃置 %dest 一张牌令此【杀】不能被响应",
@@ -369,7 +380,7 @@ local danxin = fk.CreateActiveSkill{
     local target = room:getPlayerById(effect.tos[1])
     local cards = effect.cards
     room:moveCardTo(cards, Card.PlayerHand, target, fk.ReasonGive, self.name, nil, false, player.id)
-    if player.dead or player:isNude() or target.dead then return end
+    if player.dead or target:isNude() or target.dead then return end
     local cards2
     if #target:getCardIds("he") <= 2 then
       cards2 = target:getCardIds("he")
@@ -379,7 +390,7 @@ local danxin = fk.CreateActiveSkill{
         cards2 = table.random(player:getCardIds("he"), 2)
       end
     end
-    room:moveCardTo(cards, Card.PlayerHand, player, fk.ReasonGive, self.name, nil, false, player.id)
+    room:moveCardTo(cards2, Card.PlayerHand, player, fk.ReasonGive, self.name, nil, false, player.id)
     if #cards2 > 0 then
       local card1 = Fk:getCardById(cards2[1])
       if #cards2 > 1 then
@@ -496,6 +507,10 @@ liuyong:addSkill(fengxiang)
 
 Fk:loadTranslationTable{
   ["fk_heg__liuyong"] = "刘永",
+  ["#fk_heg__liuyong"] = "甘陵王",
+	["illustrator:fk_heg__liuyong"] = "君桓文化",
+  ["designer:fk_heg__liuyong"] = "陈桓",
+
   ["fk_heg__danxin"] = "丹心",
   [":fk_heg__danxin"] = "出牌阶段限一次，你可交给一名其他角色两张牌，然后其交给你两张牌，若你以此法获得红桃牌，你本回合使用【杀】次数上限+1。",
   ["fk_heg__fengxiang"] = "封乡",
@@ -579,6 +594,8 @@ zhuhuan:addSkill(jurui)
 
 Fk:loadTranslationTable{
   ['fk_heg__zhuhuan'] = '朱桓',
+  ['designer:fk_heg__zhuzhi'] = '教父',
+
   ['fk_heg__jurui'] = '拒锐',
   [':fk_heg__jurui'] = '每回合限一次，当你造成伤害后，你可令受伤角色弃置你一张手牌，若此牌不为【杀】，你可回复1点体力或将手牌摸至体力上限。',
 
@@ -649,6 +666,9 @@ guyong:addSkill(shenxing)
 guyong:addSkill(bingyi)
 Fk:loadTranslationTable{
   ["fk_heg__guyong"] = "顾雍",
+  ["#fk_heg__guyong"] = "庙堂的玉磐",
+  ["designer:fk_heg__guyong"] = "玄蝶",
+
   ["fk_heg__bingyi"] = "秉壹",
   [":fk_heg__bingyi"] = "每回合限一次，当你的手牌被弃置后，你可以展示所有手牌，若颜色均相同，你令至多X名其他角色各摸一张牌（X为你的手牌数）。",
   ["#fk_heg__bingyi-choose"] = "秉壹：你可以令至多%arg名其他角色各摸一张牌",
@@ -871,6 +891,10 @@ chengui:addSkill(yingtu)
 chengui:addSkill(congshi)
 Fk:loadTranslationTable{
   ["fk_heg__chengui"] = "陈珪",
+  ["#fk_heg__chengui"] = "弄虎如婴",
+  ["illustrator:fk_heg__chengui"] = "游漫美绘",
+  ["designer:fk_heg__chengui"] = "狗设计的",
+
   ["fk_heg__yingtu"] = "营图",
   [":fk_heg__yingtu"] = "每轮限一次，当一名角色于其摸牌阶段外获得牌后，若其是你的上家或下家，你可以获得该角色的一张牌，然后交给你的下家或上家一张牌。若以此法给出的牌为装备牌，获得牌的角色使用之。",
   ["fk_heg__congshi"] = "从势",
@@ -1142,6 +1166,8 @@ quyi:addSkill(fuji)
 quyi:addSkill(jiaozi)
 Fk:loadTranslationTable{
   ["fk_heg__quyi"] = "麴义",
+  ["designer:fk_heg__quyi"] = "notify&风箫&教父",
+  
   ["fk_heg__fuji"] = "伏骑",
   [":fk_heg__fuji"] = "当你使用牌指定目标后，若此武将牌处于暗置状态，你可以明置此武将牌，令此牌不能被响应；当你脱离濒死状态后，若此武将牌处于明置状态，暗置此武将牌。",
   ["fk_heg__jiaozi"] = "骄恣",

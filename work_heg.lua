@@ -88,6 +88,9 @@ liuye:addSkill(poyuan)
 liuye:addSkill(choulue)
 Fk:loadTranslationTable{
   ["wk_heg__liuye"] = "刘晔",
+  ["#wk_heg__liuye"] = "画策谁迎",
+  ["designer:wk_heg__liuye"] = "教父&卧雏",
+
   ["wk_heg__poyuan"] = "破垣",
   -- [":wk_heg__poyuan"] = "①当你对其他角色造成伤害后，你可选择一项：1.弃置其一张装备区内的牌；2.令其弃置一张手牌；②当你于回合内首次对大势力角色造成伤害时，此伤害+1。",
   [":wk_heg__poyuan"] = "当你对其他角色造成伤害后，你可选择一项：1.弃置其一张装备区内的牌；2.令其弃置一张手牌。",
@@ -216,6 +219,9 @@ dongyun:addSkill(yizan)
 dongyun:addSkill(juanshe)
 Fk:loadTranslationTable{
   ["wk_heg__dongyun"] = "董允",
+  ["#wk_heg__dongyun"] = "匡主正堂",
+  ["designer:wk_heg__dongyun"] = "修功&风箫",
+
   ["wk_heg__yizan"] = "翼赞",
   [":wk_heg__yizan"] = "弃牌阶段开始时，你可令一名手牌数小于你的角色将手牌摸至与你相同（至多摸五张），然后此阶段结束时，若你于此阶段内弃置过牌，其将手牌弃至体力上限。",
   ["wk_heg__juanshe"] = "蠲奢",
@@ -406,6 +412,9 @@ luotong:addSkill(mingzheng)
 luotong:addSkill(yujian)
 Fk:loadTranslationTable{
   ["wk_heg__luotong"] = "骆统",
+  ["#wk_heg__luotong"] = "达弼政辅",
+  ["designer:wk_heg__luotong"] = "教父",
+
   ["wk_heg__mingzheng"] = "明政",
   [":wk_heg__mingzheng"] = "与你势力相同的角色：1.明置武将牌后，若其武将牌均明置，其复原武将牌，然后获得一个“阴阳鱼”标记; 2.出牌阶段开始时，其观看除其外一名与你势力相同的角色的手牌。",
   ["wk_heg__yujian"] = "御谏",
@@ -535,6 +544,9 @@ jvshou:addSkill(yingshou)
 
 Fk:loadTranslationTable{
   ["wk_heg__jvshou"] = "沮授",
+  ["#wk_heg__jvshou"] = "志北挽魂",
+  ["designer:wk_heg__jvshou"] = "教父&小曹神",
+
   ["wk_heg__tugui"] = "图归",
   [":wk_heg__tugui"] = "①每回合限一次，当你失去最后的手牌后或当你进入濒死状态后，你可获得与你距离为1的其他角色的一张手牌并展示之；②出牌阶段结束时，若你未失去以此法获得的所有牌，你移除此武将牌。",
   ["wk_heg__yingshou"] = "营守",
@@ -699,6 +711,8 @@ chenqun:addCompanions("hs__caopi")
 chenqun:addCompanions("hs__simayi")
 Fk:loadTranslationTable{
   ["wk_heg__chenqun"] = "陈群",
+  ["designer:wk_heg__chenqun"] = "教父&635",
+
   ["wk_heg__dingpin"] = "定品",
   [":wk_heg__dingpin"] = "结束阶段，你可横置你与一名其他角色，令其于此回合结束后执行一个仅有出牌阶段的额外回合，此额外回合：1.出牌阶段开始时，若其与你势力相同，其推举，然后与选用的角色各摸一张牌；2.回合结束时，其将手牌数摸或弃至体力上限，然后叠置。<br />" ..
   "<font color = 'gray'>推举：推举角色展示一张与其势力相同的武将牌，每名与其势力相同的角色选择是否将此武将牌作为其新的副将。" ..
@@ -817,6 +831,9 @@ xujing:addSkill(caixia)
 xujing:addCompanions("ld__fazheng")
 Fk:loadTranslationTable{
   ["wk_heg__xujing"] = "许靖",
+  ["#wk_heg__xujing"] = "尺瑜寸瑕",
+  ["designer:wk_heg__xujing"] = "教父&635&二四",
+
   ["wk_heg__yuyan"] = "誉言",
   [":wk_heg__yuyan"] = "当你于回合外获得其他角色的牌后，你可将等量张牌交给当前回合角色，若如此做，此回合结束时，若其与你势力相同，你推举，若被选用，你回复1点体力。<br />"..
     "<font color = 'gray'>推举：推举角色展示一张与其势力相同的武将牌，每名与其势力相同的角色选择是否将此武将牌作为其新的副将。" ..
@@ -988,6 +1005,9 @@ Fk:addSkill(liance_viewas)
 Fk:addSkill(shilun_active)
 Fk:loadTranslationTable{
   ["wk_heg__huanfan"] = "桓范",
+  ["#wk_heg__huanfan"] = "雍国立世",
+  ["designer:wk_heg__huanfan"] = "教父",
+
   ["wk_heg__liance"] = "连策",
   [":wk_heg__liance"] = "其他角色的出牌阶段结束时，若其于此阶段内使用过同名牌，你可弃置一张牌，令其选择是否视为使用此回合内其使用过的其中一张同名牌，若其未以此法使用牌，你对其发起强制执行的“军令”。",
   ["wk_heg__shilun"] = "世论",
@@ -1174,6 +1194,9 @@ yangyi:addSkill(fenduan)
 yangyi:addSkill(choucuo)
 Fk:loadTranslationTable{
   ["wk_heg__yangyi"] = "杨仪",
+  ["#wk_heg__yangyi"] = "狷恙逆跋",
+  ["designer:wk_heg__yangyi"] = "教父",
+
   ["wk_heg__juanxia"] = "狷狭",
   [":wk_heg__juanxia"] = "结束阶段，你可选择一名其他角色，视为对其使用一张【杀】，然后若其存活，其可对你发起“军令”，若你不执行，其对你造成1点伤害。",
   ["wk_heg__fenduan"] = "忿断",
@@ -1208,6 +1231,7 @@ local yonglun = fk.CreateTriggerSkill{
   end,
   on_use = function (self, event, target, player, data)
     local room = player.room
+    room:loseHp(player, 1)
     local targets = table.map(room:getOtherPlayers(player), Util.IdMapper)
     local tos = room:askForChoosePlayers(player, targets, 1, 1, "#wk_heg__yonglun_choose", self.name, true)
     local to = room:getPlayerById(tos[1])
@@ -1351,14 +1375,17 @@ kuaizi:addSkill(shenshi)
 
 Fk:loadTranslationTable{
   ["wk_heg__kuaizi"] = "蒯越蒯良",
-  ["wk_heg__yonglun"] = "雍论",
-  [":wk_heg__yonglun"] = "每回合限一次，当你使用牌结算后，你可令一名其他角色交给你一张基本牌，此牌于你的手牌区内视为拥有“合纵”标记，然后其获得你使用的牌。",
+  ["#wk_heg__kuaizi"] = "雍论臼谋",
+  ["designer:wk_heg__kuaizi"] = "教父&风箫",
+
+  ["wk_heg__yonglun"] = "纵迫",
+  [":wk_heg__yonglun"] = "每回合限一次，当你使用牌结算后，你可失去1点体力，令一名其他角色交给你一张基本牌，此牌于你的手牌区内视为拥有“合纵”标记，然后其获得你使用的牌。",
   ["wk_heg__shenshi"] = "审时",
   [":wk_heg__shenshi"] = "其他角色获得你的牌后，若你与其的大小势力状态不同，你可令其摸一张牌，若如此做，此回合结束时，若此回合内所有以此法摸牌的角色于以此法摸牌后未对与你势力相同的角色造成过伤害，与你势力相同的角色各摸一张牌，否则你暗置此武将牌且不能明置直至你回合开始。",
 
   ["@wk_heg__shenshi_reveal"] = "审时 禁亮",
-  ["#wk_heg__yonglun_choose"] = "雍论：选择一名其他角色，令其交给你一张基本牌",
-  ["#wk_heg__yonglun-give"] = "雍论：交给蒯越蒯良一张基本牌",
+  ["#wk_heg__yonglun_choose"] = "纵迫：选择一名其他角色，令其交给你一张基本牌",
+  ["#wk_heg__yonglun-give"] = "纵迫：交给蒯越蒯良一张基本牌",
 
   ["#wk_heg__shenshi_delay"] = "审时",
 }
@@ -1391,7 +1418,7 @@ local danshou = fk.CreateTriggerSkill{
   on_cost = function(self, event, target, player, data)
     if event == fk.TargetConfirmed then
       local n = player:getHandcardNum() - self.cost_data
-      local cards = player.room:askForDiscard(player, n, n, true, self.name, true, ".", "#wk_heg__danshou-damage::"..data.from..":"..n, true)
+      local cards = player.room:askForDiscard(player, n, n, false, self.name, true, ".", "#wk_heg__danshou-damage::"..data.from..":"..n, true)
       if #cards == n then
         self.cost_data = cards
         return true
@@ -1423,6 +1450,9 @@ local danshou = fk.CreateTriggerSkill{
 zhuran:addSkill(danshou)
 Fk:loadTranslationTable{
   ["wk_heg__zhuran"] = "朱然",
+  ["#wk_heg__zhuran"] = "胆略无双",
+  ["designer:wk_heg__zhuran"] = "教父&二四",
+
   ["wk_heg__danshou"] = "胆守",
   [":wk_heg__danshou"] = "当你成为其他角色使用牌的目标后，你可将手牌弃置至X张，对其造成1点伤害（X为你本回合成为过牌目标的次数）；一名角色的回合结束时，若你此回合内受到过伤害，你可摸一张牌。",
 

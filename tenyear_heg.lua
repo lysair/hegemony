@@ -159,7 +159,7 @@ local deshao = fk.CreateTriggerSkill{
   on_use = function (self, event, target, player, data)
     local room = player.room
     local from = room:getPlayerById(data.from)
-    if from:getHandcardNum() ~= 0 then
+    if not from:isNude() then
       local id = room:askForCardChosen(player, from, "he", self.name)
       room:throwCard(id, self.name, from, player)
     end
@@ -1687,6 +1687,10 @@ duyu:addSkill(jianguo)
 duyu:addSkill(qingshid)
 Fk:loadTranslationTable{
   ["ty_heg__duyu"] = "杜预",
+  ["#ty_heg__duyu"] = "文成武德",
+  ["designer:ty_heg__duyu"] = "歪歪",
+  ["illustrator:ty_heg__duyu"] = "君桓文化",
+
   ["ty_heg__jianguo"] = "谏国",
   [":ty_heg__jianguo"] = "出牌阶段限一次，你可选择一项：1. 令一名角色摸一张牌，然后弃置X张手牌；"..
   "2. 令一名角色弃置一张牌，然后摸X张牌。（X为其手牌数的一半，向下取整且至多为5）",
@@ -1798,6 +1802,10 @@ xianglang:addSkill(kanji)
 xianglang:addSkill(qianzheng)
 Fk:loadTranslationTable{
   ["ty_heg__xianglang"] = "向朗",
+  ["#ty_heg__xianglang"] = "校书翾翻",
+  ["designer:ty_heg__xianglang"] = "佚名",
+  ["illustrator:ty_heg__xianglang"] = "匠人绘",
+
   ["ty_heg__kanji"] = "勘集",
   [":ty_heg__kanji"] = "出牌阶段限一次，你可展示所有手牌，若花色均不同，你摸两张牌，然后若因此使手牌包含四种花色，你本回合手牌上限+2，否则你弃置两张牌。",
   ["ty_heg__qianzheng"] = "愆正",
@@ -1974,6 +1982,10 @@ tengyin:addSkill(chenjian)
 tengyin:addSkill(xixiu)
 Fk:loadTranslationTable{
   ["ty_heg__tengyin"] = "滕胤",
+  ["#ty_heg__tengyin"] = "厉操遵蹈",
+  ["designer:ty_heg__tengyin"] = "步穗",
+  ["illustrator:ty_heg__tengyin"] = "猎枭",
+    
   ["ty_heg__chenjian"] = "陈见",
   [":ty_heg__chenjian"] = "准备阶段，你可亮出牌堆顶的X张牌并可选择一项：1.弃置一张牌，令一名角色获得其中此牌花色的牌；2.使用其中一张牌。（X为你装备区内牌数且至少为1）",
   ["ty_heg__xixiu"] = "皙秀",
