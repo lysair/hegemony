@@ -129,7 +129,7 @@ Fk:loadTranslationTable{
   ["~ld__dongzhao"] = "一生无愧，又何惧身后之议……",
 }
 
-
+--[[
 local xushu = General(extension, "ld__xushu", "shu", 4)
 xushu.deputyMaxHpAdjustedValue = -1
 local qiance = fk.CreateTriggerSkill{
@@ -190,6 +190,143 @@ Fk:loadTranslationTable{
   ["$ld__qiance2"] = "如此如此，敌军自破。",
   ["$ld__jujian1"] = "千金易得，贤才难求。",
   ["$ld__jujian2"] = "愿与将军共图王之霸业。",
+  ["~ld__xushu"] = "大义无言，虽死无怨。",
+}
+]]--
+
+local xushu = General(extension, "ld__xushu", "shu", 4)
+xushu.deputyMaxHpAdjustedValue = -1
+local zhuhai = fk.CreateTriggerSkill{
+  name = "ld__zhuhai",
+  events = {fk.EventPhaseStart},
+  anim_type = "offensive",
+  can_trigger = function(self, event, target, player, data)
+    if player:hasSkill(self) and player ~= target and target.phase == Player.Finish and #player.room.logic:getActualDamageEvents(1, function(e)
+      return e.data[1].from == target
+    end, Player.HistoryTurn) > 0 then
+      local card = Fk:cloneCard("slash")
+      return not player:prohibitUse(card) and not player:isProhibited(target, card)
+    end
+  end,
+  on_cost = function(self, event, target, player, data)
+    local use = player.room:askForUseCard(player, "slash", nil, "#zhuhai-ask:" .. target.id, true, {exclusive_targets = {target.id}, bypass_distances = true }) --ex
+    if use then
+      self.cost_data = use
+      return true
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    player.room:useCard(self.cost_data)
+  end,
+}
+
+local xiaozhen = fk.CreateTriggerSkill{
+  name = "ld__xiaozhen",
+  anim_type = "offensive",
+  events = {fk.AfterCardTargetDeclared},
+  can_trigger = function (self, event, target, player, data)
+    return player:hasSkill(self) and data.from == player.id and (data.card.type == Card.TypeBasic or data.card:isCommonTrick())
+  end,
+  on_use = function (self, event, target, player, data)
+    local room = player.room
+    local targets = {}
+    for _, p in ipairs(TargetGroup:getRealTargets(data.tos)) do
+      table.insertIfNeed(targets, p)
+    end
+    data.tos = {}
+    player:drawCards(1, self.name)
+    for _, pid in ipairs(targets) do
+      local target = room:getPlayerById(pid)
+      room:setPlayerMark(target, "@@lure_tiger-turn", 1)
+      room:setPlayerMark(target, MarkEnum.PlayerRemoved .. "-turn", 1)
+      room:handleAddLoseSkills(target, "#lure_tiger_hp|#lure_tiger_prohibit", nil, false, true) -- global...
+      room.logic:trigger("fk.RemoveStateChanged", target, nil) -- FIXME
+    end
+  end,
+}
+
+local jianyan = fk.CreateActiveSkill{
+  name = "ld__jianyan",
+  anim_type = "support",
+  card_num = 0,
+  target_num = 0,
+  relate_to_place = "d",
+  can_use = function(self, player)
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
+  end,
+  interaction = function()
+    return UI.ComboBox {choices = {"black", "red", "basic", "trick", "equip"} }
+  end,
+  on_use = function(self, room, effect)
+    local pattern = self.interaction.data
+    if not pattern then pattern = "red" end -- for AI
+    local player = room:getPlayerById(effect.from)
+    local card
+    local cards = {}
+    local _pattern
+    if pattern == "black" then
+      _pattern = ".|.|spade,club"
+    elseif pattern == "red" then
+      _pattern = ".|.|heart,diamond"
+    else
+      _pattern = ".|.|.|.|.|" .. pattern
+    end
+    if #room:getCardsFromPileByRule(_pattern, 1, "allPiles") == 0 then return false end
+    while true do
+      local id = room:getNCards(1)[1]
+      room:moveCardTo(id, Card.Processing, nil, fk.ReasonJustMove, self.name)
+      room:delay(300)
+      local c = Fk:getCardById(id)
+      if c:getColorString() == pattern or c:getTypeString() == pattern then
+        card = c
+        break
+      else
+        table.insert(cards, id)
+      end
+    end
+    local availableTargets = table.map(table.filter(room.alive_players, function(p) return p.gender == General.Male end), function(p) return p.id end)
+    if #availableTargets == 0 then
+      table.insert(cards, card.id)
+    else
+      local target = room:askForChoosePlayers(player, availableTargets, 1, 1, "#ld__jujian", self.name, false)[1]
+      local to = room:getPlayerById(target)
+      local choices = {"ld__jianyan_getcard"}
+      if to.hp < to.maxHp then
+        table.insert(choices, "ld__jianyan_recover")
+      end
+      local choice = room:askForChoice(to, choices, self.name)
+      if choice == "ld__jianyan_getcard" then
+        room:moveCardTo(card.id, Player.Hand, to, fk.ReasonPrey, self.name, nil, true, player.id)
+      else
+        table.insert(cards, card.id)
+        room:recover({
+          who = to,
+          num = 1,
+          recoverBy = player,
+          skillName = self.name
+        })
+        H.transformGeneral(room, player)
+      end
+    end
+    cards = table.filter(cards, function(id) return room:getCardArea(id) == Card.Processing end)
+    room:moveCardTo(cards, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, self.name, nil, true, player.id)
+  end,
+}
+xushu:addSkill(zhuhai)
+xushu:addSkill(xiaozhen)
+xushu:addSkill(jianyan)
+xushu:addCompanions("hs__wolong")
+Fk:loadTranslationTable{
+  ["ld__xushu"] = "徐庶",
+  ["ld__zhuhai"] = "诛害",
+  [":ld__zhuhai"] = "其他角色的结束阶段，若其本回合造成过伤害，你可对其使用一张无距离限制的【杀】。",
+  ["ld__xiaozhen"] = "晓阵",
+  [":ld__xiaozhen"] = "当你使用基本牌或普通锦囊牌选择目标后，你可取消此牌所有目标，摸一张牌，然后调离这些角色直至此回合结束。",
+  ["ld__jianyan"] = "荐言",
+  [":ld__jianyan"] = "副将技，此武将牌上单独的阴阳鱼个数-1；出牌阶段限一次，你可检索一种牌的类别或颜色，然后令一名男性角色选择：1.获得以此法检索到的牌；2.回复1点体力，然后你变更此武将牌。",
+
+  ["$ld__xiaozhen1"] = "愿与将军共图王之霸业",
+  ["$ld__xiaozhen2"] = "如此如此，敌军自破。",
   ["~ld__xushu"] = "大义无言，虽死无怨。",
 }
 
