@@ -984,17 +984,34 @@ Fk:loadTranslationTable{
   ["#jade_seal-ask"] = "受到【玉玺】的效果，视为你使用一张【知己知彼】",
 }
 
+---@param object Card|Player
+---@param markname string
+---@param suffixes string[]
+---@return boolean
+local function hasMark(object, markname, suffixes)
+  if not object then return false end
+  for mark, _ in pairs(object.mark) do
+    if mark == markname then return true end
+    if mark:startsWith(markname .. "-") then
+      for _, suffix in ipairs(suffixes) do
+        if mark:find(suffix, 1, true) then return true end
+      end
+    end
+  end
+  return false
+end
+
 local alliance = fk.CreateActiveSkill{
   name = "alliance&",
   prompt = "#alliance&",
   anim_type = "support",
   can_use = function(self, player)
-    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and table.find(player:getCardIds(Player.Hand), function(id) return Fk:getCardById(id):getMark("@@alliance") > 0 end)
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and table.find(player:getCardIds(Player.Hand), function(id) return hasMark(Fk:getCardById(id), "@@alliance", MarkEnum.CardTempMarkSuffix) end)
   end,
   max_card_num = 3,
   min_card_num = 1,
   card_filter = function(self, to_select, selected)
-    return Fk:getCardById(to_select):getMark("@@alliance") > 0 and table.contains(Self.player_cards[Player.Hand], to_select) and #selected <= 3
+    return hasMark(Fk:getCardById(to_select), "@@alliance", MarkEnum.CardTempMarkSuffix) and table.contains(Self.player_cards[Player.Hand], to_select) and #selected <= 3
   end,
   target_num = 1,
   target_filter = function(self, to_select, selected, selected_cards)

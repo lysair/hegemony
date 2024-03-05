@@ -196,29 +196,6 @@ Fk:loadTranslationTable{
 
 local xushu = General(extension, "ld__xushu", "shu", 4)
 xushu.deputyMaxHpAdjustedValue = -1
-local zhuhai = fk.CreateTriggerSkill{
-  name = "ld__zhuhai",
-  events = {fk.EventPhaseStart},
-  anim_type = "offensive",
-  can_trigger = function(self, event, target, player, data)
-    if player:hasSkill(self) and player ~= target and target.phase == Player.Finish and #player.room.logic:getActualDamageEvents(1, function(e)
-      return e.data[1].from == target
-    end, Player.HistoryTurn) > 0 then
-      local card = Fk:cloneCard("slash")
-      return not player:prohibitUse(card) and not player:isProhibited(target, card)
-    end
-  end,
-  on_cost = function(self, event, target, player, data)
-    local use = player.room:askForUseCard(player, "slash", nil, "#zhuhai-ask:" .. target.id, true, {exclusive_targets = {target.id}, bypass_distances = true }) --ex
-    if use then
-      self.cost_data = use
-      return true
-    end
-  end,
-  on_use = function(self, event, target, player, data)
-    player.room:useCard(self.cost_data)
-  end,
-}
 
 local xiaozhen = fk.CreateTriggerSkill{
   name = "ld__xiaozhen",
@@ -312,14 +289,14 @@ local jianyan = fk.CreateActiveSkill{
     room:moveCardTo(cards, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, self.name, nil, true, player.id)
   end,
 }
-xushu:addSkill(zhuhai)
+xushu:addSkill("zhuhai")
 xushu:addSkill(xiaozhen)
 xushu:addSkill(jianyan)
 xushu:addCompanions("hs__wolong")
 Fk:loadTranslationTable{
   ["ld__xushu"] = "徐庶",
-  ["ld__zhuhai"] = "诛害",
-  [":ld__zhuhai"] = "其他角色的结束阶段，若其本回合造成过伤害，你可对其使用一张无距离限制的【杀】。",
+  -- ["ld__zhuhai"] = "诛害",
+  -- [":ld__zhuhai"] = "其他角色的结束阶段，若其本回合造成过伤害，你可对其使用一张无距离限制的【杀】。",
   ["ld__xiaozhen"] = "晓阵",
   [":ld__xiaozhen"] = "当你使用基本牌或普通锦囊牌选择目标后，你可取消此牌所有目标，摸一张牌，然后调离这些角色直至此回合结束。",
   ["ld__jianyan"] = "荐言",

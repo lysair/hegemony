@@ -164,25 +164,40 @@ local huanshi = fk.CreateTriggerSkill{
   end,
 }
 
+---@param object Card|Player
+---@param markname string
+---@param suffixes string[]
+---@return boolean
+local function hasMark(object, markname, suffixes)
+  if not object then return false end
+  for mark, _ in pairs(object.mark) do
+    if mark == markname then return true end
+    if mark:startsWith(markname .. "-") then
+      for _, suffix in ipairs(suffixes) do
+        if mark:find(suffix, 1, true) then return true end
+      end
+    end
+  end
+  return false
+end
+
 local hongyuan = fk.CreateActiveSkill{
   name = "os_heg__hongyuan",
   anim_type = "support",
   can_use = function(self, player)
-    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and not player:isKongcheng()
+    return player:getMark(self.name .. "-phase") == 0 and not player:isKongcheng() -- FIXME
   end,
   card_num = 1,
   card_filter = function(self, to_select, selected)
     if #selected > 0 then return false end
-    return Fk:currentRoom():getCardArea(to_select) == Card.PlayerHand and Fk:getCardById(to_select):getMark("@@alliance") == 0
+    return Fk:currentRoom():getCardArea(to_select) == Card.PlayerHand and not hasMark(Fk:getCardById(to_select), "@@alliance", MarkEnum.CardTempMarkSuffix)
   end,
   target_filter = Util.FalseFunc,
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
+    room:addPlayerMark(player, self.name .. "-phase")
     local card = effect.cards[1]
-    room:setCardMark(Fk:getCardById(card), "@@alliance", 1)
-    local record = type(player:getMark("_os_heg__hongyuan")) == "table" and player:getMark("_os_heg__hongyuan") or {}
-    table.insert(record, tostring(card))
-    room:setPlayerMark(player, "_os_heg__hongyuan", record)
+    room:setCardMark(Fk:getCardById(card), "@@alliance-inhand-turn", 1)
   end,
 }
 local hongyuanTrigger = fk.CreateTriggerSkill{
@@ -210,19 +225,6 @@ local hongyuanTrigger = fk.CreateTriggerSkill{
     room:notifySkillInvoked(player, "os_heg__hongyuan", "support")
     player:broadcastSkillInvoke("os_heg__hongyuan")
     data.who = room:getPlayerById(target)
-  end,
-
-  refresh_events = {fk.AfterTurnEnd, fk.BuryVictim},
-  can_refresh = function(self, event, target, player, data)
-    return player == target and type(player:getMark("_os_heg__hongyuan")) == "table"
-  end,
-  on_refresh = function(self, event, target, player, data)
-    local room = player.room
-    for _, cid in ipairs(player:getMark("_os_heg__hongyuan")) do
-      cid = tonumber(cid)
-      room:setCardMark(Fk:getCardById(cid), "@@alliance", 0)
-    end
-    room:setPlayerMark(player, "_os_heg__hongyuan", 0)
   end,
 }
 hongyuan:addRelatedSkill(hongyuanTrigger)

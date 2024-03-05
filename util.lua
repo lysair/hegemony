@@ -752,7 +752,7 @@ Fk:loadTranslationTable{
   ["ConvertToLord"] = "<b>变身为<font color='goldenrod'>%arg</font></b>！",
 }
 
---- 暗置武将牌
+--- A暗置B的武将牌
 ---@param room Room
 ---@param player ServerPlayer
 ---@param target ServerPlayer
@@ -806,6 +806,18 @@ Fk:loadTranslationTable{
   ["#HideOtherGeneral"] = "%from 暗置了 %to 的 %arg %arg2",
 }
 
+-- 根据技能暗置武将牌
+---@param player ServerPlayer
+---@param skill string | Skill
+---@param allowBothHidden? bool
+---@return string? @ 暗置的是主将还是副将，或没有暗置
+H.hideBySkillName = function(player, skill, allowBothHidden)
+  local isDeputy = H.inGeneralSkills(player, skill)
+  if isDeputy and (allowBothHidden or H.getGeneralsRevealedNum(player) == 2) then
+    player:hideGeneral(isDeputy == "d")
+    return isDeputy
+  end
+end
 
 -- 移除武将牌
 ---@param room Room
@@ -912,7 +924,7 @@ end
 --- 技能是否为主将/副将武将牌上的技能，返回“m”“d”或nil
 ---@param player ServerPlayer
 ---@param skill string | Skill @ 技能，建议技能名
----@return string | nil
+---@return string?
 H.inGeneralSkills = function(player, skill)
   assert(type(skill) == "string" or skill:isInstanceOf(Skill))
   if type(skill) ~= "string" then skill = skill.name end

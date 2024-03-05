@@ -414,11 +414,11 @@ local fengxiang = fk.CreateTriggerSkill{
   anim_type = "masochism",
   can_trigger = function(self, event, target, player, data)
     return player == target and player:hasSkill(self) and #player.room.alive_players > 1
-    and table.find(player.room.alive_players, function(p) return #p:getCardIds("e") > 0 end)
+    and table.find(player.room.alive_players, function(p) return player:inMyAttackRange(p) end)
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    local tos = player.room:askForChoosePlayers(player, table.map(table.filter(room:getOtherPlayers(player), function (p)
+    local tos = player.room:askForChoosePlayers(player, table.map(table.filter(room.alive_players, function (p)
       return player:inMyAttackRange(p) end), Util.IdMapper), 1, 1, "#js__fengxiang-choose", self.name, false)
     if #tos > 0 then
       local to = room:getPlayerById(tos[1])
@@ -502,7 +502,6 @@ local fengxiang = fk.CreateTriggerSkill{
   end,
 }
 liuyong:addSkill(danxin)
-danxin:addRelatedSkill(danxin_targetmod)
 liuyong:addSkill(fengxiang)
 
 Fk:loadTranslationTable{
@@ -1141,7 +1140,7 @@ local fuji = fk.CreateTriggerSkill{
         table.insertIfNeed(data.disresponsiveList, p.id)
       end
     else
-      player:hideGeneral(H.inGeneralSkills(player, self.name) == "d")
+      H.hideBySkillName(player, self.name)
     end
   end,
 }
@@ -1167,7 +1166,7 @@ quyi:addSkill(jiaozi)
 Fk:loadTranslationTable{
   ["fk_heg__quyi"] = "麴义",
   ["designer:fk_heg__quyi"] = "notify&风箫&教父",
-  
+
   ["fk_heg__fuji"] = "伏骑",
   [":fk_heg__fuji"] = "当你使用牌指定目标后，若此武将牌处于暗置状态，你可以明置此武将牌，令此牌不能被响应；当你脱离濒死状态后，若此武将牌处于明置状态，暗置此武将牌。",
   ["fk_heg__jiaozi"] = "骄恣",

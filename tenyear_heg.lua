@@ -516,7 +516,7 @@ end
 
 local zhiwei = fk.CreateTriggerSkill{
   name = "ty_heg__zhiwei",
-  events = {fk.GeneralRevealed, fk.AfterCardsMove, fk.Damage, fk.Damaged},
+  events = {fk.GeneralRevealed, fk.AfterCardsMove, fk.Damage, fk.Damaged}, --- TODO
   mute = true,
   can_trigger = function(self, event, target, player, data)
     if player:hasSkill(self) then
@@ -601,11 +601,7 @@ local zhiwei = fk.CreateTriggerSkill{
     local room = player.room
     room:setPlayerMark(player, self.name, 0)
     room:setPlayerMark(player, "@zhiwei", 0)
-    local isDeputy = H.inGeneralSkills(player, self.name)
-    if isDeputy then
-      isDeputy = isDeputy == "d"
-      player:hideGeneral(isDeputy)
-    end
+    H.hideBySkillName(player, self.name)
   end,
 }
 zhente:addRelatedSkill(zhente_prohibit)
@@ -678,9 +674,7 @@ local boyan = fk.CreateActiveSkill{
   can_use = function(self, player)
     return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
   end,
-  card_filter = function(self, to_select, selected)
-    return false
-  end,
+  card_filter = Util.FalseFunc,
   target_filter = function(self, to_select, selected)
     return #selected == 0 and to_select ~= Self.id
   end,
