@@ -534,7 +534,7 @@ local heg_rule = fk.CreateTriggerSkill{
             type = "#EnterBattleRoyalModeLog",
           }
           room:setTag("BattleRoyalMode", true)
-          room:setBanner("@@BattleRoyalMode", 1)
+          room:setBanner("@[:]BattleRoyalDummy", "BattleRoyalMode")
           for _, p in ipairs(room.alive_players) do
             -- p:addFakeSkill("battle_royal&")
             -- p:addFakeSkill("battle_royal_prohibit&")
@@ -747,7 +747,10 @@ Fk:loadTranslationTable{
   ["#EnterBattleRoyalMode"] = "游戏进入 <font color=\"red\"><b>鏖战模式</b></font>，所有的【<font color=\"#3598E8\"><b>桃</b></font>】"..
   "只能当【<font color=\"#3598E8\"><b>杀</b></font>】或【<font color=\"#3598E8\"><b>闪</b></font>】使用或打出，不能用于回复体力",
   ["#EnterBattleRoyalModeLog"] = "游戏进入 <font color=\"#CC3131\"><b>鏖战模式</b></font>",
-  ["@@BattleRoyalMode"] = "鏖战模式",
+  ["@[:]BattleRoyalDummy"] = "", -- 额
+  ["BattleRoyalMode"] = "鏖战模式",
+  [":BattleRoyalMode"] = "所有的【<font color=\"#3598E8\"><b>桃</b></font>】"..
+  "只能当【<font color=\"#3598E8\"><b>杀</b></font>】或【<font color=\"#3598E8\"><b>闪</b></font>】使用或打出，不能用于回复体力",
   ["#wild-choose"] = "野心家建国：选择你要成为的势力！",
   ["heg_qin"] = "秦",
   ["heg_qi"] = "齐",

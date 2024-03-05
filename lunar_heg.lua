@@ -413,91 +413,89 @@ local fengxiang = fk.CreateTriggerSkill{
   frequency = Skill.Compulsory,
   anim_type = "masochism",
   can_trigger = function(self, event, target, player, data)
-    return player == target and player:hasSkill(self) and #player.room.alive_players > 1
-    and table.find(player.room.alive_players, function(p) return player:inMyAttackRange(p) end)
+    return player == target and player:hasSkill(self)
+      and table.find(player.room.alive_players, function(p) return player:inMyAttackRange(p) and (#player:getCardIds(Player.Equip) > 0 or #p:getCardIds(Player.Equip) > 0) end)
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
+    local hasEquip = #player:getCardIds(Player.Equip) > 0
     local tos = player.room:askForChoosePlayers(player, table.map(table.filter(room.alive_players, function (p)
-      return player:inMyAttackRange(p) end), Util.IdMapper), 1, 1, "#js__fengxiang-choose", self.name, false)
-    if #tos > 0 then
-      local to = room:getPlayerById(tos[1])
-      local num = 0
-      local cards1 = player:getCardIds("e")
-      local cards2 = to:getCardIds("e")
-      local moveInfos = {}
-      if #cards1 > 0 then
+      return player:inMyAttackRange(p) and (hasEquip or #p:getCardIds(Player.Equip) > 0)
+    end), Util.IdMapper), 1, 1, "#fk_heg__fengxiang-choose", self.name, false)
+    local to = room:getPlayerById(tos[1])
+    local num = 0
+    local cards1 = player:getCardIds("e")
+    local cards2 = to:getCardIds("e")
+    local moveInfos = {}
+    if #cards1 > 0 then
+      table.insert(moveInfos, {
+        from = player.id,
+        ids = cards1,
+        toArea = Card.Processing,
+        moveReason = fk.ReasonExchange,
+        proposer = player.id,
+        skillName = self.name,
+      })
+    end
+    if #cards2 > 0 then
+      table.insert(moveInfos, {
+        from = to.id,
+        ids = cards2,
+        toArea = Card.Processing,
+        moveReason = fk.ReasonExchange,
+        proposer = player.id,
+        skillName = self.name,
+      })
+    end
+    if #moveInfos > 0 then
+      room:moveCards(table.unpack(moveInfos))
+    end
+
+    moveInfos = {}
+
+    if not to.dead then
+      local to_ex_cards1 = table.filter(cards1, function (id)
+        return room:getCardArea(id) == Card.Processing and to:getEquipment(Fk:getCardById(id).sub_type) == nil
+      end)
+      if #to_ex_cards1 > 0 then
         table.insert(moveInfos, {
-          from = player.id,
-          ids = cards1,
-          toArea = Card.Processing,
+          ids = to_ex_cards1,
+          fromArea = Card.Processing,
+          to = to.id,
+          toArea = Card.PlayerEquip,
           moveReason = fk.ReasonExchange,
           proposer = player.id,
           skillName = self.name,
         })
       end
-      if #cards2 > 0 then
+    end
+    if not player.dead then
+      local to_ex_cards = table.filter(cards2, function (id)
+        return room:getCardArea(id) == Card.Processing and player:getEquipment(Fk:getCardById(id).sub_type) == nil
+      end)
+      num = #cards1 - #to_ex_cards
+      if #to_ex_cards > 0 then
         table.insert(moveInfos, {
-          from = to.id,
-          ids = cards2,
-          toArea = Card.Processing,
+          ids = to_ex_cards,
+          fromArea = Card.Processing,
+          to = player.id,
+          toArea = Card.PlayerEquip,
           moveReason = fk.ReasonExchange,
           proposer = player.id,
           skillName = self.name,
         })
       end
-      if #moveInfos > 0 then
-        room:moveCards(table.unpack(moveInfos))
-      end
+    end
+    if #moveInfos > 0 then
+      room:moveCards(table.unpack(moveInfos))
+    end
 
-      moveInfos = {}
-
-      if not to.dead then
-        local to_ex_cards1 = table.filter(cards1, function (id)
-          return room:getCardArea(id) == Card.Processing and to:getEquipment(Fk:getCardById(id).sub_type) == nil
-        end)
-        if #to_ex_cards1 > 0 then
-          table.insert(moveInfos, {
-            ids = to_ex_cards1,
-            fromArea = Card.Processing,
-            to = to.id,
-            toArea = Card.PlayerEquip,
-            moveReason = fk.ReasonExchange,
-            proposer = player.id,
-            skillName = self.name,
-          })
-        end
-      end
-      if not player.dead then
-        local to_ex_cards = table.filter(cards2, function (id)
-          return room:getCardArea(id) == Card.Processing and player:getEquipment(Fk:getCardById(id).sub_type) == nil
-        end)
-        num = #cards1 - #to_ex_cards
-        if #to_ex_cards > 0 then
-          table.insert(moveInfos, {
-            ids = to_ex_cards,
-            fromArea = Card.Processing,
-            to = player.id,
-            toArea = Card.PlayerEquip,
-            moveReason = fk.ReasonExchange,
-            proposer = player.id,
-            skillName = self.name,
-          })
-        end
-      end
-      if #moveInfos > 0 then
-        room:moveCards(table.unpack(moveInfos))
-      end
-
-      if not player.dead then
-        if num > 0 then
-          player.room:recover{
-            who = player,
-            num = 1,
-            skillName = self.name,
-          }
-        end
-      end
+    if num > 0 and not player.dead and player:isWounded() then
+      room:recover{
+        who = player,
+        num = 1,
+        skillName = self.name,
+      }
     end
   end,
 }
@@ -513,10 +511,11 @@ Fk:loadTranslationTable{
   ["fk_heg__danxin"] = "丹心",
   [":fk_heg__danxin"] = "出牌阶段限一次，你可交给一名其他角色两张牌，然后其交给你两张牌，若你以此法获得红桃牌，你本回合使用【杀】次数上限+1。",
   ["fk_heg__fengxiang"] = "封乡",
-  [":fk_heg__fengxiang"] = "锁定技，当你受到伤害后，你与你攻击范围内的一名其他角色交换装备区内所有牌，若你装备区内牌数因此减少，你回复1点体力。",
+  [":fk_heg__fengxiang"] = "锁定技，当你受到伤害后，你与你攻击范围内的一名角色交换装备区内所有牌，若你装备区内牌数因此减少，你回复1点体力。",
 
   ["@fk_heg__danxin_buff-turn"] = "丹心",
-  ["#fk_heg__danxin-give"] = "丹心：请交给刘永两张牌。",
+  ["#fk_heg__danxin-give"] = "丹心：请交给刘永两张牌",
+  ["#fk_heg__fengxiang-choose"] = "封乡：选择攻击范围内的一名角色，与其交换装备区内所有牌",
 
   ["$fk_heg__danxin1"] = "此剑半丈，当斩奸佞人头！",
   ["$fk_heg__danxin2"] = "此身八尺，甘为柱国之石。",
