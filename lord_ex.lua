@@ -202,18 +202,15 @@ local xiaozhen = fk.CreateTriggerSkill{
   anim_type = "offensive",
   events = {fk.AfterCardTargetDeclared},
   can_trigger = function (self, event, target, player, data)
-    return player:hasSkill(self) and data.from == player.id and (data.card.type == Card.TypeBasic or data.card:isCommonTrick())
+    return player:hasSkill(self) and data.from == player.id and (data.card.trueName == "slash" or data.card:isCommonTrick())
   end,
   on_use = function (self, event, target, player, data)
     local room = player.room
-    local targets = {}
-    for _, p in ipairs(TargetGroup:getRealTargets(data.tos)) do
-      table.insertIfNeed(targets, p)
-    end
+    local targets = TargetGroup:getRealTargets(data.tos)
     data.tos = {}
     player:drawCards(1, self.name)
     for _, pid in ipairs(targets) do
-      local target = room:getPlayerById(pid)
+      target = room:getPlayerById(pid)
       room:setPlayerMark(target, "@@lure_tiger-turn", 1)
       room:setPlayerMark(target, MarkEnum.PlayerRemoved .. "-turn", 1)
       room:handleAddLoseSkills(target, "#lure_tiger_hp|#lure_tiger_prohibit", nil, false, true) -- global...
@@ -248,7 +245,7 @@ local jianyan = fk.CreateActiveSkill{
     else
       _pattern = ".|.|.|.|.|" .. pattern
     end
-    if #room:getCardsFromPileByRule(_pattern, 1, "allPiles") == 0 then return false end
+    if #room:getCardsFromPileByRule(_pattern, 1) == 0 then return false end
     while true do
       local id = room:getNCards(1)[1]
       room:moveCardTo(id, Card.Processing, nil, fk.ReasonJustMove, self.name)
@@ -265,14 +262,14 @@ local jianyan = fk.CreateActiveSkill{
     if #availableTargets == 0 then
       table.insert(cards, card.id)
     else
-      local target = room:askForChoosePlayers(player, availableTargets, 1, 1, "#ld__jujian", self.name, false)[1]
+      local target = room:askForChoosePlayers(player, availableTargets, 1, 1, "#ld__jianyan-ask", self.name, false)[1]
       local to = room:getPlayerById(target)
-      local choices = {"ld__jianyan_getcard"}
-      if to.hp < to.maxHp then
-        table.insert(choices, "ld__jianyan_recover")
+      local choices = {"ld__jianyan_getcard:::" .. card:toLogString()}
+      if to:isWounded() then
+        table.insert(choices, "ld__jianyan_recover:" .. player.id)
       end
       local choice = room:askForChoice(to, choices, self.name)
-      if choice == "ld__jianyan_getcard" then
+      if choice:startsWith("ld__jianyan_getcard") then
         room:moveCardTo(card.id, Player.Hand, to, fk.ReasonPrey, self.name, nil, true, player.id)
       else
         table.insert(cards, card.id)
@@ -295,12 +292,18 @@ xushu:addSkill(jianyan)
 xushu:addCompanions("hs__wolong")
 Fk:loadTranslationTable{
   ["ld__xushu"] = "徐庶",
+  ["designer:ld__xushu"] = "教父&风萧",
+  ["illustrator:ld__xushu"] = "YanBai",
   -- ["ld__zhuhai"] = "诛害",
   -- [":ld__zhuhai"] = "其他角色的结束阶段，若其本回合造成过伤害，你可对其使用一张无距离限制的【杀】。",
   ["ld__xiaozhen"] = "晓阵",
-  [":ld__xiaozhen"] = "当你使用基本牌或普通锦囊牌选择目标后，你可取消此牌所有目标，摸一张牌，然后调离这些角色直至此回合结束。",
+  [":ld__xiaozhen"] = "当你使用【杀】或普通锦囊牌选择目标后，你可取消此牌所有目标，摸一张牌，然后调离这些角色直至此回合结束。",
   ["ld__jianyan"] = "荐言",
   [":ld__jianyan"] = "副将技，此武将牌上单独的阴阳鱼个数-1；出牌阶段限一次，你可检索一种牌的类别或颜色，然后令一名男性角色选择：1.获得以此法检索到的牌；2.回复1点体力，然后你变更此武将牌。",
+
+  ["#ld__jianyan-ask"] = "荐言：选择一名男性角色",
+  ["ld__jianyan_recover"] = "回复1点体力，然后%src变更",
+  ["ld__jianyan_getcard"] = "获得%arg",
 
   ["$ld__xiaozhen1"] = "愿与将军共图王之霸业",
   ["$ld__xiaozhen2"] = "如此如此，敌军自破。",
@@ -1534,7 +1537,7 @@ Fk:loadTranslationTable{
 
   ["@@ld__congcha_delay"] = "聪察",
   ["#ld__congcha_delay"] = "聪察",
-  ["#ld__congcha_choose"] = "聪察：选择一名未确定势力的角色。",
+  ["#ld__congcha_choose"] = "聪察：选择一名未确定势力的角色",
 
   ["$ld__congca1"] = "窥一斑而知全豹。",
   ["$ld__congca2"] = "问一事则明其心。",
@@ -1776,16 +1779,17 @@ local tongling = fk.CreateTriggerSkill{
       local victim = data.to.id
       local to = room:askForChoosePlayers(player, targets, 1, 1, "#ld__tongling-choose::" .. victim, self.name, true)
       if #to > 0 then
+        local user = room:getPlayerById(to[1])
         local cardNames = {}
         local selfCards = {"peach", "analeptic", "ex_nihilo"} -- FIXME: how to tell ex_niholo from AOE and AG?
-        for _, id in ipairs(player:getCardIds(Player.Hand)) do
+        for _, id in ipairs(user:getCardIds(Player.Hand)) do
           local card = Fk:getCardById(id)
-          if card.skill:modTargetFilter(victim, {}, player.id, card, true) and not table.contains(selfCards, card.name) and card.type ~= Card.TypeEquip then -- FIXME
+          if card.skill:modTargetFilter(victim, {}, user.id, card, true) and not table.contains(selfCards, card.name) and card.type ~= Card.TypeEquip then -- FIXME
             table.insert(cardNames, card.name)
           end
         end
         local prompt = data.card and "#ld__tongling_card-use:" .. player.id .. ":" .. victim .. ":" .. data.card:toLogString() or "#ld__tongling_nocard-use:" .. player.id .. ":" .. data.to.id
-        local use = room:askForUseCard(room:getPlayerById(to[1]), "", table.concat(cardNames, ","), prompt, true, {exclusive_targets = {victim}, bypass_times = true })
+        local use = room:askForUseCard(user, "", table.concat(cardNames, ","), prompt, true, {include_targets = {victim}, bypass_times = true }) -- ……
         if use then
           use.extra_data = use.extra_data or {}
           use.extra_data.ld__tonglingUser = player.id

@@ -842,7 +842,8 @@ Fk:loadTranslationTable{
   [":wk_heg__caixia"] = "每回合限一次，当你造成或受到伤害后，你可展示任意张同名手牌，然后摸等量的牌（至多摸你体力上限数张）。",
 
   ["#wk_heg__yuyan-give"] = "誉言：交给 %dest 共计 %arg 张牌",
-
+  ["#wk_heg__yuyan_delay"] = "誉言",
+  ["#wk_heg__caixia_filter"] = "才瑕",
   ["#wk_heg__caixia"] = "才瑕：你可以展示任意张同名手牌，然后摸等量的牌。",
 }
 
