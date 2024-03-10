@@ -530,7 +530,7 @@ Fk:loadTranslationTable{
 local zhugeke = General(extension, "ld__zhugeke", "wu", 3)
 zhugeke:addCompanions("hs__dingfeng")
 local aocai = fk.CreateTriggerSkill{
-  name = "ld_aocai",
+  name = "ld__aocai",
   anim_type = "defensive",
   events = {fk.AskForCardUse, fk.AskForCardResponse},
   can_trigger = function(self, event, target, player, data)
@@ -563,14 +563,14 @@ local aocai = fk.CreateTriggerSkill{
         end
       end
     end
-    room:setPlayerMark(player, "ld_aocai_cards", availableCards)
+    room:setPlayerMark(player, "ld__aocai_cards", availableCards)
     local success, dat
     if event == fk.AskForCardUse then
-      success, dat = room:askForUseActiveSkill(player, "ld_aocai_use", "#ld_aocai-use", true)
+      success, dat = room:askForUseActiveSkill(player, "ld__aocai_use", "#ld__aocai-use", true)
     else
-      success, dat = room:askForUseActiveSkill(player, "ld_aocai_response", "#ld_aocai-response", true)
+      success, dat = room:askForUseActiveSkill(player, "ld__aocai_response", "#ld__aocai-response", true)
     end
-    room:setPlayerMark(player, "ld_aocai_cards", 0)
+    room:setPlayerMark(player, "ld__aocai_cards", 0)
     fakemove = {
       from = player.id,
       toArea = Card.Void,
@@ -583,7 +583,7 @@ local aocai = fk.CreateTriggerSkill{
     end
     if success then
       if event == fk.AskForCardUse then
-        local card = Fk.skills["ld_aocai_use"]:viewAs(dat.cards)
+        local card = Fk.skills["ld__aocai_use"]:viewAs(dat.cards)
         data.result = {
           from = player.id,
           card = card,
@@ -604,10 +604,10 @@ local aocai = fk.CreateTriggerSkill{
 }
 
 local aocai_use = fk.CreateViewAsSkill{
-  name = "ld_aocai_use",
+  name = "ld__aocai_use",
   card_filter = function(self, to_select, selected)
     if #selected == 0 then
-      local ids = Self:getMark("ld_aocai_cards")
+      local ids = Self:getMark("ld__aocai_cards")
       return type(ids) == "table" and table.contains(ids, to_select)
     end
   end,
@@ -619,19 +619,19 @@ local aocai_use = fk.CreateViewAsSkill{
 }
 
 local aocai_response = fk.CreateActiveSkill{
-  name = "ld_aocai_response",
+  name = "ld__aocai_response",
   card_num = 1,
   target_num = 0,
   card_filter = function(self, to_select, selected)
     if #selected == 0 then
-      local ids = Self:getMark("ld_aocai_cards")
+      local ids = Self:getMark("ld__aocai_cards")
       return type(ids) == "table" and table.contains(ids, to_select)
     end
   end,
 }
 
 local duwu = fk.CreateActiveSkill{
-  name =  "ld__duwu",
+  name = "ld__duwu",
   frequency = Skill.Limited,
   anim_type = "support",
   can_use = function(self, player)
@@ -644,6 +644,7 @@ local duwu = fk.CreateActiveSkill{
     local targets = table.map(table.filter(room.alive_players, function(p) return not H.compareKingdomWith(player, p) and player:inMyAttackRange(p)  end), Util.IdMapper)
     if #targets > 0 then
       room:handleAddLoseSkills(player, "#ld__duwu_trigger", nil)
+      room:setPlayerMark(player, "_ld__duwu_using", 1)
       room:doIndicate(player.id, targets)
       room:sortPlayersByAction(targets)
       for _, pid in ipairs(targets) do
@@ -660,24 +661,27 @@ local duwu = fk.CreateActiveSkill{
         end
       end
       room:handleAddLoseSkills(player, "-#ld__duwu_trigger", nil)
-      if #table.filter(room.alive_players, function(p) return p:getMark("ld__duwu_delay-phase") == 1 end) > 0 then
+      room:setPlayerMark(player, "_ld__duwu_using", 0)
+      if table.find(room.alive_players, function(p) return p:getMark("ld__duwu_delay-phase") == 1 end) then
         room:loseHp(player, 1, self.name)
       end
-    end 
+      for _, p in ipairs(room.alive_players) do
+        if p:getMark("ld__duwu_delay-phase") == 1 then
+          room:setPlayerMark(p, "ld__duwu_delay-phase", 0)
+        end
+      end
+    end
   end,
 }
 
 local duwu_trigger = fk.CreateTriggerSkill{
   name = "#ld__duwu_trigger",
-  mute = true,
-  events = {fk.AfterDying},
-  can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self) and not player.dead and not target.dead
+  refresh_events = {fk.AfterDying},
+  can_refresh = function(self, event, target, player, data)
+    return player:getMark("_ld__duwu_using") > 0 and not player.dead and not target.dead
   end,
-  on_cost = Util.TrueFunc,
-  on_use = function(self, event, target, player, data)
-    local room = player.room
-    room:setPlayerMark(target, "ld__duwu_delay-phase", 1)
+  on_refresh = function(self, event, target, player, data)
+    player.room:setPlayerMark(target, "ld__duwu_delay-phase", 1)
   end,
 }
 
@@ -693,18 +697,18 @@ Fk:loadTranslationTable{
   ["designer:ld__zhugeke"] = "逍遥鱼叔",
   ["illustrator:ld__zhugeke"] = "猎枭",
 
-  ["ld_aocai"] = "傲才",
-  [":ld_aocai"] = "当你于回合外需要使用或打出一张基本牌时，你可以观看牌堆顶的两张牌，若你观看的牌中有相同牌名的牌，你可以使用或打出之。",
+  ["ld__aocai"] = "傲才",
+  [":ld__aocai"] = "当你于回合外需要使用或打出一张基本牌时，你可以观看牌堆顶的两张牌，若你观看的牌中有相同牌名的牌，你可以使用或打出之。",
   ["ld__duwu"] = "黩武",
-  [":ld__duwu"] = "出牌阶段，你可以选择一个“军令”，你对你攻击范围内所有与你势力不同或未确定势力的角色发起此“军令”，若其不执行，你对其造成1点伤害并摸一张牌。"..
+  [":ld__duwu"] = "限定技，出牌阶段，你可以选择一个“军令”，你对你攻击范围内所有与你势力不同或未确定势力的角色发起此“军令”，若其不执行，你对其造成1点伤害并摸一张牌。"..
   "此“军令”结算后，若存在进入濒死状态被救回的角色，你失去1点体力。",
-  ["ld_aocai_use"] = "傲才",
-  ["ld_aocai_response"] = "傲才",
-  ["#ld_aocai-use"] = "傲才：你可以使用其中你需要的牌",
-  ["#ld_aocai-response"] = "傲才：你可以打出其中你需要的牌",
+  ["ld__aocai_use"] = "傲才",
+  ["ld__aocai_response"] = "傲才",
+  ["#ld__aocai-use"] = "傲才：你可以使用其中你需要的牌",
+  ["#ld__aocai-response"] = "傲才：你可以打出其中你需要的牌",
 
-  ["$ld_aocai1"] = "哼，易如反掌。",
-  ["$ld_aocai2"] = "吾主圣明，泽披臣属。",
+  ["$ld__aocai1"] = "哼，易如反掌。",
+  ["$ld__aocai2"] = "吾主圣明，泽披臣属。",
   ["$ld__duwu1"] = "破曹大功，正在今朝！",
   ["$ld__duwu2"] = "全力攻城！言退者，斩！",
   ["~ld__zhugeke"] = "重权震主，是我疏忽了……",
@@ -1391,23 +1395,28 @@ local baolie = fk.CreateTriggerSkill{
   events = {fk.EventPhaseStart},
   frequency = Skill.Compulsory,
   can_trigger = function (self, event, target, player, data)
-    return player == target and player:hasSkill(self) and player.phase == Player.Play
+    return player == target and player:hasSkill(self) and player.phase == Player.Play and H.getGeneralsRevealedNum(player) > 0
+      and table.find(player.room.alive_players, function(p)
+        return H.compareKingdomWith(p, player, true) and p:inMyAttackRange(player)
+      end)
   end,
   on_use = function (self, event, target, player, data)
     local room = player.room
     local targets = table.map(table.filter(room:getOtherPlayers(player), function(p)
       return H.compareKingdomWith(p, player, true) and p:inMyAttackRange(player) end), Util.IdMapper)
-    if #targets > 0 then
-      for _, p in ipairs(targets) do
-        local to = room:getPlayerById(p)
-        local use = room:askForUseCard(to, "slash", "slash", "#baolie-use", true, {exclusive_targets = {player.id}})
+    if #targets == 0 then return end
+    room:doIndicate(player.id, targets)
+    for _, p in ipairs(targets) do
+      if player.dead then return end
+      local to = room:getPlayerById(p)
+      if not to.dead then
+        local use = room:askForUseCard(to, "slash", "slash", "#baolie-use:" .. player.id, true, {include_targets = {player.id} })
         if use then
+          use.extraUse = true
           room:useCard(use)
-        else
-          if not to:isNude() then
-            local card = room:askForCardChosen(player, to, "he", self.name)
-            room:throwCard({card}, self.name, to, player)
-          end
+        elseif not to:isNude() then
+          local card = room:askForCardChosen(player, to, "he", self.name)
+          room:throwCard({card}, self.name, to, player)
         end
       end
     end
@@ -1436,9 +1445,9 @@ Fk:loadTranslationTable{
   ["ld__baolie"] = "豹烈",
   [":ld__baolie"] = "锁定技，①出牌阶段开始时，你令所有与你势力不同且攻击范围内含有你的角色依次对你使用一张【杀】，否则你弃置其一张牌。②你对体力值不小于你的角色使用【杀】无距离与次数限制。",
 
-  ["#baolie-use"] = "豹烈：对夏侯霸使用一张【杀】，否则其弃置你一张牌",
+  ["#baolie-use"] = "豹烈：对%src使用一张【杀】，否则其弃置你一张牌",
 
-  ["$ld__baolie1"] = "废话少说，受死吧，喝！。",
+  ["$ld__baolie1"] = "废话少说，受死吧，喝！",
   ["$ld__baolie2"] = "当今曹营之将，一个能打的都没有！",
   ["~ld__xiahouba"] = "不好，有埋伏！呃！",
 }
@@ -1451,12 +1460,13 @@ local congcha = fk.CreateTriggerSkill{
   anim_type = "drawcard",
   events = {fk.EventPhaseStart, fk.DrawNCards},
   can_trigger = function (self, event, target, player, data)
+    if not (target == player and player:hasSkill(self)) then return end
     if event == fk.EventPhaseStart then
-      return target == player and player:hasSkill(self) and player.phase == Player.Start and
-        not table.every(player.room:getOtherPlayers(player), function(p) return H.getGeneralsRevealedNum(p) > 0 end)
+      return player.phase == Player.Start and
+        table.find(player.room:getOtherPlayers(player), function(p) return H.getGeneralsRevealedNum(p) == 0 end)
     else
-      return target == player and player:hasSkill(self) and player.phase == Player.Draw and
-        table.every(player.room:getOtherPlayers(player), function(p) return H.getGeneralsRevealedNum(p) > 0 end)
+      return player.phase == Player.Draw and
+        table.every(player.room.alive_players, function(p) return H.getGeneralsRevealedNum(p) > 0 end)
     end
   end,
   on_use = function (self, event, target, player, data)
@@ -1467,10 +1477,11 @@ local congcha = fk.CreateTriggerSkill{
       if #targets == 0 then return false end
       local to = room:askForChoosePlayers(player, targets, 1, 1, "#ld__congcha_choose", self.name, true)
       if #to > 0 then
-        local target = room:getPlayerById(to[1])
-        local mark = type(target:getMark("@@ld__congcha_delay")) == "table" and target:getMark("@@ld__congcha_delay") or {}
-        table.insert(mark, player.id)
-        room:setPlayerMark(target, "@@ld__congcha_delay", mark)
+        target = room:getPlayerById(to[1])
+        local record = U.getMark(target, "@@ld__congcha_delay")
+        table.insert(record, player.id)
+        room:setPlayerMark(target, "@@ld__congcha_delay", record)
+        room:setPlayerMark(player, "_ld__congcha", target.id)
       end
     else
       data.n = data.n + 2
@@ -1489,36 +1500,37 @@ local congcha_delay = fk.CreateTriggerSkill{
   end,
   on_cost = Util.TrueFunc,
   on_use = function (self, event, target, player, data)
-    if H.compareKingdomWith(player, target) and not player.dead and not target.dead then
-      player:drawCards(2, self.name)
-      target:drawCards(2, self.name)
-      player.room:setPlayerMark(target, "@@ld__congcha_delay", 0)
+    local room = player.room
+    room:doIndicate(player.id, {target.id})
+    local record = target:getMark("@@ld__congcha_delay")
+    table.removeOne(record, player.id)
+    if #record == 0 then record = 0 end
+    room:setPlayerMark(target, "@@ld__congcha_delay", record)
+    room:setPlayerMark(player, "_ld__congcha", 0)
+    if H.compareKingdomWith(player, target) then
+      local targets = {target.id, player.id}
+      room:sortPlayersByAction(targets)
+      for _, pid in ipairs(targets) do
+        local p = room:getPlayerById(pid)
+        if not p.dead then p:drawCards(2, self.name) end
+      end
     else
-      player.room:loseHp(target, 1, self.name)
-      player.room:setPlayerMark(target, "@@ld__congcha_delay", 0)
+      room:loseHp(target, 1, self.name)
     end
   end,
 
-  refresh_events = {fk.BuryVictim, fk.TurnStart},
+  refresh_events = {fk.TurnStart},
   can_refresh = function(self, event, target, player, data)
-    if event == fk.BuryVictim then
-      local mark = player:getMark("@@ld__congcha_delay")
-      return type(mark) == "table" and table.every(player.room.alive_players, function (p)
-        return not table.contains(mark, p.id)
-      end)
-    elseif event == fk.TurnStart then
-      return player:hasSkill(self) and target == player
-    end
+    return target == player and player:getMark("_ld__congcha") ~= 0
   end,
   on_refresh = function(self, event, target, player, data)
-    if event == fk.BuryVictim then
-      player.room:setPlayerMark(target, "@@ld__congcha_delay", 0)
-    elseif event == fk.TurnStart then
-      local targets = table.filter(player.room.alive_players, function(p) return p:getMark("@@ld__congcha_delay") ~= 0 end)
-      for _, p in ipairs(targets) do
-        player.room:setPlayerMark(p, "@@ld__congcha_delay", 0)
-      end
-    end
+    local room = player.room
+    target = room:getPlayerById(player:getMark("_ld__congcha"))
+    local record = U.getMark(target, "@@ld__congcha_delay")
+    table.removeOne(record, player.id)
+    if #record == 0 then record = 0 end
+    room:setPlayerMark(target, "@@ld__congcha_delay", record)
+    room:setPlayerMark(player, "_ld__congcha", 0)
   end,
 }
 
@@ -1533,7 +1545,7 @@ Fk:loadTranslationTable{
   ["designer:ld__panjun"] = "逍遥鱼叔",
 
   ["ld__congcha"] = "聪察",
-  [":ld__congcha"] = "①准备阶段，你可选择一名未确定势力的角色，若如此做，当其明置武将牌后，若其确定势力且势力与你：相同，你与其各摸两张牌；不同，其失去1点体力②e摸牌阶段，若场上不存在未确定势力的角色，你可多摸两张牌。",
+  [":ld__congcha"] = "①准备阶段，你可选择一名未确定势力的角色，然后直到你的下回合开始，当其明置武将牌后，若其确定势力且势力与你：相同，你与其各摸两张牌；不同，其失去1点体力。②摸牌阶段，若场上不存在未确定势力的角色，你可多摸两张牌。",
 
   ["@@ld__congcha_delay"] = "聪察",
   ["#ld__congcha_delay"] = "聪察",

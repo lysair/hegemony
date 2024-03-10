@@ -2799,6 +2799,9 @@ local panfeng = General(extension, "hs__panfeng", "qun", 4)
 panfeng:addSkill("kuangfu")
 Fk:loadTranslationTable{
   ["hs__panfeng"] = "潘凤",
+  ["#hs__panfeng"] = "联军上将",
+  ["illustrator:hs__panfeng"] = "Yi章",
+  ["desinger:hs__panfeng"] = "傅轶均",
 
   ["$kuangfu1"] = "吾乃上将潘凤，可斩华雄！",
   ["$kuangfu2"] = "这家伙，还是给我用吧！",

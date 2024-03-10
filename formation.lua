@@ -880,7 +880,7 @@ local dragonPhoenixSkill = fk.CreateTriggerSkill{
         return not player.room:getPlayerById(data.to):isNude()
       end
     else
-      return data.damage and data.damage.from == player and data.damage.card and data.damage.card.trueName == "slash" and not target:isKongcheng()
+      return data.damage and data.damage.from == player and not target:isKongcheng() and U.damageByCardEffect(player.room) and data.damage.card.trueName == "slash"
     end
   end,
   on_cost = function(self, event, target, player, data)

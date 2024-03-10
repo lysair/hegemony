@@ -726,7 +726,7 @@ local boyan_mn_detach = fk.CreateTriggerSkill{
   name = "#ty_heg__boyan_manoeuvre_detach",
   refresh_events = {fk.AfterTurnEnd},
   can_refresh = function(self, event, target, player, data)
-    return target == player and player:hasSkill("ty_heg__boyan_manoeuvre", true, true) 
+    return target == player and player:hasSkill("ty_heg__boyan_manoeuvre", true, true)
   end,
   on_refresh = function(self, event, target, player, data)
     local room = player.room
@@ -911,9 +911,7 @@ local fenglve = fk.CreateActiveSkill{
   can_use = function(self, player)
     return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and not player:isKongcheng()
   end,
-  card_filter = function(self, to_select, selected)
-    return false
-  end,
+  card_filter = Util.FalseFunc,
   target_filter = function(self, to_select, selected)
     return #selected == 0 and to_select ~= Self.id and not Fk:currentRoom():getPlayerById(to_select):isKongcheng()
   end,
@@ -953,9 +951,7 @@ local fenglve_mn = fk.CreateActiveSkill{
   can_use = function(self, player)
     return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and not player:isKongcheng()
   end,
-  card_filter = function(self, to_select, selected)
-    return false
-  end,
+  card_filter = Util.FalseFunc,
   target_filter = function(self, to_select, selected)
     return #selected == 0 and to_select ~= Self.id and not Fk:currentRoom():getPlayerById(to_select):isKongcheng()
   end,
@@ -1471,57 +1467,31 @@ local zhukou = fk.CreateTriggerSkill{
   anim_type = "offensive",
   events = {fk.Damage},
   can_trigger = function(self, event, target, player, data)
-    if target == player and player:hasSkill(self) then
-      local room = player.room
-      if event == fk.Damage then
-        if room.current and room.current.phase == Player.Play then
-          local damage_event = room.logic:getCurrentEvent()
-          if not damage_event then return false end
-          local x = player:getMark("ty_heg__zhukou_record-phase")
-          if x == 0 then
-            room.logic:getEventsOfScope(GameEvent.ChangeHp, 1, function (e)
-              local reason = e.data[3]
-              if reason == "damage" then
-                local first_damage_event = e:findParent(GameEvent.Damage)
-                if first_damage_event and first_damage_event.data[1].from == player then
-                  x = first_damage_event.id
-                  room:setPlayerMark(player, "ty_heg__zhukou_record-phase", x)
-                end
-                return true
-              end
-            end, Player.HistoryPhase)
-          end
-          if damage_event.id == x then
-            local events = room.logic.event_recorder[GameEvent.UseCard] or Util.DummyTable
-            local end_id = player:getMark("ty_heg__zhukou_record-turn")
-            if end_id == 0 then
-              local turn_event = damage_event:findParent(GameEvent.Turn, false)
-              end_id = turn_event.id
-            end
-            room:setPlayerMark(player, "ty_heg__zhukou_record-turn", room.logic.current_event_id)
-            local y = player:getMark("ty_heg__zhukou_usecard-turn")
-            for i = #events, 1, -1 do
-              local e = events[i]
-              if e.id <= end_id then break end
-              local use = e.data[1]
-              if use.from == player.id then
-                y = y + 1
-              end
-            end
-            room:setPlayerMark(player, "ty_heg__zhukou_usecard-turn", y)
-            return y > 0
-          end
+    if not (target == player and player:hasSkill(self)) then return end
+    local room = player.room
+    if room.current and room.current.phase == Player.Play then
+      local damage_event = room.logic:getCurrentEvent()
+      if not damage_event then return false end
+      local events = room.logic:getActualDamageEvents(1, function(e)
+        return e.data[1].from == player
+      end, Player.HistoryPhase)
+      if #events > 0 and damage_event.id == events[1].id then
+        local n = #room.logic:getEventsOfScope(GameEvent.UseCard, 999, function(e)
+          return e.data[1].from == player.id
+        end, Player.HistoryTurn)
+        if n > 0 then
+          self.cost_data = n
+          return true
         end
       end
     end
   end,
+  on_cost = function(self, event, target, player, data)
+    return player.room:askForSkillInvoke(player, self.name, data, "#ty_heg__zhukou:::" .. self.cost_data)
+  end,
   on_use = function(self, event, target, player, data)
-    if event == fk.Damage then
-      local n = player:getMark("ty_heg__zhukou_usecard-turn")
-      if n > 0 then
-        player:drawCards(math.min(5, n), self.name)
-      end
-    end
+    local n = self.cost_data
+    player:drawCards(math.min(5, n), self.name)
   end,
 }
 
@@ -1534,6 +1504,7 @@ local duannian = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     player.room:throwCard(player:getCardIds("h"), self.name, player, player)
+    if player.dead then return end
     player:drawCards(player.maxHp - player:getHandcardNum(), self.name)
   end,
 }
@@ -1553,9 +1524,9 @@ local lianyou = fk.CreateTriggerSkill{
       local to = room:askForChoosePlayers(player, targets, 1, 1, "#ty_heg__lianyou-choose", self.name, true)
       if #to > 0 then
         to = to[1]
-        room:handleAddLoseSkills(room:getPlayerById(to), "xinghuo", nil, true, false)
+        room:handleAddLoseSkills(room:getPlayerById(to), "xinghuo")
       end
-    end      
+    end
   end,
 }
 
@@ -1565,13 +1536,13 @@ local xinghuo = fk.CreateTriggerSkill{
   anim_type = "offensive",
   events = {fk.DamageCaused},
   can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self) and data.damageType == fk.FireDamage and data.from == player and not data.from.dead
+    return player:hasSkill(self) and data.damageType == fk.FireDamage and data.from == player
   end,
   on_cost = Util.TrueFunc,
   on_use = function(self, event, target, player, data)
     data.damage = data.damage + 1
   end,
-} 
+}
 
 zhouyi:addSkill(zhukou)
 zhouyi:addSkill(duannian)
@@ -1593,7 +1564,9 @@ Fk:loadTranslationTable{
   ["#ty_heg__lianyou-choose"] = "莲佑：选择一名角色，其获得“兴火”。",
   ["xinghuo"] = "兴火",
   [":xinghuo"] = "锁定技，当你造成火属性伤害时，你令此伤害+1。",
-  
+
+  ["#ty_heg__zhukou"] = "逐寇：你可摸 %arg 张牌",
+
   ["$ty_heg__zhukou1"] = "草莽贼寇，不过如此。",
   ["$ty_heg__zhukou2"] = "轻装上阵，利剑出鞘。",
   ["$ty_heg__duannian1"] = "断思量，莫思量。",
@@ -2057,7 +2030,7 @@ local jinghe = fk.CreateActiveSkill{
     end
   end,
   target_filter = function(self, to_select, selected, selected_cards)
-    return #selected < #selected_cards and H.getGeneralsRevealedNum(Fk:currentRoom():getPlayerById(to_select))
+    return #selected < #selected_cards and H.getGeneralsRevealedNum(Fk:currentRoom():getPlayerById(to_select)) > 0
   end,
   feasible = function (self, selected, selected_cards)
     return #selected > 0 and #selected == #selected_cards

@@ -891,7 +891,7 @@ Fk:loadTranslationTable{
   ["fk_heg__chengui"] = "陈珪",
   ["#fk_heg__chengui"] = "弄虎如婴",
   ["illustrator:fk_heg__chengui"] = "游漫美绘",
-  ["designer:fk_heg__chengui"] = "狗设计的",
+  ["designer:fk_heg__chengui"] = "狗设计的", -- 千幻
 
   ["fk_heg__yingtu"] = "营图",
   [":fk_heg__yingtu"] = "每轮限一次，当一名角色于其摸牌阶段外获得牌后，若其是你的上家或下家，你可以获得该角色的一张牌，然后交给你的下家或上家一张牌。若以此法给出的牌为装备牌，获得牌的角色使用之。",
