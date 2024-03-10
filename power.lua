@@ -1821,9 +1821,10 @@ local liulongcanjia = fk.CreateDefensiveRide{
   suit = Card.Heart,
   number = 13,
   equip_skill = liulongcanjiaSkill,
+  ---@param room Room
   on_install = function(self, room, player)
     local cards = player:getEquipments(Card.SubtypeOffensiveRide)
-    if #cards > 0 then room:throwCard(cards, self.name, player, player) end
+    if #cards > 0 then room:moveCardTo(cards, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, self.name, nil, true, player.id) end
     DefensiveRide.onInstall(self, room, player)
     room:setPlayerMark(player, "@@liulongcanjia", 1) -- 绷
   end,
@@ -1841,7 +1842,7 @@ Fk:loadTranslationTable{
 }
 Fk:loadTranslationTable{
   ["liulongcanjia"] = "六龙骖驾",
-  [":liulongcanjia"] = "装备牌·坐骑<br /><b>坐骑技能</b>：锁定技，其他角色与你的距离+1，你与其他角色的距离-1；当【六龙骖驾】移至你的装备区后，你弃置你的装备区里所有其他坐骑牌。；你不能使用坐骑牌。",
+  [":liulongcanjia"] = "装备牌·坐骑<br /><b>坐骑技能</b>：锁定技，其他角色与你的距离+1，你与其他角色的距离-1；当【六龙骖驾】移至你的装备区后，你将你的装备区里所有其他坐骑牌置入弃牌堆；你不能使用坐骑牌。",
 
   ["@@liulongcanjia"] = "六龙骖驾",
 }
