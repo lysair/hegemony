@@ -247,6 +247,10 @@ Fk:loadTranslationTable{
   ["ld__feiying"] = "飞影",
   [":ld__feiying"] = "锁定技，其他角色计算与你的距离+1。",
 
+  ["$ld__huyuan1"] = "舍命献马，护我曹公！",
+  ["$ld__huyuan2"] = "拼将性命，定保曹公周全。",
+  ["~ld__caohong"] = "曹公，可安好...",
+
 }
 
 local jiangwei = General(extension, "ld__jiangwei", "shu", 4)
@@ -570,6 +574,12 @@ Fk:loadTranslationTable{
 
   ["ld__shangyi_hidden"] = "观看暗置的武将牌",
   ["ld__shangyi_card"] = "观看所有手牌",
+
+  ["$ld__shangyi1"] = "大丈夫为人坦荡，看下手牌算什么。",
+  ["$ld__shangyi2"] = "敌情已了然于胸，即刻出发！",
+  ["$ld__niaoxiang1"] = "此战，必是有死无生！",
+  ["$ld__niaoxiang2"] = "抢占先机，占尽优势！",
+  ["~ld__jiangqin"] = "竟破我阵法...",
 }
 
 local yuji = General(extension, "ld__yuji", "qun", 3)

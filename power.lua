@@ -843,6 +843,8 @@ Fk:loadTranslationTable{
   
   ["$ld__enyuan1"] = "伤了我，休想全身而退！",
   ["$ld__enyuan2"] = "报之以李，还之以桃。",
+  ["$ld__xuanhuo1"] = "给你的，十倍奉还给我！",
+  ["$ld__xuanhuo2"] = "重用许靖，以眩远近。",
   ["~ld__fazheng"] = "汉室复兴，我，是看不到了……",
 }
 
@@ -947,7 +949,7 @@ Fk:loadTranslationTable{
   ["$ld__keshou2"] = "宽济百姓，则得战前养备之机。",
   ["$ld__zhuwei1"] = "背水一战，只为破敌。",
   ["$ld__zhuwei2"] = "全线并进，连战克晋。",
-  ["~ld__ld__lukang"] = "抗仅以君子之交待叔子，未有半分背国之念啊。",
+  ["~ld__lukang"] = "吾既亡矣，又能存几时...",
 }
 
 local wuguotai = General(extension, "ld__wuguotai", "wu", 3, 3, General.Female)
@@ -1248,6 +1250,8 @@ Fk:loadTranslationTable{
 
   ['$ld__fudi1'] = '弃暗投明，为明公计！',
   ['$ld__fudi2'] = '绣虽有降心，奈何贵营难容。',
+  ['$ld__congjian1'] = '听君荐言，取为王，保宗嗣！',
+  ['$ld__congjian2'] = '从谏良计，可得自保。',
   ['~ld__zhangxiu'] = '若失文和，吾将何归？',
 }
 

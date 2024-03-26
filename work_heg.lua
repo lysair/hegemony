@@ -221,7 +221,7 @@ dongyun:addSkill(juanshe)
 Fk:loadTranslationTable{
   ["wk_heg__dongyun"] = "董允",
   ["#wk_heg__dongyun"] = "匡主正堂",
-  ["designer:wk_heg__dongyun"] = "修功&风箫",
+  ["designer:wk_heg__dongyun"] = "教父&修功&风箫",
 
   ["wk_heg__yizan"] = "翼赞",
   [":wk_heg__yizan"] = "弃牌阶段开始时，你可令一名手牌数小于你的角色将手牌摸至与你相同（至多摸五张），然后此阶段结束时，若你于此阶段内弃置过牌，其将手牌弃至体力上限。",
@@ -232,8 +232,8 @@ Fk:loadTranslationTable{
   ["#wk_heg__yizan-choose"] = "翼赞：选择一名手牌数小于你的角色，令其将手牌摸至与你相同。",
   ["#wk_heg__juanshe-invoke"] = "蠲奢：是否令当前回合角色弃置一张手牌，然后其回复1点体力。",
 
-  ["$wk_heg__yizan1"] = "还是改日吧。",
-  ["$wk_heg__yizan2"] = "今日之宴，恕某不能奉陪。",
+  ["$wk_heg__yizan1"] = "公事为重，宴席不去也罢。",
+  ["$wk_heg__yizan2"] = "还是改日吧。",
 
   ["$wk_heg__juanshe1"] = "自古，就是邪不胜正！。",
   ["$wk_heg__juanshe2"] = "主公面前，岂容小人搬弄是非。",
@@ -435,7 +435,7 @@ Fk:loadTranslationTable{
   ["$wk_heg__mingzheng2"] = "为官一任，当造福一方",
   ["$wk_heg__yujian1"] = "臣代天子牧民，闻苛自当谏之。",
   ["$wk_heg__yujian2"] = "为将者死战，为臣者死谏。",
-  ["~wk_heg__chengui"] = "臣统之大愿，可以死而不朽矣。",
+  ["~wk_heg__luotong"] = "而立之年，奈何早逝。",
 }
 
 local jvshou = General(extension, "wk_heg__jvshou", "qun", 3)
@@ -563,7 +563,7 @@ Fk:loadTranslationTable{
   ["$wk_heg__tugui2"] = "命系袁氏，一心向北。",
   ["$wk_heg__yingshou1"] = "由缓至急，循循而进。",
   ["$wk_heg__yingshou2"] = "事须缓图，欲速不达也。",
-  ["~wk_heg__jvshou"] = "智士凋亡，河北哀矣…",
+  ["~wk_heg__jvshou"] = "身处河南，魂归河北...",
 }
 
 --- 推举
@@ -714,7 +714,7 @@ Fk:loadTranslationTable{
   ["designer:wk_heg__chenqun"] = "教父&635",
 
   ["wk_heg__dingpin"] = "定品",
-  [":wk_heg__dingpin"] = "结束阶段，你可横置你与一名其他角色，令其于此回合结束后执行一个仅有出牌阶段的额外回合，此额外回合：1.出牌阶段开始时，若其与你势力相同，其推举，然后与选用的角色各摸一张牌；2.回合结束时，其将手牌数摸或弃至体力上限，然后叠置。<br />" ..
+  [":wk_heg__dingpin"] = "结束阶段，你可横置你与一名与你势力相同的角色，令其于此回合结束后执行一个仅有出牌阶段的额外回合，此额外回合：1.出牌阶段开始时，其推举，然后与选用的角色各摸一张牌；2.回合结束时，其将手牌数摸或弃至体力上限，然后叠置。<br />" ..
   "<font color = 'gray'>推举：推举角色展示一张与其势力相同的武将牌，每名与其势力相同的角色选择是否将此武将牌作为其新的副将。" ..
   "若有角色选择是，称为该角色<u>选用</u>，停止对后续角色的访问，结束推举流程。</font>",
   ["wk_heg__faen"] = "法恩",
@@ -845,6 +845,12 @@ Fk:loadTranslationTable{
   ["#wk_heg__yuyan_delay"] = "誉言",
   ["#wk_heg__caixia_filter"] = "才瑕",
   ["#wk_heg__caixia"] = "才瑕：你可以展示任意张同名手牌，然后摸等量的牌。",
+
+  ["$wk_heg__yuyan1"] = "君满腹才学，当为国之大器。",
+  ["$wk_heg__yuyan2"] = "一腔青云之志，正待梦日之时。",
+  ["$wk_heg__caixia1"] = "吾习扫天下之术，不善净一屋之秽。",
+  ["$wk_heg__caixia2"] = "玉有十色五光，微瑕难掩其瑜。",
+  ["~wk_heg__xujing"] = "时人如江鲫，所逐者功利尔...",
 }
 
 local buzhi = General(extension, "wk_heg__buzhi", "wu", 4)
@@ -1056,6 +1062,14 @@ Fk:loadTranslationTable{
   [":wk_heg__shucai_notag"] = "结束阶段，你可将你装备区内一张牌移动至其他角色装备区内，然后推举，若未被选用，你删除此武将牌所有技能标签。<br />"..
   "<font color = 'gray'>推举：推举角色展示一张与其势力相同的武将牌，每名与其势力相同的角色选择是否将此武将牌作为其新的副将。" ..
   "若有角色选择是，称为该角色<u>选用</u>，停止对后续角色的访问，结束推举流程。</font>",
+
+  ["$wk_heg__hongde1"] = "江南重义，东吴尚德。",
+  ["$wk_heg__hongde2"] = "德无单行，福必双至。",
+  ["$wk_heg__dingpan1"] = "从孙者生，从刘者死！",
+  ["$wk_heg__dingpan2"] = "多行不义必自毙！",
+  ["$wk_heg__shucai1"] = "督军之才，子明强于我甚多。",
+  ["$wk_heg__shucai2"] = "此间重任，公卿可担之。",
+  ["~wk_heg__buzhi"] = "交州已定，主公尽可放心。",
 }
 
 local huanfan = General(extension, "wk_heg__huanfan", "wei", 3, 3, General.Male)
@@ -1425,10 +1439,10 @@ Fk:loadTranslationTable{
 
   ["$wk_heg__juanxia1"] = "汝有何功，竟能居我之上！",
   ["$wk_heg__juanxia2"] = "恃才傲立，恩怨必偿。",
-  ["$wk_heg__fenduan1"] = "丞相新丧，吾当继之。",
-  ["$wk_heg__fenduan2"] = "规划分部，筹度粮谷。",
-  ["$wk_heg__choucuo1"] = "早知如此，投靠魏国又如何！",
-  ["$wk_heg__choucuo2"] = "我岂能与魏延这种莽夫共事。",
+  ["$wk_heg__fenduan1"] = "北伐之事，丞相亦听我定夺。",
+  ["$wk_heg__fenduan2"] = "早知如此，投靠魏国又如何！",
+  ["$wk_heg__choucuo1"] = "丞相新丧，吾当继之。",
+  ["$wk_heg__choucuo2"] = "规划分部，筹度粮谷。",
 
   ["~wk_heg__yangyi"] = "魏延庸奴，吾，誓杀汝！",
 }
@@ -1598,6 +1612,12 @@ Fk:loadTranslationTable{
   ["#wk_heg__zongpo-give"] = "纵迫：交给蒯越蒯良一张基本牌",
 
   ["#wk_heg__shenshi_delay"] = "审时",
+
+  ["$wk_heg__zongpo1"] = "得遇曹公，吾之幸也。",
+  ["$wk_heg__zongpo2"] = "曹公得荆不喜，喜得吾二人足以。",
+  ["$wk_heg__shenshi1"] = "深中足智，鉴时审情。",
+  ["$wk_heg__shenshi2"] = "数语之言，审时度势。",
+  ["~wk_heg__kuaizi"] = "表不能善用，所憾也",
 }
 
 local zhuran = General(extension, "wk_heg__zhuran", "wu", 4, 4, General.Male)
@@ -1669,5 +1689,9 @@ Fk:loadTranslationTable{
 
   ["#wk_heg__danshou-damage"] = "胆守：你可以弃置 %arg 张牌，对 %dest 造成1点伤害",
   ["#wk_heg__danshou"] = "胆守：是否摸一张牌",
+
+  ["$wk_heg__danshou1"] = "到此为止了！",
+  ["$wk_heg__danshou2"] = "以胆为守，扼敌咽喉！",
+  ["~wk_heg__zhuran"] = "何人竟有如此之胆！？",
 }
 return extension

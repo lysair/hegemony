@@ -1664,11 +1664,11 @@ Fk:loadTranslationTable{
   ["duoshi"] = "度势",
   [":duoshi"] = "出牌阶段限四次，你可将一张红色手牌当【以逸待劳】使用。",
 
-  ["$qianxun1"] = "儒生脱尘，不为贪逸淫乐之事。",
-  ["$qianxun2"] = "谦谦君子，不饮盗泉之水。",
+  ["$hs__qianxun1"] = "儒生脱尘，不为贪逸淫乐之事。",
+  ["$hs__qianxun2"] = "谦谦君子，不饮盗泉之水。",
   ["$duoshi2"] = "以今日之大势当行此计。",
   ["$duoshi1"] = "国之大计审视为先。",
-  ["~luxun"] = "还以为我已经不再年轻……",
+  ["~hs__luxun"] = "还以为我已经不再年轻……",
 }
 
 local sunshangxiang = General(extension, "hs__sunshangxiang", "wu", 3, 3, General.Female)
@@ -2619,7 +2619,7 @@ Fk:loadTranslationTable{
   ["$mingshi2"] = "名士之风，仁义高洁。",
   ["$lirang1"] = "夫礼先王以承天之道，以治人之情。",
   ["$lirang2"] = "谦者，德之柄也，让者，礼之逐也。",
-  ["~kongrong"] = "覆巢之下，岂有完卵……",
+  ["~hs__kongrong"] = "覆巢之下，岂有完卵……",
 }
 
 local jiling = General(extension, "hs__jiling", "qun", 4)

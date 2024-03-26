@@ -1233,12 +1233,12 @@ Fk:loadTranslationTable{
 
   ["$ty_heg__guowu1"] = "方天映黛眉，赤兔牵红妆。",
   ["$ty_heg__guowu2"] = "武姬青丝利，巾帼女儿红。",
-  ["$ty_heg__zhuangrong1"] = "锋镝鸣手中，锐戟映秋霜。",
-  ["$ty_heg__zhuangrong2"] = "红妆非我愿，学武觅封侯。",
-  ["$ty_heg__shenwei1"] = "继父神威，无坚不摧！",
-  ["$ty_heg__shenwei2"] = "我乃温侯吕奉先之女！",
-  ["$ty_heg__zhuanrong_hs_wushuang1"] = "猛将策良骥，长戟破敌营。",
-  ["$ty_heg__zhuanrong_hs_wushuang2"] = "杀气腾剑戟，严风卷戎装。",
+  ["$ty_heg__shenwei1"] = "锋镝鸣手中，锐戟映秋霜。",
+  ["$ty_heg__shenwei2"] = "红妆非我愿，学武觅封侯。",
+  ["$ty_heg__zhuangrong1"] = "继父神威，无坚不摧！",
+  ["$ty_heg__zhuangrong2"] = "我乃温侯吕奉先之女！",
+  ["$ty_heg__wushuang1"] = "猛将策良骥，长戟破敌营。",
+  ["$ty_heg__wushuang2"] = "杀气腾剑戟，严风卷戎装。",
   ["~ty_heg__lvlingqi"] = "父亲，女儿好累……",
 }
 

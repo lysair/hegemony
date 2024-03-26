@@ -18,12 +18,14 @@ Fk:loadTranslationTable{
   ["illustrator:fk_heg__guohuai"] = "张帅", -- 御蜀屏障
 
   [":fk_heg__jingce"] = "出牌阶段结束时，若你本回合已使用的牌数大于或等于你的体力值，你可以摸两张牌。",
+  ["~fk_heg__guohuai"] = "姜维小儿，竟然……",
 }
 
 local caozhang = General(extension, "fk_heg__caozhang", "wei", 4)
 caozhang:addSkill("jiangchi")
 Fk:loadTranslationTable{
   ["fk_heg__caozhang"] = "曹彰",
+  ["~fk_heg__caozhang"] = "子桓，你害我！",
 }
 
 --[[
@@ -41,6 +43,7 @@ wangyi:addSkill("zhenlie")
 wangyi:addSkill("miji")
 Fk:loadTranslationTable{
   ["fk_heg__wangyi"] = "王异",
+  ["~fk_heg__wangyi"] = "月儿，不要责怪你爹爹……",
 }
 
 local zhouxuan = General(extension, "fk_heg__zhouxuan", "wei", 3)
@@ -345,18 +348,22 @@ Fk:loadTranslationTable{
   ["fk_heg__yijik"] = "伊籍",
   ["fk_heg__jiyuan"] = "急援",
   [":fk_heg__jiyuan"] = "当一名角色进入濒死时，你可令其摸一张牌。",
+
+  ["~fk_heg__yijik"] = "未能，救得刘公脱险……",
 }
 
 local mazhong = General(extension, "fk_heg__mazhong", "shu", 4)
 mazhong:addSkill("fuman")
 Fk:loadTranslationTable{
   ['fk_heg__mazhong'] = '马忠',
+  ["~fk_heg__mazhong"] = "丞相不在，你们竟然...",
 }
 
 local liuchen = General(extension, "fk_heg__liuchen", "shu", 4)
 liuchen:addSkill("zhanjue")
 Fk:loadTranslationTable{
   ["fk_heg__liuchen"] = "刘谌",
+  ["~fk_heg__liuchen"] = "无言对百姓，有愧，见先祖……",
 }
 
 local liuyong = General(extension, "fk_heg__liuyong", "shu", 3)
@@ -536,6 +543,7 @@ handang:addSkill("gongqi")
 handang:addSkill("jiefan")
 Fk:loadTranslationTable{
   ["fk_heg__handang"] = "韩当",
+  ["~fk_heg__handang"] = "臣将战死，难为君王解忧了。",
 }
 
 local panma = General(extension, "fk_heg__panzhangmazhong", "wu", 4)
@@ -543,12 +551,15 @@ panma:addSkill("duodao")
 panma:addSkill("anjian")
 Fk:loadTranslationTable{
   ['fk_heg__panzhangmazhong'] = '潘璋马忠',
+  ["~fk_heg__panzhangmazhong"] = "怎么可能，我明明亲手将你……",
 }
 
 local zhuzhi = General(extension, "fk_heg__zhuzhi", "wu", 4)
 zhuzhi:addSkill("nos__anguo")
 Fk:loadTranslationTable{
   ['fk_heg__zhuzhi'] = '朱治',
+
+  ["~fk_heg__zhuzhi"] = "集毕生之力，保国泰民安。",
 }
 
 local zhuhuan = General(extension, "fk_heg__zhuhuan", "wu", 4)
@@ -599,6 +610,10 @@ Fk:loadTranslationTable{
 
   ["fk_heg_jurui_recover"] = "回复1点体力",
   ["fk_heg_jurui_draw"] = "将手牌摸至体力上限",
+
+  ["$fk_heg__jurui1"] = "无名小卒，可敢再前进一步！",
+  ["$fk_heg__jurui2"] = "予以小利，必有大获。",
+  ["~fk_heg__zhuhuan"] = "恨老死病榻，恨未马革裹尸。",
 }
 
 local guyong = General(extension, "fk_heg__guyong", "wu", 3)
@@ -673,8 +688,8 @@ Fk:loadTranslationTable{
   ["fk_heg__shenxing"] = "慎行",
   [":fk_heg__shenxing"] = "出牌阶段限四次，你可以弃置两张牌，然后摸一张牌。",
 
-  ["$fk_heg__guyong1"] = "上兵伐谋，三思而行。",
-  ["$fk_heg__guyong2"] = "精益求精，慎之再慎。",
+  ["$fk_heg__shenxing1"] = "上兵伐谋，三思而行。",
+  ["$fk_heg__shenxing2"] = "精益求精，慎之再慎。",
   ["$fk_heg__bingyi1"] = "秉直进谏，勿藏私心！",
   ["$fk_heg__bingyi2"] = "秉公守一，不负圣恩！",
   ["~fk_heg__guyong"] = "此番患疾，吾必不起……",
@@ -910,6 +925,7 @@ gongsunzan:addSkill("yicong")
 gongsunzan:addSkill("qiaomeng")
 Fk:loadTranslationTable{
   ["fk_heg__gongsunzan"] = "公孙瓒",
+  ["~fk_heg__gongsunzan"] = "皇图霸业梦，付之，一炬中……",
 }
 
 --[==[

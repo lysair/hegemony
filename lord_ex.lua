@@ -305,8 +305,10 @@ Fk:loadTranslationTable{
   ["ld__jianyan_recover"] = "回复1点体力，然后%src变更",
   ["ld__jianyan_getcard"] = "获得%arg",
 
-  ["$ld__xiaozhen1"] = "愿与将军共图王之霸业",
-  ["$ld__xiaozhen2"] = "如此如此，敌军自破。",
+  ["$ld__xiaozhen1"] = "既遇明主，天下可图！",
+  ["$ld__xiaozhen2"] = "弃武从文，安邦卫国！",
+  ["$ld__jianyan1"] = "开言纳谏，社稷之福。",
+  ["$ld__jianyan2"] = "如此如此，敌军自破！",
   ["~ld__xushu"] = "大义无言，虽死无怨。",
 }
 
@@ -870,12 +872,12 @@ Fk:loadTranslationTable{
 
   ["@@ld__mengda_letter-turn"] = "函",
 
-  ["$ld__qiuan1"] = "",
-  ["$ld__qiuan2"] = "",
-  ["$ld__liangfan1"] = "",
-  ["$ld__liangfan2"] = "",
+  ["$ld__qiuan1"] = "明公神文圣武，吾自当举城来降。",
+  ["$ld__qiuan2"] = "臣心不自安，乃君之过也。",
+  ["$ld__liangfan1"] = "今举兵投魏，必可封王拜相，一展宏图。",
+  ["$ld__liangfan2"] = "今举义军事若成，吾为复汉元勋也。",
 
-  ["~ld__mengda"] = "",
+  ["~ld__mengda"] = "吾一生寡信，今报应果然来矣...",
 }
 
 local zhanglu = General(extension, "ld__zhanglu", "qun", 3)
@@ -1381,8 +1383,8 @@ Fk:loadTranslationTable{
 
   ["$ld__xingzhao1"] = "精挑细选，方能成百年之计。",
   ["$ld__xingzhao2"] = "拿些上好的木料来。",
-  ["$ld__xunxun1"] = "让我先探他一探。",
-  ["$ld__xunxun2"] = "船，也不是一天就能造出来的。",
+--   ["$ld__xunxun1"] = "让我先探他一探。",
+--   ["$ld__xunxun2"] = "船，也不是一天就能造出来的。",
   ["~ld__tangzi"] = "偷工减料，要不得啊...",
 }
 
@@ -1551,8 +1553,8 @@ Fk:loadTranslationTable{
   ["#ld__congcha_delay"] = "聪察",
   ["#ld__congcha_choose"] = "聪察：选择一名未确定势力的角色",
 
-  ["$ld__congca1"] = "窥一斑而知全豹。",
-  ["$ld__congca2"] = "问一事则明其心。",
+  ["$ld__congcha1"] = "窥一斑而知全豹。",
+  ["$ld__congcha2"] = "问一事则明其心。",
   ["~ld__panjun"] = "密谋既泄，难处奸贼啊……",
 }
 
@@ -1766,7 +1768,7 @@ Fk:loadTranslationTable{
   ["#ld__chenglue-ask"] = "成略：你可令 %src 摸一张牌",
   ["#ld__chenglue-give"] = "成略：你可令一名与你势力相同且没有国战标记的角色获得一个“阴阳鱼”标记",
 
-  ["$ld__chenglue"] = "阿瞒，苦思之事，我早有良策。",
+  ["$ld__chenglue1"] = "阿瞒，苦思之事，我早有良策。",
   ["$ld__chenglue2"] = "策略已有，按部就班即可得胜。",
   ["$ld__shicai1"] = "如此大胜，皆由我一人谋划。",
   ["$ld__shicai2"] = "画谋定计，谁堪与我比较。",
