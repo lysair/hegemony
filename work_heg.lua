@@ -13,45 +13,34 @@ local liuye = General(extension, "wk_heg__liuye", "wei", 3)
 local poyuan = fk.CreateTriggerSkill{
   name = "wk_heg__poyuan",
   anim_type = "offensive",
---   events = {fk.Damage, fk.DamageCaused},
-  events = {fk.Damage},
+  events = {fk.Damage, fk.DamageCaused},
   can_trigger = function (self, event, target, player, data)
-    -- if event == fk.Damage then
-    return target == player and player:hasSkill(self) and data.to ~= player and not data.to.dead and not data.to:isNude()
-    -- else
-    --   return target == player and player:hasSkill(self) and player:getMark("poyuan-turn") == 0 and H.isBigKingdomPlayer(data.to) and player == player.room.current
-    -- end
+    if not (target == player and player:hasSkill(self) and player:isAlive()) then return false end
+    if event == fk.Damage then
+      return data.to ~= player and not data.to.dead and #data.to:getCardIds("e") > 0
+    else
+      if not (H.isBigKingdomPlayer(data.to) and player == player.room.current) then return false end
+      local events = player.room.logic:getActualDamageEvents(998, function(e)
+        return e.data[1].from == player and H.isBigKingdomPlayer(e.data[1].to)
+      end, Player.HistoryTurn)
+      return #events == 0
+    end
   end,
---   on_cost = function (self, event, target, player, data)
---     if event == fk.Damage then
---       return player.room:askForSkillInvoke(player, self.name, nil, "#wk_heg__poyuan-discard")
---     else
---       return true
---     end
---   end,
+  on_cost = function (self, event, target, player, data)
+    if event == fk.Damage then
+      return player.room:askForSkillInvoke(player, self.name, nil, "#wk_heg__poyuan-discard")
+    else
+      return true
+    end
+  end,
   on_use = function (self, event, target, player, data)
     local room = player.room
-    -- if event == fk.Damage then
-      local choices = {}
-      if not data.to:isKongcheng() then
-        table.insert(choices, "poyuan_discard-hand")
-      end
-      if #data.to:getCardIds("e") > 0 then
-        table.insert(choices, "poyuan_discard-equip")
-      end
-      if #choices == 0 then return end
-      local choice = room:askForChoice(player, choices, self.name)
-      if choice:startsWith("poyuan_discard-hand") then
-        room:askForDiscard(data.to, 1, 1, false, self.name, false)
-      end
-      if choice:startsWith("poyuan_discard-equip") then
-        local id = room:askForCardChosen(player, data.to, "e", self.name)
-        room:throwCard(id, self.name, data.to, player)
-      end
-    -- else
-    --   room:setPlayerMark(player, "poyuan-turn", 1)
-    --   data.damage = data.damage + 1
-    -- end
+    if event == fk.Damage then
+      local id = room:askForCardChosen(player, data.to, "e", self.name)
+      room:throwCard(id, self.name, data.to, player)
+    else
+      data.damage = data.damage + 1
+    end
   end,
 }
 
@@ -92,12 +81,11 @@ Fk:loadTranslationTable{
   ["designer:wk_heg__liuye"] = "教父&卧雏",
 
   ["wk_heg__poyuan"] = "破垣",
-  -- [":wk_heg__poyuan"] = "①当你对其他角色造成伤害后，你可选择一项：1.弃置其一张装备区内的牌；2.令其弃置一张手牌；②当你于回合内首次对大势力角色造成伤害时，此伤害+1。",
-  [":wk_heg__poyuan"] = "当你对其他角色造成伤害后，你可选择一项：1.弃置其一张装备区内的牌；2.令其弃置一张手牌。",
+  [":wk_heg__poyuan"] = "①当你对其他角色造成伤害后，你可弃置其一张装备区内的牌；②当你于回合内首次对大势力角色造成伤害时，此伤害+1。",
   ["wk_heg__choulue"] = "筹略",
   [":wk_heg__choulue"] = "①当你受到伤害后，若你的“阴阳鱼”标记数小于你体力上限，你可获得一个“阴阳鱼”标记；②当与你势力相同的角色使用普通锦囊牌指定唯一目标后，你可移去一个“阴阳鱼”标记，令此牌结算两次。",
 
-  ["#wk_heg__poyuan-discard"] = "破垣：是否令受伤角色弃置一张手牌，或你弃置受伤角色装备区内一张牌",
+  ["#wk_heg__poyuan-discard"] = "破垣：是否弃置受伤角色装备区内一张牌",
   ["poyuan_discard-hand"] = "令其弃置一张手牌",
   ["poyuan_discard-equip"] = "弃置其一张装备区内的牌",
 
@@ -115,9 +103,9 @@ local dongyun = General(extension, "wk_heg__dongyun", "shu", 3, 3, General.Male)
 local yizan = fk.CreateTriggerSkill{
   name = "wk_heg__yizan",
   anim_type = "drawcard",
-  events = {fk.EventPhaseStart, fk.EventPhaseEnd},
+  events = {fk.EventPhaseStart},
   can_trigger = function (self, event, target, player, data)
-    return player:hasSkill(self) and player.phase == Player.Discard and (event == fk.EventPhaseStart or player:getMark("wk_heg__yizan-phase"))
+    return player:hasSkill(self) and player.phase == Player.Discard
   end,
   on_cost = function (self, event, target, player, data)
     local room = player.room
@@ -133,21 +121,42 @@ local yizan = fk.CreateTriggerSkill{
           end
         end
       end
-    else
-      return true
     end
   end,
   on_use = function (self, event, target, player, data)
     local room = player.room
     local to = room:getPlayerById(self.cost_data)
-    if event == fk.EventPhaseStart then
-      to:drawCards(math.min(player:getHandcardNum() - #to.player_cards[Player.Hand], 5), self.name)
-      room:setPlayerMark(player, "wk_heg__yizan-phase", player:getHandcardNum())
-    elseif player:getMark("wk_heg__yizan-phase") > player:getMaxCards() then
-      local throw_num = #to.player_cards[Player.Hand] - to.maxHp
-      if throw_num > 0 then
-        room:askForDiscard(to, throw_num, throw_num, false, self.name, false)
+    to:drawCards(math.min(player:getHandcardNum() - #to.player_cards[Player.Hand], 5), self.name)
+    room:setPlayerMark(player, "wk_heg__yizan-phase", self.cost_data)
+  end,
+}
+
+local yizan_delay = fk.CreateTriggerSkill{
+  name = "#wk_heg__yizan_delay",
+  anim_type = "special",
+  events = {fk.EventPhaseEnd},
+  can_trigger = function (self, event, target, player, data)
+    if not (player:hasSkill(self) and player.phase == Player.Discard and player:getMark("wk_heg__yizan-phase") ~= 0) then return false end 
+    local logic = player.room.logic
+    local x = 0
+    logic:getEventsOfScope(GameEvent.MoveCards, 1, function (e)
+      for _, move in ipairs(e.data) do
+        if move.from == player.id and move.moveReason == fk.ReasonDiscard and move.skillName == "game_rule" then
+          x = x + #move.moveInfo
+          if x > 1 then return true end
+        end
       end
+      return false
+    end, Player.HistoryTurn)
+    return x > 0
+  end,
+  on_cost = Util.TrueFunc,
+  on_use = function (self, event, target, player, data)
+    local room = player.room
+    local to = room:getPlayerById(player:getMark("wk_heg__yizan-phase"))
+    local throw_num = #to.player_cards[Player.Hand] - to.maxHp
+    if throw_num > 0 then
+      room:askForDiscard(to, throw_num, throw_num, false, self.name, false)
     end
   end,
 }
@@ -215,6 +224,7 @@ local juanshe_prohibit = fk.CreateProhibitSkill{
 }
 
 dongyun:addCompanions("ld__jiangwanfeiyi")
+yizan:addRelatedSkill(yizan_delay)
 juanshe:addRelatedSkill(juanshe_prohibit)
 dongyun:addSkill(yizan)
 dongyun:addSkill(juanshe)
@@ -228,6 +238,7 @@ Fk:loadTranslationTable{
   ["wk_heg__juanshe"] = "蠲奢",
   [":wk_heg__juanshe"] = "与你势力相同角色的结束阶段，若其本回合使用牌数小于其手牌上限，你可令其弃置一张手牌并回复1点体力，然后直至其回合开始或你受到伤害，其不能使用手牌。",
 
+  ["#wk_heg__yizan_delay"] = "翼赞",
   ["#wk_heg__yizan-invoke"] = "翼赞：是否令一名手牌数小于你的角色将手牌摸至与你相同，然后其根据你的弃牌情况执行对应操作。",
   ["#wk_heg__yizan-choose"] = "翼赞：选择一名手牌数小于你的角色，令其将手牌摸至与你相同。",
   ["#wk_heg__juanshe-invoke"] = "蠲奢：是否令当前回合角色弃置一张手牌，然后其回复1点体力。",
@@ -336,7 +347,7 @@ local mingzheng = fk.CreateTriggerSkill{
     if event == fk.EventPhaseStart then
       local targets = table.map(table.filter(room.alive_players, function(p) return H.compareKingdomWith(p, player) and p ~= target end), Util.IdMapper)
       if #targets > 0 then
-        local to = room:askForChoosePlayers(target, targets, 1, 1, "#wk_heg__mingzheng-choose", self.name, true)
+        local to = room:askForChoosePlayers(target, targets, 1, 1, "#wk_heg__mingzheng-choose", self.name, false)
         local p = room:getPlayerById(to[1])
         room:askForCardsChosen(target, p, 0, 0, {
           card_data = {
@@ -362,53 +373,49 @@ local mingzheng = fk.CreateTriggerSkill{
 local yujian = fk.CreateTriggerSkill{
   name = "wk_heg__yujian",
   anim_type = "control",
-  events = {fk.TargetSpecified, fk.TurnEnd},
+  events = {fk.Damage},
   can_trigger = function (self, event, target, player, data)
-    if event == fk.TargetSpecified then
-      if not (player:hasSkill(self) and target ~= player and target.phase == Player.Play and data.card.trueName == "slash" and data.firstTarget) then return false end
-      local events = target.room.logic:getEventsOfScope(GameEvent.UseCard, 1, function(e) 
-        local use = e.data[1]
-        return use.from == target.id and use.card.trueName == "slash"
-      end, Player.HistoryTurn)
-      return #events == 1 and events[1].id == target.room.logic:getCurrentEvent().id
-    elseif event == fk.TurnEnd then
-      return player:getMark("@@wk_heg__yujian_exchange-turn") > 0
-    end
-  end,
-  on_cost = function (self, event, target, player, data)
-    if event == fk.TargetSpecified then
-      return player.room:askForSkillInvoke(player, self.name, nil, "#wk_heg__yujian-invoke")
-    else
-      return true
-    end
+    if not (player:hasSkill(self) and target ~= player and data.from.phase == Player.Play and H.compareKingdomWith(player, data.to)) then return false end
+    local events = player.room.logic:getActualDamageEvents(998, function(e)
+      return H.compareKingdomWith(e.data[1].to, player) and data.from == player.room.current and data.from.phase == Player.Play
+    end, Player.HistoryTurn)
+    return #events == 1
   end,
   on_use = function (self, event, target, player, data)
     local room = player.room
     local current = room.current
-    if event == fk.TargetSpecified then
-      if target.hp <= player.hp then
-        swapHandCards(room, player.id, player.id, current.id, self.name)
-        room:setPlayerMark(player, "@@wk_heg__yujian_exchange-turn", 1)
-      end
-      if H.getGeneralsRevealedNum(target) == 2 and room:askForChoice(player, {"wk_heg__yujian_hide::" .. target.id, "Cancel"}, self.name) ~= "Cancel" then
-        for _, p in ipairs({target}) do
-          local isDeputy = H.doHideGeneral(room, player, p, self.name)
-          room:setPlayerMark(p, "@wk_heg__yujian_reveal-turn", H.getActualGeneral(p, isDeputy))
-          local record = type(p:getMark(MarkEnum.RevealProhibited .. "-turn")) == "table" and p:getMark(MarkEnum.RevealProhibited .. "-turn") or {}
-          table.insert(record, isDeputy and "d" or "m")
-          room:setPlayerMark(p, MarkEnum.RevealProhibited .. "-turn", record)
-        end
-      end
+    if target.hp <= player.hp then
+      swapHandCards(room, player.id, player.id, current.id, self.name)
+      room:setPlayerMark(player, "@@wk_heg__yujian_exchange-turn", 1)
     end
-    
-    if event == fk.TurnEnd then
-      if player:getMark("@@wk_heg__yujian_exchange-turn") > 0 then
-        swapHandCards(room, player.id, player.id, current.id, self.name)
+    if H.getGeneralsRevealedNum(target) == 2 and room:askForChoice(player, {"wk_heg__yujian_hide::" .. target.id, "Cancel"}, self.name) ~= "Cancel" then
+      for _, p in ipairs({target}) do
+        local isDeputy = H.doHideGeneral(room, player, p, self.name)
+        room:setPlayerMark(p, "@wk_heg__yujian_reveal-turn", H.getActualGeneral(p, isDeputy))
+        local record = type(p:getMark(MarkEnum.RevealProhibited .. "-turn")) == "table" and p:getMark(MarkEnum.RevealProhibited .. "-turn") or {}
+        table.insert(record, isDeputy and "d" or "m")
+        room:setPlayerMark(p, MarkEnum.RevealProhibited .. "-turn", record)
       end
     end
   end,
 }
 
+local yujian_delay = fk.CreateTriggerSkill{
+  name = "#wk_heg__yujian_delay",
+  anim_type = "special",
+  events = {fk.TurnEnd},
+  can_trigger = function (self, event, target, player, data)
+    return player:getMark("@@wk_heg__yujian_exchange-turn") > 0 and not player.dead and not player.room.current.deat
+  end,
+  on_cost = Util.TrueFunc,
+  on_use = function (self, event, target, player, data)
+    local room = player.room
+    local current = room.current
+    swapHandCards(room, player.id, player.id, current.id, self.name)
+  end
+}
+
+yujian:addRelatedSkill(yujian_delay)
 luotong:addSkill(mingzheng)
 luotong:addSkill(yujian)
 Fk:loadTranslationTable{
@@ -419,13 +426,14 @@ Fk:loadTranslationTable{
   ["wk_heg__mingzheng"] = "明政",
   [":wk_heg__mingzheng"] = "与你势力相同的角色：1.明置武将牌后，若其武将牌均明置，其复原武将牌，然后获得一个“阴阳鱼”标记; 2.出牌阶段开始时，其观看除其外一名与你势力相同的角色的手牌。",
   ["wk_heg__yujian"] = "御谏",
-  [":wk_heg__yujian"] = "其他角色于其出牌阶段内使用首张【杀】指定目标后，你可依次执行每个满足条件的项：1.若其体力值不大于你，你可以与其交换手牌，若如此做，此回合结束时，你与其交换手牌；"..
+  [":wk_heg__yujian"] = "其他角色于其出牌阶段内首次对与你势力相同的角色造成伤害后，你可依次执行每个满足条件的项：1.若其体力值不大于你，你可以与其交换手牌，若如此做，此回合结束时，你与其交换手牌；"..
   "2.若其武将牌均明置，你可以暗置其一张武将牌且直至本回合结束不能明置之。",
 
   ["#wk_heg__mingzheng-choose"] = "明政：选择一名与你势力相同的其他角色观看手牌",
   ["wk_heg__mingzheng-hand"] = "明政：观看%dest的手牌",
   ["wk_heg__yujian_hide"] = "暗置%dest一张武将牌且本回合不能明置",
 
+  ["#wk_heg__yujian_delay"] = "御谏",
   ["@@wk_heg__yujian_exchange-turn"] = "御谏 交换手牌",
 
   ["#wk_heg__yujian-invoke"] = "御谏：你可根据条件与当前回合角色交换手牌或暗置当前回合角色武将牌",
@@ -484,7 +492,7 @@ local tugui = fk.CreateTriggerSkill{
     if event == fk.AfterCardsMove or event == fk.EnterDying then
       local targets = table.map(table.filter(room.alive_players, function(p) return player:distanceTo(p) == 1 and not p:isKongcheng() end), Util.IdMapper)
       if #targets > 0 then
-        local to = room:askForChoosePlayers(player, targets, 1, 1, "#wk_heg__tugui-choose")
+        local to = room:askForChoosePlayers(player, targets, 1, 1, "#wk_heg__tugui-choose", self.name, false)
         local card = room:askForCardChosen(player, room:getPlayerById(to[1]), "h", self.name)
         room:obtainCard(player.id, card, false, fk.ReasonPrey)
         player:showCards(card)
@@ -508,7 +516,7 @@ local tugui = fk.CreateTriggerSkill{
 local yingshou = fk.CreateTriggerSkill{
   name = "wk_heg__yingshou",
   anim_type = "drawcard",
-  events = {fk.EventPhaseStart, fk.Damage},
+  events = {fk.EventPhaseStart},
   can_trigger = function (self, event, target, player, data)
     return player == target and player.phase == Player.Finish and player:hasSkill(self)
   end,
@@ -522,24 +530,30 @@ local yingshou = fk.CreateTriggerSkill{
       room:setPlayerMark(to, "@@wk_heg__yingshou", 1)
     end
   end,
+}
 
-  refresh_events = {fk.Damage, fk.EventPhaseEnd},
+local yingshou_delay = fk.CreateTriggerSkill{
+  name = "#wk_heg__yingshou_delay",
+  anim_type = "special",
+  events = {fk.Damage},
+  can_trigger = function (self, event, target, player, data)
+    return data.from:getMark("@@wk_heg__yingshou") > 0 and not data.from:isNude() and data.from.phase == Player.Play
+  end,
+  on_cost = Util.TrueFunc,
+  on_use = function (self, event, target, player, data)
+    player.room:askForDiscard(data.from, 1, 1, true, self.name, false)
+  end,
+
+  refresh_events = {fk.EventPhaseEnd},
   can_refresh = function (self, event, target, player, data)
-    if event == fk.Damage then
-      return data.from:getMark("@@wk_heg__yingshou") > 0 and not data.from:isNude() and data.from.phase == Player.Play and player:hasSkill(self)
-    else
-      return target:getMark("@@wk_heg__yingshou") > 0 and target.phase == Player.Play
-    end
+    return target:getMark("@@wk_heg__yingshou") > 0 and target.phase == Player.Play
   end,
   on_refresh = function (self, event, target, player, data)
-    if event == fk.Damage then
-      player.room:askForDiscard(data.from, 1, 1, true, self.name, false)
-    else
-      player.room:setPlayerMark(target, "@@wk_heg__yingshou", 0)
-    end
+    player.room:setPlayerMark(target, "@@wk_heg__yingshou", 0)
   end,
 }
 
+yingshou:addRelatedSkill(yingshou_delay)
 jvshou:addSkill(tugui)
 jvshou:addSkill(yingshou)
 
@@ -551,11 +565,12 @@ Fk:loadTranslationTable{
   ["wk_heg__tugui"] = "图归",
   [":wk_heg__tugui"] = "①每回合限一次，当你失去最后的手牌后或当你进入濒死状态后，你可获得与你距离为1的其他角色的一张手牌并展示之；②出牌阶段结束时，若你未失去以此法获得的所有牌，你移除此武将牌。",
   ["wk_heg__yingshou"] = "营守",
-  [":wk_heg__yingshou"] = "结束阶段，你可令一名与你势力相同的角色摸两张牌，若如此做，当其于下个回合的出牌阶段内造成伤害后，其弃置一张牌。",
+  [":wk_heg__yingshou"] = "结束阶段，你可令一名与你势力相同的角色摸两张牌，若如此做，当其于下个出牌阶段内造成伤害后，其弃置一张牌。",
 
   ["#wk_heg__tugui-ask"] = "图归：是否获得与你距离为1的其他角色的一张手牌",
   ["#wk_heg__tugui-choose"] = "图归：选择一名与你距离为1的其他角色",
 
+  ["#wk_heg__yingshou_delay"] = "营守",
   ["#wk_heg__yingshou-choose"] = "营守：选择一名与你势力相同的角色",
   ["@@wk_heg__yingshou"] = "营守",
 
@@ -577,7 +592,7 @@ local function DoElectedChange(room, player, skillName)
   end, 1)
   local general = room:askForGeneral(player, generals, 1, true) ---@type string
   room:sendLog{
-    type = "#ElectedChange",
+    type = "#ElectedChangeLog",
     from = player.id,
     arg = general,
     arg2 = skillName,
@@ -588,23 +603,37 @@ local function DoElectedChange(room, player, skillName)
   local ret
   for _, pid in ipairs(targets) do
     local p = room:getPlayerById(pid)
-    local choice = room:askForChoice(p, {"#elected_change:::" .. general, "Cancel"}, "ElectedChange", "#elected_change-ask:" .. player.id .. "::" .. general)
+    local choices = {"Cancel"}
+    if p.general ~= "anjiang" and not p.general:startsWith("ld__lord") and not general.subkingdom then
+      table.insert(choices, "#elected_change_main:::" .. general)
+    end
+    if p.deputyGeneral ~= "anjiang" then
+      table.insert(choices, "#elected_change_deputy:::" .. general)
+    end
+    local choice = room:askForChoice(p, choices, "ElectedChange", "#elected_change-ask:" .. player.id .. "::" .. general)
     if choice ~= "Cancel" then
-      generals = {H.getActualGeneral(p, true)}
-      room:changeHero(p, general, false, true, true, false)
+      if choice:startsWith("#elected_change_main") then
+        generals = {H.getActualGeneral(p, false)}
+        room:changeHero(p, general, false, false, true, false, false)
+      else
+        generals = {H.getActualGeneral(p, true)}
+        room:changeHero(p, general, false, true, true, false, false)
+      end
       ret = p
       break
     end
   end
   room:returnToGeneralPile(generals)
-  return ret
+  return {ret, general}
 end
 
 Fk:loadTranslationTable{
   ["ElectedChange"] = "推举",
-  ["#ElectedChange"] = "%from 由于 “%arg2”，推举了 %arg",
-  ["#elected_change"] = "将%arg作为副将",
-  ["#elected_change-ask"] = "%src 推举了 %arg，你可 选用 为你的副将",
+  ["#Elected"] = "推举了",
+  ["#ElectedChangeLog"] = "%from 由于 “%arg2”，推举了 %arg",
+  ["#elected_change_main"] = "选用：将%arg作为主将",
+  ["#elected_change_deputy"] = "选用：将%arg作为副将",
+  ["#elected_change-ask"] = "%src 推举了 %arg，你可 选用 为你的主将或副将",
 }
 
 local chenqun = General(extension, "wk_heg__chenqun", "wei", 3)
@@ -617,7 +646,7 @@ local dingpin = fk.CreateTriggerSkill{
   end,
   on_cost = function (self, event, target, player, data)
     local room = player.room
-    local targets = table.map(table.filter(room.alive_players, function(p) return p ~= player and not p.chained end), Util.IdMapper)
+    local targets = table.map(table.filter(room.alive_players, function(p) return H.compareKingdomWith(p, player) end), Util.IdMapper)
     local to = room:askForChoosePlayers(player, targets, 1, 1, "#wk_heg__dingpin-choose", self.name, true)
     if #to > 0 then
       self.cost_data = to[1]
@@ -628,7 +657,9 @@ local dingpin = fk.CreateTriggerSkill{
     local room = player.room
     player:setChainState(true)
     local to = room:getPlayerById(self.cost_data)
-    to:setChainState(true)
+    if not to.chained then
+      to:setChainState(true)
+    end
     room:setPlayerMark(to, "_wk_heg__dingpin", player.id)
     U.gainAnExtraTurn(to, true, self.name)
   end,
@@ -715,13 +746,13 @@ Fk:loadTranslationTable{
 
   ["wk_heg__dingpin"] = "定品",
   [":wk_heg__dingpin"] = "结束阶段，你可横置你与一名与你势力相同的角色，令其于此回合结束后执行一个仅有出牌阶段的额外回合，此额外回合：1.出牌阶段开始时，其推举，然后与选用的角色各摸一张牌；2.回合结束时，其将手牌数摸或弃至体力上限，然后叠置。<br />" ..
-  "<font color = 'gray'>推举：推举角色展示一张与其势力相同的武将牌，每名与其势力相同的角色选择是否将此武将牌作为其新的副将。" ..
-  "若有角色选择是，称为该角色<u>选用</u>，停止对后续角色的访问，结束推举流程。</font>",
+  "<font color = 'gray'>推举：推举角色展示一张与其势力相同的武将牌，每名与其势力相同的角色选择是否将此武将牌作为其新的主将或副将。" ..
+  "若有角色选择是，称为该角色<u>选用</u>，停止对后续角色的询问，结束推举流程。</font>",
   ["wk_heg__faen"] = "法恩",
   [":wk_heg__faen"] = "与你势力相同的角色：1.横置后，其可重铸一张牌；2.叠置后，你可令其弃置两张牌，然后其平置。",
 
   ["@@wk_heg__dingpin_extra"] = "定品",
-  ["#wk_heg__dingpin-choose"] = "定品：你可以选择一名其他角色，横置你与其，令其于此回合结束后执行一个仅有出牌阶段的额外的回合",
+  ["#wk_heg__dingpin-choose"] = "定品：你可以选择一名与你势力相同的角色，横置你与其，令其于此回合结束后执行一个仅有出牌阶段的额外的回合",
   ["#wk_heg__dingpin_delay"] = "定品",
 
   ["#wk_heg__faen_turn-invoke"] = "法恩：是否令其弃置两张牌，然后其平置",
@@ -745,7 +776,9 @@ local yuyan = fk.CreateTriggerSkill{
     for _, move in ipairs(data) do
       if move.to and move.to == player.id and move.from and move.from ~= player.id then
         for _, info in ipairs(move.moveInfo) do
-          n = n + 1
+          if info.fromArea == Card.PlayerHand or info.fromArea == Card.PlayerEquip then
+            n = n + 1
+          end
         end
       end
     end
@@ -835,9 +868,9 @@ Fk:loadTranslationTable{
   ["designer:wk_heg__xujing"] = "教父&635&二四",
 
   ["wk_heg__yuyan"] = "誉言",
-  [":wk_heg__yuyan"] = "当你于回合外获得其他角色的牌后，你可将等量张牌交给当前回合角色，若如此做，此回合结束时，若其与你势力相同，你推举，若被选用，你回复1点体力。<br />"..
-    "<font color = 'gray'>推举：推举角色展示一张与其势力相同的武将牌，每名与其势力相同的角色选择是否将此武将牌作为其新的副将。" ..
-  "若有角色选择是，称为该角色<u>选用</u>，停止对后续角色的访问，结束推举流程。</font>",
+  [":wk_heg__yuyan"] = "①你是与你势力相同且手牌数大于你角色“合纵”的合法目标；②当你于回合外获得其他角色的牌后，你可将等量张牌交给当前回合角色，若如此做，此回合结束时，若其与你势力相同，你推举，若被选用，你回复1点体力。<br />"..
+    "<font color = 'gray'>推举：推举角色展示一张与其势力相同的武将牌，每名与其势力相同的角色选择是否将此武将牌作为其新的主将或副将。" ..
+  "若有角色选择是，称为该角色<u>选用</u>，停止对后续角色的询问，结束推举流程。</font>",
   ["wk_heg__caixia"] = "才瑕",
   [":wk_heg__caixia"] = "每回合限一次，当你造成或受到伤害后，你可展示任意张同名手牌，然后摸等量的牌（至多摸你体力上限数张）。",
 
@@ -1047,8 +1080,8 @@ Fk:loadTranslationTable{
   [":wk_heg__dingpan"] = "主将技，出牌阶段限X次，你可令一名其他势力角色摸一张牌，然后其选择：1.交给你其攻击范围数张牌；2.你视为对其使用一张【杀】（X为野心家角色数+1）。",
   ["wk_heg__shucai"] = "疏才",
   [":wk_heg__shucai"] = "副将技，此武将牌上单独的阴阳鱼个数-1；结束阶段，你可将你装备区内一张牌移动至其他角色装备区内，然后推举，若未被选用，你删除此武将牌所有技能标签至你进入濒死状态。<br />"..
-  "<font color = 'gray'>推举：推举角色展示一张与其势力相同的武将牌，每名与其势力相同的角色选择是否将此武将牌作为其新的副将。" ..
-  "若有角色选择是，称为该角色<u>选用</u>，停止对后续角色的访问，结束推举流程。</font>",
+  "<font color = 'gray'>推举：推举角色展示一张与其势力相同的武将牌，每名与其势力相同的角色选择是否将此武将牌作为其新的主将或副将。" ..
+  "若有角色选择是，称为该角色<u>选用</u>，停止对后续角色的询问，结束推举流程。</font>",
 
   ["#wk_heg__hongde-give"] = "弘德：选择一名其他角色，交给其一张牌",
   ["#wk_heg__shucai-ask"] = "疏才：你可选择一名其他角色，将装备区内一张牌移动至其装备区内",
@@ -1060,8 +1093,8 @@ Fk:loadTranslationTable{
   [":wk_heg__dingpan_notag"] = "出牌阶段限X次，你可令一名其他势力角色摸一张牌，然后其选择：1.交给你其攻击范围数张牌；2.你视为对其使用一张【杀】（X为野心家角色数+1）。",
   ["wk_heg__shucai_notag"] = "疏才",
   [":wk_heg__shucai_notag"] = "结束阶段，你可将你装备区内一张牌移动至其他角色装备区内，然后推举，若未被选用，你删除此武将牌所有技能标签。<br />"..
-  "<font color = 'gray'>推举：推举角色展示一张与其势力相同的武将牌，每名与其势力相同的角色选择是否将此武将牌作为其新的副将。" ..
-  "若有角色选择是，称为该角色<u>选用</u>，停止对后续角色的访问，结束推举流程。</font>",
+  "<font color = 'gray'>推举：推举角色展示一张与其势力相同的武将牌，每名与其势力相同的角色选择是否将此武将牌作为其新的主将或副将。" ..
+  "若有角色选择是，称为该角色<u>选用</u>，停止对后续角色的询问，结束推举流程。</font>",
 
   ["$wk_heg__hongde1"] = "江南重义，东吴尚德。",
   ["$wk_heg__hongde2"] = "德无单行，福必双至。",
@@ -1077,15 +1110,12 @@ local liance_viewas = fk.CreateViewAsSkill{
   name = "wk_heg__liance_viewas",
   interaction = function()
     local names = {}
-    local mark = Self:getMark("liance-phase")
+    local mark = Self:getMark("wk_heg__liance-phase")
     for _, id in ipairs(Fk:getAllCardIds()) do
       local card = Fk:getCardById(id, true)
-      if table.contains(mark, card.trueName) then
+      if table.contains(mark, card.name) then
         table.insertIfNeed(names, card.name)
       end
-    end
-    if table.contains(mark, "sa__drowning") then
-      table.insertIfNeed(names, "sa__drowning")
     end
     return UI.ComboBox {choices = names}
   end,
@@ -1121,22 +1151,22 @@ local liance = fk.CreateTriggerSkill{
       return #usedCardTwice > 0
     end
   end,
+  on_cost = function(self, event, target, player, data)
+    return player.room:askForDiscard(player, 1, 1, true, self.name, true, ".", "#wk_heg__liance-invoke::"..target.id, true)
+  end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    local discards = room:askForDiscard(player, 1, 1, true, self.name, false)
-    if #discards == 1 then
-      player.room:setPlayerMark(target, "liance-phase", self.cost_data)
-      local success, dat = player.room:askForUseActiveSkill(target, "wk_heg__liance_viewas", "#wk_heg__liance-choose", true)
-      if not success then
-        H.askCommandTo(player, target, self.name, true)
-      else
-        local card = Fk.skills["wk_heg__liance_viewas"]:viewAs(self.cost_data.cards)
-          room:useCard{
-          from = target.id,
-          tos = table.map(dat.targets, function(id) return {id} end),
-          card = card,
-        }
-      end
+    room:setPlayerMark(target, "wk_heg__liance-phase", self.cost_data)
+    local success, dat = player.room:askForUseActiveSkill(target, "wk_heg__liance_viewas", "#wk_heg__liance-choose", true)
+    if not success then
+      H.askCommandTo(player, target, self.name, true)
+    else
+      local card = Fk.skills["wk_heg__liance_viewas"]:viewAs(self.cost_data.cards)
+        room:useCard{
+        from = target.id,
+        tos = table.map(dat.targets, function(id) return {id} end),
+        card = card,
+      }
     end
   end,
 }
@@ -1239,7 +1269,7 @@ Fk:loadTranslationTable{
   ["wk_heg__shilun"] = "世论",
   [":wk_heg__shilun"] = "当你受到伤害后，你可展示所有手牌并弃至每种花色各一张，然后若你的手牌：包含四种花色，你可移动场上一张牌；不包含四种花色，你从牌堆中检索并获得手牌中没有的花色牌各一张。",
 
-  ["#wk_heg__liance"] = "连策：是否弃置一张牌令当前回合视为使用同名牌",
+  ["#wk_heg__liance-invoke"] = "连策：你可以弃置一张牌，令 %dest 视为使用锦囊牌或执行强制“军令”",
   ["#wk_heg__shilun_active-choose"] = "世论：选择花色各不相同的手牌各一张",
   ["#wk_heg__shilun-move"] = "世论：你可以移动场上一张牌",
 
@@ -1448,7 +1478,7 @@ Fk:loadTranslationTable{
 }
 
 local kuaizi = General(extension, "wk_heg__kuaizi", "qun", 3, 3, General.Male)
-local yonglun = fk.CreateTriggerSkill{
+local zongpo = fk.CreateTriggerSkill{
   name = "wk_heg__zongpo",
   events = {fk.CardUseFinished},
   anim_type = "offensive",
@@ -1458,18 +1488,21 @@ local yonglun = fk.CreateTriggerSkill{
   on_use = function (self, event, target, player, data)
     local room = player.room
     room:loseHp(player, 1)
+    if player.dead then return false end
+   
     local targets = table.map(room:getOtherPlayers(player), Util.IdMapper)
     local tos = room:askForChoosePlayers(player, targets, 1, 1, "#wk_heg__zongpo_choose", self.name, true)
     local to = room:getPlayerById(tos[1])
-    local num = #table.filter(to:getCardIds(Player.Hand), function(id)
-      return Fk:getCardById(id).type == Card.TypeBasic end)
-    if num > 0 then
-      local card = room:askForCard(to, 1, 1, false, self.name, false, ".|.|.|.|.|basic", "#wk_heg__zongpo-give")
-      room:moveCardTo(card, Player.Hand, player, fk.ReasonGive, self.name, nil, false, tos[1])
+    if table.find(to:getCardIds("h"), function(id) return Fk:getCardById(id).type == Card.TypeBasic end) then
+      local card, _ = U.askforChooseCardsAndChoice(player, table.filter(to:getCardIds("h"), function(id) return Fk:getCardById(id).type == Card.TypeBasic end), 
+      {"OK"}, self.name, "", nil, 1, 1, to:getCardIds("h"))
+      room:moveCardTo(card, Player.Hand, player, fk.ReasonPrey, self.name, nil, false, tos[1])
       local mark = {}
       table.insert(mark, card[1])
       room:setCardMark(Fk:getCardById(card[1]), "@@alliance-inhand", 1)
       room:setPlayerMark(player, "wk_heg__zongpo", mark)
+    else
+      U.viewCards(player, to:getCardIds("h"), self.name)
     end
     if to.dead then return false end
     local card_ids = Card:getIdList(data.card)
@@ -1594,7 +1627,7 @@ local shenshi_delay = fk.CreateTriggerSkill{
   end,
 }
 shenshi:addRelatedSkill(shenshi_delay)
-kuaizi:addSkill(yonglun)
+kuaizi:addSkill(zongpo)
 kuaizi:addSkill(shenshi)
 
 Fk:loadTranslationTable{
@@ -1603,7 +1636,7 @@ Fk:loadTranslationTable{
   ["designer:wk_heg__kuaizi"] = "教父&风箫",
 
   ["wk_heg__zongpo"] = "纵迫",
-  [":wk_heg__zongpo"] = "每回合限一次，当你使用牌结算后，你可失去1点体力，令一名其他角色交给你一张基本牌，此牌于你的手牌区内视为拥有“合纵”标记，然后其获得你使用的牌。",
+  [":wk_heg__zongpo"] = "每回合限一次，当你使用牌结算后，你可失去1点体力，观看一名其他角色所有手牌并获得其中一张基本牌，此牌于你的手牌区内视为拥有“合纵”标记，然后其获得你使用的牌。",
   ["wk_heg__shenshi"] = "审时",
   [":wk_heg__shenshi"] = "其他角色获得你的牌后，若你与其的大小势力状态不同，你可令其摸一张牌，若如此做，此回合结束时，若此回合内所有以此法摸牌的角色于以此法摸牌后未对与你势力相同的角色造成过伤害，与你势力相同的角色各摸一张牌，否则你暗置此武将牌且不能明置直至你回合开始。",
 
@@ -1693,5 +1726,140 @@ Fk:loadTranslationTable{
   ["$wk_heg__danshou1"] = "到此为止了！",
   ["$wk_heg__danshou2"] = "以胆为守，扼敌咽喉！",
   ["~wk_heg__zhuran"] = "何人竟有如此之胆！？",
+}
+
+local guanning = General(extension, "wk_heg__guanning", "qun", 3, 3, General.Male)
+local xuci = fk.CreateTriggerSkill{
+  name = "wk_heg__xuci",
+  events = {fk.TargetSpecified},
+  anim_type = "defensive",
+  can_trigger = function(self, event, target, player, data)
+    return target ~= player and player:hasSkill(self) and U.isOnlyTarget(player, data, event) and #target:getCardIds("ej") > 0 
+  end,
+  on_cost = function(self, event, target, player, data)
+    return player.room:askForSkillInvoke(target, self.name, nil, "#wk_heg__xuci")
+  end,
+  on_use = function (self, event, target, player, data)
+    local room = player.room
+    room:askForMoveCardInBoard(target, target, player, self.name, nil, target)
+    local choices = {"wk_heg__xuci_draw"}
+    if #player:getCardIds("he") > 0 then
+      table.insert(choices, "wk_heg__xuci_give")
+    end
+    local choice = room:askForChoice(player, choices, self.name)
+    if choice == "wk_heg__xuci_draw" then
+      target:drawCards(1, self.name)
+      player:drawCards(1, self.name)
+      table.insertIfNeed(data.nullifiedTargets, player.id)
+      room:damage{
+        from = target,
+        to = player,
+        damage = 1,
+        skillName = self.name,
+      }
+    else
+      local card = room:askForCard(player, 1, 1, true, self.name, false, ".", "#wk_heg__xuci-give")
+      room:obtainCard(target, card[1], false, fk.ReasonGive)
+      room:setPlayerMark(player, "@@lure_tiger-turn", 1)
+      room:setPlayerMark(player, MarkEnum.PlayerRemoved .. "-turn", 1)
+      room:handleAddLoseSkills(player, "#lure_tiger_hp|#lure_tiger_prohibit", nil, false, true) -- global...
+      room.logic:trigger("fk.RemoveStateChanged", player, nil) -- FIXME
+    end
+  end
+}
+
+---@param object Card|Player
+---@param markname string
+---@param suffixes string[]
+---@return boolean
+local function hasMark(object, markname, suffixes)
+  if not object then return false end
+  for mark, _ in pairs(object.mark) do
+    if mark == markname then return true end
+    if mark:startsWith(markname .. "-") then
+      for _, suffix in ipairs(suffixes) do
+        if mark:find(suffix, 1, true) then return true end
+      end
+    end
+  end
+  return false
+end
+
+local gaojie = fk.CreateTriggerSkill{
+  name = "wk_heg__gaojie",
+  events = {fk.TargetConfirming, fk.AfterCardsMove},
+  anim_type = "defensive",
+  frequency = Skill.Compulsory,
+  can_trigger = function (self, event, target, player, data)
+    if not player:hasSkill(self) then return false end
+    if event == fk.TargetConfirming then
+      return target == player and data.card and data.card:isCommonTrick() and data.card.package.extensionName == "strategic_advantage"
+    else
+      local cardInfo = {}
+      for _, move in ipairs(data) do
+        if move.to and move.to == player.id and move.toArea == Card.PlayerHand then
+          for _, info in ipairs(move.moveInfo) do
+            if info.fromArea == Card.PlayerHand or info.fromArea == Card.PlayerEquip then
+              if hasMark(Fk:getCardById(info.cardId), "@@alliance", MarkEnum.CardTempMarkSuffix) then
+                table.insert(cardInfo, info.cardId)
+              end
+            end
+          end
+        end
+      end
+      if #cardInfo > 0 then
+        self.cost_data = cardInfo
+        return true
+      end
+    end
+  end,
+  on_cost = Util.TrueFunc,
+  on_use = function (self, event, target, player, data)
+    if event == fk.TargetConfirming then
+      AimGroup:cancelTarget(data, player.id)
+      return true
+    else
+      if #self.cost_data > 0 then
+        player.room:moveCards({
+          from = player.id,
+          ids = self.cost_data,
+          toArea = Card.DiscardPile,
+          moveReason = fk.ReasonDiscard,
+          skillName = self.name,
+          proposer = player.id,
+        })
+        player.room:recover({
+          who = player,
+          num = 1,
+          recoverBy = player,
+          skillName = self.name,
+        })
+      end
+    end
+  end,
+}
+
+guanning:addSkill(xuci)
+guanning:addSkill(gaojie)
+Fk:loadTranslationTable{
+  ["wk_heg__guanning"] = "管宁",
+  ["designer:wk_heg__guanning"] = "教父&卧雏",
+  ["wk_heg__xuci"] = "絮辞",
+  [":wk_heg__xuci"] = "其他角色使用牌指定你为目标后，其可将其场上的一张牌移动至你的对应区域内，然后你选择一项：1.交给其一张牌，调离你至此回合结束；2.你与其各摸一张牌，此牌对你无效，然后其对你造成1点伤害。",
+  ["wk_heg__gaojie"] = "高节",
+  [":wk_heg__gaojie"] = "锁定技，当你成为势备篇锦囊牌的目标时，取消之；当你获得带有“合纵”标记的牌后，你弃置之，然后回复1点体力。<br />"..
+  "注：势备篇锦囊牌包括:勠力同心、联军盛宴、挟天子以令诸侯、敕令、调虎离山、水淹七军、火烧连营。",
+
+  ["#wk_heg__xuci"] = "絮辞：你可以将你场上一张牌移动至 管宁 的对应区域内，然后其选择交给你牌或你与其各摸牌",
+  ["wk_heg__xuci_give"] = "交给牌，然后调离至此回合结束",
+  ["wk_heg__xuci_draw"] = "各摸牌，此牌对你无效并受到伤害",
+  ["#wk_heg__xuci-give"] = "絮辞：请选择一张牌",
+
+  ["$wk_heg__xuci1"] = "",
+  ["$wk_heg__xuci2"] = "",
+  ["$wk_heg__gaojie1"] = "",
+  ["$wk_heg__gaojie2"] = "",
+
+  ["~wk_heg__guanning"] = "",
 }
 return extension

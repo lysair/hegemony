@@ -463,6 +463,7 @@ heg = fk.CreateGameMode{
     "overseas_heg",
     "lunar_heg",
     "work_heg",
+    "zxj_heg",
     "lord_ex",
     "formation_cards",
     "momentum_cards",

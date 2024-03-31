@@ -564,7 +564,9 @@ local heg_rule = fk.CreateTriggerSkill{
           if killer.kingdom == "wild" then
             killer:drawCards(3, "kill")
           elseif killer.kingdom == player.kingdom then
-            killer:throwAllCards("he")
+            if not killer:hasSkill("ld__juejue") then
+              killer:throwAllCards("he")
+            end
           else
             killer:drawCards(player.kingdom == "wild" and 1 or
             #table.filter(room.alive_players, function(p)
@@ -677,6 +679,7 @@ heg = fk.CreateGameMode{
     "overseas_heg",
     "lunar_heg",
     "work_heg",
+    "zxj_heg",
     "lord_ex",
     "formation_cards",
     "momentum_cards",

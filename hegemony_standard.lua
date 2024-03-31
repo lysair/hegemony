@@ -653,35 +653,36 @@ Fk:loadTranslationTable{
 }
 
 local guanyu = General(extension, "hs__guanyu", "shu", 5)
-local wusheng = fk.CreateViewAsSkill{
-  name = "hs__wusheng",
-  anim_type = "offensive",
-  pattern = "slash",
-  card_filter = function(self, to_select, selected)
-    if #selected == 1 then return false end
-    return (H.getHegLord(Fk:currentRoom(), Self) and H.getHegLord(Fk:currentRoom(), Self):hasSkill("shouyue")) or Fk:getCardById(to_select).color == Card.Red
-  end,
-  view_as = function(self, cards)
-    if #cards ~= 1 then
-      return nil
-    end
-    local c = Fk:cloneCard("slash")
-    c.skillName = self.name
-    c:addSubcard(cards[1])
-    return c
-  end,
-}
-guanyu:addSkill(wusheng)
+-- local wusheng = fk.CreateViewAsSkill{
+--   name = "hs__wusheng",
+--   anim_type = "offensive",
+--   pattern = "slash",
+--   card_filter = function(self, to_select, selected)
+--     if #selected == 1 then return false end
+--     return (H.getHegLord(Fk:currentRoom(), Self) and H.getHegLord(Fk:currentRoom(), Self):hasSkill("shouyue")) or Fk:getCardById(to_select).color == Card.Red
+--   end,
+--   view_as = function(self, cards)
+--     if #cards ~= 1 then
+--       return nil
+--     end
+--     local c = Fk:cloneCard("slash")
+--     c.skillName = self.name
+--     c:addSubcard(cards[1])
+--     return c
+--   end,
+-- }
+-- guanyu:addSkill(wusheng)
+guanyu:addSkill("ex__wusheng")
 guanyu:addCompanions("hs__zhangfei")
 Fk:loadTranslationTable{
   ["hs__guanyu"] = "关羽",
   ["#hs__guanyu"] = "威震华夏",
   -- ["illustrator:hs__guanyu"] = "凡果",
 
-  ["hs__wusheng"] = "武圣",
-  [":hs__wusheng"] = "你可将一张红色牌当【杀】使用或打出。",
-  ["$hs__wusheng1"] = "关羽在此，尔等受死！",
-  ["$hs__wusheng2"] = "看尔乃插标卖首！",
+--   ["hs__wusheng"] = "武圣",
+--   [":hs__wusheng"] = "你可将一张红色牌当【杀】使用或打出。",
+--   ["$hs__wusheng1"] = "关羽在此，尔等受死！",
+--   ["$hs__wusheng2"] = "看尔乃插标卖首！",
   ["~hs__guanyu"] = "什么？此地名叫麦城？",
 }
 
@@ -1663,11 +1664,7 @@ Fk:loadTranslationTable{
   [":hs__qianxun"] = "锁定技，当你成为【顺手牵羊】或【乐不思蜀】的目标时，你取消此目标。",
   ["duoshi"] = "度势",
   [":duoshi"] = "出牌阶段限四次，你可将一张红色手牌当【以逸待劳】使用。",
-
-  ["$hs__qianxun1"] = "儒生脱尘，不为贪逸淫乐之事。",
-  ["$hs__qianxun2"] = "谦谦君子，不饮盗泉之水。",
-  ["$duoshi2"] = "以今日之大势当行此计。",
-  ["$duoshi1"] = "国之大计审视为先。",
+  
   ["~hs__luxun"] = "还以为我已经不再年轻……",
 }
 
@@ -2796,18 +2793,66 @@ Fk:loadTranslationTable{
 }
 
 local panfeng = General(extension, "hs__panfeng", "qun", 4)
-panfeng:addSkill("kuangfu")
+local kuangfu = fk.CreateTriggerSkill{
+  name = "hs__kuangfu",
+  events = {fk.TargetSpecified},
+  can_trigger = function (self, event, target, player, data)
+    if player:hasSkill(self) and data.card and data.card.trueName == "slash" and player.phase == Player.Play and player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 then
+      for _, p in ipairs(AimGroup:getAllTargets(data.tos)) do
+        if #player.room:getPlayerById(p):getCardIds(Player.Equip) > 0 then
+          return true
+        end
+      end
+    end
+  end,
+  on_use = function (self, event, target, player, data)
+    local room = player.room
+    local choice = {}
+    for _ , choicePlayers in ipairs(AimGroup:getAllTargets(data.tos)) do
+       if #room:getPlayerById(choicePlayers):getCardIds("e") > 0 then
+        table.insert(choice, choicePlayers)
+      end
+    end
+    local p = room:askForChoosePlayers(player, choice, 1, 1, "#hs__kuangfu-choice", self.name, true)
+    if #p == 0 then return end
+    local card = room:askForCardChosen(player, room:getPlayerById(p[1]), "e", self.name)
+    room:moveCardTo(card, Card.PlayerHand, player, fk.ReasonPrey, self.name, nil, false, player.id)
+    data.extra_data = data.extra_data or {}
+    data.extra_data.hs__kuangfuUser = player.id
+  end,
+}
+
+local kuangfu_delay = fk.CreateTriggerSkill{
+  name = "#hs__kuangfu_delay",
+  frequency = Skill.Compulsory,
+  events = {fk.CardUseFinished},
+  can_trigger = function (self, event, target, player, data)
+    return (data.extra_data or {}).hs__kuangfuUser == player.id and not data.damageDealt
+  end,
+  on_cost = Util.TrueFunc,
+  on_use = function (self, event, target, player, data)
+    local room = player.room
+    room:askForDiscard(player, 2, 2, true, self.name, false)
+  end,
+}
+
+kuangfu:addRelatedSkill(kuangfu_delay)
+panfeng:addSkill(kuangfu)
 Fk:loadTranslationTable{
   ["hs__panfeng"] = "潘凤",
   ["#hs__panfeng"] = "联军上将",
-  ["illustrator:hs__panfeng"] = "Yi章",
-  ["desinger:hs__panfeng"] = "傅轶均",
+  ["illustrator:hs__panfeng"] = "凡果",
 
-  ["$kuangfu1"] = "吾乃上将潘凤，可斩华雄！",
-  ["$kuangfu2"] = "这家伙，还是给我用吧！",
+  ["hs__kuangfu"] = "狂斧",
+  [":hs__kuangfu"] = "当你于出牌阶段内使用【杀】指定目标后，若你于此阶段内未发动过此技能，你可获得此牌其中一个目标角色装备区内的一张牌，若如此做，此牌结算后，若此牌未造成过伤害，你弃置两张牌。",
+
+
+  ["#hs__kuangfu_delay"] = "狂斧",
+  ["#hs__kuangfu-choice"] = "狂斧：选择一名装备区内有牌且是此牌目标的角色，获得其装备区内一张牌",
+  ["$hs__kuangfu1"] = "吾乃上将潘凤，可斩华雄！",
+  ["$hs__kuangfu2"] = "这家伙，还是给我用吧！",
   ["~hs__panfeng"] = "潘凤又被华雄斩啦。",
 }
-
 local zoushi = General(extension, "hs__zoushi", "qun", 3, 3, General.Female)
 local huoshui = fk.CreateTriggerSkill{ -- FIXME
   name = "huoshui",

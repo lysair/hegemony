@@ -308,7 +308,7 @@ Fk:loadTranslationTable{
   ["illustrator:fk_heg__yanrou"] = "凝聚永恒",
 
   ["fk_heg__choutao"] = "仇讨",
-  [":fk_heg__choutao"] = "当你使用【杀】指定目标后或成为【杀】的目标后，你可以弃置使用者一张牌，令此【杀】不能被响应。",
+  [":fk_heg__choutao"] = "当你使用【杀】指定目标后/当你成为【杀】的目标后，你可以弃置此【杀】使用者一张牌，令此【杀】不能所有被所有目标角色/你响应。",
   ["#fk_heg__choutao-invoke"] = "仇讨：你可以弃置 %dest 一张牌令此【杀】不能被响应",
 
   ["$fk_heg__choutao1"] = "大恨深仇，此剑讨之！",
@@ -645,12 +645,12 @@ local bingyi = fk.CreateTriggerSkill{
         end
       end
     end
-    local tos = room:askForChoosePlayers(player, table.map(room:getOtherPlayers(player, false), Util.IdMapper), 1, #cards, "#fk_heg__bingyi-choose:::"..#cards, self.name, true)
+    local tos = room:askForChoosePlayers(player, table.map(room.alive_players, Util.IdMapper), 1, #cards, "#fk_heg__bingyi-choose:::"..#cards, self.name, true)
     table.insert(tos, player.id)
     room:sortPlayersByAction(tos)
     for _, pid in ipairs(tos) do
       local p = room:getPlayerById(pid)
-      if not p.dead and p ~= player then
+      if not p.dead then
         room:drawCards(p, 1, self.name)
       end
     end
@@ -683,7 +683,7 @@ Fk:loadTranslationTable{
   ["designer:fk_heg__guyong"] = "玄蝶",
 
   ["fk_heg__bingyi"] = "秉壹",
-  [":fk_heg__bingyi"] = "每回合限一次，当你的手牌被弃置后，你可以展示所有手牌，若颜色均相同，你令至多X名其他角色各摸一张牌（X为你的手牌数）。",
+  [":fk_heg__bingyi"] = "每回合限一次，当你的手牌被弃置后，你可以展示所有手牌，若颜色均相同，你令至多X名角色各摸一张牌（X为你的手牌数）。",
   ["#fk_heg__bingyi-choose"] = "秉壹：你可以令至多%arg名其他角色各摸一张牌",
   ["fk_heg__shenxing"] = "慎行",
   [":fk_heg__shenxing"] = "出牌阶段限四次，你可以弃置两张牌，然后摸一张牌。",
