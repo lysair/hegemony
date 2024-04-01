@@ -1135,6 +1135,7 @@ local weidiRecorder = fk.CreateTriggerSkill{
             end
           end
         end
+        return false
       end, Player.HistoryTurn)
     end
   end,

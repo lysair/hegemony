@@ -20,7 +20,7 @@ local poyuan = fk.CreateTriggerSkill{
       return data.to ~= player and not data.to.dead and #data.to:getCardIds("e") > 0
     else
       if not (H.isBigKingdomPlayer(data.to) and player == player.room.current) then return false end
-      local events = player.room.logic:getActualDamageEvents(998, function(e)
+      local events = player.room.logic:getActualDamageEvents(1, function(e)
         return e.data[1].from == player and H.isBigKingdomPlayer(e.data[1].to)
       end, Player.HistoryTurn)
       return #events == 0
@@ -376,8 +376,8 @@ local yujian = fk.CreateTriggerSkill{
   events = {fk.Damage},
   can_trigger = function (self, event, target, player, data)
     if not (player:hasSkill(self) and target ~= player and data.from.phase == Player.Play and H.compareKingdomWith(player, data.to)) then return false end
-    local events = player.room.logic:getActualDamageEvents(998, function(e)
-      return H.compareKingdomWith(e.data[1].to, player) and data.from == player.room.current and data.from.phase == Player.Play
+    local events = player.room.logic:getActualDamageEvents(2, function(e)
+      return H.compareKingdomWith(e.data[1].to, player) and data.from == player.room.current and data.from and data.from.phase == Player.Play
     end, Player.HistoryTurn)
     return #events == 1
   end,
@@ -1574,7 +1574,7 @@ local shenshi = fk.CreateTriggerSkill{
 
   refresh_events = {fk.DamageCaused},
   can_refresh = function(self, event, target, player, data)
-    return data.from:getMark("wk_heg__shenshi_draw-turn") > 0 and H.compareKingdomWith(data.to, player)
+    return data.from and data.from:getMark("wk_heg__shenshi_draw-turn") > 0 and H.compareKingdomWith(data.to, player)
   end,
   on_refresh = function (self, event, target, player, data)
     player.room:setPlayerMark(player, "wk_heg__shenshi_damage-turn", 1)

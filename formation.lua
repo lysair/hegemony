@@ -268,7 +268,7 @@ local tianfuTrig = fk.CreateTriggerSkill{ -- FIXME
   refresh_events = {fk.TurnStart, fk.GeneralRevealed, fk.EventAcquireSkill, "fk.RemoveStateChanged", fk.EventLoseSkill, fk.GeneralHidden},
   can_refresh = function(self, event, target, player, data)
     if event == fk.EventLoseSkill then return data == tianfu
-    elseif event == fk.GeneralHidden then return player == target 
+    elseif event == fk.GeneralHidden then return player == target
     else return H.hasShownSkill(player, self.name, true, true) end
   end,
   on_refresh = function(self, event, target, player, data)

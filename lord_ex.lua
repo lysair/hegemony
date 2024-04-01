@@ -56,14 +56,15 @@ local quanjinRecorder = fk.CreateTriggerSkill{
     local room = player.room
     if event == fk.Damaged then
       room:setPlayerMark(target, "_quanjin-phase", 1)
-    elseif player.room:getTag("RoundCount") then
-      for _, e in ipairs(U.getActualDamageEvents(room, 998, nil, Player.HistoryPhase)) do
+    elseif room:getTag("RoundCount") then
+      room.logic:getActualDamageEvents(998, function(e)
         local damage = e.data[1]
         local to = damage.to
         if to and to:getMark("_quanjin-phase") == 0 then
           room:setPlayerMark(to, "_quanjin-phase", 1)
         end
-      end
+        return false
+      end, Player.HistoryPhase)
     end
   end,
 }
@@ -133,18 +134,36 @@ local zhuling = General(extension, "ld__zhuling", "wei", 4)
 local juejue = fk.CreateTriggerSkill{
   name = "ld__juejue",
   anim_type = "offensive",
-  events = {fk.EventPhaseStart},
+  events = {fk.EventPhaseStart, fk.BuryVictim},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self) and player.phase == Player.Discard
+    if not player:hasSkill(self) then return end
+    if event == fk.EventPhaseStart then
+      return target == player and player.phase == Player.Discard
+    else
+      return data.damage and data.damage.from == player and H.compareKingdomWith(player, target)
+    end
+  end,
+  on_cost = function(self, event, target, player, data)
+    if event == fk.EventPhaseStart then
+      return player.room:askForSkillInvoke(player, self.name, data, "#ld__juejue-ask")
+    else
+      return true
+    end
   end,
   on_use = function (self, event, target, player, data)
-    player.room:loseHp(player, 1, self.name)
+    local room = player.room
+    if event == fk.EventPhaseStart then
+      room:loseHp(player, 1, self.name)
+    else
+      local deathEvent = room.logic:getCurrentEvent():findParent(GameEvent.Death, true)
+      deathEvent.extra_data = deathEvent.extra_data or {}
+      deathEvent.extra_data.ignorePunishment = true
+    end
   end,
 }
 
 local juejue_delay = fk.CreateTriggerSkill{
   name = "#ld__juejue_delay",
-  frequency = Skill.Compulsory,
   events = {fk.EventPhaseEnd},
   can_trigger = function (self, event, target, player, data)
     if not (target == player and player.phase == Player.Discard and player:isAlive() and player:usedSkillTimes(juejue.name, Player.HistoryPhase) > 0) then return false end
@@ -284,6 +303,7 @@ Fk:loadTranslationTable{
   ["ld__fangyuan"] = "方圆",
   [":ld__fangyuan"] = "阵法技，①若你是围攻角色，此围攻关系中围攻角色手牌上限+1，被围攻角色手牌上限-1。②结束阶段，若你是被围攻角色，你视为对此围攻关系中一名围攻角色使用一张无距离限制的【杀】。",
 
+  ["#ld__juejue-ask"] = "决绝：你可失去1点体力",
   ["#ld__juejue_delay"] = "决绝",
   ["ld__juejue_damage"] = "受到伤害",
   ["ld__juejue_putcard"] = "将牌置入弃牌堆",
@@ -599,32 +619,55 @@ local fengyang = H.CreateArraySummonSkill{
 }
 local fengyangTrig = fk.CreateTriggerSkill{
   name = "#ld__fengyang_trigger",
-  visible = false,
+  frequency = Skill.Compulsory,
   events = {fk.BeforeCardsMove},
+  mute = true,
   can_trigger = function(self, event, target, player, data)
+    if not player:hasSkill(self) or #player.room.alive_players < 4 then return end
+    local room = player.room
     for _, move in ipairs(data) do
-      if move.from == player.id and (move.moveReason == fk.ReasonDiscard or move.moveReason == fk.ReasonPrey) and not H.compareKingdomWith(move.proposer, player) then
+      if move.from and H.inFormationRelation(player, room:getPlayerById(move.from)) and
+        (move.moveReason == fk.ReasonDiscard or (move.toArea == Card.PlayerHand and move.to ~= move.from and move.moveReason ~= fk.ReasonGive))
+        and move.proposer and not H.compareKingdomWith(room:getPlayerById(move.proposer), player) then
         for _, info in ipairs(move.moveInfo) do
           if info.fromArea == Card.PlayerEquip then
-            local targets = table.map(table.filter(player.room.alive_players, function(p) return H.inFormationRelation(p, player)  end), Util.IdMapper)
-            return #targets > 0 and player:hasSkill(self)
+            return true
           end
         end
       end
     end
   end,
-  on_cost = Util.TrueFunc,
   on_use = function(self, event, target, player, data)
+    local room = player.room
+    local ids, targets = {}, {}
+    room:notifySkillInvoked(player, "ld__fengyang", "defensive")
+    player:broadcastSkillInvoke("ld__fengyang")
     for _, move in ipairs(data) do
-      if move.from == player.id and (move.moveReason == fk.ReasonDiscard or move.moveReason == fk.ReasonPrey) and (move.proposer ~= player and move.proposer ~= player.id) then
-        for i = #move.moveInfo, 1, -1 do
-          local info = move.moveInfo[i]
+      if move.from and H.inFormationRelation(player, room:getPlayerById(move.from)) and
+        (move.moveReason == fk.ReasonDiscard or (move.toArea == Card.PlayerHand and move.to ~= move.from and move.moveReason ~= fk.ReasonGive))
+        and move.proposer and not H.compareKingdomWith(room:getPlayerById(move.proposer), player) then
+        local move_info = {}
+        for _, info in ipairs(move.moveInfo) do
+          local id = info.cardId
           if info.fromArea == Card.PlayerEquip then
-            table.removeOne(move.moveInfo, info)
-            break
+            table.insert(ids, id)
+          else
+            table.insert(move_info, info)
+          end
+          if #ids > 0 then
+            table.insertIfNeed(targets, move.from)
+            move.moveInfo = move_info
           end
         end
       end
+    end
+    if #ids > 0 then
+      room:doIndicate(player.id, targets)
+      room:sendLog{
+        type = "#cancelDismantle",
+        card = ids,
+        arg = self.name,
+      }
     end
   end,
 }
@@ -694,7 +737,7 @@ Fk:loadTranslationTable{
   ["$ld__diaogui2"] = "臣虽驽钝，愿以此腔热血报国",
   ["$ld__fengyang2"] = "谁也休想染指江东寸土。",
   ["$ld__fengyang1"] = "如此咽喉要地，吾当倾力守之。",
-  ["~ld__wujing"] = "憾未能见，我江东一统天下之时...",
+  ["~ld__wujing"] = "憾未能见，我江东一统天下之时……",
 }
 
 local zhugeke = General(extension, "ld__zhugeke", "wu", 3)
@@ -846,8 +889,8 @@ local zhidao_trigger = fk.CreateTriggerSkill{
   frequency = Skill.Compulsory,
   events = {fk.Damage},
   can_trigger = function (self, event, target, player, data)
-    if not (player:hasSkill(self) and  player == data.from and player:usedSkillTimes(zhidao.name, Player.HistoryTurn) > 0 
-     and data.to:getMark("ld__zhidao-turn") > 0 and data.to ~= player) then return false end
+    if not (player:hasSkill(self) and  player == data.from and player:usedSkillTimes(zhidao.name, Player.HistoryTurn) > 0
+      and data.to:getMark("ld__zhidao-turn") > 0 and data.to ~= player) then return false end
     local room = player.room
     return room.logic:getActualDamageEvents(room, 1, function(e) return e.data[1].from == player end)[1].data[1] == data
   end,
@@ -880,8 +923,8 @@ local jilix = fk.CreateTriggerSkill{
   events = {fk.TargetConfirmed, fk.DamageInflicted},
   can_trigger = function (self, event, target, player, data)
     if event == fk.TargetConfirmed then
-      return player:hasSkill(self) and player == target and data.card.color == Card.Red 
-       and (data.card.type == Card.TypeBasic or data.card:isCommonTrick()) and #AimGroup:getAllTargets(data.tos) == 1
+      return player:hasSkill(self) and player == target and data.card.color == Card.Red
+        and (data.card.type == Card.TypeBasic or data.card:isCommonTrick()) and #AimGroup:getAllTargets(data.tos) == 1
     else
       if not (player:hasSkill(self) and player == target) then return false end
       local events = player.room.logic:getActualDamageEvents(2, function(e)

@@ -563,8 +563,8 @@ local heg_rule = fk.CreateTriggerSkill{
         if killer.kingdom ~= "unknown" and not killer.dead then
           if killer.kingdom == "wild" then
             killer:drawCards(3, "kill")
-          elseif killer.kingdom == player.kingdom then
-            if not killer:hasSkill("ld__juejue") then
+          elseif H.compareKingdomWith(killer, player) then
+            if not (room.logic:getCurrentEvent():findParent(GameEvent.Death, true).extra_data or {}).ignorePunishment then
               killer:throwAllCards("he")
             end
           else
