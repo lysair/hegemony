@@ -537,7 +537,7 @@ local yingshou_delay = fk.CreateTriggerSkill{
   anim_type = "special",
   events = {fk.Damage},
   can_trigger = function (self, event, target, player, data)
-    return data.from:getMark("@@wk_heg__yingshou") > 0 and not data.from:isNude() and data.from.phase == Player.Play
+    return data.from:getMark("@@wk_heg__yingshou") > 0 and not data.from:isNude() and data.from.phase == Player.Play and player:hasSkill(self)
   end,
   on_cost = Util.TrueFunc,
   on_use = function (self, event, target, player, data)
@@ -682,7 +682,8 @@ local dingpin_delay = fk.CreateTriggerSkill{
     if event == fk.EventPhaseStart then
       room:notifySkillInvoked(player, self.name, "support")
       player:broadcastSkillInvoke(self.name)
-      local p = DoElectedChange(room, target, self.name)
+      local p_table = DoElectedChange(room, target, self.name)
+      local p = p_table[1]
       if p then
         if not target.dead then
           target:drawCards(1, self.name)
@@ -845,7 +846,8 @@ local yuyan_delay = fk.CreateTriggerSkill{
   end,
   on_cost = Util.TrueFunc,
   on_use = function(self, event, target, player, data)
-    local p = DoElectedChange(player.room, target, self.name)
+    local p_table = DoElectedChange(player.room, target, self.name)
+    local p = p_table[1]
     if p and player.hp < player.maxHp then
       player.room:recover{
         who = player,
@@ -938,7 +940,8 @@ local shucai = fk.CreateTriggerSkill{
     target = room:getPlayerById(self.cost_data)
     room:askForMoveCardInBoard(player, player, target, self.name, "e", player)
     if player.dead or target.dead then return end
-    local p = DoElectedChange(room, player, self.name)
+    local p_table = DoElectedChange(room, player, self.name)
+    local p = p_table[1]
     if not p and not player.dead then
       room:setPlayerMark(player, "wk_heg__dingpan_notagged", 1)
       room:handleAddLoseSkills(player, "-wk_heg__shucai|wk_heg__shucai_notag|wk_heg__dingpan_notag", nil)
@@ -1107,7 +1110,7 @@ Fk:loadTranslationTable{
 
 local huanfan = General(extension, "wk_heg__huanfan", "wei", 3, 3, General.Male)
 local liance_viewas = fk.CreateViewAsSkill{
-  name = "wk_heg__liance_viewas",
+  name = "#wk_heg__liance_viewas",
   interaction = function()
     local names = {}
     local mark = Self:getMark("wk_heg__liance-phase")
@@ -1152,10 +1155,15 @@ local liance = fk.CreateTriggerSkill{
     end
   end,
   on_cost = function(self, event, target, player, data)
-    return player.room:askForDiscard(player, 1, 1, true, self.name, true, ".", "#wk_heg__liance-invoke::"..target.id, true)
+    local cards = player.room:askForDiscard(player, 1, 1, true, self.name, true, ".", "#wk_heg__liance-invoke::"..target.id, true)
+    if #cards == 1 then
+      self.cost_data = cards
+      return true
+    end
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
+    room:throwCard(self.cost_data, self.name, player, player)
     room:setPlayerMark(target, "wk_heg__liance-phase", self.cost_data)
     local success, dat = player.room:askForUseActiveSkill(target, "wk_heg__liance_viewas", "#wk_heg__liance-choose", true)
     if not success then
@@ -1172,7 +1180,7 @@ local liance = fk.CreateTriggerSkill{
 }
 
 local shilun_active = fk.CreateActiveSkill{
-  name = "wk_heg__shilun_active",
+  name = "#wk_heg__shilun_active",
   can_use = Util.FalseFunc,
   target_num = 0,
   card_num = function()
@@ -1272,6 +1280,8 @@ Fk:loadTranslationTable{
   ["#wk_heg__liance-invoke"] = "连策：你可以弃置一张牌，令 %dest 视为使用锦囊牌或执行强制“军令”",
   ["#wk_heg__shilun_active-choose"] = "世论：选择花色各不相同的手牌各一张",
   ["#wk_heg__shilun-move"] = "世论：你可以移动场上一张牌",
+  ["#wk_heg__liance_viewas"] = "连策",
+  ["#wk_heg__liance_active"] = "世论",
 
   ["$wk_heg__liance1"] = "将军今出洛阳，恐难再回。",
   ["$wk_heg__liance2"] = "贼示弱于外，必包藏祸心。",
@@ -1734,7 +1744,7 @@ local xuci = fk.CreateTriggerSkill{
   events = {fk.TargetSpecified},
   anim_type = "defensive",
   can_trigger = function(self, event, target, player, data)
-    return target ~= player and player:hasSkill(self) and U.isOnlyTarget(player, data, event) and #target:getCardIds("ej") > 0 
+    return target ~= player and player:hasSkill(self) and U.isOnlyTarget(player, data, event) and #target:getCardIds("ej") > 0 and (data.card.trueName == "slash" or data.card:isCommonTrick())
   end,
   on_cost = function(self, event, target, player, data)
     return player.room:askForSkillInvoke(target, self.name, nil, "#wk_heg__xuci")
@@ -1793,16 +1803,14 @@ local gaojie = fk.CreateTriggerSkill{
   can_trigger = function (self, event, target, player, data)
     if not player:hasSkill(self) then return false end
     if event == fk.TargetConfirming then
-      return target == player and data.card and data.card:isCommonTrick() and data.card.package.extensionName == "strategic_advantage"
+      return target == player and data.card and data.card:isCommonTrick() and data.card.package.name == "strategic_advantage"
     else
       local cardInfo = {}
       for _, move in ipairs(data) do
         if move.to and move.to == player.id and move.toArea == Card.PlayerHand then
           for _, info in ipairs(move.moveInfo) do
-            if info.fromArea == Card.PlayerHand or info.fromArea == Card.PlayerEquip then
-              if hasMark(Fk:getCardById(info.cardId), "@@alliance", MarkEnum.CardTempMarkSuffix) then
-                table.insert(cardInfo, info.cardId)
-              end
+            if hasMark(Fk:getCardById(info.cardId), "@@alliance", MarkEnum.CardTempMarkSuffix) then
+              table.insert(cardInfo, info.cardId)
             end
           end
         end
@@ -1845,7 +1853,7 @@ Fk:loadTranslationTable{
   ["wk_heg__guanning"] = "管宁",
   ["designer:wk_heg__guanning"] = "教父&卧雏",
   ["wk_heg__xuci"] = "絮辞",
-  [":wk_heg__xuci"] = "其他角色使用牌指定你为目标后，其可将其场上的一张牌移动至你的对应区域内，然后你选择一项：1.交给其一张牌，调离你至此回合结束；2.你与其各摸一张牌，此牌对你无效，然后其对你造成1点伤害。",
+  [":wk_heg__xuci"] = "其他角色使用【杀】或普通锦囊牌指定你为唯一目标后，其可将其场上的一张牌移动至你的对应区域内，然后你选择一项：1.交给其一张牌，调离你至此回合结束；2.你与其各摸一张牌，此牌对你无效，然后其对你造成1点伤害。",
   ["wk_heg__gaojie"] = "高节",
   [":wk_heg__gaojie"] = "锁定技，当你成为势备篇锦囊牌的目标时，取消之；当你获得带有“合纵”标记的牌后，你弃置之，然后回复1点体力。<br />"..
   "注：势备篇锦囊牌包括:勠力同心、联军盛宴、挟天子以令诸侯、敕令、调虎离山、水淹七军、火烧连营。",

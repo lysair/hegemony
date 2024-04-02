@@ -171,7 +171,6 @@ local cunsi = fk.CreateActiveSkill{
   end,
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
-    H.removeGeneral(room, player, player.deputyGeneral == "ld__mifuren")
     local isDeputy = H.inGeneralSkills(player, self.name)
     if isDeputy then
       H.removeGeneral(room, player, isDeputy == "d")
