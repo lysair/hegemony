@@ -355,6 +355,14 @@ local wushengXH = fk.CreateViewAsSkill{
     return c
   end,
 }
+local wusheng_targetmod = fk.CreateTargetModSkill{
+  name = "#xuanhuo__hs__wusheng_targetmod",
+  anim_type = "offensive",
+  bypass_distances = function (self, player, skill, card, to)
+    return player:hasSkill(wushengXH.name) and skill.trueName == "slash_skill" and card.suit == Card.Diamond
+  end
+}
+wushengXH:addRelatedSkill(wusheng_targetmod)
 local paoxiaoTriggerXH = fk.CreateTriggerSkill{
   name = "#xuanhuo__hs__paoxiaoTrigger",
   events = {fk.CardUsing},
@@ -828,7 +836,7 @@ Fk:loadTranslationTable{
   ["xuanhuo__hs__tieqi"] = "铁骑",
   ["xuanhuo__hs__liegong"] = "烈弓",
   ["xuanhuo__hs__kuanggu"] = "狂骨",
-  [":xuanhuo__hs__wusheng"] = "你可将一张红色牌当【杀】使用或打出。",
+  [":xuanhuo__hs__wusheng"] = "你可将一张红色牌当【杀】使用或打出。你使用的方块【杀】无距离限制。",
   [":xuanhuo__hs__paoxiao"] = "锁定技，你使用【杀】无次数限制。当你于一个回合内使用第二张【杀】时，你摸一张牌。",
   [":xuanhuo__hs__longdan"] = "你可将【闪】当【杀】使用或打出，当此【杀】被一名角色使用的【闪】抵消后，你可对另一名角色造成1点伤害。你可将【杀】当【闪】使用或打出，当一名角色使用的【杀】被此【闪】抵消后，你可令另一名其他角色回复1点体力。",
   [":xuanhuo__hs__tieqi"] = "当你使用【杀】指定目标后，你可判定，令其本回合一张明置的武将牌非锁定技失效，其需弃置一张与判定结果花色相同的牌，否则其不能使用【闪】抵消此【杀】。",

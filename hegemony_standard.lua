@@ -653,36 +653,44 @@ Fk:loadTranslationTable{
 }
 
 local guanyu = General(extension, "hs__guanyu", "shu", 5)
--- local wusheng = fk.CreateViewAsSkill{
---   name = "hs__wusheng",
---   anim_type = "offensive",
---   pattern = "slash",
---   card_filter = function(self, to_select, selected)
---     if #selected == 1 then return false end
---     return (H.getHegLord(Fk:currentRoom(), Self) and H.getHegLord(Fk:currentRoom(), Self):hasSkill("shouyue")) or Fk:getCardById(to_select).color == Card.Red
---   end,
---   view_as = function(self, cards)
---     if #cards ~= 1 then
---       return nil
---     end
---     local c = Fk:cloneCard("slash")
---     c.skillName = self.name
---     c:addSubcard(cards[1])
---     return c
---   end,
--- }
--- guanyu:addSkill(wusheng)
-guanyu:addSkill("ex__wusheng")
+
+local wusheng = fk.CreateViewAsSkill{
+  name = "hs__wusheng",
+  anim_type = "offensive",
+  pattern = "slash",
+  card_filter = function(self, to_select, selected)
+    if #selected == 1 then return false end
+    return (H.getHegLord(Fk:currentRoom(), Self) and H.getHegLord(Fk:currentRoom(), Self):hasSkill("shouyue")) or Fk:getCardById(to_select).color == Card.Red
+  end,
+  view_as = function(self, cards)
+    if #cards ~= 1 then
+      return nil
+    end
+    local c = Fk:cloneCard("slash")
+    c.skillName = self.name
+    c:addSubcard(cards[1])
+    return c
+  end,
+}
+local wusheng_targetmod = fk.CreateTargetModSkill{
+  name = "#hs__wusheng_targetmod",
+  anim_type = "offensive",
+  bypass_distances = function (self, player, skill, card, to)
+    return player:hasSkill(wusheng.name) and skill.trueName == "slash_skill" and card.suit == Card.Diamond
+  end
+}
+wusheng:addRelatedSkill(wusheng_targetmod)
+guanyu:addSkill(wusheng)
 guanyu:addCompanions("hs__zhangfei")
 Fk:loadTranslationTable{
   ["hs__guanyu"] = "关羽",
   ["#hs__guanyu"] = "威震华夏",
-  -- ["illustrator:hs__guanyu"] = "凡果",
+  ["illustrator:hs__guanyu"] = "凡果",
 
---   ["hs__wusheng"] = "武圣",
---   [":hs__wusheng"] = "你可将一张红色牌当【杀】使用或打出。",
---   ["$hs__wusheng1"] = "关羽在此，尔等受死！",
---   ["$hs__wusheng2"] = "看尔乃插标卖首！",
+  ["hs__wusheng"] = "武圣",
+  [":hs__wusheng"] = "你可将一张红色牌当【杀】使用或打出。你使用的方块【杀】无距离限制。",
+  ["$hs__wusheng1"] = "关羽在此，尔等受死！",
+  ["$hs__wusheng2"] = "看尔乃插标卖首！",
   ["~hs__guanyu"] = "什么？此地名叫麦城？",
 }
 
