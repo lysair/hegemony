@@ -892,7 +892,7 @@ local zhidao_trigger = fk.CreateTriggerSkill{
     if not (player:hasSkill(self) and  player == data.from and player:usedSkillTimes(zhidao.name, Player.HistoryTurn) > 0
       and data.to:getMark("ld__zhidao-turn") > 0 and data.to ~= player) then return false end
     local room = player.room
-    return room.logic:getActualDamageEvents(room, 1, function(e) return e.data[1].from == player end)[1].data[1] == data
+    return room.logic:getActualDamageEvents(1, function(e) return e.data[1].from == player end)[1].data[1] == data
   end,
   on_use = function (self, event, target, player, data)
     local room = player.room
@@ -964,7 +964,7 @@ Fk:loadTranslationTable{
   ["#ld_zhidao_trigger"] = "雉盗",
   ["@@ld__zhidao-turn"] = "雉盗",
   ["#ld__zhidao-choose"] = "雉盗：选择一名其他角色，本回合你使用牌仅能指定你或其为目标",
-    
+
   ["$ld__zhidao1"] = "",
   ["$ld__zhidao2"] = "",
   ["$ld__jilix1"] = "",

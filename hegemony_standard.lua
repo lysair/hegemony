@@ -1196,7 +1196,7 @@ local kuanggu = fk.CreateTriggerSkill{
 
   refresh_events = {fk.BeforeHpChanged},
   can_refresh = function(self, event, target, player, data)
-    return data.damageEvent and player == data.damageEvent.from and player:distanceTo(target) < 2 and player:distanceTo(target) > -1
+    return data.damageEvent and player == data.damageEvent.from and U.compareDistance(player, target, 2, "<")
   end,
   on_refresh = function(self, event, target, player, data)
     data.damageEvent.extra_data = data.damageEvent.extra_data or {}
