@@ -422,7 +422,7 @@ end
 
 local function addHegSkill(player, skill, room)
   if skill.frequency == Skill.Compulsory then
-    player:addFakeSkill("reveal_skill")
+    player:addFakeSkill("reveal_skill&")
   end
   player:addFakeSkill(skill)
   local toget = {table.unpack(skill.related_skills)}
