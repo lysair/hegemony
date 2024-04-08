@@ -1213,7 +1213,7 @@ local shilun = fk.CreateTriggerSkill{
     local room = player.room
     local cards = player.player_cards[Player.Hand]
     player:showCards(cards)
-    local _, ret = room:askForUseActiveSkill(player, "wk_heg__shilun_active", "#wk_heg__shilun_active-choose", false)
+    local _, ret = room:askForUseActiveSkill(player, "#wk_heg__shilun_active", "#wk_heg__shilun_active-choose", false)
     local to_remain
     if ret then
       to_remain = ret.cards
