@@ -382,7 +382,7 @@ local diaodu = fk.CreateTriggerSkill{
   events = {fk.CardUsing, fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
     if not player:hasSkill(self) then return false end
-    if event == fk.CardUsing then return H.compareKingdomWith(target, player) and data.card.type == Card.TypeEquip and (H.hasShownSkill(player, self) or player == target)
+    if event == fk.CardUsing then return H.compareKingdomWith(target, player) and data.card.type == Card.TypeEquip and (player:hasShownSkill(self) or player == target)
     else return target == player and target.phase == Player.Play and table.find(player.room.alive_players, function(p)
     return H.compareKingdomWith(p, player) and #p:getCardIds(Player.Equip) > 0 end) end
   end,
@@ -829,7 +829,7 @@ local fenghuotu = fk.CreateTriggerSkill{
   on_refresh = function(self, event, target, player, data)
     local room = player.room
     local players = room.alive_players
-    local lordsunquans = table.filter(players, function(p) return H.hasShownSkill(p, self) end)
+    local lordsunquans = table.filter(players, function(p) return p:hasShownSkill(self) end)
     local jiahe_map = {}
     for _, p in ipairs(players) do
       local will_attach = false

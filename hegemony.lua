@@ -413,7 +413,7 @@ function HegLogic:broadcastGeneral()
       p:setMark("HalfMaxHpLeft", 1)
       p:doNotify("SetPlayerMark", json.encode{ p.id, "HalfMaxHpLeft", 1})
     end
-    if H.isCompanionWith(general, deputy) then
+    if general:isCompanionWith(deputy) then
       p:setMark("CompanionEffect", 1)
       p:doNotify("SetPlayerMark", json.encode{ p.id, "CompanionEffect", 1})
     end
@@ -742,10 +742,6 @@ Fk:loadTranslationTable{
   ["#ChooseHegInitialKingdom"] = "国战规则：选择你的初始势力",
   ["wild"] = "野心家",
   ["#heg_rule"] = "国战规则",
-  ["revealMain"] = "明置主将", -- TODO:aux
-  ["revealDeputy"] = "明置副将", -- TODO:aux
-  ["revealMainGeneral"] = "明置主将 %arg",
-  ["revealDeputyGeneral"] = "明置副将 %arg",
   ["revealAll"] = "全部明置",
   ["#EnterBattleRoyalMode"] = "游戏进入 <font color=\"red\"><b>鏖战模式</b></font>，所有的【<font color=\"#3598E8\"><b>桃</b></font>】"..
   "只能当【<font color=\"#3598E8\"><b>杀</b></font>】或【<font color=\"#3598E8\"><b>闪</b></font>】使用或打出，不能用于回复体力",

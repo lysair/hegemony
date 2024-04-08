@@ -1018,7 +1018,7 @@ local alliance = fk.CreateActiveSkill{
     if #selected == 0 and #selected_cards >= 1 and #selected_cards <= 3 then
       local target = Fk:currentRoom():getPlayerById(to_select)
       local player = Fk:currentRoom():getPlayerById(Self.id)
-      return (H.compareKingdomWith(target, Self, true) or target.kingdom == "unknown" or (target:hasSkill("wk_heg__yuyan") and target:getHandcardNum() < player:getHandcardNum())) and to_select ~= Self.id
+      return (H.compareKingdomWith(target, Self, true) or target.kingdom == "unknown" or (target:hasShownSkill("wk_heg__yuyan") and target:getHandcardNum() < player:getHandcardNum())) and to_select ~= Self.id
     end
   end,
   on_use = function(self, room, effect)

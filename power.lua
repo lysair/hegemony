@@ -691,7 +691,7 @@ local xuanhuo = fk.CreateTriggerSkill{
   on_refresh = function(self, event, target, player, data)
     local room = player.room
     local players = room.alive_players
-    local fazhengs = table.filter(players, function(p) return H.hasShownSkill(p, self) end)
+    local fazhengs = table.filter(players, function(p) return p:hasShownSkill(self) end)
     local xuanhuo_map = {}
     for _, p in ipairs(players) do
       local will_attach = false
@@ -724,7 +724,7 @@ local xuanhuoOther = fk.CreateActiveSkill{
   target_num = 0,
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
-    local targets = table.filter(room:getOtherPlayers(player), function(p) return H.hasShownSkill(p, xuanhuo) and H.compareKingdomWith(p, player) end)
+    local targets = table.filter(room:getOtherPlayers(player), function(p) return p:hasShownSkill(xuanhuo) and H.compareKingdomWith(p, player) end)
     if #targets == 0 then return false end
     local to
     if #targets == 1 then
@@ -1784,13 +1784,10 @@ Fk:loadTranslationTable{
   ["$jianan1"] = "设使天下无孤，不知几人称帝，几人称王。",
   ["$jianan2"] = "行为军锋，还为后拒！",
   ["$jianan3"] = "国之良将，五子为先！",
-
   ["$huibian1"] = "吾任天下之智力，以道御之，无所不可。",
   ["$huibian2"] = "青青子衿，悠悠我心，但为君故，沉吟至今。",
-
   ["$zongyu1"] = "驾六龙，乘风而行。行四海，路下之八邦。",
   ["$zongyu2"] = "齐桓之功，为霸之首，九合诸侯，一匡天下。",
-
   ["$jianan__ld__jieyue1"] = "孤之股肱，谁敢不从？嗯？",
   ["$jianan__ld__jieyue2"] = "泰山之高，群山不可及，文则之重，泰山不可及！",
   ["$jianan__ex__tuxi1"] = "以百破万，让孤再看一次！",
@@ -1801,7 +1798,6 @@ Fk:loadTranslationTable{
   ["$jianan__hs__duanliang2"] = "卿名为“亚夫”，实为冠军也！",
   ["$jianan__hs__xiaoguo1"] = "使孤梦回辽东者，卿之雄风也！",
   ["$jianan__hs__xiaoguo2"] = "得贤人共治天下，得将军共定天下！",
-
   ["~ld__lordcaocao"] = "神龟虽寿，犹有竟时。腾蛇乘雾，终为土灰。",
 }
 

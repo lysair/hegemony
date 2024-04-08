@@ -417,16 +417,16 @@ local shoucheng = fk.CreateTriggerSkill{
     for _, p in ipairs(targets) do
       local to = room:getPlayerById(p)
       if to.dead or not player:hasSkill(self) then break end
-      self:doCost(event, p, player, nil)
+      self:doCost(event, to, player, nil)
     end
   end,
   on_cost = function(self, event, target, player, data)
-    return player.room:askForSkillInvoke(player, self.name, nil, "#shoucheng-draw::" .. target)
+    return player.room:askForSkillInvoke(player, self.name, nil, "#shoucheng-draw::" .. target.id)
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    room:doIndicate(player.id, {target})
-    room:getPlayerById(target):drawCards(1, self.name)
+    room:doIndicate(player.id, {target.id})
+    target:drawCards(1, self.name)
   end,
 }
 

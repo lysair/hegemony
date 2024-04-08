@@ -223,6 +223,8 @@ local luoshen = fk.CreateTriggerSkill{
       local card = judge.card
       if card.color == Card.Black then
         table.insert(cardsJudged, card)
+      else
+        room:moveCardTo(card, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, self.name, nil, true, player.id)
       end
       if card.color ~= Card.Black or player.dead or not room:askForSkillInvoke(player, self.name) then
         break
@@ -230,11 +232,9 @@ local luoshen = fk.CreateTriggerSkill{
     end
     cardsJudged = table.filter(cardsJudged, function(c) return room:getCardArea(c.id) == Card.Processing end)
     if #cardsJudged > 0 then
-      local dummy = Fk:cloneCard("jink")
-      dummy:addSubcards(table.map(cardsJudged, function(card)
-        return card:getEffectiveId()
-      end))
-      room:obtainCard(player, dummy, true, fk.ReasonJustMove)
+      room:obtainCard(player, table.map(cardsJudged, function(card)
+        return card.id
+      end), true, fk.ReasonJustMove)
     end
   end,
 }
@@ -791,7 +791,7 @@ local guanxing = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    local num = (H.inGeneralSkills(player, self.name) == "m" and H.hasShownSkill(player, "yizhi")) and 5 or math.min(5, #room.alive_players)
+    local num = (H.inGeneralSkills(player, self.name) == "m" and player:hasShownSkill("yizhi")) and 5 or math.min(5, #room.alive_players)
     room:askForGuanxing(player, room:getNCards(num))
   end,
 }

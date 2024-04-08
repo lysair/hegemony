@@ -1744,29 +1744,34 @@ local xuci = fk.CreateTriggerSkill{
   events = {fk.TargetSpecified},
   anim_type = "defensive",
   can_trigger = function(self, event, target, player, data)
-    return target ~= player and player:hasSkill(self) and U.isOnlyTarget(player, data, event) and #target:getCardIds("ej") > 0 and (data.card.trueName == "slash" or data.card:isCommonTrick())
+    return player:hasShownSkill(self) and U.isOnlyTarget(player, data, event) and
+      target:canMoveCardsInBoardTo(player) and (data.card.trueName == "slash" or data.card:isCommonTrick())
   end,
   on_cost = function(self, event, target, player, data)
-    return player.room:askForSkillInvoke(target, self.name, nil, "#wk_heg__xuci")
+    return player.room:askForSkillInvoke(target, self.name, nil, "#wk_heg__xuci-ask::" .. player.id)
   end,
   on_use = function (self, event, target, player, data)
     local room = player.room
     room:askForMoveCardInBoard(target, target, player, self.name, nil, target)
     local choices = {"wk_heg__xuci_draw"}
-    if #player:getCardIds("he") > 0 then
+    if not player:isNude() then
       table.insert(choices, "wk_heg__xuci_give")
     end
     local choice = room:askForChoice(player, choices, self.name)
     if choice == "wk_heg__xuci_draw" then
       target:drawCards(1, self.name)
-      player:drawCards(1, self.name)
-      table.insertIfNeed(data.nullifiedTargets, player.id)
-      room:damage{
-        from = target,
-        to = player,
-        damage = 1,
-        skillName = self.name,
-      }
+      if not player.dead then
+        player:drawCards(1, self.name)
+        table.insertIfNeed(data.nullifiedTargets, player.id)
+      end
+      if not target.dead and not player.dead then
+        room:damage{
+          from = target,
+          to = player,
+          damage = 1,
+          skillName = self.name,
+        }
+      end
     else
       local card = room:askForCard(player, 1, 1, true, self.name, false, ".", "#wk_heg__xuci-give")
       room:obtainCard(target, card[1], false, fk.ReasonGive)
@@ -1856,9 +1861,9 @@ Fk:loadTranslationTable{
   [":wk_heg__xuci"] = "其他角色使用【杀】或普通锦囊牌指定你为唯一目标后，其可将其场上的一张牌移动至你的对应区域内，然后你选择一项：1.交给其一张牌，调离你至此回合结束；2.你与其各摸一张牌，此牌对你无效，然后其对你造成1点伤害。",
   ["wk_heg__gaojie"] = "高节",
   [":wk_heg__gaojie"] = "锁定技，当你成为势备篇锦囊牌的目标时，取消之；当你获得带有“合纵”标记的牌后，你弃置之，然后回复1点体力。<br />"..
-  "注：势备篇锦囊牌包括:勠力同心、联军盛宴、挟天子以令诸侯、敕令、调虎离山、水淹七军、火烧连营。",
+  "注：势备篇锦囊牌包括【勠力同心】【联军盛宴】【挟天子以令诸侯】【敕令】【调虎离山】【水淹七军】【火烧连营】。",
 
-  ["#wk_heg__xuci"] = "絮辞：你可以将你场上一张牌移动至 管宁 的对应区域内，然后其选择交给你牌或你与其各摸牌",
+  ["#wk_heg__xuci-ask"] = "絮辞：你可以将你场上一张牌移动至 %dest 的对应区域内，然后其选择交给你牌或你与其各摸牌",
   ["wk_heg__xuci_give"] = "交给牌，然后调离至此回合结束",
   ["wk_heg__xuci_draw"] = "各摸牌，此牌对你无效并受到伤害",
   ["#wk_heg__xuci-give"] = "絮辞：请选择一张牌",

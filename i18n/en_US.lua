@@ -707,10 +707,6 @@ return {
   ["#ChooseHegInitialKingdom"] = "Heg. Rule: Choose your initial nationality",
   ["wild"] = "*Careerist*",
   ["#heg_rule"] = "Heg. Rule",
-  ["revealMain"] = "Reveal main character",
-  ["revealDeputy"] = "Reveal deputy character",
-  ["revealMainGeneral"] = "Reveal main character %arg",
-  ["revealDeputyGeneral"] = "Reveal deputy character %arg",
   ["revealAll"] = "Reveal all characters",
   ["#EnterBattleRoyalMode"] = "<font color=\"red\"><b>Battle Royal Mode</b></font> begins, all <font color=\"#3598E8\"><b>Peach</b></font>es "..
   "can only be used/played as <font color=\"#3598E8\"><b>Slash</b></font> or <font color=\"#3598E8\"><b>Jink</b></font>, cannot be used to recover HPs",

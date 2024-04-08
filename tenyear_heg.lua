@@ -1971,48 +1971,40 @@ local gongxiu = fk.CreateTriggerSkill{
     return target == player and player:hasSkill(self.name) and data.n > 0
   end,
   on_cost = function(self, event, target, player, data)
-    return player.room:askForSkillInvoke(player, "#ty_heg__gongxiu-invoke")
+    return player.room:askForSkillInvoke(player, self.name, data, "#ty_heg__gongxiu_" .. player:getMark("ty_heg__gongxiu") .. "-ask:::" .. player.maxHp)
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    if data.n > 0 then
-      data.n = data.n - 1
-    end
+    data.n = data.n - 1
     local choices = {}
     if player:getMark("ty_heg__gongxiu") ~= 1 then
-      table.insert(choices, "ty_heg__gongxiu_draw")
+      table.insert(choices, "ty_heg__gongxiu_draw:::" .. player.maxHp)
     end
     if player:getMark("ty_heg__gongxiu") ~= 2 then
-      table.insert(choices, "ty_heg__gongxiu_discard")
+      table.insert(choices, "ty_heg__gongxiu_discard:::" .. player.maxHp)
     end 
-    
-    if #choices > 0 then
-      local choice = room:askForChoice(player, choices, self.name, "#ty_heg__gongxiu-choice")
-      if choice:startsWith("ty_heg__gongxiu_draw") then
-        room:setPlayerMark(player, "ty_heg__gongxiu", 1)
-        local targets = table.map(room.alive_players, Util.IdMapper)
-        local tos = room:askForChoosePlayers(player, targets, 1, player.maxHp, "#ty_heg__gongxiu_draw-choose", self.name, false)
-        if #tos == 0 then
-          tos = table.random(targets, 1)
+    local choice = room:askForChoice(player, choices, self.name, "#ty_heg__gongxiu-choice")
+    local targets, tos
+    if choice:startsWith("ty_heg__gongxiu_draw") then
+      room:setPlayerMark(player, "ty_heg__gongxiu", 1)
+      targets = table.map(room.alive_players, Util.IdMapper)
+      tos = room:askForChoosePlayers(player, targets, 1, player.maxHp, "#ty_heg__gongxiu_draw-choose:::" .. player.maxHp, self.name, false)
+      room:sortPlayersByAction(tos)
+      for _, id in ipairs(tos) do
+        local p = room:getPlayerById(id)
+        if not p.dead then
+          p:drawCards(1, self.name)
         end
-        for _, id in ipairs(tos) do
-          local p = room:getPlayerById(id)
-          if not p.dead then
-            p:drawCards(1, self.name)
-          end
-        end
-      elseif choice:startsWith("ty_heg__gongxiu_discard") then
-        room:setPlayerMark(player, "ty_heg__gongxiu", 2)
-        local targets = table.map(table.filter(room.alive_players,  function(p) return not p:isNude() end), Util.IdMapper)
-        local tos = room:askForChoosePlayers(player, targets, 1, player.maxHp, "#ty_heg__gongxiu_discard-choose", self.name, false)
-        if #tos == 0 then
-          tos = table.random(targets, 1)
-        end
-        for _, id in ipairs(tos) do
-          local p = room:getPlayerById(id)
-          if not p.dead then
-            room:askForDiscard(p, 1, 1, true, self.name, false)
-          end
+      end
+    else
+      room:setPlayerMark(player, "ty_heg__gongxiu", 2)
+      targets = table.map(table.filter(room.alive_players,  function(p) return not p:isNude() end), Util.IdMapper)
+      tos = room:askForChoosePlayers(player, targets, 1, player.maxHp, "#ty_heg__gongxiu_discard-choose:::" .. player.maxHp, self.name, false)
+      room:sortPlayersByAction(tos)
+      for _, id in ipairs(tos) do
+        local p = room:getPlayerById(id)
+        if not p.dead and not p:isNude() then
+          room:askForDiscard(p, 1, 1, true, self.name, false)
         end
       end
     end
@@ -2026,7 +2018,7 @@ local jinghe = fk.CreateActiveSkill{
   min_target_num = 1,
   prompt = "#ty_heg__jinghe",
   can_use = function(self, player)
-    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and not player:isKongcheng() 
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and not player:isKongcheng()
   end,
   card_filter = function(self, to_select, selected)
     if #selected < Self.maxHp and Fk:currentRoom():getCardArea(to_select) == Player.Hand then
@@ -2144,18 +2136,20 @@ Fk:loadTranslationTable{
 
   ["ty_heg__gongxiu"] = "共修",
   [":ty_heg__gongxiu"] = "摸牌阶段，你可少摸一张牌，然后选择一项：1.令至多X名角色各摸一张牌；"..
-  "2.令至多X名角色各弃一张牌。（X为你的体力上限，不能连续选择同一项）",
+  "2.令至多X名角色各弃置一张牌。（X为你的体力上限，不能连续选择同一项）",
   ["ty_heg__jinghe"] = "经合",
   [":ty_heg__jinghe"] = "出牌阶段限一次，你可展示至多X张牌名各不同的手牌并选择等量有明置武将牌的角色，从“写满技能的天书”随机展示X个技能，这些角色依次选择并"..
   "获得其中一个技能，直到你下回合开始 （X为你的体力上限）。",
 
   ["#ty_heg__gongxiu-choice"] = "共修：选择令角色摸牌或弃牌",
-  ["#ty_heg__gongxiu-invoke"] = "共修",
-  ["ty_heg__gongxiu_draw"] = "令角色各摸一张牌",
-  ["ty_heg__gongxiu_discard"] = "令角色各弃置一张牌",
+  ["#ty_heg__gongxiu_0-ask"] = "是否发动 共修，令至多%arg名角色各摸一张牌或各弃置一张牌",
+  ["#ty_heg__gongxiu_1-ask"] = "是否发动 共修，令至多%arg名角色各弃置一张牌",
+  ["#ty_heg__gongxiu_2-ask"] = "是否发动 共修，令至多%arg名角色各摸一张牌",
+  ["ty_heg__gongxiu_draw"] = "令至多%arg名角色各摸一张牌",
+  ["ty_heg__gongxiu_discard"] = "令至多%arg名角色各弃置一张牌",
 
-  ["#ty_heg__gongxiu_draw-choose"] = "共修：选择至多体力上限数名角色各摸一张牌",
-  ["#ty_heg__gongxiu_discard-choose"] = "共修：选择至多体力上限数名角色各弃置一张牌",
+  ["#ty_heg__gongxiu_draw-choose"] = "共修：选择至多%arg名角色各摸一张牌",
+  ["#ty_heg__gongxiu_discard-choose"] = "共修：选择至多%arg名角色各弃置一张牌",
 
   ["#ty_heg__jinghe"] = "经合：展示至多四张牌名各不同的手牌，令等量的角色获得技能",
   ["#ty_heg__jinghe-choice"] = "经合：选择你要获得的技能",

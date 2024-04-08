@@ -620,14 +620,6 @@ Fk:loadTranslationTable{
 
 -- 武将牌相关
 
---- 是否珠联璧合
----@param general General 主将
----@param deputy General 副将
----@return bool
-H.isCompanionWith = function(general, deputy)
-  return table.contains(general.companions, deputy.name) or table.contains(deputy.companions, general.name) or (string.find(general.name, "lord") and (deputy.kingdom == general.kingdom or deputy.subkingdom == general.kingdom))
-end
-
 --- 判断有无主将/副将
 ---@param player ServerPlayer
 ---@param isDeputy bool
@@ -638,7 +630,7 @@ H.hasGeneral = function(player, isDeputy)
 end
 
 --- 获得真正的主将/副将（而非暗将）
----@param player ServerPlayer
+---@param player Player
 ---@param isDeputy bool
 ---@return string
 H.getActualGeneral = function(player, isDeputy)
@@ -650,7 +642,7 @@ H.getActualGeneral = function(player, isDeputy)
 end
 
 --- 获取明置的武将牌数
----@param player ServerPlayer
+---@param player Player
 ---@return integer
 H.getGeneralsRevealedNum = function(player)
   local num = 0
@@ -681,14 +673,14 @@ H.askForRevealGenerals = function(room, player, skill_name, main, deputy, all, c
   deputy = (deputy == nil) and true or deputy
   all = (all == nil) and true or all
   cancelable = (cancelable == nil) and true or cancelable
-  local all_choices = {"revealMainGeneral:::" .. player:getMark("__heg_general"), "revealDeputyGeneral:::" .. player:getMark("__heg_deputy"), "revealAll", "Cancel"}
+  local all_choices = {"revealMain:::" .. player:getMark("__heg_general"), "revealDeputy:::" .. player:getMark("__heg_deputy"), "revealAll", "Cancel"}
   local choices = {}
 
   if main and player.general == "anjiang" and not player:prohibitReveal() then
-    table.insert(choices, "revealMainGeneral:::" .. player:getMark("__heg_general"))
+    table.insert(choices, "revealMain:::" .. player:getMark("__heg_general"))
   end
   if deputy and player.deputyGeneral == "anjiang" and not player:prohibitReveal(true) then
-    table.insert(choices, "revealDeputyGeneral:::" .. player:getMark("__heg_deputy"))
+    table.insert(choices, "revealDeputy:::" .. player:getMark("__heg_deputy"))
   end
   if #choices == 2 and all then table.insert(choices, "revealAll") end
   if cancelable then table.insert(choices, "Cancel") end
@@ -905,20 +897,12 @@ end
 -- 技能相关
 
 --- 技能是否亮出
----@param player ServerPlayer
+--- deprecated，已写入本体
+---@param player Player
 ---@param skill string | Skill
 ---@return bool
 H.hasShownSkill = function(player, skill, ignoreNullified, ignoreAlive)
-  if not player:hasSkill(skill, ignoreNullified, ignoreAlive) then return false end
-
-  -- 客户端不可使用isFakeSkill，进一步特判
-  if RoomInstance then
-    return not player:isFakeSkill(skill)
-  end
-  if ClientInstance then
-    if type(skill) == "string" then skill = Fk.skills[skill] end
-    return table.contains(player.player_skills, skill)
-  end
+  return player:hasShownSkill(skill, ignoreNullified, ignoreAlive)
 end
 
 --- 技能是否为主将/副将武将牌上的技能，返回“m”“d”或nil
