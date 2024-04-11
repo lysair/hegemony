@@ -113,6 +113,7 @@ Fk:loadTranslationTable{
   ["#ld__dongzhao"] = "移尊易鼎",
   ["illustrator:ld__dongzhao"] = "小牛",
   ["designer:ld__dongzhao"] = "逍遥鱼叔",
+  ["cv:ld__dongzhao"] = "宋国庆",
 
   ["quanjin"] = "劝进",
   [":quanjin"] = "出牌阶段限一次，你可将一张手牌交给一名此阶段受到过伤害的角色，对其发起“军令”。若其执行，你摸一张牌；若其不执行，你将手牌摸至与手牌最多的角色相同（最多摸五张）。",
@@ -726,6 +727,7 @@ Fk:loadTranslationTable{
   ["#ld__wujing"] = "汗马鎏金",
   ["illustrator:ld__wujing"] = "小牛",
   ["designer:ld__wujing"] = "逍遥鱼叔",
+  ["cv:ld__wujing"] = "虞晓旭",
 
   ["ld__diaogui"] = "调归",
   [":ld__diaogui"] = "出牌阶段限一次，你可将一张装备牌当【调虎离山】使用，然后与你处于同一队列的角色各摸一张牌。",
