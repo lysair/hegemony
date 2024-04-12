@@ -94,7 +94,7 @@ local dangxian = fk.CreateTriggerSkill{
   name = "os_heg__dangxian",
   anim_type = "special",
   frequency = Skill.Compulsory,
-  events = {fk.TurnStart, fk.GeneralRevealed}, -- 先这样
+  events = {fk.EventPhaseEnd, fk.GeneralRevealed},
   can_trigger = function(self, event, target, player, data)
     if target ~= player or not player:hasSkill(self) then return false end
     if event == fk.GeneralRevealed then
@@ -104,7 +104,7 @@ local dangxian = fk.CreateTriggerSkill{
         end
       end
     else
-      return true
+      return player.phase == Player.RoundStart
     end
   end,
   on_use = function(self, event, target, player, data)

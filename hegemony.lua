@@ -512,13 +512,13 @@ end
 local heg_rule = fk.CreateTriggerSkill{
   name = "#heg_rule",
   priority = 0.001,
-  events = {fk.TurnStart, fk.GameOverJudge, fk.Deathed, fk.GeneralRevealed, fk.EventPhaseChanging, fk.GeneralShown},
+  events = {fk.BeforeTurnStart, fk.TurnStart, fk.GameOverJudge, fk.Deathed, fk.GeneralRevealed, fk.EventPhaseChanging, fk.GeneralShown},
   can_trigger = function(self, event, target, player, data)
     return target == player
   end,
   on_trigger = function(self, event, target, player, data)
     local room = player.room
-    if event == fk.TurnStart then
+    if event == fk.BeforeTurnStart then
       -- 鏖战
       if #room.alive_players < (#room.players > 6 and 5 or 4) and not room:getTag("BattleRoyalMode") then
         local ret = true
@@ -542,6 +542,7 @@ local heg_rule = fk.CreateTriggerSkill{
           end
         end
       end
+    elseif event == fk.TurnStart then
       H.askForRevealGenerals(room, player, self.name, true, true, true, true, true) -- lord
     elseif event == fk.GameOverJudge then
       player:revealGeneral(false)
