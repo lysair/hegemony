@@ -441,7 +441,6 @@ local threatenEmperorSkill = fk.CreateActiveSkill{
 local threatenEmperorExtra = fk.CreateTriggerSkill{
   name = "#threaten_emperor_extra",
   -- global = true,
-  priority = 1,
   events = {fk.EventPhaseEnd},
   can_trigger = function(self, event, target, player, data)
     return target.phase == Player.Discard and player:getMark("_TEeffect-turn") > 0

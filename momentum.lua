@@ -534,13 +534,13 @@ local fengshi = H.CreateArraySummonSkill{
 }
 local fengshiTrigger = fk.CreateTriggerSkill{
   name = "#fengshi_trigger",
-  visible = false,
   events = {fk.TargetSpecified},
+  frequency = Skill.Compulsory,
+  mute = true,
   can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self) and data.card.trueName == "slash" and H.inSiegeRelation(target, player, player.room:getPlayerById(data.to)) 
+    return player:hasShownSkill(fengshi) and data.card.trueName == "slash" and H.inSiegeRelation(target, player, player.room:getPlayerById(data.to))
       and #player.room.alive_players > 3 and #player.room:getPlayerById(data.to):getCardIds(Player.Equip) > 0
   end,
-  on_cost = Util.TrueFunc,
   on_use = function(self, event, target, player, data)
     local room = player.room
     room:notifySkillInvoked(player, "fengshi", "control")
