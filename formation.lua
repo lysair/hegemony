@@ -717,7 +717,7 @@ Fk:loadTranslationTable{
 local lordliubei = General(extension, "ld__lordliubei", "shu", 4)
 lordliubei.hidden = true
 H.lordGenerals["hs__liubei"] = "ld__lordliubei"
-lordliubei:addSkill("cheat")
+
 local zhangwu = fk.CreateTriggerSkill{
   name = "zhangwu",
   anim_type = 'drawcard',

@@ -397,6 +397,7 @@ local xiaozhen = fk.CreateTriggerSkill{
     local room = player.room
     local targets = TargetGroup:getRealTargets(data.tos)
     data.tos = {}
+    room:sendLog{ type = "#RemoveTargetsBySkill", from = target.id, to = targets, arg = self.name, arg2 = data.card:toLogString() }
     player:drawCards(1, self.name)
     for _, pid in ipairs(targets) do
       target = room:getPlayerById(pid)
