@@ -140,15 +140,14 @@ local heyiTrig = fk.CreateTriggerSkill{ -- FIXME
   name = '#heyi_trigger',
   visible = false,
   frequency = Skill.Compulsory,
-  refresh_events = {fk.TurnStart, fk.GeneralRevealed, fk.EventAcquireSkill, "fk.RemoveStateChanged", fk.EventLoseSkill, fk.GeneralHidden},
+  refresh_events = {fk.TurnStart, fk.GeneralRevealed, fk.EventAcquireSkill, "fk.RemoveStateChanged", fk.EventLoseSkill, fk.GeneralHidden, fk.Deathed},
   can_refresh = function(self, event, target, player, data)
     if event == fk.EventLoseSkill then return data == heyi
-    elseif event == fk.GeneralHidden then return player == target 
-    else return H.hasShownSkill(player, self.name, true, true) end
+    elseif event == fk.GeneralHidden then return player == target
+    else return player:hasShownSkill(self.name, true, true) end
   end,
   on_refresh = function(self, event, target, player, data)
     local room = player.room
-
     local ret = #room.alive_players > 3 and player:hasSkill(self)
     for _, p in ipairs(room.alive_players) do
       if H.inFormationRelation(p, player) then
@@ -269,7 +268,7 @@ local tianfuTrig = fk.CreateTriggerSkill{ -- FIXME
   can_refresh = function(self, event, target, player, data)
     if event == fk.EventLoseSkill then return data == tianfu
     elseif event == fk.GeneralHidden then return player == target
-    else return H.hasShownSkill(player, self.name, true, true) end
+    else return player:hasShownSkill(self.name, true, true) end
   end,
   on_refresh = function(self, event, target, player, data)
     local room = player.room
@@ -311,7 +310,7 @@ local yizhi = fk.CreateTriggerSkill{
         break
       end
     end
-    local ret = H.hasShownSkill(player, self.name) and not (has_head_guanxing and player.general ~= "anjiang")
+    local ret = player:hasShownSkill(self.name) and not (has_head_guanxing and player.general ~= "anjiang")
     player.room:handleAddLoseSkills(player, ret and "ld__guanxing" or "-ld__guanxing", nil, false, true)
   end
 }
@@ -718,7 +717,7 @@ Fk:loadTranslationTable{
 local lordliubei = General(extension, "ld__lordliubei", "shu", 4)
 lordliubei.hidden = true
 H.lordGenerals["hs__liubei"] = "ld__lordliubei"
-
+lordliubei:addSkill("cheat")
 local zhangwu = fk.CreateTriggerSkill{
   name = "zhangwu",
   anim_type = 'drawcard',
@@ -728,7 +727,8 @@ local zhangwu = fk.CreateTriggerSkill{
     if not player:hasSkill(self) then return false end
     if event == fk.BeforeCardsMove then
       for _, move in ipairs(data) do
-        if move.from == player.id and move.moveReason ~= fk.ReasonUse and (move.to ~= player.id or (move.toArea ~= Card.PlayerEquip and move.toArea ~= Card.PlayerHand)) then
+        if move.from == player.id and (move.to ~= player.id or (move.toArea ~= Card.PlayerEquip and move.toArea ~= Card.PlayerHand)) and
+          (move.moveReason ~= fk.ReasonUse or player.room.logic:getCurrentEvent():findParent(GameEvent.UseCard).data[1].card.name ~= "dragon_phoenix") then
           for _, info in ipairs(move.moveInfo) do
             if (info.fromArea == Card.PlayerEquip or info.fromArea == Card.PlayerHand) and Fk:getCardById(info.cardId).name == "dragon_phoenix" then
               return true
@@ -753,7 +753,8 @@ local zhangwu = fk.CreateTriggerSkill{
     if event == fk.BeforeCardsMove then
       local mirror_moves = {}
       for _, move in ipairs(data) do
-        if move.from == player.id and move.moveReason ~= fk.ReasonUse and (move.to ~= player.id or (move.toArea ~= Card.PlayerEquip and move.toArea ~= Card.PlayerHand)) then
+        if move.from == player.id and (move.to ~= player.id or (move.toArea ~= Card.PlayerEquip and move.toArea ~= Card.PlayerHand)) and
+          (move.moveReason ~= fk.ReasonUse or player.room.logic:getCurrentEvent():findParent(GameEvent.UseCard).data[1].card.name ~= "dragon_phoenix") then
           local move_info = {}
           local mirror_info = {}
           for _, info in ipairs(move.moveInfo) do
@@ -791,9 +792,7 @@ local zhangwu = fk.CreateTriggerSkill{
           end
         end
       end
-      local dummy = Fk:cloneCard("dilu")
-      dummy:addSubcards(ids)
-      player.room:obtainCard(player, dummy, true, fk.ReasonPrey)
+      player.room:obtainCard(player, ids, true, fk.ReasonPrey)
     end
   end,
 }
@@ -825,7 +824,7 @@ local jizhao = fk.CreateTriggerSkill{
     if player:getHandcardNum() < player.maxHp then
       room:drawCards(player, player.maxHp - player:getHandcardNum(), self.name)
     end
-    if player.hp < 2 then
+    if player.hp < 2 and not player.dead then
       room:recover({
         who = player,
         num = 2 - player.hp,

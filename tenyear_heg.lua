@@ -1055,8 +1055,9 @@ local guowu = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    local cards = player.player_cards[Player.Hand]
+    local cards = player:getCardIds(Player.Hand)
     player:showCards(cards)
+    room:delay(300)
     local types = {}
     for _, id in ipairs(cards) do
       table.insertIfNeed(types, Fk:getCardById(id).type)

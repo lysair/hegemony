@@ -2870,7 +2870,7 @@ local huoshui = fk.CreateTriggerSkill{ -- FIXME
   can_trigger = function(self, event, target, player, data)
     if target ~= player or player.room.current ~= player then return false end
     if event == fk.TurnStart then
-      return player:hasSkill(self)
+      return player:hasShownSkill(self)
     end
     if event == fk.EventAcquireSkill or event == fk.EventLoseSkill then
       return data == self
