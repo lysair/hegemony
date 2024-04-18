@@ -233,7 +233,7 @@ local jianglue = fk.CreateActiveSkill{
     local kingdom = H.getKingdom(player)
     for _, p in ipairs(room:getAlivePlayers()) do
       if p.kingdom == "unknown" and not p.dead then
-        if H.getKingdomPlayersNum(room)[kingdom] >= #room.players // 2 then break end
+        if H.getKingdomPlayersNum(room)[kingdom] >= #room.players // 2 and not table.find(room.alive_players, function(p) return p.general == "ld__lordliubei" end) then break end
         local main, deputy = false, false
         if H.compareExpectedKingdomWith(p, player) then
           local general = Fk.generals[p:getMark("__heg_general")]

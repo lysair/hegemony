@@ -252,82 +252,6 @@ Fk:loadTranslationTable{
   ["~wk_heg__dongyun"] = "大汉，要亡于宦官之手了...",
 }
 
-local function swapHandCards(room, from, to1, to2, skillname)
-  local target1 = room:getPlayerById(to1)
-  local target2 = room:getPlayerById(to2)
-  local cards1 = table.clone(target1.player_cards[Player.Hand])
-  local cards2 = table.clone(target2.player_cards[Player.Hand])
-  local moveInfos = {}
-  if #cards1 > 0 then
-    table.insert(moveInfos, {
-      from = to1,
-      ids = cards1,
-      toArea = Card.Processing,
-      moveReason = fk.ReasonExchange,
-      proposer = from,
-      skillName = skillname,
-    })
-  end
-  if #cards2 > 0 then
-    table.insert(moveInfos, {
-      from = to2,
-      ids = cards2,
-      toArea = Card.Processing,
-      moveReason = fk.ReasonExchange,
-      proposer = from,
-      skillName = skillname,
-    })
-  end
-  if #moveInfos > 0 then
-    room:moveCards(table.unpack(moveInfos))
-  end
-  moveInfos = {}
-  if not target2.dead then
-    local to_ex_cards1 = table.filter(cards1, function (id)
-      return room:getCardArea(id) == Card.Processing
-    end)
-    if #to_ex_cards1 > 0 then
-      table.insert(moveInfos, {
-        ids = to_ex_cards1,
-        fromArea = Card.Processing,
-        to = to2,
-        toArea = Card.PlayerHand,
-        moveReason = fk.ReasonExchange,
-        proposer = from,
-        skillName = skillname,
-      })
-    end
-  end
-  if not target1.dead then
-    local to_ex_cards2 = table.filter(cards2, function (id)
-      return room:getCardArea(id) == Card.Processing
-    end)
-    if #to_ex_cards2 > 0 then
-      table.insert(moveInfos, {
-        ids = to_ex_cards2,
-        fromArea = Card.Processing,
-        to = to1,
-        toArea = Card.PlayerHand,
-        moveReason = fk.ReasonExchange,
-        proposer = from,
-        skillName = skillname,
-      })
-    end
-  end
-  if #moveInfos > 0 then
-    room:moveCards(table.unpack(moveInfos))
-  end
-  table.insertTable(cards1, cards2)
-  local dis_cards = table.filter(cards1, function (id)
-    return room:getCardArea(id) == Card.Processing
-  end)
-  if #dis_cards > 0 then
-    local dummy = Fk:cloneCard("dilu")
-    dummy:addSubcards(dis_cards)
-    room:moveCardTo(dummy, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, skillname)
-  end
-end
-
 local luotong = General(extension, "wk_heg__luotong", "wu", 3)
 local mingzheng = fk.CreateTriggerSkill{
   name = "wk_heg__mingzheng",
@@ -357,12 +281,7 @@ local mingzheng = fk.CreateTriggerSkill{
       end
     end
     if event == fk.GeneralRevealed then
-      if not target.faceup then
-        target:turnOver()
-      end
-      if target.chained then
-        target:setChainState(false)
-      end
+      target:reset()
       room:addPlayerMark(target, "@!yinyangfish", 1)
       target:addFakeSkill("yinyangfish_skill&")
       target:prelightSkill("yinyangfish_skill&", true)
@@ -385,7 +304,7 @@ local yujian = fk.CreateTriggerSkill{
     local room = player.room
     local current = room.current
     if target.hp <= player.hp then
-      swapHandCards(room, player.id, player.id, current.id, self.name)
+      U.swapHandCards(room, player, player, current, self.name)
       room:setPlayerMark(player, "@@wk_heg__yujian_exchange-turn", 1)
     end
     if H.getGeneralsRevealedNum(target) == 2 and room:askForChoice(player, {"wk_heg__yujian_hide::" .. target.id, "Cancel"}, self.name) ~= "Cancel" then
@@ -411,7 +330,7 @@ local yujian_delay = fk.CreateTriggerSkill{
   on_use = function (self, event, target, player, data)
     local room = player.room
     local current = room.current
-    swapHandCards(room, player.id, player.id, current.id, self.name)
+    U.swapHandCards(room, player, player, current, self.name)
   end
 }
 
@@ -694,10 +613,10 @@ local dingpin_delay = fk.CreateTriggerSkill{
       end
     elseif event == fk.TurnEnd then
       if target:getHandcardNum() > target.maxHp then
-        room:askForDiscard(target, target:getHandcardNum() - target.maxHp, target:getHandcardNum() - target.maxHp, false, self.name, false)
+        room:askForDiscard(target, target:getHandcardNum() - target.hp, target:getHandcardNum() - target.hp, false, self.name, false)
       end
       if target:getHandcardNum() < target.maxHp then
-        target:drawCards(target.maxHp - target:getHandcardNum(), self.name)
+        target:drawCards(target.hp - target:getHandcardNum(), self.name)
       end
       room:setPlayerMark(target, "_wk_heg__dingpin", 0)
       target:turnOver()
@@ -746,7 +665,7 @@ Fk:loadTranslationTable{
   ["designer:wk_heg__chenqun"] = "教父&635",
 
   ["wk_heg__dingpin"] = "定品",
-  [":wk_heg__dingpin"] = "结束阶段，你可横置你与一名与你势力相同的角色，令其于此回合结束后执行一个仅有出牌阶段的额外回合，此额外回合：1.出牌阶段开始时，其推举，然后与选用的角色各摸一张牌；2.回合结束时，其将手牌数摸或弃至体力上限，然后叠置。<br />" ..
+  [":wk_heg__dingpin"] = "结束阶段，你可横置你与一名与你势力相同的角色，令其于此回合结束后执行一个仅有出牌阶段的额外回合，此额外回合：1.出牌阶段开始时，其推举，然后与选用的角色各摸一张牌；2.回合结束时，其将手牌数摸或弃至体力值，然后叠置。<br />" ..
   "<font color = 'gray'>推举：推举角色展示一张与其势力相同的武将牌，每名与其势力相同的角色选择是否将此武将牌作为其新的主将或副将。" ..
   "若有角色选择是，称为该角色<u>选用</u>，停止对后续角色的询问，结束推举流程。</font>",
   ["wk_heg__faen"] = "法恩",
@@ -833,7 +752,7 @@ local caixia = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     player:showCards(self.cost_data)
-    player:drawCards(math.min(#self.cost_data, player.maxHp), self.name)
+    player:drawCards(math.min(#self.cost_data, player.hp), self.name)
   end,
 }
 local yuyan_delay = fk.CreateTriggerSkill{
@@ -874,7 +793,7 @@ Fk:loadTranslationTable{
     "<font color = 'gray'>推举：推举角色展示一张与其势力相同的武将牌，每名与其势力相同的角色选择是否将此武将牌作为其新的主将或副将。" ..
   "若有角色选择是，称为该角色<u>选用</u>，停止对后续角色的询问，结束推举流程。</font>",
   ["wk_heg__caixia"] = "才瑕",
-  [":wk_heg__caixia"] = "每回合限一次，当你造成或受到伤害后，你可展示任意张同名手牌，然后摸等量的牌（至多摸你体力上限数张）。",
+  [":wk_heg__caixia"] = "每回合限一次，当你造成或受到伤害后，你可展示任意张同名手牌，然后摸等量的牌（至多摸你体力值张）。",
 
   ["#wk_heg__yuyan-give"] = "誉言：交给 %dest 共计 %arg 张牌",
   ["#wk_heg__yuyan_delay"] = "誉言",
@@ -1165,11 +1084,11 @@ local liance = fk.CreateTriggerSkill{
     local room = player.room
     room:throwCard(self.cost_data, self.name, player, player)
     room:setPlayerMark(target, "wk_heg__liance-phase", self.cost_data)
-    local success, dat = player.room:askForUseActiveSkill(target, "wk_heg__liance_viewas", "#wk_heg__liance-choose", true)
+    local success, dat = player.room:askForUseActiveSkill(target, "#wk_heg__liance_viewas", "#wk_heg__liance-choose", true)
     if not success then
       H.askCommandTo(player, target, self.name, true)
     else
-      local card = Fk.skills["wk_heg__liance_viewas"]:viewAs(self.cost_data.cards)
+      local card = Fk.skills["#wk_heg__liance_viewas"]:viewAs(self.cost_data.cards)
         room:useCard{
         from = target.id,
         tos = table.map(dat.targets, function(id) return {id} end),
