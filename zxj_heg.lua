@@ -342,7 +342,7 @@ local guyuan = fk.CreateViewAsSkill{
     return UI.ComboBox {choices = names, all_choices = all_names}
   end,
   card_filter = Util.FalseFunc,
-  view_as = function(self, cards)
+  view_as = function(self, cards, player)
     local card = Fk:cloneCard(self.interaction.data)
     card.skillName = self.name
     card.extra_data = player.id
@@ -383,6 +383,8 @@ Fk:loadTranslationTable{
   [":zx_heg__jinhun"] = "锁定技，当你受到伤害时，若你横置或叠置，你弃置至少一张牌并防止等量的伤害，然后若你没有手牌或体力值为1，你复原武将牌。",
   ["zx_heg__guyuan"] = "孤援",
   [":zx_heg__guyuan"] = "出牌阶段，若你平置，你可叠置，视为使用任意一张伤害类锦囊牌，若没有与你势力相同的其他角色，此牌不可被响应。",
+
+  ["#zx_heg__guyuan-active"] = "孤援：你可叠置，视为使用任意一张伤害类锦囊牌，若没有与你势力相同的其他角色，此牌不可被响应",
 
   ["$zx_heg__jinhun1"] = "",
   ["$zx_heg__jinhun2"] = "",

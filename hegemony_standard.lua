@@ -223,7 +223,7 @@ local luoshen = fk.CreateTriggerSkill{
       local card = judge.card
       if card.color == Card.Black then
         table.insert(cardsJudged, card)
-      else
+      elseif room:getCardArea(card) == Card.Processing then
         room:moveCardTo(card, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, self.name, nil, true, player.id)
       end
       if card.color ~= Card.Black or player.dead or not room:askForSkillInvoke(player, self.name) then
