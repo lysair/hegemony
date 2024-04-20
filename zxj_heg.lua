@@ -280,12 +280,12 @@ local jiguo = fk.CreateTriggerSkill{
         local card = room:askForCardChosen(p, p, "he", self.name, "#zx_heg__jiguo-give"..data.damage.from.id)
         room:moveCardTo(card, Card.PlayerHand, data.damage.from, fk.ReasonGive, self.name, nil, false, player.id)
         if not p.dead then
-          room:recover({
-           who = p,
-           num = 1,
-           recoverBy = player,
-           skillName = self.name
-         })
+          room:recover{
+            who = p,
+            num = 1,
+            recoverBy = player,
+            skillName = self.name
+          }
         end
       end
     end
@@ -326,9 +326,11 @@ local jinhun = fk.CreateTriggerSkill{
     local room = player.room
     local cards = room:askForDiscard(player, 1, player:getHandcardNum(), true, self.name, false, ".", "#zx_heg__jinhun-discard", true)
     room:throwCard(cards, self.name, player, player)
-    data.damage = data.damage - math.min(#cards, data.damage)
-    if player:isKongcheng() or player.hp == 1 then
-      target:reset()
+    if not player.dead then
+      data.damage = data.damage - #cards
+      if player:isKongcheng() or player.hp == 1 then
+        player:reset()
+      end
     end
   end,
 }
@@ -342,40 +344,26 @@ local guyuan = fk.CreateViewAsSkill{
     return UI.ComboBox {choices = names, all_choices = all_names}
   end,
   card_filter = Util.FalseFunc,
-  view_as = function(self, cards, player)
+  view_as = function(self, _)
     local card = Fk:cloneCard(self.interaction.data)
     card.skillName = self.name
-    card.extra_data = player.id
     return card
+  end,
+  before_use = function (self, player, use)
+    player:turnOver()
+    if H.getKingdomPlayersNum(player.room)[H.getKingdom(player)] == 1 then
+      use.disresponsiveList = use.disresponsiveList or {}
+      table.forEach(player.room.alive_players, function(p) table.insertIfNeed(use.disresponsiveList, p.id) end)
+    end
   end,
   enabled_at_play = function(self, player)
     return player.faceup
   end,
-}
-
-local guyuan_effect = fk.CreateTriggerSkill{
-  name = "#zx_heg__guyuan_effect",
-  mute = true,
-  frequency = Skill.Compulsory,
-  events = {fk.CardUsing},
-  can_trigger = function (self, event, target, player, data)
-    return data.card.skillName == guyuan.name and data.card.extra_data == player.id
-  end,
-  on_use = function (self, event, target, player, data)
-    local room = player.room
-    player:turnOver()
-    if player and H.getKingdomPlayersNum(player.room)[H.getKingdom(player)] == 1 then
-      data.disresponsiveList = data.disresponsiveList or {}
-      for _, p in ipairs(room.alive_players) do
-        table.insertIfNeed(data.disresponsiveList, p.id)
-      end
-    end
-  end,
+  enabled_at_response = Util.FalseFunc,
 }
 
 huoyi:addSkill(jinhun)
 huoyi:addSkill(guyuan)
-guyuan:addRelatedSkill(guyuan_effect)
 Fk:loadTranslationTable{
   ["zx_heg__huoyi"] = "霍弋", --蜀国
   ["designer:zx_heg__huoyi"] = "时雨",
@@ -453,7 +441,7 @@ local pofu_effect = fk.CreateTriggerSkill{
       and not table.find(TargetGroup:getRealTargets(data.responseToEvent.tos), function(id) return id ~= player.id end)
       and ((event == fk.CardUseFinished and data.toCard and data.toCard.trueName ~= "nullification" and data.toCard:isCommonTrick()) or 
         (event == fk.CardRespondFinished and data.responseToEvent.card and data.responseToEvent.card.trueName ~= "nullification" and data.responseToEvent.card:isCommonTrick()))
-      and (not data.responseToEvent.from.dead or room:getCardArea(data.responseToEvent.card) == Card.Processing)
+      and (not data.responseToEvent.from.dead or player.room:getCardArea(data.responseToEvent.card) == Card.Processing)
   end,
   on_use = function (self, event, target, player, data)
     local room = player.room
@@ -522,14 +510,14 @@ local suchao = fk.CreateActiveSkill{
     local targets = table.clone(effect.tos)
     room:sortPlayersByAction(targets)
     for _, id in ipairs(targets) do
+      local target = room:getPlayerById(id)
       if not target.dead then
-        local target = room:getPlayerById(id)
         room:setPlayerMark(target, "zx_heg__suchao-phase", 1)
-        room:damage{ 
-          from = player, 
-          to = target, 
-          damage = 1, 
-          skillName = self.name 
+        room:damage{
+          from = player,
+          to = target,
+          damage = 1,
+          skillName = self.name
         }
       end
     end
@@ -544,9 +532,9 @@ local suchao_effect = fk.CreateTriggerSkill{
     return player.phase == Player.Play and player:usedSkillTimes(suchao.name, Player.HistoryPhase) > 0
   end,
   on_cost = Util.TrueFunc,
-  on_use = function(self, event, target, player, data)
+  on_use = function(self, _, _, player, _)
     local room = player.room
-    for _, target in ipairs(room.alive_players) do
+    for _, target in ipairs(room:getAlivePlayers()) do
       if target:getMark("zx_heg__suchao-phase") > 0 and not target.dead then
         room:recover({
           who = target,
@@ -556,12 +544,12 @@ local suchao_effect = fk.CreateTriggerSkill{
         })
       end
     end
-    for _, target in ipairs(room.alive_players) do
+    for _, target in ipairs(room:getAlivePlayers()) do
       if target:getMark("zx_heg__suchao-phase") > 0 and not target.dead and not player.dead then
-        local use = room:askForUseCard(target, "slash", "slash", "#zx_heg__suchao-ask:" .. player.id, true, {include_targets = {player.id}, bypass_distances = true })
+        local use = room:askForUseCard(target, "slash", "slash", "#zx_heg__suchao-ask:" .. player.id, true, {include_targets = {player.id}, bypass_distances = true, bypass_times = true })
         if use then
-          room:notifySkillInvoked(player, self.name, "offensive")
-          player:broadcastSkillInvoke(self.name)
+          room:notifySkillInvoked(player, suchao.name, "offensive")
+          player:broadcastSkillInvoke(suchao.name)
           use.extraUse = true
           room:useCard(use)
         end
@@ -576,19 +564,14 @@ local zhulian = fk.CreateTriggerSkill{
   frequency = Skill.Compulsory,
   events = {fk.DamageInflicted},
   can_trigger = function (self, event, target, player, data)
-    return player:hasSkill(self) and player.phase ~= Player.NotActive and data.to:getMark("zx_heg__zhulian-turn") > 0
+    return player:hasSkill(self) and player.room.current == player and target ~= player and
+    #player.room.logic:getEventsOfScope(GameEvent.UseCard, 1, function (e)
+      local use = e.data[1]
+      return use.card.trueName == "peach" and (use.from == target.id or TargetGroup:includeRealTargets(use.tos, target.id))
+    end, Player.HistoryTurn) > 0
   end,
   on_use = function (self, event, target, player, data)
     data.damage = data.damage + 1
-  end,
-
-  refresh_events = {fk.CardUsing, fk.TargetConfirmed},
-  can_refresh = function (self, event, target, player, data)
-    return player ~= target and player.phase ~= Player.NotActive and data.card.trueName == "peach"
-  end,
-  on_refresh = function (self, event, target, player, data)
-    local room = player.room
-    room:setPlayerMark(target, "zx_heg__zhulian-turn", 1)
   end,
 }
 

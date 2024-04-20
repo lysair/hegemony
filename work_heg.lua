@@ -1418,7 +1418,6 @@ local zongpo = fk.CreateTriggerSkill{
     local room = player.room
     room:loseHp(player, 1)
     if player.dead then return false end
-   
     local targets = table.map(room:getOtherPlayers(player), Util.IdMapper)
     local tos = room:askForChoosePlayers(player, targets, 1, 1, "#wk_heg__zongpo_choose", self.name, true)
     local to = room:getPlayerById(tos[1])
@@ -1752,20 +1751,15 @@ local gaojie = fk.CreateTriggerSkill{
       return true
     else
       if #self.cost_data > 0 then
-        player.room:moveCards({
-          from = player.id,
-          ids = self.cost_data,
-          toArea = Card.DiscardPile,
-          moveReason = fk.ReasonDiscard,
-          skillName = self.name,
-          proposer = player.id,
-        })
-        player.room:recover({
-          who = player,
-          num = 1,
-          recoverBy = player,
-          skillName = self.name,
-        })
+        player.room:throwCard(self.cost_data, self.name, player, player)
+        if player:isWounded() and not player.dead then
+          player.room:recover({
+            who = player,
+            num = 1,
+            recoverBy = player,
+            skillName = self.name,
+          })
+        end
       end
     end
   end,
@@ -1780,7 +1774,7 @@ Fk:loadTranslationTable{
   [":wk_heg__xuci"] = "其他角色使用【杀】或普通锦囊牌指定你为唯一目标后，其可将其场上的一张牌移动至你的对应区域内，然后你选择一项：1.交给其一张牌，调离你至此回合结束；2.你与其各摸一张牌，此牌对你无效，然后其对你造成1点伤害。",
   ["wk_heg__gaojie"] = "高节",
   [":wk_heg__gaojie"] = "锁定技，当你成为势备篇锦囊牌的目标时，取消之；当你获得带有“合纵”标记的牌后，你弃置之，然后回复1点体力。<br />"..
-  "注：势备篇锦囊牌包括【勠力同心】【联军盛宴】【挟天子以令诸侯】【敕令】【调虎离山】【水淹七军】【火烧连营】。",
+  "<font color = 'gray'>注：势备篇锦囊牌包括【勠力同心】【联军盛宴】【挟天子以令诸侯】【敕令】【调虎离山】【水淹七军】【火烧连营】。</font>",
 
   ["#wk_heg__xuci-ask"] = "絮辞：你可以将你场上一张牌移动至 %dest 的对应区域内，然后其选择交给你牌或你与其各摸牌",
   ["wk_heg__xuci_give"] = "交给牌，然后调离至此回合结束",

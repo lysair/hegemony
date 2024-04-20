@@ -169,35 +169,27 @@ local zhanmeng = fk.CreateTriggerSkill{
       end
       if #cards > 0 then
         local card = table.random(cards)
-        room:moveCards({
-          ids = {card},
-          to = player.id,
-          toArea = Card.PlayerHand,
-          moveReason = fk.ReasonJustMove,
-          proposer = player.id,
-          skillName = self.name,
-        })
+        room:obtainCard(player, card, false, fk.ReasonPrey, player.id)
       end
     elseif choice == "fk_heg__zhanmeng2" then
       room:setPlayerMark(player, "fk_heg__zhanmeng2_invoke", data.card.trueName)
     elseif choice == "fk_heg__zhanmeng3" then
       local p = room:getPlayerById(self.cost_data[2])
       local n = math.min(1, #p:getCardIds{Player.Hand, Player.Equip})
-      local cards = room:askForDiscard(p, n, 1, true, self.name, false, ".", "#fk_heg__zhanmeng-discard:"..player.id.."::"..tostring(n))
+      room:askForDiscard(p, n, 1, true, self.name, false, ".", "#fk_heg__zhanmeng-discard:"..player.id.."::"..tostring(n))
     end
   end,
 }
 local zhanmeng_record = fk.CreateTriggerSkill{
   name = "#fk_heg__zhanmeng_record",
 
-  refresh_events = {fk.CardUsing, fk.EventPhaseStart},
+  refresh_events = {fk.CardUsing, fk.EventPhaseStart}, -- 待杀
   can_refresh = function(self, event, target, player, data)
-    if target == player then
-      if event == fk.CardUsing then
-        return true
-      else
-        return player.phase == Player.Start
-      end
+    if target ~= player then return end
+    if event == fk.CardUsing then
+      return true
+    else
+      return player.phase == Player.Start
     end
   end,
   on_refresh = function(self, event, target, player, data)

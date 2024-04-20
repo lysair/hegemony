@@ -76,8 +76,9 @@ H.compareExpectedKingdomWith = function(from, to, diff)
 end
 
 --- 获取势力角色数列表，注意键unknown的值为nil
----@param room Room @ 房间
+---@param room AbstractRoom @ 房间
 ---@param include_dead bool @ 包括死人
+---@return table<string, number> @ 势力与角色数映射表
 H.getKingdomPlayersNum = function(room, include_dead)
   local kingdomMapper = {}
   for _, p in ipairs(include_dead and room.players or room.alive_players) do
@@ -125,14 +126,14 @@ end
 -- 阵型
 
 --- 获取与角色成队列的其余角色
----@param player ServerPlayer
+---@param player Player
 ---@return ServerPlayer[]? @ 队列中的角色
 H.getFormationRelation = function(player)
   if player:isRemoved() then return {} end
   local players = {}
   local p = player
   while true do
-    p = p:getNextAlive()
+    p = p:getNextAlive(false)
     if p == player then break end
     if H.compareKingdomWith(p, player) then
       table.insert(players, p)
@@ -142,7 +143,7 @@ H.getFormationRelation = function(player)
   end
   p = player
   while true do
-    p = p:getLastAlive()
+    p = p:getLastAlive(false)
     if p == player then break end
     if H.compareKingdomWith(p, player) then
       table.insertIfNeed(players, p)
@@ -154,8 +155,8 @@ H.getFormationRelation = function(player)
 end
 
 --- 确认与某角色是否处于队列中
----@param player ServerPlayer @ 角色1
----@param target ServerPlayer @ 角色2，若为 player 即 player 是否处于某一队列
+---@param player Player @ 角色1
+---@param target Player @ 角色2，若为 player 即 player 是否处于某一队列
 ---@return bool
 H.inFormationRelation = function(player, target)
   if target == player then
@@ -402,12 +403,14 @@ H.startCommand = function(from, skill_name)
     arg = ":"+choice,
     toast = true,
   }
+  --[[ -- 酷炫顶栏
   local ret = "<b><font color='#0C8F0C'>" .. Fk:translate(from.general)
   if from.deputyGeneral and from.deputyGeneral ~= "" then
     ret = ret .. "/" .. Fk:translate(from.deputyGeneral)
   end
   ret = ret .. "</b></font> " .. Fk:translate("chose") .. " <b>" .. Fk:translate(":"+choice) .. "</b>"
   room:doBroadcastNotify("ServerMessage", ret)
+  --]]
 
   return table.indexOf(allcommands, choice)
 end
@@ -439,13 +442,14 @@ H.doCommand = function(to, skill_name, index, from, isMust)
     arg = result,
     toast = true,
   }
+  --[[ -- 酷炫顶栏
   local ret = "<b><font color='#CC3131'>" .. Fk:translate(to.general)
   if to.deputyGeneral and to.deputyGeneral ~= "" then
     ret = ret .. "/" .. Fk:translate(to.deputyGeneral)
   end
   ret = ret .. "</b></font> " .. Fk:translate("chose") .. " <b>" .. Fk:translate(result) .. "</b>"
   room:doBroadcastNotify("ServerMessage", ret)
-
+  --]]
   if choice == "Cancel" then return false end
   local commandData = {
     from = from,
@@ -532,7 +536,6 @@ Fk:loadTranslationTable{
   ["#AskCommandTo"] = "%from 发动了 “%arg”，对 %to 发起了 <font color='#0598BC'><b>军令",
   ["#CommandChoice"] = "%from 选择了 %arg",
   ["chose"] = "选择了",
-  ["to"] = "对",
 
   ["do_command"] = "执行军令",
   ["#commandselect_yes"] = "执行军令",
@@ -621,7 +624,7 @@ Fk:loadTranslationTable{
 -- 武将牌相关
 
 --- 判断有无主将/副将
----@param player ServerPlayer
+---@param player Player
 ---@param isDeputy bool
 ---@return bool
 H.hasGeneral = function(player, isDeputy)
@@ -655,7 +658,7 @@ end
 H.lordGenerals = {}
 
 --- 获取所属势力的君主，可能为nil
----@param room Room
+---@param room AbstractRoom
 ---@param player Player
 ---@return ServerPlayer? @ 君主
 H.getHegLord = function(room, player)

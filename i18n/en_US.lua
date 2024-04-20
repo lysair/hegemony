@@ -760,7 +760,6 @@ return {
   ["#AskCommandTo"] = "%from 发动了 “%arg”，对 %to 发起了 <font color='#0598BC'><b>军令",
   ["#CommandChoice"] = "%from 选择了 %arg",
   -- ["chose"] = "chose",
-  -- ["to"] = "to",
 
   ["do_command"] = "执行军令",
   ["#commandselect_yes"] = "执行军令",

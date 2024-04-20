@@ -437,6 +437,7 @@ local diancai = fk.CreateTriggerSkill{
           end
         end
       end
+      return false
     end, Player.HistoryPhase)
     return num >= player.hp
   end,
@@ -591,7 +592,7 @@ local xinsheng = fk.CreateTriggerSkill{
           local reply = json.decode(result)
           choice = reply.cards[1]
         else
-          choice = table.random(choices)
+          choice = table.random(choices) ---@type string
         end
         removeFangke(player, choice)
         generals = room:getNGenerals(1)
@@ -867,7 +868,7 @@ local jiaheOther = fk.CreateActiveSkill{
     local player = room:getPlayerById(effect.from)
     local to = H.getHegLord(room, player)
     if to and to:hasSkill("jiahe") then
-    to:addToPile("lord_fenghuo", effect.cards, true, self.name)
+      to:addToPile("lord_fenghuo", effect.cards, true, self.name)
     end
   end,
 }
