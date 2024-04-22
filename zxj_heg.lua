@@ -425,7 +425,6 @@ local pofu = fk.CreateViewAsSkill{
     if #cards ~= 1 then return end
     local card = Fk:cloneCard("nullification")
     card.skillName = self.name
-    card.extra_data = player.id
     card:addSubcard(cards[1])
     return card
   end,
@@ -437,7 +436,7 @@ local pofu_effect = fk.CreateTriggerSkill{
   frequency = Skill.Compulsory,
   events = {fk.CardUseFinished, fk.CardRespondFinished},
   can_trigger = function(self, event, target, player, data)
-    return data.card.extra_data == player.id and data.responseToEvent and data.card.skillName == pofu.name
+    return data.responseToEvent and data.card.skillName == pofu.name
       and not table.find(TargetGroup:getRealTargets(data.responseToEvent.tos), function(id) return id ~= player.id end)
       and ((event == fk.CardUseFinished and data.toCard and data.toCard.trueName ~= "nullification" and data.toCard:isCommonTrick()) or 
         (event == fk.CardRespondFinished and data.responseToEvent.card and data.responseToEvent.card.trueName ~= "nullification" and data.responseToEvent.card:isCommonTrick()))
