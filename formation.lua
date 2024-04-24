@@ -365,13 +365,8 @@ local shengxi = fk.CreateTriggerSkill{
   anim_type = "drawcard",
   events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
-    return player == target and player:hasSkill(self) and player.phase == Player.Finish and 
-      #player.room.logic:getEventsOfScope(GameEvent.ChangeHp, 1, function (e)
-        local damage = e.data[5]
-        if damage and target == damage.from then
-          return true
-        end
-      end, Player.HistoryTurn) == 0
+    return player == target and player:hasSkill(self) and player.phase == Player.Finish and
+    #U.getActualDamageEvents(player.room, 1, function(e) return e.data[1].from == player end) == 0
   end,
   on_use = function(self, event, target, player, data)
     player:drawCards(2, self.name)
