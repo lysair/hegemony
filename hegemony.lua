@@ -509,6 +509,55 @@ local function wildChooseKingdom(room, player, generalName)
   end
 end  
 
+local function AskForBuildCountry(room, player, generalName, isActive)
+  if player.general == generalName and kingdomMapper[generalName] then
+    -- local choices = {"heg_rule_join_country:"..generalName, "Cancel"}
+    local choices = {"heg_rule_join_country:"..player.id.."::"..kingdomMapper[generalName], "Cancel"}
+    local targets = table.map(room.alive_players, Util.IdMapper)
+    room:sortPlayersByAction(targets)
+    for _, pid in ipairs(targets) do
+      local p = room:getPlayerById(pid)
+      if p:getMark("__heg_join_wild") == 0 and p.kingdom ~= "wild" and not string.find(p.general, "lord")
+       and ((isActive == true and p.general ~= "anjiang") or (isActive == false and p.deputyGeneral.kingdom == player.deputyGeneral.kingdom))then
+        local choice = room:askForChoice(p, choices, "#heg_rule", "#wild_join-choose")
+        if choice ~= "Cancel" then
+          p.role = kingdomMapper[generalName]
+          player.role_shown = true
+          room:broadcastProperty(p, "role")
+          room:sendLog{
+            type = "#WildChooseKingdom",
+            from = p.id,
+            arg = kingdomMapper[generalName],
+            arg2 = "wild",
+          }
+          room:setPlayerProperty(p, "kingdom", "wild")
+          room:setPlayerMark(p, "__heg_join_wild", 1)
+          room:setPlayerMark(player, "__heg_construct_wild", 1)
+          room:setPlayerMark(player, "_wild_gained", 1)
+          room:sendLog{
+            type = "#SuccessBuildCountry",
+            from = player.id,
+            arg = kingdomMapper[generalName],
+            arg2 = p.general
+          }
+          if p.hp < p.maxHp then
+            room:recover({
+              who = p,
+              num = 1,
+              recoverBy = player,
+              skillName = "#heg_rule",
+            })
+          end
+          if p:getHandcardNum() < 4 then
+            p:drawCards(4 - p:getHandcardNum(), "#heg_rule")
+          end
+          break
+        end
+      end
+    end
+  end
+end
+
 local heg_rule = fk.CreateTriggerSkill{
   name = "#heg_rule",
   priority = 0.001,
@@ -545,16 +594,46 @@ local heg_rule = fk.CreateTriggerSkill{
     elseif event == fk.TurnStart then
       H.askForRevealGenerals(room, player, self.name, true, true, true, true, true) -- lord
     elseif event == fk.GameOverJudge then
+      -- if table.every(room.alive_players, function (p) return H.compareKingdomWith(p, player) end) then
       player:revealGeneral(false)
       player:revealGeneral(true)
       local winner = Fk.game_modes[room.settings.gameMode]:getWinner(player)
       if winner ~= "" then
-        for _, p in ipairs(room.alive_players) do
-          if p.general == "anjiang" then p:revealGeneral(false) end
-          if p.deputyGeneral == "anjiang" then p:revealGeneral(true) end
+        for _, ps in ipairs(room.alive_players) do
+          -- 先检测并询问主将是不是野人
+          if ps.general == "anjiang" then 
+            -- 是野人则强制亮出来
+            if ps:getMark("__heg_wild") == 1 then
+              ps:revealGeneral(false)
+            end
+          end
         end
-        room:gameOver(winner)
-        return true
+        -- 强制亮完野人后检测场上有没有野人
+        if table.find(room.alive_players, function(p) return p:getMark("__heg_wild") == 1 end) then
+          --有野人则依次询问拉拢
+          for _, p in ipairs(room.alive_players) do
+            if p:getMark("__heg_wild") == 1 then 
+              wildChooseKingdom(room, p, p.general.name)
+              AskForBuildCountry(room, p, p.general.name, false)
+            end
+          end
+        end
+        -- 然后判断场上所有人势力是否相同
+        local _kingdom2 = {}
+        for _, p in ipairs(room.alive_players) do
+          if not table.contains(_kingdom2, p.kingdom) then
+            table.insert(_kingdom2, p.kingdom)
+          end
+        end
+        if #_kingdom2 == 1 then
+          -- 若所有人势力相同则全部亮将
+          for _, p in ipairs(room.alive_players) do
+            if p.general == "anjiang" then p:revealGeneral(false) end
+            if p.deputyGeneral == "anjiang" then p:revealGeneral(true) end
+          end
+          room:gameOver(winner)
+          return true
+        end
       end
       room:setTag("SkipGameRule", true)
     elseif event == fk.Deathed then
@@ -563,15 +642,31 @@ local heg_rule = fk.CreateTriggerSkill{
         local killer = damage.from
         if killer.kingdom ~= "unknown" and not killer.dead then
           if killer.kingdom == "wild" then
-            killer:drawCards(3, "kill")
+            -- 因为建国，修改奖惩
+            -- 如果还没建国
+            if killer:getMark("__heg_construct_wild") == 0 and killer:getMark("__heg_join_wild") == 0 then
+              killer:drawCards(3, "kill")
+            else
+              -- 如果已经建国
+              if H.compareKingdomWith(killer, player) then
+                if not (room.logic:getCurrentEvent():findParent(GameEvent.Death, true).extra_data or {}).ignorePunishment then
+                  killer:throwAllCards("he")
+                end
+              else
+                -- 这里改为比较role，野人和野人之间的势力不同 （傻逼）
+                killer:drawCards( #table.filter(room.alive_players, function(p)
+                  return H.compareKingdomWith(p, player)
+                end) + 1, "kill")
+              end
+            end
           elseif H.compareKingdomWith(killer, player) then
             if not (room.logic:getCurrentEvent():findParent(GameEvent.Death, true).extra_data or {}).ignorePunishment then
               killer:throwAllCards("he")
             end
           else
-            killer:drawCards(player.kingdom == "wild" and 1 or
-            #table.filter(room.alive_players, function(p)
-              return p.kingdom == player.kingdom
+            -- 因为建国，修改奖惩，杀了野人不一定只摸一，这里也改为比较role
+            killer:drawCards( #table.filter(room.alive_players, function(p)
+              return H.compareKingdomWith(p, player)
             end) + 1, "kill")
           end
         end
@@ -632,9 +727,11 @@ local heg_rule = fk.CreateTriggerSkill{
           end
         end
       end
-      if player.kingdom == "wild" then
+      if player.kingdom == "wild" and not player.dead then
         wildChooseKingdom(room, player, general_name)
-      else
+        -- 野人亮出来的时候询问拉拢
+        AskForBuildCountry(room, player, general_name, true)
+      elseif player:getMark("__heg_join_wild") == 0 and player:getMark("__heg_construct_wild") == 0 then
         player.role = player.kingdom
       end
 
@@ -642,11 +739,35 @@ local heg_rule = fk.CreateTriggerSkill{
         if v == #room.alive_players then
           local winner = Fk.game_modes[room.settings.gameMode]:getWinner(player)
           for _, p in ipairs(room.alive_players) do
-            if p.general == "anjiang" then p:revealGeneral(false) end
-            if p.deputyGeneral == "anjiang" then p:revealGeneral(true) end
+            -- 先检测并询问主将是不是野人
+            if p.general == "anjiang" then 
+              -- 是野人则强制亮出来
+              if p:getMark("__heg_wild") == 1 then
+                p:revealGeneral(false)
+              end
+            end
           end
-          room:gameOver(winner)
-          return true
+          -- 强制亮完野人后检测场上有没有野人
+          if table.find(room.alive_players, function(p) return p:getMark("__heg_wild") == 1 end) then
+            --有野人则依次询问拉拢
+            for _, p in ipairs(room.alive_players) do
+              if p:getMark("__heg_wild") == 1 then 
+                wildChooseKingdom(room, p, p.general.name)
+                AskForBuildCountry(room, p, p.general.name, false)
+              end
+            end
+          end
+          -- 然后判断场上所有人势力是否相同
+          if table.every(room.alive_players, function(p) return H.compareKingdomWith(p, player) end) then
+            -- 若所有人势力相同则全部亮将
+            for _, p in ipairs(room.alive_players) do
+              if p.general == "anjiang" then p:revealGeneral(false) end
+        
+              if p.deputyGeneral == "anjiang" then p:revealGeneral(true) end
+            end
+            room:gameOver(winner)
+            return true
+          end
         else
           break
         end
@@ -724,6 +845,11 @@ heg = fk.CreateGameMode{
     local winner
     local kingdomCheck = true
     for _, p in ipairs(Fk:currentRoom().alive_players) do
+      -- 场上有未明置的主将时不能投降
+      if p.general == "anjiang" then
+        kingdomCheck = false
+        break
+      end
       if p ~= Self then
         if not winner then
           winner = p
@@ -770,6 +896,9 @@ Fk:loadTranslationTable{
   ["@@alliance-inhand"] = "合",
   ["@@alliance-inhand-turn"] = "合",
   ["@seat"] = "",
+
+  ["#SuccessBuildCountry"] = "%from 成功建立国家，国号 %arg ，队友是 %arg2",
+  ["heg_rule_join_country"] = "加入 %src 的阵营 %arg",
 
   ["#HegInitialNotice"] = "提示：<b><font color='purple'>暴露野心</font></b><b>暂无</b><br><b><font color='red'>君刘备</font></b>、<b><font color='#8c92ac'>君张角</font></b>、<b><font color='forestgreen'>君孙权</font></b>、<b><font color='royalblue'>君曹操</font></b>均已登场！<br><b><font color='goldenrod'>君主</font></b>必须选择对应普通武将为<b>主将</b>，并在<b>首个回合亮将</b>才能变身",
 }
