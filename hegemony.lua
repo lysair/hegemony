@@ -900,7 +900,7 @@ Fk:loadTranslationTable{
   ["#SuccessBuildCountry"] = "%from 成功建立国家，国号 %arg ，队友是 %arg2",
   ["heg_rule_join_country"] = "加入 %src 的阵营 %arg",
 
-  ["#HegInitialNotice"] = "提示：<b><font color='purple'>暴露野心</font></b><b>暂无</b><br><b><font color='red'>君刘备</font></b>、<b><font color='#8c92ac'>君张角</font></b>、<b><font color='forestgreen'>君孙权</font></b>、<b><font color='royalblue'>君曹操</font></b>均已登场！<br><b><font color='goldenrod'>君主</font></b>必须选择对应普通武将为<b>主将</b>，并在<b>首个回合亮将</b>才能变身",
+  ["#HegInitialNotice"] = "提示：<b><font color='purple'>暴露野心，拉拢人心</font></b><b>已上线</b><br><b><font color='red'>君刘备</font></b>、<b><font color='#8c92ac'>君张角</font></b>、<b><font color='forestgreen'>君孙权</font></b>、<b><font color='royalblue'>君曹操</font></b>均已登场！<br><b><font color='goldenrod'>君主</font></b>必须选择对应普通武将为<b>主将</b>，并在<b>首个回合亮将</b>才能变身",
 }
 
 return heg
