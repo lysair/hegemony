@@ -270,11 +270,11 @@ local jiguo = fk.CreateTriggerSkill{
   can_trigger = function (self, event, target, player, data)
     return player:hasSkill(self) and player:usedSkillTimes(self.name, Player.HistoryGame) == 0 
       and target and target ~= player and target.dead and data.damage and data.damage.from 
-      and table.find(player.room:getAlivePlayers(), function (e) return H.compareKingdomWith(player, target) and e ~= data.damage.from and not e:isNude() end)
+      and table.find(player.room:getAlivePlayers(), function (e) return H.compareKingdomWith(player, e) and e ~= data.damage.from and not e:isNude() end)
   end,
   on_use = function (self, event, target, player, data)
     local room = player.room
-    local ps = table.filter(room:getAlivePlayers(), function (e) return H.compareKingdomWith(player, target) and e ~= data.damage.from end)
+    local ps = table.filter(room:getAlivePlayers(), function (e) return H.compareKingdomWith(player, e) and e ~= data.damage.from end)
     for _, p in ipairs(ps) do
       if not p:isNude() then
         local card = room:askForCardChosen(p, p, "he", self.name, "#zx_heg__jiguo-give"..data.damage.from.id)
@@ -545,7 +545,7 @@ local suchao_effect = fk.CreateTriggerSkill{
     end
     for _, target in ipairs(room:getAlivePlayers()) do
       if target:getMark("zx_heg__suchao-phase") > 0 and not target.dead and not player.dead then
-        local use = room:askForUseCard(target, "slash", "slash", "#zx_heg__suchao-ask:" .. player.id, true, {include_targets = {player.id}, bypass_distances = true, bypass_times = true })
+        local use = room:askForUseCard(target, "slash", "slash", "#zx_heg__suchao-ask:"..player.id, true, {include_targets = {player.id}, bypass_distances = true, bypass_times = true })
         if use then
           room:notifySkillInvoked(player, suchao.name, "offensive")
           player:broadcastSkillInvoke(suchao.name)
@@ -649,7 +649,7 @@ Fk:loadTranslationTable{
   ["zx_heg__liuyu"] = "刘虞", --群雄
   ["designer:zx_heg__liuyu"] = "紫星居",
   ["zx_heg__suifu"] = "绥抚",
-  [":zx_heg__suifu"] = "其他角色的结束阶段，若本回合有至少两名小势力角色受到过伤害，你可令其将所有手牌置于牌堆顶，然后其视为使用一张【五谷丰登】。",
+  [":zx_heg__suifu"] = "其他角色的结束阶段，若本回合有至少两名小势力角色受到过伤害，你可令其将所有手牌置于牌堆顶，然后你视为使用一张【五谷丰登】。",
   ["zx_heg__anjing"] = "安境",
   [":zx_heg__anjing"] = "每回合限一次，与你势力相同的角色受到伤害后，你可令所有与你势力相同的角色各摸一张牌。",
 

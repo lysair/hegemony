@@ -533,7 +533,6 @@ local function AskForBuildCountry(room, player, generalName, isActive)
           room:setPlayerProperty(p, "kingdom", "wild")
           room:setPlayerMark(p, "__heg_join_wild", 1)
           room:setPlayerMark(player, "__heg_construct_wild", 1)
-          room:setPlayerMark(player, "_wild_gained", 1)
           room:sendLog{
             type = "#SuccessBuildCountry",
             from = player.id,
@@ -615,6 +614,7 @@ local heg_rule = fk.CreateTriggerSkill{
             if p:getMark("__heg_wild") == 1 then 
               wildChooseKingdom(room, p, p.general.name)
               AskForBuildCountry(room, p, p.general.name, false)
+              room:setPlayerMark(p, "_wild_gained", 1)
             end
           end
         end
@@ -730,7 +730,12 @@ local heg_rule = fk.CreateTriggerSkill{
       if player.kingdom == "wild" and not player.dead then
         wildChooseKingdom(room, player, general_name)
         -- 野人亮出来的时候询问拉拢
-        AskForBuildCountry(room, player, general_name, true)
+        local choices = {"heg_build_country", "Cancel"}
+        local choice = room:askForChoice(player, choices, "#heg_rule")
+        if choice == "heg_build_country" then
+          AskForBuildCountry(room, player, general_name, true)
+          room:setPlayerMark(player, "_wild_gained", 1)
+        end
       elseif player:getMark("__heg_join_wild") == 0 and player:getMark("__heg_construct_wild") == 0 then
         player.role = player.kingdom
       end
@@ -754,6 +759,7 @@ local heg_rule = fk.CreateTriggerSkill{
               if p:getMark("__heg_wild") == 1 then 
                 wildChooseKingdom(room, p, p.general.name)
                 AskForBuildCountry(room, p, p.general.name, false)
+                room:setPlayerMark(p, "_wild_gained", 1)
               end
             end
           end
