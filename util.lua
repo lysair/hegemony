@@ -366,6 +366,7 @@ H.askCommandTo = function(from, to, skill_name, isMust)
     arg = skill_name,
     toast = true,
   }
+  --[[ -- 酷炫顶栏
   local ret = "<b><font color='#0C8F0C'>" .. Fk:translate(from.general)
   if from.deputyGeneral and from.deputyGeneral ~= "" then
     ret = ret .. "/" .. Fk:translate(from.deputyGeneral)
@@ -376,6 +377,7 @@ H.askCommandTo = function(from, to, skill_name, isMust)
   end
   ret = ret .. "</b></font> " .. " <b>" .. Fk:translate("start_command") .. "</b>"
   room:doBroadcastNotify("ServerMessage", ret)
+  --]]
   local index = H.startCommand(from, skill_name)
   local invoke = H.doCommand(to, skill_name, index, from, isMust)
   local commandData = {
@@ -484,12 +486,12 @@ H.doCommand = function(to, skill_name, index, from, isMust)
   elseif index == 3 then
     room:loseHp(to, 1, "command")
   elseif index == 4 then
-    room:setPlayerMark(to, "_command4_effect-turn", 1)
+    room:setPlayerMark(to, "@@command4_effect-turn", 1)
     room:addPlayerMark(to, MarkEnum.UncompulsoryInvalidity .. "-turn")
     room:handleAddLoseSkills(to, "#command4_prohibit", nil, false, true) --为了不全局，流汗了
   elseif index == 5 then
     to:turnOver()
-    room:setPlayerMark(to, "@command5_effect-turn", 1)
+    room:setPlayerMark(to, "@@command5_effect-turn", 1)
     room:handleAddLoseSkills(to, "#command5_cannotrecover", nil, false, true) --为了不全局，流汗了
   elseif index == 6 then
     if to:getHandcardNum() < 2 and #to:getCardIds(Player.Equip) < 2 then return true end
@@ -544,7 +546,8 @@ Fk:loadTranslationTable{
   ["#command1-damage"] = "军令：请选择 %dest 伤害的目标",
   ["#Command1Damage"] = "%from 选择对 %to 造成伤害",
   ["#command2-give"] = "军令：请选择两张牌交给 %dest",
-  ["@command5_effect-turn"] = "军令 不能回血",
+  ["@@command4_effect-turn"] = "军令禁出牌技能",
+  ["@@command5_effect-turn"] = "军令 不能回血",
   ["#command6-select"] = "军令：请选择要保留的一张手牌和一张装备",
 }
 
@@ -700,7 +703,7 @@ H.askForRevealGenerals = function(room, player, skill_name, main, deputy, all, c
     end
   end
 
-  local choice = room:askForChoice(player, choices, skill_name, convert and "#HegPrepareConvertLord", false, all_choices)  
+  local choice = room:askForChoice(player, choices, skill_name, convert and "#HegPrepareConvertLord", false, all_choices)
 
   -- 先变身君主
   if convert and (choice:startsWith("revealMain") or choice == "revealAll") and room:askForChoice(player, {"ConvertToLord:::" .. H.lordGenerals[player:getMark("__heg_general")], "Cancel"}, skill_name, nil) ~= "Cancel" then
@@ -993,10 +996,10 @@ end
 
 ---@class StatusSkillSpec: StatusSkill
 
----@class BigKingdomSkill: StatusSkillSpec
----@field public fixed_func nil|fun(self: BigKingdomSkill, player: Player): bool
+---@class BigKingdomSpec: StatusSkillSpec
+---@field public fixed_func? fun(self: BigKingdomSkill, player: Player): boolean?
 
----@param spec BigKingdomSkillSpec
+---@param spec BigKingdomSpec
 ---@return BigKingdomSkill
 H.CreateBigKingdomSkill = function(spec)
   assert(type(spec.name) == "string")
