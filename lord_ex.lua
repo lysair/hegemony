@@ -156,7 +156,7 @@ local juejue = fk.CreateTriggerSkill{
     if event == fk.EventPhaseStart then
       room:loseHp(player, 1, self.name)
     else
-      local deathEvent = room.logic:getCurrentEvent():findParent(GameEvent.Death, true)
+      local deathEvent = room.logic:getCurrentEvent():findParent(GameEvent.Death, true).data[1]
       deathEvent.extra_data = deathEvent.extra_data or {}
       deathEvent.extra_data.ignorePunishment = true
     end
@@ -600,7 +600,7 @@ Fk:loadTranslationTable{
   ["designer:ld__liuba"] = "逍遥鱼叔",
 
   ["ld__tongdu"] = "统度",
-  [":ld__tongdu"] = "与你势力相同的角色结束阶段，其可摸X张牌（X为其于弃牌阶段弃置的牌数且至多为3）",
+  [":ld__tongdu"] = "与你势力相同的角色的结束阶段，其可摸X张牌（X为其于弃牌阶段弃置的牌数且至多为3）",
   ["ld__qingyin"] = "清隐",
   [":ld__qingyin"] = "限定技，出牌阶段，你可移除此武将牌，然后与你势力相同的角色将体力回复至体力上限。",
 

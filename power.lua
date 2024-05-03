@@ -1066,7 +1066,7 @@ local yongsi = fk.CreateTriggerSkill{
   end,
 }
 local yongsiBig = H.CreateBigKingdomSkill{
-  name = "#yongsi_big",
+  name = "#ld__yongsi_big",
   fixed_func = function(self, player)
     return player:hasSkill(self) and player.kingdom ~= "unknown" and not table.find(Fk:currentRoom().alive_players, function(p)
       return table.find(p:getEquipments(Card.SubtypeTreasure), function(cid)

@@ -1082,20 +1082,6 @@ local guowu = fk.CreateTriggerSkill{
   end,
 }
 
-local function getUseExtraTargets(room, data, bypass_distances)
-  if not (data.card.type == Card.TypeBasic or data.card:isCommonTrick()) then return {} end
-  if data.card.skill:getMinTargetNum() > 1 then return {} end --stupid collateral
-  local tos = {}
-  local current_targets = TargetGroup:getRealTargets(data.tos)
-  for _, p in ipairs(room.alive_players) do
-    if not table.contains(current_targets, p.id) and not room:getPlayerById(data.from):isProhibited(p, data.card) then
-      if data.card.skill:modTargetFilter(p.id, {}, data.from, data.card, not bypass_distances) then
-        table.insert(tos, p.id)
-      end
-    end
-  end
-  return tos
-end
 
 local guowu_delay = fk.CreateTriggerSkill{
   name = "#ty_heg__guowu_delay",
@@ -1105,11 +1091,11 @@ local guowu_delay = fk.CreateTriggerSkill{
   mute = true,
   can_trigger = function(self, event, target, player, data)
     return target == player and player:getMark("guowu3-phase") > 0 and not player.dead and
-      (data.card.trueName == "slash") and #getUseExtraTargets(player.room, data) > 0
+      (data.card.trueName == "slash") and #U.getUseExtraTargets(player.room, data) > 0
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    local targets = getUseExtraTargets(room, data)
+    local targets = U.getUseExtraTargets(room, data)
     if #targets == 0 then return false end
     local tos = room:askForChoosePlayers(player, targets, 1, 2, "#guowu-choose:::"..data.card:toLogString(), guowu.name, true)
     if #tos > 0 then
@@ -1206,7 +1192,7 @@ local shenwei = fk.CreateTriggerSkill{
 local shenwei_maxcards = fk.CreateMaxCardsSkill{
   name = "#ty_heg__shenwei_maxcards",
   fixed_func = function(self, player)
-    if player:hasSkill(shenwei.name) then
+    if player:hasSkill(self) then
       return player.hp + 2
     end
   end

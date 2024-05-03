@@ -77,7 +77,7 @@ end
 
 --- 获取势力角色数列表，注意键unknown的值为nil
 ---@param room AbstractRoom @ 房间
----@param include_dead bool @ 包括死人
+---@param include_dead? boolean @ 包括死人
 ---@return table<string, number> @ 势力与角色数映射表
 H.getKingdomPlayersNum = function(room, include_dead)
   local kingdomMapper = {}
@@ -88,6 +88,23 @@ H.getKingdomPlayersNum = function(room, include_dead)
     end
   end
   return kingdomMapper
+end
+
+--- 获取势力角色数列表，注意键unknown的值为nil
+---@param room AbstractRoom @ 房间
+---@param player Player @ 角色
+---@param include_dead? boolean @ 包括死人
+---@return integer
+H.getSameKingdomPlayersNum = function(room, player, include_dead)
+  local kingdom = H.getKingdom(player)
+  if kingdom == "unknown" then return 0 end
+  local ret = 0
+  for _, p in ipairs(include_dead and room.players or room.alive_players) do
+    if H.getKingdom(p) == kingdom then
+      ret = ret + 1
+    end
+  end
+  return ret
 end
 
 --- 判断角色是否为大势力角色
@@ -209,6 +226,11 @@ end
 local function readUsableSpecToSkill(skill, spec)
   readCommonSpecToSkill(skill, spec)
   assert(spec.main_skill == nil or spec.main_skill:isInstanceOf(UsableSkill))
+  if type(spec.derived_piles) == "string" then
+    skill.derived_piles = {spec.derived_piles}
+  else
+    skill.derived_piles = spec.derived_piles or {}
+  end
   skill.main_skill = spec.main_skill
   skill.target_num = spec.target_num or skill.target_num
   skill.min_target_num = spec.min_target_num or skill.min_target_num
@@ -264,10 +286,11 @@ end
 
 ---@class ActiveSkillSpec: ActiveSkill
 
----@class ArraySummonSkill: ActiveSkillSpec
+---@class ArraySummonSpec: ActiveSkillSpec
+---@field public array_type string
 
 --- 阵法召唤技
----@param spec ArraySummonSkillSpec
+---@param spec ArraySummonSpec
 ---@return ArraySummonSkill
 H.CreateArraySummonSkill = function(spec)
   assert(type(spec.name) == "string")

@@ -472,7 +472,7 @@ Fk:loadTranslationTable{
   ["#diaodu-choose"] = "调度：你可获得与你势力相同的一名角色装备区里的一张牌",
   ["#diaodu-give"] = "调度：将%arg交给另一名角色",
   ["#diancai-ask"] = "典财：你可摸 %arg 张牌，然后你可变更副将",
-  
+
   ["@@ld__diancai_transform"] = "典财 已变更",
 
   ["$diaodu1"] = "诸军兵器战具，皆由我调配！",
