@@ -1945,8 +1945,10 @@ local huaiju = fk.CreateTriggerSkill{
     local room = player.room
     local targets = table.map(table.filter(room.alive_players, function(p) return p ~= target end), Util.IdMapper)
     local tos = room:askForChoosePlayers(player, targets, 1, 1, "#wk_heg__huaiju_choose", self.name, true)
-    self.cost_data = tos[1]
-    return true
+    if #tos > 0 then
+      self.cost_data = tos[1]
+      return true
+    end
   end,
   on_use = function (self, event, target, player, data)
     local room = player.room
@@ -1971,8 +1973,9 @@ local zhenglun = fk.CreateTriggerSkill{
   events = {fk.DrawNCards},
   on_use = function(self, event, target, player, data)
     local room = player.room
+    player:drawCards(1, self.name)
+    player:showCards(player:getCardIds(Player.Hand))
     while true do
-      player:drawCards(1, self.name)
       local cards = player.player_cards[Player.Hand]
       -- player:showCards(cards)
       local suits = {}
@@ -1983,12 +1986,14 @@ local zhenglun = fk.CreateTriggerSkill{
         end
       end
       if player:getHandcardNum() > #room.alive_players or #suits == 4 then
+        room:delay(1000)
+        player:showCards(cards) -- 睿智
         break
       else
         room:delay(500)
+        player:drawCards(1, self.name)
       end
     end
-    player:showCards(player:getCardIds(Player.Hand))
     local suitMapper = { [1] = {}, [2] = {}, [3] = {}, [4] = {} }
     table.forEach(player:getCardIds(Player.Hand), function(id)
       if Fk:getCardById(id).suit ~= Card.NoSuit then
@@ -2027,6 +2032,7 @@ Fk:loadTranslationTable{
 
   ["#wk_heg__huaiju_choose"] = "怀橘：你可以将此牌交给一名除使用者外的角色",
   ["#wk_heg__huaiju_discard_choose"] = "弃置 %dest 的一张牌",
+  ["#wk_heg__zhenglun-discard"] = "整论：弃置手牌中数量最多的一种花色的所有牌",
 
   ["$wk_heg__huaiju1"] = "",
   ["$wk_heg__huaiju2"] = "",
