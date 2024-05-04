@@ -1091,10 +1091,9 @@ local weidi = fk.CreateActiveSkill{
     local player = room:getPlayerById(effect.from)
     local target = room:getPlayerById(effect.tos[1])
     if not H.askCommandTo(player, target, self.name) and not target:isKongcheng() then
-      local cards = Fk:cloneCard("dilu")
-      cards:addSubcards(target:getCardIds(Player.Hand))
+      local cards = target:getCardIds(Player.Hand)
       room:obtainCard(player, cards, false, fk.ReasonPrey)
-      local num = #cards.subcards
+      local num = #cards
       local cids
       if #player:getCardIds{Player.Hand} > num then
         cids = room:askForCard(player, num, num, true, self.name, false, nil, "#ld__weidi-cards::" .. target.id .. ":" .. num)
