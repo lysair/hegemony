@@ -1803,9 +1803,8 @@ local yuchen = fk.CreateTriggerSkill{
     end, Player.HistoryTurn) == 0
   end,
   on_cost = function (self, event, target, player, data)
-    local room = player.room
-    local cards = player.room:askForCard(player, 2, 2, true, self.name, true, ".", "#wk_heg__yuchen-give", true)
-      if #cards == n then
+    local cards = player.room:askForCard(player, 2, 2, true, self.name, true, ".", "#wk_heg__yuchen-give")
+      if #cards == 2 then
         self.cost_data = cards
         return true
       end
@@ -1848,7 +1847,7 @@ local mingsong = fk.CreateTriggerSkill{
   anim_type = "support",
   can_trigger = function (self, event, target, player, data)
     return player:hasSkill(self) and H.compareKingdomWith(player, target) and #target:getCardIds("e") > 0
-     and table.find(player.room.alive_players, function(p) return target:canMoveCardsInBoardTo(p, "e") end)
+      and table.find(player.room.alive_players, function(p) return target:canMoveCardsInBoardTo(p, "e") end)
   end,
   on_cost = function(self, event, target, player, data)
     local room = player.room
@@ -1891,21 +1890,21 @@ local mingsong = fk.CreateTriggerSkill{
         }
       end
     end
-    targets = {}
+    local x = 0
     num = 999
     for _, p in ipairs(room.alive_players) do
       local n = p.hp
       if n <= num then
         if n < num then
           num = n
-          targets = {}
+          x = 0
         end
-        table.insert(targets, p.id)
+        x = x + 1
       end
     end
-    local n = player:getHandcardNum() - math.min(#targets, player.maxHp)
+    local n = player:getHandcardNum() - math.min(x, player.maxHp)
     if n > 0 then
-      room:askForDiscard(player, n, n, false, self.name, true, ".")
+      room:askForDiscard(player, n, n, false, self.name, false)
     else
       player:drawCards(-n, self.name)
     end
@@ -1940,24 +1939,23 @@ local huaiju = fk.CreateTriggerSkill{
   can_trigger = function (self, event, target, player, data)
     if not (player:hasSkill(self) and target ~= player and data.tos and
     table.find(TargetGroup:getRealTargets(data.tos), function(id) return id == player.id end)) then return false end
-    return data.card.is_damage_card and not table.every(card_ids, function (id) return room:getCardArea(id) == Card.Processing end)
+    return data.card.is_damage_card and not table.every(Card:getIdList(data.card), function (id) return player.room:getCardArea(id) == Card.Processing end)
   end,
   on_cost = function (self, event, target, player, data)
+    local room = player.room
     local targets = table.map(table.filter(room.alive_players, function(p) return p ~= target end), Util.IdMapper)
     local tos = room:askForChoosePlayers(player, targets, 1, 1, "#wk_heg__huaiju_choose", self.name, true)
-    local to = room:getPlayerById(tos[1])
-    if to.dead then return false end
-    self.cost_data = to
+    self.cost_data = tos[1]
     return true
   end,
   on_use = function (self, event, target, player, data)
     local room = player.room
     local card_ids = Card:getIdList(data.card)
     if #card_ids == 0 then return false end
-    room:moveCardTo(card_ids, Player.Hand, self.cost_data, fk.ReasonPrey, self.name, nil, true, player.id)
+    room:moveCardTo(card_ids, Player.Hand, room:getPlayerById(self.cost_data), fk.ReasonPrey, self.name, nil, true, player.id)
     local choices = {"Cancel"}
     if player:isAlive() and #player:getCardIds("he") > 0 then
-      table.insert(choices, "#wk_heg__huaiju_discard_choose", self.name)
+      table.insert(choices, "#wk_heg__huaiju_discard_choose")
     end
     local choice = room:askForChoice(target, choices, self.name)
     if choice ~= "Cancel" then

@@ -519,51 +519,52 @@ end
 ---@param player ServerPlayer
 ---@param generalName string
 ---@param isActive boolean
+---@return boolean
 local function AskForBuildCountry(room, player, generalName, isActive)
-  if player.general == generalName and kingdomMapper[generalName] then
-    local choices = {"heg_rule_join_country:"..player.id.."::"..player.role, "Cancel"}
-    local targets = table.map(room.alive_players, Util.IdMapper)
-    room:sortPlayersByAction(targets)
-    for _, pid in ipairs(targets) do
-      local p = room:getPlayerById(pid)
-      if p:getMark("__heg_join_wild") == 0 and p.kingdom ~= "wild" and not string.find(p.general, "lord")
-        and (not isActive or p.general ~= "anjiang") then
-        local choice = room:askForChoice(p, choices, "#heg_rule", "#wild_join-choose")
-        if choice ~= "Cancel" then
-          p.role = player.role
-          player.role_shown = true
-          room:broadcastProperty(p, "role")
-          room:sendLog{
-            type = "#WildChooseKingdom",
-            from = p.id,
-            arg = player.role,
-            arg2 = "wild",
-          }
-          room:setPlayerProperty(p, "kingdom", "wild")
-          room:setPlayerMark(p, "__heg_join_wild", 1)
-          room:setPlayerMark(player, "__heg_construct_wild", 1)
-          room:sendLog{
-            type = "#SuccessBuildCountry",
-            from = player.id,
-            arg = player.role,
-            arg2 = p.general
-          }
-          if p:isWounded() then
-            room:recover({
-              who = p,
-              num = 1,
-              recoverBy = player,
-              skillName = "#heg_rule",
-            })
-          end
-          if p:getHandcardNum() < 4 then
-            p:drawCards(4 - p:getHandcardNum(), "#heg_rule")
-          end
-          break
+  if not (player.general == generalName and kingdomMapper[generalName]) then return false end
+  local choices = {"heg_rule_join_country:"..player.id.."::"..player.role, "Cancel"}
+  local targets = table.map(room.alive_players, Util.IdMapper)
+  room:sortPlayersByAction(targets)
+  for _, pid in ipairs(targets) do
+    local p = room:getPlayerById(pid)
+    if p:getMark("__heg_join_wild") == 0 and p.kingdom ~= "wild" and not string.find(p.general, "lord")
+      and (not isActive or p.general ~= "anjiang") then
+      local choice = room:askForChoice(p, choices, "#heg_rule", "#wild_join-choose")
+      if choice ~= "Cancel" then
+        p.role = player.role
+        player.role_shown = true
+        room:broadcastProperty(p, "role")
+        room:sendLog{
+          type = "#WildChooseKingdom",
+          from = p.id,
+          arg = player.role,
+          arg2 = "wild",
+        }
+        room:setPlayerProperty(p, "kingdom", "wild")
+        room:setPlayerMark(p, "__heg_join_wild", 1)
+        room:setPlayerMark(player, "__heg_construct_wild", 1)
+        room:sendLog{
+          type = "#SuccessBuildCountry",
+          from = player.id,
+          arg = player.role,
+          arg2 = p.general
+        }
+        if p:isWounded() then
+          room:recover({
+            who = p,
+            num = 1,
+            recoverBy = player,
+            skillName = "#heg_rule",
+          })
         end
+        if p:getHandcardNum() < 4 then
+          p:drawCards(4 - p:getHandcardNum(), "#heg_rule")
+        end
+        return true
       end
     end
   end
+  return false
 end
 
 local heg_rule = fk.CreateTriggerSkill{
