@@ -833,6 +833,8 @@ local kongcheng = fk.CreateTriggerSkill{
             local mirror_move = table.clone(move)
             mirror_move.toArea = Card.PlayerSpecial
             mirror_move.specialName = "zither"
+            mirror_move.visible = true
+            mirror_move.moveMark = nil
             mirror_move.moveInfo = mirror_info
             table.insert(mirror_moves, mirror_move)
           end
@@ -840,9 +842,7 @@ local kongcheng = fk.CreateTriggerSkill{
       end
       table.insertTable(data, mirror_moves)
     else
-      local dummy = Fk:cloneCard("jink")
-      dummy:addSubcards(player:getPile("zither"))
-      room:obtainCard(player, dummy, true)
+      room:obtainCard(player, player:getPile("zither"), true)
     end
   end
 }

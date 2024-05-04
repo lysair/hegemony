@@ -1174,9 +1174,7 @@ local shilun = fk.CreateTriggerSkill{
         end
       end
       if #get > 0 then
-        local dummy = Fk:cloneCard("dilu")
-        dummy:addSubcards(get)
-        room:obtainCard(player, dummy, false, fk.ReasonPrey)
+        room:obtainCard(player, get, false, fk.ReasonPrey)
       end
     end
   end,

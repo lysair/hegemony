@@ -527,7 +527,7 @@ local function AskForBuildCountry(room, player, generalName, isActive)
     for _, pid in ipairs(targets) do
       local p = room:getPlayerById(pid)
       if p:getMark("__heg_join_wild") == 0 and p.kingdom ~= "wild" and not string.find(p.general, "lord")
-        and ((isActive and p.general ~= "anjiang") or (not isActive and p.deputyGeneral ~= "anjiang" and player.deputyGeneral ~= "anjiang"))then
+        and (not isActive or p.general ~= "anjiang") then
         local choice = room:askForChoice(p, choices, "#heg_rule", "#wild_join-choose")
         if choice ~= "Cancel" then
           p.role = player.role

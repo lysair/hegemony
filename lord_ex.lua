@@ -1102,9 +1102,7 @@ local liangfan = fk.CreateTriggerSkill{
       for _, id in ipairs(player:getPile("ld__mengda_letter")) do
         room:setCardMark(Fk:getCardById(id), "@@ld__mengda_letter-turn", 1)
       end
-      local dummy = Fk:cloneCard("dilu")
-      dummy:addSubcards(player:getPile("ld__mengda_letter"))
-      room:obtainCard(player, dummy, true)
+      room:obtainCard(player, player:getPile("ld__mengda_letter"), true)
       room:loseHp(player, 1, self.name)
     else
       local card = room:askForCardChosen(player, data.to, "he", self.name)
@@ -1222,15 +1220,13 @@ local midao = fk.CreateTriggerSkill{
     if event == fk.GeneralRevealed then
       player:drawCards(2, self.name)
       if player:isNude() then return end
-      local dummy = Fk:cloneCard("dilu")
       local cards
       if #player:getCardIds("he") < 3 then
         cards = player:getCardIds("he")
       else
         cards = player.room:askForCard(player, 2, 2, true, self.name, false, ".", "#ld__midao")
       end
-      dummy:addSubcards(cards)
-      player:addToPile("ld__midao_rice", dummy, true, self.name)
+      player:addToPile("ld__midao_rice", cards, true, self.name)
     elseif event == fk.AskForRetrial then
       player.room:retrial(Fk:getCardById(self.cost_data), player, data, self.name, true)
     end

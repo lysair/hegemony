@@ -208,9 +208,7 @@ local mingfa_delay = fk.CreateTriggerSkill{
       }
       if target:getHandcardNum() > 0 then
         local cards = room:askForCardsChosen(player, target, 1, 1, "h", self.name)
-        local dummy = Fk:cloneCard("dilu")
-        dummy:addSubcards(cards)
-        room:obtainCard(player, dummy, false, fk.ReasonPrey)
+        room:obtainCard(player, cards, false, fk.ReasonPrey)
       end
     elseif player:getHandcardNum() < target:getHandcardNum() then
       player:drawCards(math.min(target:getHandcardNum() - player:getHandcardNum(), 5), self.name)
@@ -372,9 +370,7 @@ local weimeng = fk.CreateActiveSkill{
     local player = room:getPlayerById(effect.from)
     local target = room:getPlayerById(effect.tos[1])
     local cards = room:askForCardsChosen(player, target, 1, player.hp, "h", self.name)
-    local dummy1 = Fk:cloneCard("dilu")
-    dummy1:addSubcards(cards)
-    room:obtainCard(player, dummy1, false, fk.ReasonPrey)
+    room:obtainCard(player, cards, false, fk.ReasonPrey)
     if player.dead or player:isNude() or target.dead then return end
     local cards2
     if #player:getCardIds("he") <= #cards then
@@ -386,9 +382,7 @@ local weimeng = fk.CreateActiveSkill{
         cards2 = table.random(player:getCardIds("he"), #cards)
       end
     end
-    local dummy2 = Fk:cloneCard("dilu")
-    dummy2:addSubcards(cards2)
-    room:obtainCard(target, dummy2, false, fk.ReasonGive)
+    room:obtainCard(target, cards2, false, fk.ReasonGive)
     local choices = {"ty_heg__weimeng_mn_ask::" .. target.id, "Cancel"}
     if room:askForChoice(player, choices, self.name) ~= "Cancel" then
       room:setPlayerMark(target, "@@ty_heg__weimeng_manoeuvre", 1)
@@ -1192,7 +1186,7 @@ local shenwei = fk.CreateTriggerSkill{
 local shenwei_maxcards = fk.CreateMaxCardsSkill{
   name = "#ty_heg__shenwei_maxcards",
   fixed_func = function(self, player)
-    if player:hasSkill(self) then
+    if player:hasShownSkill(shenwei) then
       return player.hp + 2
     end
   end
@@ -1252,7 +1246,7 @@ local youyan = fk.CreateTriggerSkill{
           if move.from == player.id then
             for _, info in ipairs(move.moveInfo) do
               if info.fromArea == Card.PlayerHand or info.fromArea == Card.PlayerEquip then
-                table.removeOne(suits, Fk:getCardById(info.cardId):getSuitString())
+                table.removeOne(suits, Fk:getCardById(info.cardId, true):getSuitString())
                 can_invoked = true
               end
             end
@@ -1270,7 +1264,7 @@ local youyan = fk.CreateTriggerSkill{
         if move.from == player.id then
           for _, info in ipairs(move.moveInfo) do
             if info.fromArea == Card.PlayerHand or info.fromArea == Card.PlayerEquip then
-              table.removeOne(suits, Fk:getCardById(info.cardId):getSuitString())
+              table.removeOne(suits, Fk:getCardById(info.cardId, true):getSuitString())
             end
           end
         end
@@ -1278,29 +1272,26 @@ local youyan = fk.CreateTriggerSkill{
     end
     if #suits > 0 then
       local show_num = 4
-      local get = room:getNCards(show_num)
+      local cards = room:getNCards(show_num)
       room:moveCards{
-        ids = get,
+        ids = cards,
         toArea = Card.Processing,
         moveReason = fk.ReasonJustMove,
         skillName = self.name,
-      } 
-      local dummy1 = Fk:cloneCard("dilu")
-      local dummy2 = Fk:cloneCard("dilu")
-      local final_get = 0
-      for i = 1, show_num, 1 do
-        local card = Fk:getCardById(get[i], true)
-        if not table.contains(suits, card:getSuitString()) then
-          dummy2:addSubcard(get[i])
-        else
-          dummy1:addSubcard(get[i])
-          final_get = final_get + 1
-        end
-      end
+        proposer = player.id
+      }
       room:delay(1000)
-      room:obtainCard(player.id, dummy1, true, fk.ReasonJustMove)
-      if final_get < show_num then
-        room:moveCardTo(dummy2, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, skillname)
+      local to_get = table.filter(cards, function(id)
+        return table.contains(suits, Fk:getCardById(id, true):getSuitString())
+      end)
+      if #to_get > 0 then
+        room:obtainCard(player.id, to_get, true, fk.ReasonJustMove)
+      end
+      cards = table.filter(cards, function (id)
+        return room:getCardArea(id) == Card.Processing
+      end)
+      if #cards > 0 then
+        room:moveCardTo(cards, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, self.name)
       end
     end
   end,
@@ -1810,14 +1801,14 @@ local chenjian = fk.CreateTriggerSkill{
         local card = Fk:getCardById(c)
         room:throwCard({c}, self.name, player, player)
         if room:getPlayerById(to[1]).dead then return end
-        local dummy = Fk:cloneCard("dilu")
+        local to_get = {}
         for i = #ids, 1, -1 do
           if card:compareSuitWith(Fk:getCardById(ids[i])) then
-            dummy:addSubcard(ids[i])
+            table.insert(to_get, ids[i])
             table.removeOne(ids, ids[i])
           end
         end
-        room:obtainCard(to[1], dummy, true, fk.ReasonJustMove)
+        room:obtainCard(to[1], to_get, true, fk.ReasonJustMove)
       end
     elseif choice == "chenjian2" then
       room:setPlayerMark(player, "chenjian_view", table.simpleClone(ids))

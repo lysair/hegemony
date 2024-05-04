@@ -978,7 +978,19 @@ local ld__haoshi_give = fk.CreateTriggerSkill{
     room:moveCardTo(cards, Card.PlayerHand, room:getPlayerById(target), fk.ReasonGive, self.name, nil, false, player.id)
   end
 }
-
+Fk:addPoxiMethod{
+  name = "ld__lordsunquan_shelie",
+  card_filter = function(to_select, selected, data)
+    if table.contains(data[2], to_select) then return true end
+    local suit = Fk:getCardById(to_select).suit
+    return table.every(data[2], function (id)
+      return Fk:getCardById(id).suit ~= suit
+    end)
+  end,
+  feasible = function(selected)
+    return true
+  end,
+}
 local ld__shelie = fk.CreateTriggerSkill{
   name = "ld__lordsunquan_shelie",
   anim_type = "drawcard",
@@ -988,48 +1000,31 @@ local ld__shelie = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    local card_ids = room:getNCards(5)
-    local get, throw = {}, {}
+    local cards = room:getNCards(5)
     room:moveCards({
-      ids = card_ids,
+      ids = cards,
       toArea = Card.Processing,
       moveReason = fk.ReasonPut,
+      skillName = self.name,
+      proposer = player.id,
     })
-    table.forEach(room.players, function(p)
-      room:fillAG(p, card_ids)
-    end)
-    while true do
-      local card_suits = {}
-      table.forEach(get, function(id)
-        table.insert(card_suits, Fk:getCardById(id).suit)
-      end)
-      for i = #card_ids, 1, -1 do
-        local id = card_ids[i]
-        if table.contains(card_suits, Fk:getCardById(id).suit) then
-          room:takeAG(player, id)
-          table.insert(throw, id)
-          table.removeOne(card_ids, id)
-        end
+    local get = {}
+    for _, id in ipairs(cards) do
+      local suit = Fk:getCardById(id).suit
+      if table.every(get, function (id2)
+        return Fk:getCardById(id2).suit ~= suit
+      end) then
+        table.insert(get, id)
       end
-      if #card_ids == 0 then break end
-      local card_id = room:askForAG(player, card_ids, false, self.name)
-      room:takeAG(player, card_id)
-      table.insert(get, card_id)
-      table.removeOne(card_ids, card_id)
-      if #card_ids == 0 then break end
     end
-    room:closeAG()
+    get = U.askForArrangeCards(player, self.name, cards, "#ld__lordsunquan_shelie-choose",
+    false, 0, {5, 4}, {0, #get}, ".", "ld__lordsunquan_shelie", {{}, get})[2]
     if #get > 0 then
-      local dummy = Fk:cloneCard("dilu")
-      dummy:addSubcards(get)
-      room:obtainCard(player.id, dummy, true, fk.ReasonPrey)
+      room:obtainCard(player, get, true, fk.ReasonPrey)
     end
-    if #throw > 0 then
-      room:moveCards({
-        ids = throw,
-        toArea = Card.DiscardPile,
-        moveReason = fk.ReasonPutIntoDiscardPile,
-      })
+    cards = table.filter(cards, function(id) return room:getCardArea(id) == Card.Processing end)
+    if #cards > 0 then
+      room:moveCardTo(cards, Card.DiscardPile, nil, fk.ReasonJustMove, self.name)
     end
     return true
   end,
@@ -1078,7 +1073,9 @@ local lianzi = fk.CreateActiveSkill{
   end,
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
+    local cardType = Fk:getCardById(effect.cards[1]).type
     room:throwCard(effect.cards, self.name, player)
+    if player.dead then return end
     local show_num = #player:getPile("lord_fenghuo")
     for _, p in ipairs(room.alive_players) do
       if H.compareKingdomWith(p, player) then
@@ -1086,33 +1083,28 @@ local lianzi = fk.CreateActiveSkill{
     end
     end
     if show_num == 0 then return end
-    local get = room:getNCards(show_num)
+    local cards = room:getNCards(show_num)
     room:moveCards{
-      ids = get,
+      ids = cards,
       toArea = Card.Processing,
       moveReason = fk.ReasonJustMove,
       skillName = self.name,
-    } 
-    local dummy1 = Fk:cloneCard("dilu")
-    local dummy2 = Fk:cloneCard("dilu")
-    local final_get = 0
-    local cardType = Fk:getCardById(effect.cards[1]).type
-    for i = 1, show_num, 1 do
-      local card2 = Fk:getCardById(get[i], true)
-      if cardType == card2.type then
-        dummy1:addSubcard(get[i])
-        final_get = final_get + 1
-      else
-        dummy2:addSubcard(get[i])
+      proposer = player.id
+    }
+    local to_get = table.filter(cards, function (id)
+      return Fk:getCardById(id, true).type == cardType
+    end)
+    if #to_get > 0 then
+      room:obtainCard(player.id, to_get, true, fk.ReasonJustMove)
+      if #to_get > 3 then
+        room:handleAddLoseSkills(player, "ld__lordsunquan_zhiheng|-lianzi", nil)
       end
     end
-    room:obtainCard(player.id, dummy1, true, fk.ReasonJustMove)
-    player:showCards(dummy1)
-    if final_get < show_num then
-      room:moveCardTo(dummy2, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, self.name)
-    end
-    if final_get > 3 then
-      room:handleAddLoseSkills(player, "ld__lordsunquan_zhiheng|-lianzi", nil)
+    cards = table.filter(cards, function (id)
+      return room:getCardArea(id) == Card.Processing
+    end)
+    if #cards > 0 then
+      room:moveCardTo(cards, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, self.name)
     end
   end,
 }
@@ -1301,6 +1293,7 @@ Fk:loadTranslationTable{
   ["#fenghuotu"] = "缘江烽火图",
   ["#ld__jiahe_other"] = "缘江烽火图：将一张装备牌置于%src的“缘江烽火图”上，称为“烽火”",
   ["lord_fenghuo"] = "烽火",
+  ["#ld__lordsunquan_shelie-choose"] = "涉猎：获得不同花色的牌各一张",
 
   ["$fenghuotu1"] = "保卫国家，人人有责。",
   ["$fenghuotu2"] = "连绵的烽火，就是对敌人最好的震慑！",

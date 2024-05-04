@@ -1012,18 +1012,14 @@ local huagui = fk.CreateActiveSkill{
       local target = room:getPlayerById(id)
       if not target.dead then
         local card1 = room:askForCard(target, 1, 1, true, self.name, false, ".", "#fk_heg__huagui-give:"..player.id)
-        local dummy1 = Fk:cloneCard("dilu")
-        dummy1:addSubcards(card1)
-        room:obtainCard(player, dummy1, false, fk.ReasonGive)
+        room:obtainCard(player, card1, false, fk.ReasonGive)
       end
     end
     for _, id in ipairs(targets) do
       local target = room:getPlayerById(id)
       if not player.dead then
         local card2 = room:askForCard(player, 1, 1, true, self.name, false, ".", "#fk_heg__huagui-give:"..target.id)
-        local dummy2 = Fk:cloneCard("dilu")
-        dummy2:addSubcards(card2)
-        room:obtainCard(target, dummy2, false, fk.ReasonGive)
+        room:obtainCard(target, card2, false, fk.ReasonGive)
       end
     end
   end,

@@ -167,6 +167,34 @@ local feiying = fk.CreateDistanceSkill{
   end,
 }
 
+local huyuan_active = fk.CreateActiveSkill{
+  name = "huyuan_active",
+  mute = true,
+  card_num = 1,
+  target_num = 1,
+  interaction = function()
+    return UI.ComboBox {choices = {"ld__huyuan_give", "ld__huyuan_equip"}}
+  end,
+  card_filter = function(self, to_select, selected, targets)
+    if #selected == 0 then
+      if self.interaction.data == "ld__huyuan_give" then
+        return Fk:currentRoom():getCardArea(to_select) == Card.PlayerHand
+      elseif self.interaction.data == "ld__huyuan_equip" then
+        return Fk:getCardById(to_select).type == Card.TypeEquip
+      end
+    end
+  end,
+  target_filter = function(self, to_select, selected, selected_cards)
+    if #selected == 0 and #selected_cards == 1 then
+      if self.interaction.data == "ld__huyuan_give" then
+        return to_select ~= Self.id
+      elseif self.interaction.data == "ld__huyuan_equip" then
+        return Fk:currentRoom():getPlayerById(to_select):hasEmptyEquipSlot(Fk:getCardById(selected_cards[1]).sub_type)
+      end
+    end
+  end,
+}
+Fk:addSkill(huyuan_active)
 local huyuan = fk.CreateTriggerSkill{
   name = 'ld__huyuan',
   anim_type = "defensive",
@@ -174,49 +202,28 @@ local huyuan = fk.CreateTriggerSkill{
   can_trigger = function (self, event, target, player, data)
     return player:hasSkill(self) and player.phase == Player.Finish and not player:isNude()
   end,
+  on_cost = function (self, event, target, player, data)
+    local success, dat = player.room:askForUseActiveSkill(player, "huyuan_active", "#ld__huyuan-choose", false)
+    if success then
+      self.cost_data = dat
+      return true
+    end
+  end,
   on_use = function (self, event, target, player, data)
     local room = player.room
-    local choices = {}
-    if not player:isKongcheng() then
-      table.insert(choices, "ld__huyuan_give")
-    end
-    local cards = player.player_cards[Player.Hand]
-    if #player:getCardIds("e") > 0 then
-      table.insert(choices, "ld__huyuan_equip")
-    else
-      for _, id in ipairs(cards) do
-        if Fk:getCardById(id).type == Card.TypeEquip then
-          table.insert(choices, "ld__huyuan_equip")
-          break
-        end
-      end
-    end
-
-    local choice = room:askForChoice(player, choices, self.name)
+    local dat = self.cost_data
+    local choice = dat.interaction
     if choice == "ld__huyuan_give" then
-      local card = room:askForCard(player, 1, 1, true, self.name, false, ".", nil)
-      local dummy2 = Fk:cloneCard("dilu")
-      dummy2:addSubcards(card)
-      local targets = table.map(room:getOtherPlayers(player, false), Util.IdMapper)
-      local to = room:askForChoosePlayers(player, targets, 1, 1, "#ld__huyuan-choose", self.name, false, true)
-      room:obtainCard(room:getPlayerById(to[1]), dummy2, false, fk.ReasonGive)
+      room:obtainCard(dat.targets[1], dat.cards, false, fk.ReasonGive, player.id)
     elseif choice == "ld__huyuan_equip" then
-      local card = room:askForCard(player, 1, 1, true, self.name, false, ".|.|.|.|.|equip", nil)
-      local targets = table.map(table.filter(room.alive_players, function(p) 
-        return p:hasEmptyEquipSlot(Fk:getCardById(card[1]).sub_type) end), Util.IdMapper)
-      local to = room:askForChoosePlayers(player, targets, 1, 1, "#ld__huyuan-choose", self.name, false, true)
-      room:moveCards({
-        ids = card,
-        from = player.id,
-        to = to[1],
-        toArea = Card.PlayerEquip,
-        moveReason = fk.ReasonPut,
-      })
-      local targets2 = table.map(table.filter(room.alive_players, function(p) 
-        return #p:getCardIds("ej") > 0 end), Util.IdMapper)
-      local to2 = room:askForChoosePlayers(player, targets2, 1, 1, "#ld__huyuan_discard-choose", self.name, false, true)
-      local cid = room:askForCardChosen(player, room:getPlayerById(to2[1]), "ej", self.name)
-      room:throwCard({cid}, self.name, room:getPlayerById(to2[1]), player)
+      room:moveCardTo(dat.cards, Card.PlayerEquip, room:getPlayerById(dat.targets[1]), fk.ReasonPut, self.name, nil, true, player.id)
+      if not player.dead then
+        local targets = table.map(table.filter(room.alive_players, function(p)
+          return #p:getCardIds("ej") > 0 end), Util.IdMapper)
+        local to2 = room:askForChoosePlayers(player, targets, 1, 1, "#ld__huyuan_discard-choose", self.name, false, true)
+        local cid = room:askForCardChosen(player, room:getPlayerById(to2[1]), "ej", self.name)
+        room:throwCard({cid}, self.name, room:getPlayerById(to2[1]), player)
+      end
     end
   end,
 }
@@ -235,12 +242,13 @@ Fk:loadTranslationTable{
   ["heyi"] = "鹤翼",
   [":heyi"] = "阵法技，与你处于同一队列的角色拥有〖飞影〗。",
   ["ld__huyuan"] = "护援",
-  [":ld__huyuan"] = "结束阶段，你可选择一项：1.交给一名其他角色一张手牌；2.将一张装备牌置入一名角色的装备区，然后弃置场上的一张牌。",
+  [":ld__huyuan"] = "结束阶段，你可选择：1.将一张手牌交给一名角色；2.将一张装备牌置入一名角色的装备区，然后弃置场上的一张牌。",
 
-  ["ld__huyuan_give"] = "交给一名其他角色一张手牌",
-  ["ld__huyuan_equip"] = "将一张装备牌置入一名角色的装备区",
+  ["huyuan_active"] = "护援",
+  ["ld__huyuan_give"] = "给出手牌",
+  ["ld__huyuan_equip"] = "置入装备",
 
-  ["#ld__huyuan-choose"] = "护援：选择一名角色",
+  ["#ld__huyuan-choose"] = "发动 护援，选择一张牌和一名角色",
   ["#ld__huyuan_discard-choose"] = "护援：选择一名角色，弃置其场上的一张牌",
 
   ["ld__feiying"] = "飞影",
