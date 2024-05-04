@@ -893,7 +893,7 @@ local zhidao_trigger = fk.CreateTriggerSkill{
   events = {fk.Damage},
   can_trigger = function (self, event, target, player, data)
     if not (player:hasSkill(self) and  player == data.from and player:usedSkillTimes(zhidao.name, Player.HistoryTurn) > 0
-      and data.to:getMark("ld__zhidao-turn") > 0 and data.to ~= player) then return false end
+      and data.to:getMark("ld__zhidao-turn") > 0 and data.to ~= player and #data.to:getCardIds("he") > 0) then return false end
     local room = player.room
     return room.logic:getActualDamageEvents(1, function(e) return e.data[1].from == player end)[1].data[1] == data
   end,
