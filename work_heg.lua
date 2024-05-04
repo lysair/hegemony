@@ -584,7 +584,7 @@ local dingpin = fk.CreateTriggerSkill{
       to:setChainState(true)
     end
     room:setPlayerMark(to, "_wk_heg__dingpin", player.id)
-    U.gainAnExtraTurn(to, true, self.name)
+    to:gainAnExtraTurn(true, self.name)
   end,
 }
 local dingpin_delay = fk.CreateTriggerSkill{
@@ -1955,7 +1955,7 @@ local huaiju = fk.CreateTriggerSkill{
     room:moveCardTo(card_ids, Player.Hand, room:getPlayerById(self.cost_data), fk.ReasonPrey, self.name, nil, true, player.id)
     local choices = {"Cancel"}
     if player:isAlive() and #player:getCardIds("he") > 0 then
-      table.insert(choices, "#wk_heg__huaiju_discard_choose")
+      table.insert(choices, "#wk_heg__huaiju_discard_choose::" .. player.id)
     end
     local choice = room:askForChoice(target, choices, self.name)
     if choice ~= "Cancel" then
@@ -2026,7 +2026,7 @@ Fk:loadTranslationTable{
   [":wk_heg__zhenglun"] = "摸牌阶段，你可改为摸一张牌并展示所有手牌，然后若你手牌数大于存活角色数或其中包含四种花色，则你弃置手牌中数量最多的一种花色的所有牌，否则你重复此流程。",
 
   ["#wk_heg__huaiju_choose"] = "怀橘：你可以将此牌交给一名除使用者外的角色",
-  ["#wk_heg__huaiju_discard_choose"] = "弃置 陆绩 的一张牌",
+  ["#wk_heg__huaiju_discard_choose"] = "弃置 %dest 的一张牌",
 
   ["$wk_heg__huaiju1"] = "",
   ["$wk_heg__huaiju2"] = "",

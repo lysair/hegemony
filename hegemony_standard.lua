@@ -1196,7 +1196,7 @@ local kuanggu = fk.CreateTriggerSkill{
 
   refresh_events = {fk.BeforeHpChanged},
   can_refresh = function(self, event, target, player, data)
-    return data.damageEvent and player == data.damageEvent.from and U.compareDistance(player, target, 2, "<")
+    return data.damageEvent and player == data.damageEvent.from and player:compareDistance(target, 2, "<")
   end,
   on_refresh = function(self, event, target, player, data)
     data.damageEvent.extra_data = data.damageEvent.extra_data or {}
@@ -2975,13 +2975,13 @@ local command4_prohibit = fk.CreateProhibitSkill{
   name = "#command4_prohibit",
   -- global = true,
   prohibit_use = function(self, player, card)
-    if player:getMark("_command4_effect-turn") > 0 then
+    if player:getMark("@@command4_effect-turn") > 0 then
       local subcards = card:isVirtual() and card.subcards or {card.id}
       return #subcards > 0 and table.every(subcards, function(id) return table.contains(player:getCardIds(Player.Hand), id) end)
     end
   end,
   prohibit_response = function(self, player, card)
-    if player:getMark("_command4_effect-turn") > 0 then
+    if player:getMark("@@command4_effect-turn") > 0 then
       local subcards = card:isVirtual() and card.subcards or {card.id}
       return #subcards > 0 and table.every(subcards, function(id) return table.contains(player:getCardIds(Player.Hand), id) end)
     end
