@@ -722,11 +722,14 @@ local heg_rule = fk.CreateTriggerSkill{
       if player.kingdom == "wild" and not player.dead and player:getMark("_wild_gained") == 0 then
         wildChooseKingdom(room, player, general_name)
         -- 野人亮出来的时候询问拉拢
-        local choices = {"heg_build_country:::" .. player.role, "Cancel"}
+        local choices = {"Cancel"}
+        if player:getMark("__heg_wild") == 1 then
+          table.insert(choices, "heg_build_country:::" .. player.role)
+        end
         if room:askForChoice(player, choices, "#heg_rule") ~= "Cancel" then
           AskForBuildCountry(room, player, general_name, true)
+          room:setPlayerMark(player, "_wild_gained", 1)
         end
-        room:setPlayerMark(player, "_wild_gained", 1)
       elseif player:getMark("__heg_join_wild") == 0 and player:getMark("__heg_construct_wild") == 0 then
         player.role = player.kingdom
       end

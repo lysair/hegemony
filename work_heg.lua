@@ -19,7 +19,7 @@ local poyuan = fk.CreateTriggerSkill{
     if event == fk.Damage then
       return data.to ~= player and not data.to.dead and #data.to:getCardIds("e") > 0
     else
-      if not (H.isBigKingdomPlayer(data.to) and player == player.room.current) then return false end
+      if not H.isBigKingdomPlayer(data.to) then return false end
       local events = player.room.logic:getActualDamageEvents(1, function(e)
         return e.data[1].from == player and H.isBigKingdomPlayer(e.data[1].to)
       end, Player.HistoryTurn)
@@ -81,7 +81,7 @@ Fk:loadTranslationTable{
   ["designer:wk_heg__liuye"] = "教父&卧雏",
 
   ["wk_heg__poyuan"] = "破垣",
-  [":wk_heg__poyuan"] = "①当你对其他角色造成伤害后，你可弃置其一张装备区内的牌；②当你于回合内首次对大势力角色造成伤害时，此伤害+1。",
+  [":wk_heg__poyuan"] = "①当你对其他角色造成伤害后，你可弃置其一张装备区内的牌；②当你于一回合首次对大势力角色造成伤害时，此伤害+1。",
   ["wk_heg__choulue"] = "筹略",
   [":wk_heg__choulue"] = "①当你受到伤害后，若你的“阴阳鱼”标记数小于你体力上限，你可获得一个“阴阳鱼”标记；②当与你势力相同的角色使用普通锦囊牌指定唯一目标后，你可移去一个“阴阳鱼”标记，令此牌结算两次。",
 
@@ -606,15 +606,6 @@ local dingpin_delay = fk.CreateTriggerSkill{
       room:notifySkillInvoked(player, self.name, "support")
       player:broadcastSkillInvoke(self.name)
       local p_table = DoElectedChange(room, target, self.name)
-      local p = p_table[1]
-      if p then
-        if not target.dead then
-          target:drawCards(1, self.name)
-        end
-        if p ~= target and not p.dead then
-          p:drawCards(1, self.name)
-        end
-      end
     elseif event == fk.TurnEnd then
       if target:getHandcardNum() > target.maxHp then
         room:askForDiscard(target, target:getHandcardNum() - target.hp, target:getHandcardNum() - target.hp, false, self.name, false)
@@ -669,7 +660,7 @@ Fk:loadTranslationTable{
   ["designer:wk_heg__chenqun"] = "教父&635",
 
   ["wk_heg__dingpin"] = "定品",
-  [":wk_heg__dingpin"] = "结束阶段，你可横置你与一名与你势力相同的角色，令其于此回合结束后执行一个仅有出牌阶段的额外回合，此额外回合：1.出牌阶段开始时，其推举，然后与选用的角色各摸一张牌；2.回合结束时，其将手牌数摸或弃至体力值，然后叠置。<br />" ..
+  [":wk_heg__dingpin"] = "结束阶段，你可横置你与一名与你势力相同的角色，令其于此回合结束后执行一个仅有出牌阶段的额外回合，此额外回合：1.出牌阶段开始时，其推举；2.回合结束时，其将手牌数摸或弃至体力值，然后叠置。<br />" ..
   "<font color = 'gray'>推举：推举角色展示一张与其势力相同的武将牌，每名与其势力相同的角色选择是否将此武将牌作为其新的主将或副将。" ..
   "若有角色选择是，称为该角色<u>选用</u>，停止对后续角色的询问，结束推举流程。</font>",
   ["wk_heg__faen"] = "法恩",
@@ -769,15 +760,15 @@ local yuyan_delay = fk.CreateTriggerSkill{
   end,
   on_cost = Util.TrueFunc,
   on_use = function(self, event, target, player, data)
-    local p_table = DoElectedChange(player.room, target, self.name)
-    local p = p_table[1]
-    if p and player.hp < player.maxHp then
+    if player.hp < player.maxHp then
       player.room:recover{
         who = player,
         num = 1,
         recoverBy = player,
         skillName = self.name,
       }
+    else
+      local p_table = DoElectedChange(player.room, target, self.name)
     end
   end,
 }
@@ -793,7 +784,7 @@ Fk:loadTranslationTable{
   ["designer:wk_heg__xujing"] = "教父&635&二四",
 
   ["wk_heg__yuyan"] = "誉言",
-  [":wk_heg__yuyan"] = "①你是与你势力相同且手牌数大于你角色“合纵”的合法目标；②当你于回合外获得其他角色的牌后，你可将等量张牌交给当前回合角色，若如此做，此回合结束时，若其与你势力相同，你推举，若被选用，你回复1点体力。<br />"..
+  [":wk_heg__yuyan"] = "①你是与你势力相同且手牌数大于你角色“合纵”的合法目标；②当你于回合外获得其他角色的牌后，你可将等量张牌交给当前回合角色，若如此做，此回合结束时，若其与你势力相同，你推举，若你已受伤，则改为回复1点体力。<br />"..
     "<font color = 'gray'>推举：推举角色展示一张与其势力相同的武将牌，每名与其势力相同的角色选择是否将此武将牌作为其新的主将或副将。" ..
   "若有角色选择是，称为该角色<u>选用</u>，停止对后续角色的询问，结束推举流程。</font>",
   ["wk_heg__caixia"] = "才瑕",
@@ -864,8 +855,7 @@ local shucai = fk.CreateTriggerSkill{
     room:askForMoveCardInBoard(player, player, target, self.name, "e", player)
     if player.dead or target.dead then return end
     local p_table = DoElectedChange(room, player, self.name)
-    local p = p_table[1]
-    if not p and not player.dead then
+    if not player.dead then
       room:setPlayerMark(player, "wk_heg__dingpan_notagged", 1)
       room:handleAddLoseSkills(player, "-wk_heg__shucai|wk_heg__shucai_notag|wk_heg__dingpan_notag", nil)
     end
@@ -1005,7 +995,7 @@ Fk:loadTranslationTable{
   ["wk_heg__dingpan"] = "定叛",
   [":wk_heg__dingpan"] = "主将技，出牌阶段限X次，你可令一名其他势力角色摸一张牌，然后其选择：1.交给你其攻击范围数张牌；2.你视为对其使用一张【杀】（X为野心家角色数+1）。",
   ["wk_heg__shucai"] = "疏才",
-  [":wk_heg__shucai"] = "副将技，此武将牌上单独的阴阳鱼个数-1；结束阶段，你可将你装备区内一张牌移动至其他角色装备区内，然后推举，若未被选用，你删除此武将牌所有技能标签至你进入濒死状态。<br />"..
+  [":wk_heg__shucai"] = "副将技，此武将牌上单独的阴阳鱼个数-1；结束阶段，你可将你装备区内一张牌移动至其他角色装备区内，然后推举并删除此武将牌所有技能标签至你进入濒死状态。<br />"..
   "<font color = 'gray'>推举：推举角色展示一张与其势力相同的武将牌，每名与其势力相同的角色选择是否将此武将牌作为其新的主将或副将。" ..
   "若有角色选择是，称为该角色<u>选用</u>，停止对后续角色的询问，结束推举流程。</font>",
 
@@ -1927,7 +1917,7 @@ Fk:loadTranslationTable{
   ["#wk_heg__yuchen_delay"] = "驭臣",
 
   ["#wk_heg__yuchen-give"] = "驭臣：你可以交给其两张牌，令其执行一个额外的出牌阶段",
-  ["#wk_heg__mingsong-ask"] = "明讼：你可以选择一名角色，将 %src 装备区内的一张牌移动至其装备区内，防止此伤害并令一名体力值最小的角色回复1点体力",
+  ["#wk_heg__mingsong-ask"] = "明讼：你可以选择一名角色，将 %dest 装备区内的一张牌移动至其装备区内，防止此伤害并令一名体力值最小的角色回复1点体力",
   ["#wk_heg__mingsong-choose"] = "明讼：选择一名体力值最小的角色回复1点体力",
 }
 
