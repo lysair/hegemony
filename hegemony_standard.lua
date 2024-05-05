@@ -2995,7 +2995,7 @@ local command5_cannotrecover = fk.CreateTriggerSkill{
   -- global = true,
   refresh_events = {fk.PreHpRecover},
   can_refresh = function(self, event, target, player, data)
-    return target == player and player:getMark("@command5_effect-turn") > 0
+    return target == player and player:getMark("@@command5_effect-turn") > 0
   end,
   on_refresh = function(self, event, target, player, data)
     data.num = 0
