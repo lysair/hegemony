@@ -1929,7 +1929,7 @@ local huaiju = fk.CreateTriggerSkill{
   can_trigger = function (self, event, target, player, data)
     if not (player:hasSkill(self) and target ~= player and data.tos and
     table.find(TargetGroup:getRealTargets(data.tos), function(id) return id == player.id end)) then return false end
-    return data.card.is_damage_card and not table.every(Card:getIdList(data.card), function (id) return player.room:getCardArea(id) == Card.Processing end)
+    return not data.card.is_damage_card and table.every(Card:getIdList(data.card), function (id) return player.room:getCardArea(id) == Card.Processing end)
   end,
   on_cost = function (self, event, target, player, data)
     local room = player.room

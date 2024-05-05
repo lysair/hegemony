@@ -638,7 +638,6 @@ local bingyi = fk.CreateTriggerSkill{
       end
     end
     local tos = room:askForChoosePlayers(player, table.map(room.alive_players, Util.IdMapper), 1, #cards, "#fk_heg__bingyi-choose:::"..#cards, self.name, true)
-    table.insert(tos, player.id)
     room:sortPlayersByAction(tos)
     for _, pid in ipairs(tos) do
       local p = room:getPlayerById(pid)
