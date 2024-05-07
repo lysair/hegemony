@@ -766,6 +766,7 @@ local aocai = fk.CreateViewAsSkill{
     end
   end,
   view_as = function(self, cards)
+    player:revealBySkillName("ld__aocai")
     if #cards ~= 1 then return end
     return Fk:getCardById(cards[1])
   end,
@@ -2051,10 +2052,14 @@ local tongling = fk.CreateTriggerSkill{
       if #to > 0 then
         local user = room:getPlayerById(to[1])
         local cardNames = {}
-        local selfCards = {"peach", "analeptic", "ex_nihilo"} -- FIXME: how to tell ex_niholo from AOE and AG?
+        local selfCards = {"peach", "analeptic", "ex_nihilo", "lightning"} -- FIXME: how to tell ex_niholo from AOE and AG?
         for _, id in ipairs(user:getCardIds(Player.Hand)) do
           local card = Fk:getCardById(id)
           if card.skill:modTargetFilter(victim, {}, user.id, card, true) and not table.contains(selfCards, card.name) and card.type ~= Card.TypeEquip then -- FIXME
+            table.insert(cardNames, card.name)
+          end
+          -- 解决modTargetFilter出杀问题
+          if card.trueName == "slash" and not table.contains(cardNames, card.name) then 
             table.insert(cardNames, card.name)
           end
         end

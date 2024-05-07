@@ -1176,7 +1176,7 @@ local fudi = fk.CreateTriggerSkill{
   events = { fk.Damaged },
   anim_type = "masochism",
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self) and data.from and data.from ~= player
+    return target == player and player:hasSkill(self) and data.from and data.from ~= player and not player:isKongcheng()
   end,
   on_cost = function(self, event, target, player, data)
     local room = player.room

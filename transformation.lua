@@ -1314,6 +1314,7 @@ Fk:loadTranslationTable{
   [":ld__lordsunquan_duoshi"] = "出牌阶段限四次，你可将一张红色手牌当【以逸待劳】使用。 ",
 
   ["ld__lordsunquan_zhiheng"] = "制衡",
+  [":ld__lordsunquan_zhiheng"] = "出牌阶段限一次，你可以弃置至多X张牌（X为你体力上限），摸等量的牌。",
 }
 
 

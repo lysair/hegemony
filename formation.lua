@@ -576,6 +576,7 @@ Fk:loadTranslationTable{
 
   ["ld__shangyi_hidden"] = "观看暗置的武将牌",
   ["ld__shangyi_card"] = "观看所有手牌",
+  ["#niaoxiang_trigger"] = "鸟翔",
 
   ["$ld__shangyi1"] = "大丈夫为人坦荡，看下手牌算什么。",
   ["$ld__shangyi2"] = "敌情已了然于胸，即刻出发！",
@@ -602,7 +603,7 @@ local qianhuan = fk.CreateTriggerSkill{
       for _, move in ipairs(data) do
         if move.to ~= nil and move.toArea == Card.PlayerJudge then
           local friend = player.room:getPlayerById(move.to)
-          return H.compareKingdomWith(friend, player) and #move.moveInfo > 0
+          return H.compareKingdomWith(friend, player) and #move.moveInfo > 0 and #player:getPile("yuji_sorcery") > 0
         end
       end
     end

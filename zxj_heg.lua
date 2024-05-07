@@ -16,7 +16,7 @@ local fuli = fk.CreateTriggerSkill{
   anim_type = "support",
   events = {fk.DrawNCards},
   can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self) and H.compareKingdomWith(player, target)
+    return player:hasSkill(self) and H.compareKingdomWith(player, target) and (player:hasShownSkill(self) or player == target)
   end,
   on_cost = function(self, event, target, player, data)
     return player.room:askForSkillInvoke(target, "#zx_heg__fuli-invoke")
@@ -324,10 +324,10 @@ local jinhun = fk.CreateTriggerSkill{
   end,
   on_use = function (self, event, target, player, data)
     local room = player.room
-    local cards = room:askForDiscard(player, 1, player:getHandcardNum(), true, self.name, false, ".", "#zx_heg__jinhun-discard", true)
+    local cards = room:askForDiscard(player, 1, #player:getCardIds("he"), true, self.name, false, ".", "#zx_heg__jinhun-discard", true)
     room:throwCard(cards, self.name, player, player)
     if not player.dead then
-      data.damage = data.damage - #cards
+      data.damage = math.max(data.damage - #cards, 0)
       if player:isKongcheng() or player.hp == 1 then
         player:reset()
       end
@@ -436,11 +436,14 @@ local pofu_effect = fk.CreateTriggerSkill{
   frequency = Skill.Compulsory,
   events = {fk.CardUseFinished, fk.CardRespondFinished},
   can_trigger = function(self, event, target, player, data)
-    return data.responseToEvent and data.card.skillName == pofu.name
-      and not table.find(TargetGroup:getRealTargets(data.responseToEvent.tos), function(id) return id ~= player.id end)
-      and ((event == fk.CardUseFinished and data.toCard and data.toCard.trueName ~= "nullification" and data.toCard:isCommonTrick()) or 
-        (event == fk.CardRespondFinished and data.responseToEvent.card and data.responseToEvent.card.trueName ~= "nullification" and data.responseToEvent.card:isCommonTrick()))
-      and (not data.responseToEvent.from.dead or player.room:getCardArea(data.responseToEvent.card) == Card.Processing)
+    if not (data.responseToEvent and data.card.skillName == pofu.name) then return false end
+    if table.find(TargetGroup:getRealTargets(data.responseToEvent.tos), function(id) return id ~= player.id end) then return false end
+    if ((data.responseToEvent and data.responseToEvent.from.dead) and player.room:getCardArea(data.responseToEvent.card) ~= Card.Processing) then return false end
+    if event == fk.CardUseFinished then
+      return data.toCard and data.toCard.trueName ~= "nullification" and data.toCard:isCommonTrick()
+    else
+      return data.responseToEvent.card and data.responseToEvent.card.trueName ~= "nullification" and data.responseToEvent.card:isCommonTrick()
+    end
   end,
   on_use = function (self, event, target, player, data)
     local room = player.room
@@ -658,6 +661,85 @@ Fk:loadTranslationTable{
   ["$zx_heg__anjing1"] = "",
   ["$zx_heg__anjing2"] = "",
   ["~zx_heg__liuyu"] = "",
+}
+
+local yangbiao = General(extension, "zx_heg__yangbiao", "qun", 3, 3, General.Male)
+local rangjie = fk.CreateTriggerSkill{
+  name = "zx_heg__rangjie",
+  events = {fk.Damaged},
+  anim_type = "defensive",
+  can_trigger = function (self, event, target, player, data)
+    return player:hasSkill(self) and player == target and data.card and data.card.trueName == "slash" and not player:isKongcheng() and not data.from.dead
+  end,
+  on_use = function (self, event, target, player, data)
+    local room = player.room
+    local id = room:askForCardChosen(data.from, player, "h", self.name)
+    player:showCards({id})
+    if Fk:getCardById(id).suit ~= Card.Heart then
+      room:throwCard(id, self.name, player, player)
+      if not player.dead and player.hp < player.maxHp then
+        room:recover{
+          who = player,
+          num = 1,
+          recoverBy = player,
+          skillName = self.name,
+        }
+      end
+    elseif player:getMark("@@zx_heg__rangjie_transform") == 0 then
+      room:setPlayerMark(player, "@@zx_heg__rangjie_transform", 1)
+      H.transformGeneral(room, player)
+    end
+  end,
+}
+
+local yichi = fk.CreateActiveSkill{
+  name = "zx_heg__yichi",
+  card_num = 0,
+  target_num = 1,
+  can_use = function(self, player)
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
+  end,
+  card_filter = Util.FalseFunc,
+  target_filter = function (self, to_select, selected)
+    local target = Fk:currentRoom():getPlayerById(to_select)
+    return target.hp > Self.hp and #selected < 1 and Self:canPindian(target)
+  end,
+  on_use = function (self, room, effect)
+    local player = room:getPlayerById(effect.from)
+    local target = room:getPlayerById(effect.tos[1])
+    local pindian = player:pindian({target}, self.name)
+    if pindian.results[target.id].winner then
+      local winner = pindian.results[target.id].winner 
+      local loser = winner == player and target or player
+      if not winner.dead then
+        local card = room:askForCardChosen(winner, loser, "he", self.name)
+        room:obtainCard(winner, card, false, fk.ReasonPrey)
+      end
+    end
+    if pindian.fromCard:compareColorWith(pindian.results[target.id].toCard) and not player.dead then
+      player:drawCards(1, self.name)
+    end
+  end,
+}
+
+yangbiao:addSkill(rangjie)
+yangbiao:addSkill(yichi)
+Fk:loadTranslationTable{
+  ["zx_heg__yangbiao"] = "杨彪", --群雄
+  ["designer:zx_heg__guanning"] = "时雨",
+  ["zx_heg__rangjie"] = "让节",
+  [":zx_heg__rangjie"] = "当你受到【杀】造成的伤害后，你可令伤害来源展示你一张手牌，若此牌不为红桃，你弃置之并回复1点体力，否则你变更副将。",
+  ["zx_heg__yichi"] = "义叱",
+  [":zx_heg__yichi"] = "出牌阶段限一次，你可以与体力值大于你的一名角色拼点，赢的角色获得没赢的角色的一张牌，若两张拼点牌颜色不同，你摸一张牌。",
+
+  ["@@zx_heg__rangjie_transform"] = "让节 已变更",
+
+  ["$zx_heg__rangjie1"] = "",
+  ["$zx_heg__rangjie2"] = "",
+  ["$zx_heg__yichi1"] = "",
+  ["$zx_heg__yichi2"] = "",
+
+  ["~zx_heg__yangbiao"] = "",
 }
 
 return extension

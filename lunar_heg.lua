@@ -1094,6 +1094,7 @@ local fencheng = fk.CreateActiveSkill{
 liru:addSkill("juece")
 liru:addSkill("mieji")
 liru:addSkill(fencheng)
+liru:addCompanions("ld__dongzhuo")
 Fk:loadTranslationTable{
   ["fk_heg__liru"] = "李儒",
   ["fk_heg__juece"] = "绝策",
