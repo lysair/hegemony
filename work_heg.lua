@@ -238,7 +238,7 @@ Fk:loadTranslationTable{
   ["wk_heg__juanshe"] = "蠲奢",
   [":wk_heg__juanshe"] = "与你势力相同角色的结束阶段，若其本回合使用牌数小于其手牌上限，你可令其弃置一张手牌并回复1点体力，然后直至其回合开始或你受到伤害，其不能使用手牌。",
 
-  ["@@wk_heg__juanshe-prohibit"] = "蠲奢 禁用手牌"
+  ["@@wk_heg__juanshe-prohibit"] = "蠲奢 禁用手牌",
 
   ["#wk_heg__yizan_delay"] = "翼赞",
   ["#wk_heg__yizan-invoke"] = "翼赞：是否令一名手牌数小于你的角色将手牌摸至与你相同，然后其根据你的弃牌情况执行对应操作。",
@@ -1658,9 +1658,9 @@ local duanyi = fk.CreateTriggerSkill{
   can_trigger = function(self, event, target, player, data)
     if player:hasSkill(self) then
       for _, v in pairs(data) do
-        if table.contains(Fk.generals[v]:getSkillNameList(), self.name) or (player:getMark("wk_heg__duanyi") ~= 0 and target ~= player and not target.dead then 
+        if table.contains(Fk.generals[v]:getSkillNameList(), self.name) or (player:getMark("wk_heg__duanyi") ~= 0 and target ~= player and not target.dead) then
           -- 先这样，藕合过于麻烦
-          return not ((player:getMark("wk_heg__duanyi") == 9 and target.phase == 9) or (player:getMark("wk_heg__duanyi") ~= 9 and target.phase ~= 9)))
+          return not ((player:getMark("wk_heg__duanyi") == 9 and target.phase == 9) or (player:getMark("wk_heg__duanyi") ~= 9 and target.phase ~= 9))
         end
       end
     end

@@ -72,7 +72,7 @@ local drowningSkill = fk.CreateActiveSkill{
     return to_select ~= user and #Fk:currentRoom():getPlayerById(to_select):getCardIds(Player.Equip) > 0
   end,
   target_filter = function(self, to_select, selected, _, card)
-    if #selected == 0 then
+    if #selected < self:getMaxTargetNum(Self, card) then
       return self:modTargetFilter(to_select, selected, Self.id, card, true)
     end
   end,
@@ -357,7 +357,7 @@ local allianceFeastSkill = fk.CreateActiveSkill{
           num = 1
           local _p = room:getPlayerById(pid)
           for _, p in ipairs(room:getAlivePlayers()) do
-            if H.compareKingdomWith(p, _p) and p ~= _p then
+            if H.compareKingdomWith(p, _p) and p ~= _p and player:canUseTo(use.card, p) then
               TargetGroup:pushTargets(use.tos, p.id)
               num = num + 1
             end

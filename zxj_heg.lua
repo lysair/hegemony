@@ -675,6 +675,7 @@ local rangjie = fk.CreateTriggerSkill{
     local room = player.room
     local id = room:askForCardChosen(data.from, player, "h", self.name)
     player:showCards({id})
+    if player.dead then return end
     if Fk:getCardById(id).suit ~= Card.Heart then
       room:throwCard(id, self.name, player, player)
       if not player.dead and player.hp < player.maxHp then
@@ -709,7 +710,7 @@ local yichi = fk.CreateActiveSkill{
     local target = room:getPlayerById(effect.tos[1])
     local pindian = player:pindian({target}, self.name)
     if pindian.results[target.id].winner then
-      local winner = pindian.results[target.id].winner 
+      local winner = pindian.results[target.id].winner ---@type ServerPlayer
       local loser = winner == player and target or player
       if not winner.dead then
         local card = room:askForCardChosen(winner, loser, "he", self.name)
