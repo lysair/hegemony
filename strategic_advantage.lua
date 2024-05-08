@@ -1152,9 +1152,7 @@ local alliance = fk.CreateActiveSkill{
   target_num = 1,
   target_filter = function(self, to_select, selected, selected_cards)
     if #selected == 0 and #selected_cards >= 1 and #selected_cards <= 3 then
-      local target = Fk:currentRoom():getPlayerById(to_select)
-      local player = Fk:currentRoom():getPlayerById(Self.id)
-      return (H.compareKingdomWith(target, Self, true) or target.kingdom == "unknown" or (target:hasShownSkill("wk_heg__yuyan") and target:getHandcardNum() < player:getHandcardNum())) and to_select ~= Self.id
+      return H.canAlliance(Self, Fk:currentRoom():getPlayerById(to_select))
     end
   end,
   on_use = function(self, room, effect)
@@ -1170,7 +1168,7 @@ local alliance = fk.CreateActiveSkill{
 Fk:addSkill(alliance)
 Fk:loadTranslationTable{
   ["alliance&"] = "合纵",
-  [":alliance&"] = "出牌阶段限一次，你可选择一项：1.若你已确定势力，你可将有“合”标记的至多三张手牌交给与你势力不同的一名角色，摸等量的牌；2.你可将有“合”标记的至多三张手牌交给未确定势力的一名角色。",
+  [":alliance&"] = "出牌阶段限一次，你可将有“合”标记的至多三张手牌交给与你势力不同或未确定势力的一名角色，若你以此法交给与你势力不同的角色牌，你摸等量的牌。",
   ["#alliance&"] = "合纵：你可将至多3张有“合”标记的手牌交给势力不同或无势力的角色，前者你摸等量的牌",
 }
 

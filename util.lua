@@ -986,6 +986,57 @@ H.addCardToAllianceCards = function(card)
   table.insertIfNeed(H.allianceCards, card)
 end
 
+--- 可合纵
+---@param from Player
+---@param to Player
+---@return boolean
+H.canAlliance = function(from, to)
+  if to == from then return false end
+  if H.compareKingdomWith(from, to, true) or to.kingdom == "unknown" then return true end
+  local status_skills = Fk:currentRoom().status_skills[H.AllianceSkill] or Util.DummyTable
+  for _, skill in ipairs(status_skills) do
+    if skill:allowAlliance(from, to) then
+      return true
+    end
+  end
+  return false
+end
+
+--- 允许合纵技
+---@class AllianceSkill : StatusSkill
+H.AllianceSkill = StatusSkill:subclass("AllianceSkill")
+
+---@param from Player
+---@param to Player
+---@return boolean
+function H.AllianceSkill:allowAlliance(from, to)
+  return false
+end
+
+local function readStatusSpecToSkill(skill, spec)
+  readCommonSpecToSkill(skill, spec)
+  if spec.global then
+    skill.global = spec.global
+  end
+end
+
+---@class StatusSkillSpec: StatusSkill
+
+---@class AllianceSpec: StatusSkillSpec
+---@field public allow_alliance? fun(self: AllianceSkill, from: Player, to:Player): boolean?
+
+---@param spec AllianceSpec
+---@return AllianceSkill
+H.CreateAllianceSkill = function(spec)
+  assert(type(spec.name) == "string")
+  assert(type(spec.allow_alliance) == "function")
+
+  local skill = H.AllianceSkill:new(spec.name)
+  readStatusSpecToSkill(skill, spec)
+  skill.allowAlliance = spec.allow_alliance or skill.allowAlliance
+  return skill
+end
+
 -- 卡牌替换
 
 H.convertCards = {}
@@ -1008,13 +1059,6 @@ H.BigKingdomSkill = StatusSkill:subclass("BigKingdomSkill")
 ---@return bool
 function H.BigKingdomSkill:getFixed(player)
   return false
-end
-
-local function readStatusSpecToSkill(skill, spec)
-  readCommonSpecToSkill(skill, spec)
-  if spec.global then
-    skill.global = spec.global
-  end
 end
 
 ---@class StatusSkillSpec: StatusSkill

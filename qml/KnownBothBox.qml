@@ -6,15 +6,16 @@ import Fk.Pages
 import Fk.RoomElement
 
 GraphicsBox {
-  property string mainGeneral:"anjiang"
-  property string deputyGeneral:"anjiang"
+  property string mainGeneral: "anjiang"
+  property string deputyGeneral: "anjiang"
+  property string seat: "1"
   id: root
 
   //ListModel {
     //id: generalList
   //}
 
-  title.text: Backend.translate("#KnownBothGeneral")
+  title.text: luatr("#KnownBothGeneral").arg(luatr("seat#" + seat))
   width: generalArea.width + body.anchors.leftMargin + body.anchors.rightMargin
   height: body.implicitHeight + body.anchors.topMargin + body.anchors.bottomMargin
 
@@ -57,7 +58,7 @@ GraphicsBox {
 
         MetroButton {
           id: fightButton
-          text: Backend.translate("OK")
+          text: luatr("OK")
           width: 120
           height: 35
           enabled: true
@@ -71,7 +72,7 @@ GraphicsBox {
 
         MetroButton {
           id: detailBtn
-          text: Backend.translate("Show General Detail")
+          text: luatr("Show General Detail")
           onClicked: roomScene.startCheat(
             "GeneralDetail",
             { generals: [mainGeneral, deputyGeneral] }
@@ -84,10 +85,6 @@ GraphicsBox {
 
 
   function loadData(data) {
-    //for (let i = 0; i < 2; i++)
-      //generalList.append({ "name": data[i] });
-      //generalList.push(data[i]);
-    mainGeneral = data[0];
-    deputyGeneral = data[1];
+    let [mainGeneral, deputyGeneral, seat] = data;
   }
 }

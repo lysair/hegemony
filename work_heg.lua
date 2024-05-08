@@ -718,15 +718,41 @@ local yuyan = fk.CreateTriggerSkill{
     room:moveCardTo(cards2, Card.PlayerHand, current, fk.ReasonGive, self.name, nil, false, player.id)
   end,
 }
+local yuyan_alliance = H.CreateAllianceSkill{
+  name = "#wk_heg__yuyan_alliance",
+  allow_alliance = function(self, from, to)
+    return H.compareKingdomWith(from, to) and to:hasShownSkill(yuyan) and from:getHandcardNum() > to:getHandcardNum()
+  end
+}
+local yuyan_delay = fk.CreateTriggerSkill{
+  name = "#wk_heg__yuyan_delay",
+  events = {fk.TurnEnd},
+  mute = true,
+  can_trigger = function(self, event, target, player, data)
+    return player:usedSkillTimes(yuyan.name) > 0 and H.compareKingdomWith(player, player.room.current)
+  end,
+  on_cost = Util.TrueFunc,
+  on_use = function(self, event, target, player, data)
+    if player:isWounded() and not player.dead then
+      player.room:recover{
+        who = player,
+        num = 1,
+        recoverBy = player,
+        skillName = self.name,
+      }
+    else
+      DoElectedChange(player.room, target, self.name)
+    end
+  end,
+}
 
 local caixia_filter = fk.CreateActiveSkill{
   name = "#wk_heg__caixia_filter",
   min_card_num = 1,
   max_card_num = 99,
-  visible = false,
   card_filter = function(self, to_select, selected)
     return table.every(selected, function(id)
-      return Fk:getCardById(to_select).trueName == Fk:getCardById(id).trueName 
+      return Fk:getCardById(to_select).trueName == Fk:getCardById(id).trueName
     end) and Fk:currentRoom():getCardArea(to_select) == Player.Hand
   end,
   target_filter = Util.FalseFunc,
@@ -749,33 +775,14 @@ local caixia = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     player:showCards(self.cost_data)
-    player:drawCards(math.min(#self.cost_data, player.hp), self.name)
-  end,
-}
-local yuyan_delay = fk.CreateTriggerSkill{
-  name = "#wk_heg__yuyan_delay",
-  events = {fk.TurnEnd},
-  anim_type = "special",
-  mute = true,
-  can_trigger = function(self, event, target, player, data)
-    return player:usedSkillTimes(yuyan.name, Player.HistoryTurn) > 0 and H.compareKingdomWith(player, player.room.current)
-  end,
-  on_cost = Util.TrueFunc,
-  on_use = function(self, event, target, player, data)
-    if player.hp < player.maxHp then
-      player.room:recover{
-        who = player,
-        num = 1,
-        recoverBy = player,
-        skillName = self.name,
-      }
-    else
-      local p_table = DoElectedChange(player.room, target, self.name)
+    if not player.dead then
+      player:drawCards(math.min(#self.cost_data, player.hp), self.name)
     end
   end,
 }
 
 yuyan:addRelatedSkill(yuyan_delay)
+yuyan:addRelatedSkill(yuyan_alliance)
 xujing:addSkill(yuyan)
 caixia:addRelatedSkill(caixia_filter)
 xujing:addSkill(caixia)
@@ -786,7 +793,7 @@ Fk:loadTranslationTable{
   ["designer:wk_heg__xujing"] = "教父&635&二四",
 
   ["wk_heg__yuyan"] = "誉言",
-  [":wk_heg__yuyan"] = "①你是与你势力相同且手牌数大于你角色“合纵”的合法目标；②当你于回合外获得其他角色的牌后，你可将等量张牌交给当前回合角色，若如此做，此回合结束时，若其与你势力相同，你推举，若你已受伤，则改为回复1点体力。<br />"..
+  [":wk_heg__yuyan"] = "①你是与你势力相同且手牌数大于你的角色“合纵”的合法目标；②当你于回合外获得其他角色的牌后，你可将等量张牌交给当前回合角色，若如此做，此回合结束时，若其与你势力相同，你推举，若你已受伤，则改为回复1点体力。<br />"..
     "<font color = 'gray'>推举：推举角色展示一张与其势力相同的武将牌，每名与其势力相同的角色选择是否将此武将牌作为其新的主将或副将。" ..
   "若有角色选择是，称为该角色<u>选用</u>，停止对后续角色的询问，结束推举流程。</font>",
   ["wk_heg__caixia"] = "才瑕",

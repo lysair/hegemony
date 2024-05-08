@@ -182,7 +182,7 @@ local knownBothSkill = fk.CreateActiveSkill{
     if choice == "known_both_hand" then
       U.viewCards(player, target:getCardIds(Player.Hand), self.name, "#known_both-hand::"..target.id)
     else
-      local general = choice == "known_both_main" and {target:getMark("__heg_general"), target.deputyGeneral, target.seat} or {target.general, target:getMark("__heg_deputy"), target.seat}
+      local general = choice == "known_both_main" and {target:getMark("__heg_general"), target.deputyGeneral, tostring(target.seat)} or {target.general, target:getMark("__heg_deputy"), tostring(target.seat)}
       room:askForCustomDialog(player, self.name, "packages/hegemony/qml/KnownBothBox.qml", general)
     end
   end,
@@ -204,7 +204,7 @@ Fk:loadTranslationTable{
   ["known_both_main"] = "观看主将",
   ["known_both_deputy"] = "观看副将",
   ["known_both_hand"] = "观看手牌",
-  ["#KnownBothGeneral"] = "观看武将",
+  ["#KnownBothGeneral"] = "观看 %1 武将",
   ["#known_both-hand"] = "知己知彼：观看%dest的手牌",
   ["#known_both_skill"] = "选择一名其他角色，观看其一张暗置的武将牌或其手牌",
 }
