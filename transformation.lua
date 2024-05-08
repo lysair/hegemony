@@ -908,87 +908,38 @@ local ld__haoshi = fk.CreateTriggerSkill{
     data.n = data.n + 2
   end,
 }
-local ld__haoshi_active = fk.CreateActiveSkill{
-  name = "#ld__lordsunquan_haoshi_active",
-  visible = false,
-  max_target_num = 1,
-  can_use = Util.FalseFunc,
-  card_num = function ()
-    return Self:getHandcardNum() // 2
-  end,
-  card_filter = function(self, to_select, selected)
-    return #selected < Self:getHandcardNum() // 2 and Fk:currentRoom():getCardArea(to_select) == Player.Hand
-  end,
-  target_filter = function(self, to_select, selected, selected_cards)
-    if #selected_cards ~= Self:getHandcardNum() // 2 then return false end
-    local num = 999
-    local targets = {}
-    for _, p in ipairs(Fk:currentRoom().alive_players) do
-      if p ~= Self then
-        local n = p:getHandcardNum()
-        if n <= num then
-          if n < num then
-            num = n
-            targets = {}
-          end
-          table.insert(targets, p.id)
-        end
-      end
-    end
-    if #targets <= 1 then return false end
-    return table.contains(targets, to_select) and #selected < 1
-  end,
-}
-local ld__haoshi_give = fk.CreateTriggerSkill{
-  name = "#ld__lordsunquan_haoshi_give",
+local ld__haoshi_delay = fk.CreateTriggerSkill{
+  name = "#ld__lordsunquan_haoshi_delay",
   events = {fk.AfterDrawNCards},
   mute = true,
-  anim_type = "support",
-  frequency = Skill.Compulsory,
-  visible = false,
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:usedSkillTimes("ld__lordsunquan_haoshi", Player.HistoryPhase) > 0 and player:getHandcardNum() > 5
+    return not player.dead and player:usedSkillTimes(ld__haoshi.name, Player.HistoryPhase) > 0 and
+    #player.player_cards[Player.Hand] > 5 and #player.room.alive_players > 1
   end,
+  on_cost = Util.TrueFunc,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    local cards, target = {}, nil
+    local x = player:getHandcardNum() // 2
     local targets = {}
-    local num = 999
+    local n = 0
     for _, p in ipairs(room.alive_players) do
       if p ~= player then
-        local n = p:getHandcardNum()
-        if n <= num then
-          if n < num then
-            num = n
-            targets = {}
-          end
+        if #targets == 0 then
           table.insert(targets, p.id)
+          n = p:getHandcardNum()
+        else
+          if p:getHandcardNum() < n then
+            targets = {p.id}
+            n = p:getHandcardNum()
+          elseif p:getHandcardNum() == n then
+            table.insert(targets, p.id)
+          end
         end
       end
     end
-    if #targets == 0 then return false end
-    local _, ret = room:askForUseActiveSkill(player, "#haoshi_active", "#haoshi-give:::"..player:getHandcardNum() // 2, false)
-    if ret then
-      cards = ret.cards
-      target = ret.targets and ret.targets[1] or targets[1]
-    else
-      cards = table.random(player:getCardIds(Player.Hand), player:getHandcardNum() // 2)
-      target = table.random(targets)
-    end
-    room:moveCardTo(cards, Card.PlayerHand, room:getPlayerById(target), fk.ReasonGive, self.name, nil, false, player.id)
-  end
-}
-Fk:addPoxiMethod{
-  name = "ld__lordsunquan_shelie",
-  card_filter = function(to_select, selected, data)
-    if table.contains(data[2], to_select) then return true end
-    local suit = Fk:getCardById(to_select).suit
-    return table.every(data[2], function (id)
-      return Fk:getCardById(id).suit ~= suit
-    end)
-  end,
-  feasible = function(selected)
-    return true
+    local tos, cards = U.askForChooseCardsAndPlayers(room, player, x, x, targets, 1, 1,
+    ".|.|.|hand", "#haoshi-give:::" .. x, "ld__lordsunquan_haoshi", false)
+    room:moveCardTo(cards, Card.PlayerHand, room:getPlayerById(tos[1]), fk.ReasonGive, "haoshi", nil, false, player.id)
   end,
 }
 local ld__shelie = fk.CreateTriggerSkill{
@@ -1018,7 +969,7 @@ local ld__shelie = fk.CreateTriggerSkill{
       end
     end
     get = U.askForArrangeCards(player, self.name, cards, "#ld__lordsunquan_shelie-choose",
-    false, 0, {5, 4}, {0, #get}, ".", "ld__lordsunquan_shelie", {{}, get})[2]
+      false, 0, {5, 4}, {0, #get}, ".", "shelie", {{}, get})[2]
     if #get > 0 then
       room:obtainCard(player, get, true, fk.ReasonPrey)
     end
@@ -1229,8 +1180,7 @@ local jubao_move = fk.CreateTriggerSkill{
 }
 
 ld__yingzi:addRelatedSkill(ld__yingzi_maxcards)
-ld__haoshi:addRelatedSkill(ld__haoshi_active)
-ld__haoshi:addRelatedSkill(ld__haoshi_give)
+ld__haoshi:addRelatedSkill(ld__haoshi_delay)
 
 lordsunquan:addSkill(jiahe)
 Fk:addSkill(fenghuotu)
@@ -1245,7 +1195,7 @@ Fk:addSkill(ld__zhiheng)
 
 jubao:addRelatedSkill(jubao_move)
 lordsunquan:addSkill(jubao)
-
+lordsunquan:addSkill("cheat")
 
 Fk:loadTranslationTable{
   ["ld__lordsunquan"] = "君孙权",
@@ -1293,6 +1243,7 @@ Fk:loadTranslationTable{
   ["#fenghuotu"] = "缘江烽火图",
   ["#ld__jiahe_other"] = "缘江烽火图：将一张装备牌置于%src的“缘江烽火图”上，称为“烽火”",
   ["lord_fenghuo"] = "烽火",
+  ["#ld__lordsunquan_haoshi_delay"] = "好施",
   ["#ld__lordsunquan_shelie-choose"] = "涉猎：获得不同花色的牌各一张",
 
   ["$fenghuotu1"] = "保卫国家，人人有责。",

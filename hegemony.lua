@@ -286,10 +286,6 @@ function HegLogic:chooseGenerals()
   local generals = room:getNGenerals(#players * generalNum) -- Fk:getGeneralsRandomly
   table.shuffle(generals)
   for k, p in ipairs(players) do
-    -- UI
-    p:setMark("@seat", "seat#" .. tostring(p.seat))
-    p:doNotify("SetPlayerMark", json.encode{ p.id, "@seat", "seat#" .. tostring(p.seat)})
-
     -- local arg = { map = table.map }
     local arg = table.slice(generals, (k - 1) * generalNum + 1, k * generalNum + 1)
     table.sort(arg, function(a, b) return Fk.generals[a].kingdom > Fk.generals[b].kingdom end)
@@ -386,9 +382,6 @@ function HegLogic:broadcastGeneral()
   local players = room.players
 
   for _, p in ipairs(players) do
-    p:setMark("@seat", 0)
-    p:doNotify("SetPlayerMark", json.encode{ p.id, "@seat", 0})
-
     assert(p.general ~= "")
     local general = Fk.generals[p:getMark("__heg_general")]
     local deputy = Fk.generals[p:getMark("__heg_deputy")]
@@ -441,6 +434,10 @@ function HegLogic:attachSkillToPlayers()
   room:handleAddLoseSkills(players[1], "#_heg_invalid", nil, false, true)
 
   for _, p in ipairs(room.alive_players) do
+    -- UI
+    p:setMark("@seat", "seat#" .. tostring(p.seat))
+    p:doNotify("SetPlayerMark", json.encode{ p.id, "@seat", "seat#" .. tostring(p.seat)})
+
     local general = Fk.generals[p:getMark("__heg_general")]
     local skills = table.connect(general.skills, table.map(general.other_skills, Util.Name2SkillMapper))
     for _, s in ipairs(skills) do
@@ -570,7 +567,7 @@ end
 local heg_rule = fk.CreateTriggerSkill{
   name = "#heg_rule",
   priority = 0.001,
-  events = {fk.BeforeTurnStart, fk.TurnStart, fk.GameOverJudge, fk.Deathed, fk.GeneralRevealed, fk.EventPhaseChanging, fk.GeneralShown},
+  events = {fk.BeforeTurnStart, fk.TurnStart, fk.GameOverJudge, fk.Deathed, fk.GeneralRevealed, fk.EventPhaseChanging, fk.GeneralShown, fk.GameStart},
   can_trigger = function(self, event, target, player, data)
     return target == player
   end,
@@ -773,6 +770,11 @@ local heg_rule = fk.CreateTriggerSkill{
       end
       if player:getMark("hasShownMainGeneral") == 0 and data["m"] then -- 首次亮主将
         room:setPlayerMark(player, "hasShownMainGeneral", 1)
+      end
+    elseif event == fk.GameStart then
+      for _, p in ipairs(room.players) do
+        p:setMark("@seat", 0)
+        p:doNotify("SetPlayerMark", json.encode{ p.id, "@seat", 0})
       end
     end
   end,
