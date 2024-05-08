@@ -1195,7 +1195,6 @@ Fk:addSkill(ld__zhiheng)
 
 jubao:addRelatedSkill(jubao_move)
 lordsunquan:addSkill(jubao)
-lordsunquan:addSkill("cheat")
 
 Fk:loadTranslationTable{
   ["ld__lordsunquan"] = "君孙权",
