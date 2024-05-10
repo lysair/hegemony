@@ -1616,11 +1616,7 @@ local zongyu = fk.CreateTriggerSkill{
       end
     else
       if (data.card.sub_type == Card.SubtypeOffensiveRide or data.card.sub_type == Card.SubtypeDefensiveRide) and data.card.name ~= "liulongcanjia" and target == player then
-        for _, id in ipairs(player.room.discard_pile) do
-          if Fk:getCardById(id).name == "liulongcanjia" then
-            return true
-          end
-        end
+        if #player.room:getCardsFromPileByRule("liulongcanjia", 1, "discardPile") > 0 then return true end
         return table.find(Fk:currentRoom().alive_players, function(p)
           return p ~= player and table.find(p:getEquipments(Card.SubtypeDefensiveRide), function(cid) return Fk:getCardById(cid).name == "liulongcanjia" end)
         end)
@@ -1685,34 +1681,27 @@ local zongyu = fk.CreateTriggerSkill{
         end
       end
     else
-      local throw = {}
-      table.insert(throw, data.card.id)
-      room:moveCards({
-        ids = throw,
-        toArea = Card.DiscardPile,
-        moveReason = fk.ReasonPutIntoDiscardPile,
-      })
-      local card = room:getCardsFromPileByRule("liulongcanjia", 1, "discardPile")
-      local existingEquipId = player:getEquipment(Fk:getCardById(card[1]).sub_type)
-      if existingEquipId then
-        room:moveCards({
-          ids = { existingEquipId },
-          from = player.id,
-          toArea = Card.DiscardPile,
-          moveReason = fk.ReasonPutIntoDiscardPile,
-          proposer = player.id,
-          skillName = self.name,
-        })
+      local to_throw = {data.card.id}
+      if player:getEquipment(Card.SubtypeDefensiveRide) then
+        table.insert(to_throw, player:getEquipment(Card.SubtypeDefensiveRide))
       end
+      if player:getEquipment(Card.SubtypeOffensiveRide) then
+        table.insert(to_throw, player:getEquipment(Card.SubtypeOffensiveRide))
+      end
+      room:moveCardTo(to_throw, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, self.name, nil, true, player.id)
+      local card = room:getCardsFromPileByRule("liulongcanjia", 1, "discardPile")
       if #card == 0 then
-        for _, id in ipairs(Fk:getAllCardIds()) do
-          local card = Fk:getCardById(id)
-          if card.name == "liulongcanjia" then
-            room:moveCardTo(card, Card.PlayerEquip, player, fk.ReasonJustMove, self.name)
-            break
+        for _, p in ipairs(room:getOtherPlayers(player, false)) do
+          for _, cid in ipairs(p:getEquipments(Card.SubtypeDefensiveRide)) do
+            if Fk:getCardById(cid).name == "liulongcanjia" then
+              card = {cid}
+              break
+            end
           end
+          if #card > 0 then break end
         end
-      elseif #card > 0 then
+      end
+      if #card > 0 then
         room:moveCardTo(card, Card.PlayerEquip, player, fk.ReasonJustMove, self.name)
       end
     end
@@ -1830,6 +1819,7 @@ local liulongcanjia = fk.CreateDefensiveRide{
   number = 13,
   equip_skill = liulongcanjiaSkill,
   ---@param room Room
+  ---@param player ServerPlayer
   on_install = function(self, room, player)
     local cards = player:getEquipments(Card.SubtypeOffensiveRide)
     if #cards > 0 then room:moveCardTo(cards, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, self.name, nil, true, player.id) end

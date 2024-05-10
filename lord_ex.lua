@@ -745,16 +745,14 @@ Fk:loadTranslationTable{
 
 local zhugeke = General(extension, "ld__zhugeke", "wu", 3)
 zhugeke:addCompanions("hs__dingfeng")
-local aocai = fk.CreateViewAsSkill{
+local aocai = fk.CreateViewAsSkill{ -- FIXME
   name = "ld__aocai",
   pattern = ".|.|.|.|.|basic",
   anim_type = "special",
-  expand_pile = function() return U.getMark(Self, "ld__aocai") end,
-  prompt = function()
-    return "#ld__aocai"
-  end,
+  expand_pile = function() return U.getMark(Self, "_ld__aocai") end,
+  prompt = "#ld__aocai",
   card_filter = function(self, to_select, selected)
-    if #selected == 0 and table.contains(U.getMark(Self, "ld__aocai"), to_select) then
+    if #selected == 0 and table.contains(U.getMark(Self, "_ld__aocai"), to_select) then
       local card = Fk:getCardById(to_select)
       if card.type == Card.TypeBasic then
         if Fk.currentResponsePattern == nil then
@@ -769,27 +767,53 @@ local aocai = fk.CreateViewAsSkill{
     if #cards ~= 1 then return end
     return Fk:getCardById(cards[1])
   end,
-  enabled_at_play = function(self, player)
-    return false
-  end,
+  enabled_at_play = Util.FalseFunc,
   enabled_at_response = function(self, player, response)
-    return player.phase == Player.NotActive
+    return player.phase == Player.NotActive and player:hasShownSkill(self)
   end,
 }
 local aocai_trigger = fk.CreateTriggerSkill{
   name = "#ld__aocai_trigger",
+  mute = true,
+  events = {fk.AskForCardUse, fk.AskForCardResponse},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(aocai) and player:isFakeSkill(aocai) and player ~= player.room.current
+  end,
+  on_use = function(self, event, target, player, data)
+    player:revealBySkillName(aocai.name)
+    local room = player.room
+    if #room.draw_pile < 2 then
+      room:shuffleDrawPile()
+      if #room.draw_pile < 2 then
+        room:sendLog{
+          type = "#NoCardDraw",
+          toast = true,
+        }
+        room:gameOver("")
+      end
+    end
+    local ids = table.slice(room.draw_pile, 1, 3)
+    room:setPlayerMark(player, "_ld__aocai", ids)
+  end,
+
   refresh_events = {fk.AskForCardUse, fk.AskForCardResponse},
   can_refresh = function(self, event, target, player, data)
-    return target == player and player:hasSkill(aocai.name) and player ~= player.room.current
+    return target == player and player:hasShownSkill(aocai.name) and player ~= player.room.current
   end,
   on_refresh = function(self, event, target, player, data)
     local room = player.room
-    local ids = {}
-    for i = 1, 2, 1 do
-      if i > #room.draw_pile then break end
-      table.insert(ids, room.draw_pile[i])
+    if #room.draw_pile < 2 then
+      room:shuffleDrawPile()
+      if #room.draw_pile < 2 then
+        room:sendLog{
+          type = "#NoCardDraw",
+          toast = true,
+        }
+        room:gameOver("")
+      end
     end
-    player.room:setPlayerMark(player, "ld__aocai", ids)
+    local ids = table.slice(room.draw_pile, 1, 3)
+    room:setPlayerMark(player, "_ld__aocai", ids)
   end,
 }
 
@@ -860,6 +884,9 @@ Fk:loadTranslationTable{
   ["ld__duwu"] = "黩武",
   [":ld__duwu"] = "限定技，出牌阶段，你可以选择一个“军令”，你对你攻击范围内所有与你势力不同或未确定势力的角色发起此“军令”，若其不执行，你对其造成1点伤害并摸一张牌。"..
   "此“军令”结算后，若存在进入濒死状态被救回的角色，你失去1点体力。",
+
+  ["#ld__aocai"] = "傲才：观看牌堆顶的两张牌，你可以使用或打出",
+  ["#ld__aocai_trigger"] = "傲才",
 
   ["$ld__aocai1"] = "哼，易如反掌。",
   ["$ld__aocai2"] = "吾主圣明，泽披臣属。",
@@ -1619,7 +1646,21 @@ local ld__xunxun = fk.CreateTriggerSkill{
     return target == player and player:hasSkill(self) and player.phase == Player.Draw
   end,
   on_use = function(self, event, target, player, data)
-    player.room:askForGuanxing(player, player.room:getNCards(4), {2, 2}, {2, 2})
+    local room = player.room
+    local ret = U.askForArrangeCards(player, self.name, {room:getNCards(4), "Bottom", "Top"}, "#xunxun", true, 0, {4, 2}, {0, 2})
+    local top, bottom = ret[2], ret[1]
+    for i = #top, 1, -1 do
+      table.insert(room.draw_pile, 1, top[i])
+    end
+    for i = 1, #bottom, 1 do
+      table.insert(room.draw_pile, bottom[i])
+    end
+    room:sendLog{
+      type = "#GuanxingResult",
+      from = player.id,
+      arg = #top,
+      arg2 = #bottom,
+    }
   end,
 }
 

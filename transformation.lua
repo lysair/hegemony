@@ -1142,7 +1142,7 @@ local jubao_move = fk.CreateTriggerSkill{
     for _, move in ipairs(data) do
       if move.from == player.id and move.to ~= move.from and move.toArea == Card.PlayerHand then
         for _, info in ipairs(move.moveInfo) do
-          if info.fromArea == Card.PlayerEquip and table.contains({Card.SubtypeTreasure}, Fk:getCardById(info.cardId).sub_type) then
+          if info.fromArea == Card.PlayerEquip and Fk:getCardById(info.cardId).sub_type == Card.SubtypeTreasure then
             return true
           end
         end
@@ -1158,7 +1158,7 @@ local jubao_move = fk.CreateTriggerSkill{
         local move_info = {}
         for _, info in ipairs(move.moveInfo) do
           local id = info.cardId
-          if info.fromArea == Card.PlayerEquip and table.contains({Card.SubtypeTreasure}, Fk:getCardById(id).sub_type) then
+          if info.fromArea == Card.PlayerEquip and Fk:getCardById(id).sub_type == Card.SubtypeTreasure then
             table.insert(ids, id)
           else
             table.insert(move_info, info)
