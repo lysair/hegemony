@@ -1029,7 +1029,7 @@ Fk:loadTranslationTable{
   ["$wk_heg__shucai2"] = "此间重任，公卿可担之。",
   ["~wk_heg__buzhi"] = "交州已定，主公尽可放心。",
 }
-
+--[[
 local huanfan = General(extension, "wk_heg__huanfan", "wei", 3, 3, General.Male)
 local liance_viewas = fk.CreateViewAsSkill{
   name = "#wk_heg__liance_viewas",
@@ -1209,6 +1209,7 @@ Fk:loadTranslationTable{
   ["$wk_heg__shilun2"] = "吾负十斗之囊，其盈一石之智。",
   ["~wk_heg__huanfan"] = "有良言而不用，君何愚哉……",
 }
+]]--
 
 local yangyi = General(extension, "wk_heg__yangyi", "shu", 3, 3, General.Male)
 local juanxia = fk.CreateTriggerSkill{
@@ -1665,9 +1666,11 @@ local duanyi = fk.CreateTriggerSkill{
   can_trigger = function(self, event, target, player, data)
     if player:hasSkill(self) then
       for _, v in pairs(data) do
-        if table.contains(Fk.generals[v]:getSkillNameList(), self.name) or (player:getMark("wk_heg__duanyi") ~= 0 and target ~= player and not target.dead) then
-          -- 先这样，藕合过于麻烦
-          return not ((player:getMark("wk_heg__duanyi") == 9 and target.phase == 9) or (player:getMark("wk_heg__duanyi") ~= 9 and target.phase ~= 9))
+        -- 先这样，藕合过于麻烦
+        if table.contains(Fk.generals[v]:getSkillNameList(), self.name) 
+         or (player:getMark("wk_heg__duanyi") ~= 0 and target ~= player and not target.dead
+          and not ((player:getMark("wk_heg__duanyi") == 9 and target.phase == 9) or (player:getMark("wk_heg__duanyi") ~= 9 and target.phase ~= 9))) then 
+          return true 
         end
       end
     end
@@ -1679,7 +1682,7 @@ local duanyi = fk.CreateTriggerSkill{
       player:drawCards(2, self.name)
       player.room:setPlayerMark(player, "wk_heg__duanyi", player.phase)
     else
-      local choices = {"wk_heg__duanyi_discard:"..target.id, "Cancel"}
+      local choices = {"wk_heg__duanyi_discard::"..target.id, "Cancel"}
       local choice = room:askForChoice(player, choices, self.name)
       if choice ~= "Cancel" then
         room:askForDiscard(target, 2, 2, true, self.name, false)
@@ -1758,7 +1761,8 @@ Fk:loadTranslationTable{
   ["wk_heg__guanning"] = "管宁",
   ["designer:wk_heg__guanning"] = "教父&朱古力",
   ["wk_heg__duanyi"] = "断义",
-  [":wk_heg__duanyi"] = "当你首次明置此武将牌后，你可摸两张牌，若如此做，其他角色明置武将牌后，若其明置武将牌的方式与你首次明置武将牌的方式不同，你可令其弃置两张牌。",
+  [":wk_heg__duanyi"] = "当你首次明置此武将牌后，你摸两张牌，且其他角色明置武将牌后，若其明置武将牌的方式与你首次明置武将牌的方式不同，你可令其弃置两张牌。<br />"..
+  "<font color = 'gray'>注：明置武将牌的方式，分为“回合开始时亮将”和“因技能亮将”两种形式。</font>",
   ["wk_heg__gaojie"] = "高节",
   [":wk_heg__gaojie"] = "锁定技，当你成为势备篇锦囊牌的目标时，取消之；当你获得带有“合纵”标记的牌后，你弃置之，然后回复1点体力。<br />"..
   "<font color = 'gray'>注：势备篇锦囊牌包括【勠力同心】【联军盛宴】【挟天子以令诸侯】【敕令】【调虎离山】【水淹七军】【火烧连营】。</font>",

@@ -3304,6 +3304,7 @@ Fk:loadTranslationTable{
 local battleRoyalVS = fk.CreateViewAsSkill{
   name = "battle_royal&",
   pattern = "slash,jink",
+  expand_pile = "carriage&",
   interaction = function()
     local names = {}
     if Fk.currentResponsePattern == nil and Self:canUse(Fk:cloneCard("slash")) then
@@ -3344,8 +3345,10 @@ local battleRoyalProhibit = fk.CreateProhibitSkill{
   prohibit_use = function(self, player, card)
     if not card or card.trueName ~= "peach" or #card.skillNames > 0 then return false end
     local subcards = Card:getIdList(card)
+    -- 带上木牛
+    local carriage_ids = player:getPile("carriage&")
     return #subcards > 0 and table.every(subcards, function(id)
-      return table.contains(player:getCardIds(Player.Hand), id)
+      return table.contains(player:getCardIds(Player.Hand), id) or table.contains(carriage_ids, id)
     end)
   end
 }
