@@ -1029,8 +1029,10 @@ Fk:loadTranslationTable{
   ["$wk_heg__shucai2"] = "此间重任，公卿可担之。",
   ["~wk_heg__buzhi"] = "交州已定，主公尽可放心。",
 }
---[[
-local huanfan = General(extension, "wk_heg__huanfan", "wei", 3, 3, General.Male)
+
+local huanfan = General(extension, "wk_heg__huanfan", "wei", 3)
+huanfan.hidden = true
+
 local liance_viewas = fk.CreateViewAsSkill{
   name = "#wk_heg__liance_viewas",
   interaction = function()
@@ -1209,7 +1211,6 @@ Fk:loadTranslationTable{
   ["$wk_heg__shilun2"] = "吾负十斗之囊，其盈一石之智。",
   ["~wk_heg__huanfan"] = "有良言而不用，君何愚哉……",
 }
-]]--
 
 local yangyi = General(extension, "wk_heg__yangyi", "shu", 3, 3, General.Male)
 local juanxia = fk.CreateTriggerSkill{
@@ -1809,13 +1810,13 @@ local yuchen_delay = fk.CreateTriggerSkill{
   name = "#wk_heg__yuchen_delay",
   events = {fk.EventPhaseEnd},
   anim_type = "support",
-  frequency = Skill.Compulsory,
   can_trigger = function (self, event, target, player, data)
     if not (target:getMark("@@wk_heg__yuchen-turn") > 0 and target.phase == Player.Play and player:usedSkillTimes(yuchen.name, Player.HistoryTurn) > 0 and player:isAlive()) then return false end
     return #player.room.logic:getActualDamageEvents(1, function(e)
       return e.data[1].from == target
     end, Player.HistoryPhase) == 0
   end,
+  on_cost = Util.TrueFunc,
   on_use = function (self, event, target, player, data)
     local room = player.room
     room:damage{
@@ -1832,7 +1833,7 @@ local mingsong = fk.CreateTriggerSkill{
   events = {fk.DamageCaused},
   anim_type = "support",
   can_trigger = function (self, event, target, player, data)
-    return player:hasSkill(self) and H.compareKingdomWith(player, target) and #target:getCardIds("e") > 0
+    return player:hasSkill(self) and target and H.compareKingdomWith(player, target) and #target:getCardIds("e") > 0
       and table.find(player.room.alive_players, function(p) return target:canMoveCardsInBoardTo(p, "e") end)
   end,
   on_cost = function(self, event, target, player, data)
@@ -1865,11 +1866,10 @@ local mingsong = fk.CreateTriggerSkill{
       end
     end
     if #targets > 0 then
-      local tmp = room:askForChoosePlayers(player, targets, 1, 1, "#wk_heg__mingsong-choose", self.name, true)
-      local ret = room:getPlayerById(tmp[1])
-      if ret.hp < ret.maxHp then
+      local to_heal = room:askForChoosePlayers(player, targets, 1, 1, "#wk_heg__mingsong-choose", self.name, true)
+      if #to_heal > 0 then
         room:recover{
-          who = ret,
+          who = room:getPlayerById(to_heal[1]),
           num = 1,
           recoverBy = player,
           skillName = self.name,
@@ -1907,14 +1907,14 @@ Fk:loadTranslationTable{
   ["wk_heg__yuchen"] = "驭臣",
   [":wk_heg__yuchen"] = "其他角色的结束阶段，若其本回合未造成过伤害，你可以交给其两张牌，令其执行一个额外的出牌阶段，若如此做，此额外的阶段结束时，若其于此阶段未造成过伤害，你对其造成1点伤害。",
   ["wk_heg__mingsong"] = "明讼",
-  [":wk_heg__mingsong"] = "与你势力相同的角色造成伤害时，你可以移动其装备区里的一张牌，防止此伤害，令一名体力值最小的角色回复1点体力，然后你将手牌摸或弃至X张（X为体力值最小的角色数，至多为你体力上限）",
+  [":wk_heg__mingsong"] = "与你势力相同的角色造成伤害时，你可以移动其装备区里的一张牌，防止此伤害，然后你可令一名体力值最小的角色回复1点体力，然后你将手牌摸或弃至X张（X为体力值最小的角色数，至多为你体力上限）",
 
   ["@@wk_heg__yuchen-turn"] = "驭臣",
   ["#wk_heg__yuchen_delay"] = "驭臣",
 
-  ["#wk_heg__yuchen-give"] = "驭臣：你可以交给其两张牌，令其执行一个额外的出牌阶段",
-  ["#wk_heg__mingsong-ask"] = "明讼：你可以选择一名角色，将 %dest 装备区内的一张牌移动至其装备区内，防止此伤害并令一名体力值最小的角色回复1点体力",
-  ["#wk_heg__mingsong-choose"] = "明讼：选择一名体力值最小的角色回复1点体力",
+  ["#wk_heg__yuchen-give"] = "驭臣：你可交给其两张牌，令其执行一个额外的出牌阶段",
+  ["#wk_heg__mingsong-ask"] = "明讼：你可选择一名角色，将 %dest 装备区内的一张牌移动至其装备区内，<br />防止此伤害并令一名体力值最小的角色回复1点体力",
+  ["#wk_heg__mingsong-choose"] = "明讼：你可选择一名体力值最小的角色回复1点体力",
 }
 
 local luji = General(extension, "wk_heg__luji", "wu", 3, 3, General.Male)
