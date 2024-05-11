@@ -403,11 +403,6 @@ H.askCommandTo = function(from, to, skill_name, isMust)
   --]]
   local index = H.startCommand(from, skill_name)
   local invoke = H.doCommand(to, skill_name, index, from, isMust)
-  local commandData = {
-    from = from,
-    to = to,
-  }
-  room.logic:trigger("fk.AfterCommandUse", nil, commandData)
   return invoke
 end
 
@@ -536,6 +531,7 @@ H.doCommand = function(to, skill_name, index, from, isMust)
       room:throwCard(cards, "command", to)
     end
   end
+  room.logic:trigger("fk.AfterCommandUse", nil, commandData)
   return true
 end
 
@@ -853,7 +849,7 @@ H.removeGeneral = function(room, player, isDeputy)
   --if player.kingdom == "unknown" then player:revealGeneral(isDeputy, true) end 
   player:revealGeneral(isDeputy, true) -- 先摆
 
-  if room.logic:trigger("fk.BeforeGeneralRemoved", player, isDeputy) then return true end
+  if room.logic:trigger("fk.GeneralRemoving", player, isDeputy) then return false end
 
   local orig = isDeputy and (player.deputyGeneral or "") or player.general
 

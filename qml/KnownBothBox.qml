@@ -85,6 +85,6 @@ GraphicsBox {
 
 
   function loadData(data) {
-    let [mainGeneral, deputyGeneral, seat] = data;
+    [mainGeneral, deputyGeneral, seat] = data;
   }
 }

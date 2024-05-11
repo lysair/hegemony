@@ -1832,7 +1832,7 @@ local fuman_trigger = fk.CreateTriggerSkill{
 local fuwei = fk.CreateTriggerSkill{
   name = "wk_heg__fuwei",
   anim_type = "support",
-  events = {"fk.BeforeGeneralRemoved", fk.EnterDying},
+  events = {"fk.GeneralRemoving", fk.EnterDying},
   can_trigger = function (self, event, target, player, data)
     if event == fk.EnterDying then 
       return player:hasSkill(self) and H.compareKingdomWith(player, target)
@@ -1845,7 +1845,7 @@ local fuwei = fk.CreateTriggerSkill{
   end,
   on_use = function (self, event, target, player, data)
     local room = player.room
-    if event == "fk.BeforeGeneralRemoved" then
+    if event == "fk.GeneralRemoving" then
       H.transformGeneral(room, target, not data)
       return true
     else
