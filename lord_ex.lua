@@ -221,7 +221,7 @@ local fangyuanTrigger = fk.CreateTriggerSkill{
   can_trigger = function(self, event, target, player, data)
     local prev_player = player:getLastAlive()
     local next_player = player:getNextAlive()
-    return player:hasSkill(self) and player.phase == Player.Finish and H.inSiegeRelation(prev_player, next_player, player) 
+    return player:hasSkill(self) and player.phase == Player.Finish and H.inSiegeRelation(prev_player, next_player, player)
       and #player.room.alive_players > 3
   end,
   on_cost = Util.TrueFunc,
@@ -250,7 +250,7 @@ local fangyuanCardTrig = fk.CreateTriggerSkill{ -- FIXME
   refresh_events = {fk.TurnStart, fk.GeneralRevealed, fk.EventAcquireSkill, "fk.RemoveStateChanged", fk.EventLoseSkill, fk.GeneralHidden},
   can_refresh = function(self, event, target, player, data)
     if event == fk.EventLoseSkill then return data == fangyuan
-    elseif event == fk.GeneralHidden then return player == target 
+    elseif event == fk.GeneralHidden then return player == target
     else return H.hasShownSkill(player, self.name, true, true) end
   end,
   on_refresh = function(self, event, target, player, data)
@@ -540,7 +540,7 @@ local tongdu = fk.CreateTriggerSkill{
           end
         end
         return false
-      end, Player.HistoryTurn) 
+      end, Player.HistoryTurn)
       if num > 0 then
         self.cost_data = math.min(3, num)
         return true
@@ -745,82 +745,56 @@ Fk:loadTranslationTable{
 
 local zhugeke = General(extension, "ld__zhugeke", "wu", 3)
 zhugeke:addCompanions("hs__dingfeng")
-local aocai = fk.CreateViewAsSkill{ -- FIXME
+local aocai = fk.CreateViewAsSkill{
   name = "ld__aocai",
   pattern = ".|.|.|.|.|basic",
-  anim_type = "special",
-  expand_pile = function() return U.getMark(Self, "_ld__aocai") end,
+  anim_type = "defensive",
   prompt = "#ld__aocai",
-  card_filter = function(self, to_select, selected)
-    if #selected == 0 and table.contains(U.getMark(Self, "_ld__aocai"), to_select) then
-      local card = Fk:getCardById(to_select)
-      if card.type == Card.TypeBasic then
-        if Fk.currentResponsePattern == nil then
-          return Self:canUse(card) and not Self:prohibitUse(card)
-        else
-          return Exppattern:Parse(Fk.currentResponsePattern):match(card)
-        end
-      end
-    end
+  card_filter = Util.FalseFunc,
+  interaction = function()
+    --FIXME: 不支持平辽（打出一张特定颜色的牌）、使用一张基本牌（因为不能正确地选择目标）的技能
+    --FIXME: 建议简化为只能使用【杀】、【闪】、【桃】、【酒】（管宁直呼内行）
+    --FIXME: 多牌名时会显示英文
+    --FIXME: 不支持鏖战（需要特判）
+    local names = U.getViewAsCardNames(Self, "ld__aocai", U.getAllCardNames("b", true))
+    return UI.ComboBox {choices = { table.concat(names, ",") }}
   end,
   view_as = function(self, cards)
-    if #cards ~= 1 then return end
-    return Fk:getCardById(cards[1])
+    if self.interaction.data == nil or self.interaction.data == "" then return end
+    local names = string.split(self.interaction.data, ",")
+    if #names > 0 then
+      local card = Fk:cloneCard(names[1])
+      card:setMark("aocai_names", names)
+      return card
+    end
+  end,
+  before_use = function(self, player, use)
+    local room = player.room
+    local names = use.card:getMark("aocai_names")
+    local cards = room:getNCards(2)
+    table.insert(room.draw_pile, 1, cards[2])
+    table.insert(room.draw_pile, 1, cards[1])
+    --FIXME: 需要判断合法性，但是没法区分是使用还是打出
+    local ids = table.filter(cards, function (id)
+      return table.contains(names, Fk:getCardById(id).trueName)
+    end)
+    cards = room:askForCard(player, 1, 1, false, self.name, true, tostring(Exppattern{ id = ids }), "#ld__aocai-choose", cards)
+    if #cards > 0 then
+      use.card = Fk:getCardById(cards[1])
+    else
+      return self.name
+    end
   end,
   enabled_at_play = Util.FalseFunc,
   enabled_at_response = function(self, player, response)
-    return player.phase == Player.NotActive and player:hasShownSkill(self)
+    return player.phase == Player.NotActive
   end,
 }
-local aocai_trigger = fk.CreateTriggerSkill{
-  name = "#ld__aocai_trigger",
-  mute = true,
-  events = {fk.AskForCardUse, fk.AskForCardResponse},
-  can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(aocai) and player:isFakeSkill(aocai) and player ~= player.room.current
-  end,
-  on_use = function(self, event, target, player, data)
-    player:revealBySkillName(aocai.name)
-    local room = player.room
-    if #room.draw_pile < 2 then
-      room:shuffleDrawPile()
-      if #room.draw_pile < 2 then
-        room:sendLog{
-          type = "#NoCardDraw",
-          toast = true,
-        }
-        room:gameOver("")
-      end
-    end
-    local ids = table.slice(room.draw_pile, 1, 3)
-    room:setPlayerMark(player, "_ld__aocai", ids)
-  end,
-
-  refresh_events = {fk.AskForCardUse, fk.AskForCardResponse},
-  can_refresh = function(self, event, target, player, data)
-    return target == player and player:hasShownSkill(aocai.name) and player ~= player.room.current
-  end,
-  on_refresh = function(self, event, target, player, data)
-    local room = player.room
-    if #room.draw_pile < 2 then
-      room:shuffleDrawPile()
-      if #room.draw_pile < 2 then
-        room:sendLog{
-          type = "#NoCardDraw",
-          toast = true,
-        }
-        room:gameOver("")
-      end
-    end
-    local ids = table.slice(room.draw_pile, 1, 3)
-    room:setPlayerMark(player, "_ld__aocai", ids)
-  end,
-}
-
 local duwu = fk.CreateActiveSkill{
   name =  "ld__duwu",
   frequency = Skill.Limited,
-  anim_type = "support",
+  anim_type = "offensive",
+  prompt = "#ld__duwu-active",
   can_use = function(self, player)
     return player:usedSkillTimes(self.name, Player.HistoryGame) == 0
   end,
@@ -830,9 +804,13 @@ local duwu = fk.CreateActiveSkill{
     local index = H.startCommand(player, self.name)
     local targets = table.map(table.filter(room.alive_players, function(p) return not H.compareKingdomWith(player, p) and player:inMyAttackRange(p)  end), Util.IdMapper)
     if #targets > 0 then
-      room:handleAddLoseSkills(player, "#ld__duwu_trigger", nil)
       room:doIndicate(player.id, targets)
       room:sortPlayersByAction(targets)
+      local x = 0
+      local events = room.logic.event_recorder[GameEvent.Dying]
+      if events then
+        x = #events
+      end
       for _, pid in ipairs(targets) do
         local p = room:getPlayerById(pid)
         if player.dead then break end
@@ -843,34 +821,26 @@ local duwu = fk.CreateActiveSkill{
             damage = 1,
             skillName = self.name,
           }
-          player:drawCards(1, self.name)
+          if not player.dead then
+            player:drawCards(1, self.name)
+          end
         end
       end
-      room:handleAddLoseSkills(player, "-#ld__duwu_trigger", nil)
-      if #table.filter(room.alive_players, function(p) return p:getMark("ld__duwu_delay-phase") == 1 end) > 0 then
-        room:loseHp(player, 1, self.name)
+      if not player.dead then
+        events = room.logic.event_recorder[GameEvent.Dying]
+        if events then
+          for i = x + 1, #events, 1 do
+            if not room:getPlayerById(events[i].data[1].who).dead then
+              room:loseHp(player, 1, self.name)
+              break
+            end
+          end
+        end
       end
-    end 
+    end
   end,
 }
-
-local duwu_trigger = fk.CreateTriggerSkill{
-  name = "#ld__duwu_trigger",
-  mute = true,
-  events = {fk.AfterDying},
-  can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self) and not player.dead and not target.dead
-  end,
-  on_cost = Util.TrueFunc,
-  on_use = function(self, event, target, player, data)
-    local room = player.room
-    room:setPlayerMark(target, "ld__duwu_delay-phase", 1)
-  end,
-}
-
-aocai:addRelatedSkill(aocai_trigger)
 zhugeke:addSkill(aocai)
-Fk:addSkill(duwu_trigger)
 zhugeke:addSkill(duwu)
 
 Fk:loadTranslationTable{
@@ -885,8 +855,9 @@ Fk:loadTranslationTable{
   [":ld__duwu"] = "限定技，出牌阶段，你可以选择一个“军令”，你对你攻击范围内所有与你势力不同或未确定势力的角色发起此“军令”，若其不执行，你对其造成1点伤害并摸一张牌。"..
   "此“军令”结算后，若存在进入濒死状态被救回的角色，你失去1点体力。",
 
-  ["#ld__aocai"] = "傲才：观看牌堆顶的两张牌，你可以使用或打出",
-  ["#ld__aocai_trigger"] = "傲才",
+  ["#ld__aocai"] = "发动 傲才，观看牌堆顶的两张牌，并可以使用或打出其中你需要的基本牌",
+  ["#ld__aocai-choose"] = "傲才：选择你需要使用或打出的基本牌",
+  ["#ld__duwu-active"] = "发动 黩武，令攻击范围内所有与你势力不同的角色执行“军令”",
 
   ["$ld__aocai1"] = "哼，易如反掌。",
   ["$ld__aocai2"] = "吾主圣明，泽披臣属。",
@@ -1171,7 +1142,7 @@ local bushi = fk.CreateTriggerSkill{
   anim_type = "defensive",
   events = {fk.EventPhaseStart},
   can_trigger = function (self, event, target, player, data)
-    return player:hasSkill(self) and target.phase == Player.Finish 
+    return player:hasSkill(self) and target.phase == Player.Finish
       and player:getMark("ld__bushi-turn") > 0 and #player:getPile("ld__midao_rice") > 0
   end,
   on_cost = function(self, event, target, player, data)
@@ -1282,7 +1253,7 @@ Fk:loadTranslationTable{
   ["#ld__bushi_discard"] = "布施：你可以移去一张“米”，令至多你体力上限名角色各摸一张牌。",
   ["#ld__bushi"] = "布施：你可以将一张牌置于张鲁武将牌上，称为“米”。",
 
-  ["#ld__midao-ask"] = "米道：你可打出一张牌替换 %dest 的 %arg 判定",   
+  ["#ld__midao-ask"] = "米道：你可打出一张牌替换 %dest 的 %arg 判定",
   ["#ld__midao"] = "米道：请将两张牌置于武将牌上，称为“米”。",
 
   ["ld__midao_rice"] = "米",
@@ -1324,7 +1295,7 @@ local fengshih_back = fk.CreateTriggerSkill{
       and player:getHandcardNum() < player.room:getPlayerById(data.from):getHandcardNum()
   end,
   on_cost = function (self, event, target, player, data)
-    return player.room:askForSkillInvoke(player.room:getPlayerById(data.from), self.name, nil, "#ld__fengshih_back-ask:" .. player.id) 
+    return player.room:askForSkillInvoke(player.room:getPlayerById(data.from), self.name, nil, "#ld__fengshih_back-ask:" .. player.id)
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
@@ -1590,7 +1561,7 @@ local xingzhao = fk.CreateTriggerSkill{
             end
           end
         end
-      else 
+      else
         return #table.filter(player.room.alive_players, function(p) return p:isWounded() end) > 2
       end
     end
@@ -1920,7 +1891,7 @@ local zhengjian = fk.CreateTriggerSkill{
   can_trigger = function (self, event, target, player, data)
     if not (H.compareKingdomWith(player, target) and target.phase == Player.Finish and player:hasSkill(self)) then return false end
     if target:getMark("@!companion") ~= 0 then return end
-    local events = target.room.logic:getEventsOfScope(GameEvent.UseCard, 999, function(e) 
+    local events = target.room.logic:getEventsOfScope(GameEvent.UseCard, 999, function(e)
       local use = e.data[1]
       return use.from == target.id
     end, Player.HistoryTurn)
@@ -2098,7 +2069,7 @@ local tongling = fk.CreateTriggerSkill{
           if card.skill:modTargetFilter(victim, {}, user.id, card, true) and not table.contains(selfCards, card.name) and card.type ~= Card.TypeEquip then -- FIXME
             table.insert(cardNames, card.name)
           end
-          if card.trueName == "slash" then 
+          if card.trueName == "slash" then
             table.insert(cardNames, card.name)
           end
         end
@@ -2709,7 +2680,7 @@ Fk:loadTranslationTable{
   ["xiongnve_effect1"] = "增加伤害",
   ["xiongnve_effect2"] = "造伤拿牌",
   ["xiongnve_effect3"] = "无限用牌",
-  
+
   ["#xiongnve_delay"] = "凶虐",
 
   ["$shilus1"] = "以杀立威，谁敢反我？",
