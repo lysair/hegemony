@@ -784,7 +784,11 @@ local fenghuotu = fk.CreateTriggerSkill{
     if event == fk.EventPhaseStart then
       return H.compareKingdomWith(player, target) and player:hasSkill(self) and #player:getPile("lord_fenghuo") > 0 and target.phase == Player.Start
     else
-      return player == target and player:hasSkill(self) and data.card and #player:getPile("lord_fenghuo") > 0 and (data.card.type == Card.TypeTrick or data.card.trueName == "slash")
+      local type_remove = data.card and (data.card.type == Card.TypeTrick or data.card.trueName == "slash")
+      if table.find(player.room.alive_players, function (p) return p:getMark("@@wk_heg__huanglong_change") ~= 0 end) then
+        type_remove = data.card and (data.card.trueName == "slash")
+      end
+      return player == target and player:hasSkill(self) and #player:getPile("lord_fenghuo") > 0 and type_remove
     end
   end,
   on_cost = function (self, event, target, player, data)
@@ -1303,7 +1307,7 @@ local luminousPearlTrig = fk.CreateTriggerSkill{
   name = "#luminous_pearl_trigger",
   refresh_events = {fk.EventAcquireSkill, fk.EventLoseSkill},
   can_refresh = function(self, event, target, player, data)
-    return player == target and (data == Fk.skills["hs__zhiheng"] or data == Fk.skills["ld__lordsunquan_zhiheng"]) and table.find(player:getEquipments(Card.SubtypeTreasure), function(cid)
+    return player == target and (data == Fk.skills["hs__zhiheng"] or data == Fk.skills["ld__lordsunquan_zhiheng"] or data == Fk.skills["wk_heg__zhiheng"]) and table.find(player:getEquipments(Card.SubtypeTreasure), function(cid)
       return Fk:getCardById(cid).name == "luminous_pearl"
     end)
   end,
@@ -1321,7 +1325,7 @@ local luminousPearl = fk.CreateTreasure{
   equip_skill = luminousPearlSkill,
   on_install = function(self, room, player)
     Treasure.onInstall(self, room, player)
-    if (player:hasSkill("hs__zhiheng") or player:hasSkill("ld__lordsunquan_zhiheng")) then room:handleAddLoseSkills(player, "-luminous_pearl_skill", nil, false, true) end
+    if (player:hasSkill("hs__zhiheng") or player:hasSkill("ld__lordsunquan_zhiheng") or player:hasSkill("wk_heg__zhiheng")) then room:handleAddLoseSkills(player, "-luminous_pearl_skill", nil, false, true) end
   end,
 }
 H.addCardToConvertCards(luminousPearl, "six_swords")

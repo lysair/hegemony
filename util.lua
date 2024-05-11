@@ -853,6 +853,8 @@ H.removeGeneral = function(room, player, isDeputy)
   --if player.kingdom == "unknown" then player:revealGeneral(isDeputy, true) end 
   player:revealGeneral(isDeputy, true) -- 先摆
 
+  if room.logic:trigger("fk.BeforeGeneralRemoved", player, isDeputy) then return true end
+
   local orig = isDeputy and (player.deputyGeneral or "") or player.general
 
   if orig:startsWith("blank_") then return false end
