@@ -1445,7 +1445,7 @@ local fenduan = fk.CreateTriggerSkill{
   relate_to_place = "m",
   events = {"fk.ChooseDoCommand", "fk.AfterCommandUse"},
   can_trigger = function (self, event, target, player, data)
-    return player:hasSkill(self) and data.to == player and (event == "fk.AfterCommandUse" or not player.chained)
+    return player:hasSkill(self) and target == player and (event == "fk.AfterCommandUse" or not player.chained)
   end,
   on_cost = function (self, event, target, player, data)
     if event == "fk.ChooseDoCommand" then

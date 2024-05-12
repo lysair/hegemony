@@ -19,6 +19,8 @@ GraphicsBox {
   width: generalArea.width + body.anchors.leftMargin + body.anchors.rightMargin
   height: body.implicitHeight + body.anchors.topMargin + body.anchors.bottomMargin
 
+
+
   Column {
     id: body
     anchors.fill: parent
@@ -82,9 +84,12 @@ GraphicsBox {
     }
   }
 
-
-
   function loadData(data) {
     [mainGeneral, deputyGeneral, seat] = data;
+
+    if (lcall("IsCompanionWith", mainGeneral, deputyGeneral)) {
+      mainGeneralCard.hasCompanions = true;
+      deputyGeneralCard.hasCompanions = true;
+    }
   }
 }

@@ -476,7 +476,10 @@ H.doCommand = function(to, skill_name, index, from, isMust)
     to = to,
     command = index,
   }
-  if room.logic:trigger("fk.ChooseDoCommand", nil, commandData) then return true end
+  if room.logic:trigger("fk.ChooseDoCommand", to, commandData) then
+    room.logic:trigger("fk.AfterCommandUse", to, commandData)
+    return false
+  end
   if index == 1 then
     local dest = room:askForChoosePlayers(from, table.map(room.alive_players, Util.IdMapper), 1, 1, "#command1-damage::" .. to.id, skill_name)[1]
     room:sendLog{
@@ -531,7 +534,7 @@ H.doCommand = function(to, skill_name, index, from, isMust)
       room:throwCard(cards, "command", to)
     end
   end
-  room.logic:trigger("fk.AfterCommandUse", nil, commandData)
+  room.logic:trigger("fk.AfterCommandUse", to, commandData)
   return true
 end
 
@@ -905,7 +908,7 @@ H.transformGeneral = function(room, player, isMain)
     table.insert(existingGenerals, H.getActualGeneral(p, false))
     table.insert(existingGenerals, H.getActualGeneral(p, true))
   end
-  room.logic:trigger("fk.GeneralTransforming", player, orig)
+  if room.logic:trigger("fk.GeneralTransforming", player, orig) then return false end
   local kingdom = player:getMark("__heg_kingdom")
   if kingdom == "wild" then
     kingdom = player:getMark("__heg_init_kingdom")
