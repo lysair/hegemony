@@ -920,7 +920,7 @@ H.transformGeneral = function(room, player, isMain)
   table.removeOne(generals, general)
   table.insert(generals, orig)
   room:returnToGeneralPile(generals)
-  room:changeHero(player, general, false, not isMain, true, false)
+  room:changeHero(player, general, false, not isMain, true, false, false)
   room:setPlayerMark(player, isMain and "__heg_general" or "__heg_deputy", general)
 end
 
