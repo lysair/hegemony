@@ -529,7 +529,7 @@ local function AskForBuildCountry(room, player, generalName, isActive)
       local choice = room:askForChoice(p, choices, "#heg_rule", "#wild_join-choose")
       if choice ~= "Cancel" then
         p.role = player.role
-        player.role_shown = true
+        p.role_shown = true
         room:broadcastProperty(p, "role")
         room:sendLog{
           type = "#WildChooseKingdom",

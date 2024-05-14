@@ -717,7 +717,7 @@ local yichi = fk.CreateActiveSkill{
         room:obtainCard(winner, card, false, fk.ReasonPrey)
       end
     end
-    if pindian.fromCard.color ~= pindian.results[target.id].toCard.color and not player.dead then
+    if pindian.fromCard:compareColorWith(pindian.results[target.id].toCard, true) and not player.dead then
       player:drawCards(1, self.name)
     end
   end,

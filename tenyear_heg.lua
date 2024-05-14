@@ -690,14 +690,14 @@ local boyan = fk.CreateActiveSkill{
 local boyan_prohibit = fk.CreateProhibitSkill{
   name = "#ty_heg__boyan_prohibit",
   prohibit_use = function(self, player, card)
-    if player:getMark("@@ty_heg__boyan-turn") == 0 then return false end 
+    if player:getMark("@@ty_heg__boyan-turn") == 0 then return false end
     local subcards = Card:getIdList(card)
     return #subcards > 0 and table.every(subcards, function(id)
       return table.contains(player:getCardIds(Player.Hand), id)
     end)
   end,
   prohibit_response = function(self, player, card)
-    if player:getMark("@@ty_heg__boyan-turn") == 0 then return false end 
+    if player:getMark("@@ty_heg__boyan-turn") == 0 then return false end
     local subcards = Card:getIdList(card)
     return #subcards > 0 and table.every(subcards, function(id)
       return table.contains(player:getCardIds(Player.Hand), id)
@@ -713,9 +713,7 @@ local boyan_mn = fk.CreateActiveSkill{
   can_use = function(self, player)
     return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
   end,
-  card_filter = function(self, to_select, selected)
-    return false
-  end,
+  card_filter = Util.FalseFunc,
   target_filter = function(self, to_select, selected)
     return #selected == 0 and to_select ~= Self.id
   end,

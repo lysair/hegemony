@@ -2577,8 +2577,8 @@ local ceci = fk.CreateTriggerSkill{
       player:drawCards(player.maxHp - player:getHandcardNum(), self.name)
     end
     local targets = table.map(table.filter(room.alive_players, function(p)
-      return H.compareKingdomWith(p, player) and (p:hasSkill("wk_heg__zhiheng") or p:hasSkill("hs__zhiheng") 
-       or p:hasSkill("ld__lordsunquan_zhiheng") or p:hasSkill("luminous_pearl_skill")) end), Util.IdMapper)
+      return H.compareKingdomWith(p, player) and (p:hasSkill("wk_heg__zhiheng") or p:hasSkill("hs__zhiheng")
+        or p:hasSkill("ld__lordsunquan_zhiheng") or p:hasSkill("luminous_pearl_skill")) end), Util.IdMapper)
     if #targets > 0 then
       local tos = room:askForChoosePlayers(player, targets, 1, 1, "#wk_heg__ceci-choose", self.name, false)
       local to = room:getPlayerById(tos[1])
@@ -2591,13 +2591,14 @@ local ceci = fk.CreateTriggerSkill{
 
 local wk_heg__zhiheng_detach = fk.CreateTriggerSkill{
   name = "#wk_heg__zhiheng_detach",
-  refresh_events = {fk.TurnStart},
-  can_refresh = function(self, event, target, player, data)
-    return target == player and player:hasSkill("wk_heg__zhiheng", true, true) 
+  events = {fk.TurnStart},
+  mute = true,
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill("wk_heg__zhiheng", true, true)
   end,
-  on_refresh = function(self, event, target, player, data)
-    local room = player.room
-    room:handleAddLoseSkills(player, "-wk_heg__zhiheng", nil)
+  on_cost = Util.TrueFunc,
+  on_use = function(self, event, target, player, data)
+    player.room:handleAddLoseSkills(player, "-wk_heg__zhiheng", nil)
   end,
 }
 
@@ -2836,29 +2837,29 @@ sunshao:addSkill(ceci)
 
 wk_heg__jubao:addRelatedSkill(wk_heg__jubao_move)
 wk_heg__zhiheng:addRelatedSkill(wk_heg__zhiheng_detach)
-Fk:addSkill(wk_heg__zhiheng)
+sunshao:addRelatedSkill(wk_heg__zhiheng)
 sunshao:addRelatedSkill(huanglong)
 
-Fk:addSkill(wk_heg__jiahe)
-Fk:addSkill(wk_heg__jubao)
+sunshao:addRelatedSkill(wk_heg__jiahe)
+sunshao:addRelatedSkill(wk_heg__jubao)
 Fk:addSkill(wk_heg__fenghuotu)
 Fk:addSkill(wk_heg__jiaheOther)
 
 Fk:loadTranslationTable{
   ["wk_heg__sunshao"] = "孙邵",
-  ["designer:wk_heg__sunshao"] = "教父&祭祀&二四&边缘&风箫",
+  ["designer:wk_heg__sunshao"] = "教父&祭祀&<br />二四&边缘&风箫", -- UI问题
   ["wk_heg__bizheng"] = "弼政",
-  [":wk_heg__bizheng"] = "每回合限一次，当前回合角色的牌因弃置而置入弃牌堆后，你可获得之并将X张牌置于牌堆顶，然后其获得“制衡”直至其回合开始。（X为其已明置武将牌上技能数）",
+  [":wk_heg__bizheng"] = "每回合限一次，当前回合角色的牌因弃置而置入弃牌堆后，你可获得之并将X张牌置于牌堆顶，然后其获得〖制衡〗直至其回合开始。（X为其已明置武将牌上技能数）",
   ["wk_heg__ceci"] = "册辞",
-  [":wk_heg__ceci"] = "每轮结束时，你可将手牌摸至体力上限，然后若存在与你势力相同且拥有“制衡”的角色，其获得“黄龙”，你变更此武将牌。",
+  [":wk_heg__ceci"] = "每轮结束时，你可将手牌摸至体力上限，然后若存在与你势力相同且拥有〖制衡〗的角色，其获得〖黄龙〗，你变更此武将牌。",
 
   ["wk_heg__huanglong"] = "黄龙",
-  [":wk_heg__huanglong"] = "锁定技，若存在拥有“嘉禾”的角色，你令其失去“烽火”的条件删去“受到锦囊牌造成的伤害后”，否则你视为拥有“嘉禾”和“聚宝”。",
+  [":wk_heg__huanglong"] = "锁定技，若存在拥有〖嘉禾〗的角色，你令其失去〖烽火〗的条件删去“受到锦囊牌造成的伤害后”，否则你视为拥有〖嘉禾〗和〖聚宝〗。",
 
-  ["#wk_heg__ceci-choose"] = "册辞：选择一名与你势力相同且拥有“制衡”的角色，其获得“黄龙”",
+  ["#wk_heg__ceci-choose"] = "册辞：选择一名与你势力相同且拥有〖制衡〗的角色，其获得〖黄龙〗",
 
   ["wk_heg__zhiheng"] = "制衡",
-  [":wk_heg__zhiheng"] = "出牌阶段限一次，你可弃置至多X张牌（X为你的体力上限），摸等量的牌。<font color='grey'><small>此为【制衡（弼政）】</small></font>",
+  [":wk_heg__zhiheng"] = "出牌阶段限一次，你可弃置至多X张牌（X为你的体力上限），摸等量的牌。<font color='grey'><small>此为〖制衡（弼政）〗</small></font>",
   ["@@wk_heg__huanglong_skill"] = "黄龙 拥有技能",
   ["@@wk_heg__huanglong_change"] = "黄龙 加强技能",
 
