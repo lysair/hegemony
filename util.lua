@@ -92,11 +92,13 @@ end
 
 --- 获取势力角色数列表，注意键unknown的值为nil
 ---@param room AbstractRoom @ 房间
----@param player Player @ 角色
+---@param player? Player @ 角色，与此角色相同的势力，填写则覆盖``kingdom``
+---@param kingdom? string @ 势力，与``player``参数至少要填写一个
 ---@param include_dead? boolean @ 包括死人
 ---@return integer
-H.getSameKingdomPlayersNum = function(room, player, include_dead)
-  local kingdom = H.getKingdom(player)
+H.getSameKingdomPlayersNum = function(room, player, kingdom, include_dead)
+  assert(player or kingdom, "must provide player or kingdom")
+  if player then kingdom = H.getKingdom(player) end
   if kingdom == "unknown" then return 0 end
   local ret = 0
   for _, p in ipairs(include_dead and room.players or room.alive_players) do

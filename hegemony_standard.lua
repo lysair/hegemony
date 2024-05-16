@@ -3345,10 +3345,8 @@ local battleRoyalProhibit = fk.CreateProhibitSkill{
   prohibit_use = function(self, player, card)
     if not card or card.trueName ~= "peach" or #card.skillNames > 0 then return false end
     local subcards = Card:getIdList(card)
-    -- 带上木牛
-    local carriage_ids = player:getPile("carriage&")
     return #subcards > 0 and table.every(subcards, function(id)
-      return table.contains(player:getCardIds(Player.Hand), id) or table.contains(carriage_ids, id)
+      return table.contains(player:getHandlyIds(true), id)
     end)
   end
 }

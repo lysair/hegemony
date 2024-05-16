@@ -590,7 +590,7 @@ local wuxin = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    local num = H.getKingdomPlayersNum(room)[H.getKingdom(player)]
+    local num = H.getSameKingdomPlayersNum(room, nil, "qun")
     if player:hasSkill("hongfa") then
       num = num + #player:getPile("heavenly_army")
     end
@@ -734,7 +734,7 @@ local heavenly_army_skill_trig = fk.CreateTriggerSkill{
     if event == fk.EventPhaseStart then
       player:broadcastSkillInvoke("hongfa", math.random(2, 3))
       room:notifySkillInvoked(player, "heavenly_army_skill&", "control")
-      player:addToPile("heavenly_army", room:getNCards(H.getKingdomPlayersNum(room)["qun"]), true, self.name)
+      player:addToPile("heavenly_army", room:getNCards(H.getSameKingdomPlayersNum(room, nil, "qun") + #player:getPile("heavenly_army")), true, self.name)
     else
       player:broadcastSkillInvoke("hongfa", 6)
       room:notifySkillInvoked(player, "heavenly_army_skill&", "defensive")
@@ -845,7 +845,7 @@ local peace_spell_maxcards = fk.CreateMaxCardsSkill{
       if player.kingdom == "unknown" then
         return 1
       else
-        local num = H.getKingdomPlayersNum(Fk:currentRoom())[H.getKingdom(player)]
+        local num = H.getSameKingdomPlayersNum(Fk:currentRoom(), nil, "qun")
         return (num or 0) + #player:getPile("heavenly_army")
       end
     end

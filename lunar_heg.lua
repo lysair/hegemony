@@ -504,7 +504,7 @@ liuyong:addSkill(fengxiang)
 Fk:loadTranslationTable{
   ["fk_heg__liuyong"] = "刘永",
   ["#fk_heg__liuyong"] = "甘陵王",
-	["illustrator:fk_heg__liuyong"] = "君桓文化",
+  ["illustrator:fk_heg__liuyong"] = "君桓文化",
   ["designer:fk_heg__liuyong"] = "陈桓",
 
   ["fk_heg__danxin"] = "丹心",

@@ -350,16 +350,15 @@ local allianceFeastSkill = fk.CreateActiveSkill{
   on_use = function(self, room, use)
     local card = use.card
     local player = room:getPlayerById(use.from)
-    local num = 0
+    local kingdom
     if use.tos and #TargetGroup:getRealTargets(use.tos) > 0 then
       for _, pid in ipairs(TargetGroup:getRealTargets(use.tos)) do
         if pid ~= use.from then
-          num = 1
           local _p = room:getPlayerById(pid)
+          kingdom = H.getKingdom(_p)
           for _, p in ipairs(room:getAlivePlayers()) do
             if H.compareKingdomWith(p, _p) and p ~= _p and player:canUseTo(use.card, p) then
               TargetGroup:pushTargets(use.tos, p.id)
-              num = num + 1
             end
           end
           break
@@ -372,13 +371,13 @@ local allianceFeastSkill = fk.CreateActiveSkill{
       use.tos = { {use.from} }
     end
     use.extra_data = use.extra_data or {}
-    use.extra_data.AFNum = num
+    use.extra_data.AFTargetKingdom = kingdom
   end,
   on_effect = function(self, room, cardEffectEvent)
     local from = room:getPlayerById(cardEffectEvent.from)
     local to = room:getPlayerById(cardEffectEvent.to)
     if from == to then
-      local num = (cardEffectEvent.extra_data or {}).AFNum
+      local num = H.getSameKingdomPlayersNum(room, nil, (cardEffectEvent.extra_data or {}).AFTargetKingdom)
       local choices = {}
       for i = 0, math.min(num, from:getLostHp()) do
         table.insert(choices, "#AFrecover:::" .. i .. ":" .. num - i)
