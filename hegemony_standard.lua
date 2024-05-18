@@ -3330,11 +3330,13 @@ local battleRoyalVS = fk.CreateViewAsSkill{
     return card
   end,
   enabled_at_play = function(self, player)
+    if player:getMark("_heg__BattleRoyalMode_ignore") ~= 0 then return false end
     return table.find(player:getHandlyIds(true), function (id)
       return Fk:getCardById(id).trueName == "peach"
     end)
   end,
   enabled_at_response = function(self, player)
+    if player:getMark("_heg__BattleRoyalMode_ignore") ~= 0 then return false end
     return table.find(player:getHandlyIds(true), function (id)
       return Fk:getCardById(id).trueName == "peach"
     end)
@@ -3343,7 +3345,7 @@ local battleRoyalVS = fk.CreateViewAsSkill{
 local battleRoyalProhibit = fk.CreateProhibitSkill{
   name = "#battle_royal_prohibit&",
   prohibit_use = function(self, player, card)
-    if not card or card.trueName ~= "peach" or #card.skillNames > 0 then return false end
+    if not card or card.trueName ~= "peach" or #card.skillNames > 0 or player:getMark("_heg__BattleRoyalMode_ignore") ~= 0 then return false end
     local subcards = Card:getIdList(card)
     return #subcards > 0 and table.every(subcards, function(id)
       return table.contains(player:getHandlyIds(true), id)
@@ -3358,6 +3360,9 @@ Fk:loadTranslationTable{
   ["battle_royal&"] = "鏖战",
   [":battle_royal&"] = "非转化的【桃】只能当【杀】或【闪】使用或打出。",
   ["#battle_royal_prohibit&"] = "鏖战",
+
+  ["_heg__BattleRoyalMode_ignore"] = "无视鏖战",
+
 }
 
 return extension

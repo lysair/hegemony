@@ -480,7 +480,7 @@ H.doCommand = function(to, skill_name, index, from, isMust)
   }
   if room.logic:trigger("fk.ChooseDoCommand", to, commandData) then
     room.logic:trigger("fk.AfterCommandUse", to, commandData)
-    return false
+    return true
   end
   if index == 1 then
     local dest = room:askForChoosePlayers(from, table.map(room.alive_players, Util.IdMapper), 1, 1, "#command1-damage::" .. to.id, skill_name)[1]

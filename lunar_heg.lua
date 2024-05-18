@@ -1238,4 +1238,5 @@ Fk:loadTranslationTable{
   -- ["$fk_heg__mingce2"] = "如此，一击可擒也。",
   ["~fk_heg__chengong"] = "请出就戮！",
 }
+
 return extension
