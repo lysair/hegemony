@@ -1909,10 +1909,10 @@ local yuchen = fk.CreateTriggerSkill{
   end,
   on_cost = function (self, event, target, player, data)
     local cards = player.room:askForCard(player, 2, 2, true, self.name, true, ".", "#wk_heg__yuchen-give")
-      if #cards == 2 then
-        self.cost_data = cards
-        return true
-      end
+    if #cards == 2 then
+      self.cost_data = cards
+      return true
+    end
   end,
   on_use = function (self, event, target, player, data)
     local room = player.room
@@ -2365,7 +2365,7 @@ local shefu = fk.CreateTriggerSkill{
   on_cost = function (self, event, target, player, data)
     local success, dat = player.room:askForUseActiveSkill(player, "#wk_heg__shefu_viewas", "#wk_heg__shefu-use", true)
     if success then
-      self.cost_data = dat 
+      self.cost_data = dat
       return true
     end
   end,
@@ -2406,7 +2406,7 @@ local danli = fk.CreateTriggerSkill{
     local kingdom = H.getKingdom(player)
     for _, p in ipairs(room:getAlivePlayers()) do
       if p.kingdom == "unknown" and not p.dead then
-        if H.getKingdomPlayersNum(room)[kingdom] >= #room.players // 2 and not table.find(room.alive_players, function(p) return p.general == "ld__lordcaocao" end) then break end
+        if H.getKingdomPlayersNum(room)[kingdom] >= #room.players // 2 and not table.find(room.alive_players, function(_p) return _p.general == "ld__lordcaocao" end) then break end
         local main, deputy = false, false
         if H.compareExpectedKingdomWith(p, player) then
           local general = Fk.generals[p:getMark("__heg_general")]

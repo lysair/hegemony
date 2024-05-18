@@ -636,6 +636,7 @@ local anjing = fk.CreateTriggerSkill{
   on_use = function (self, event, target, player, data)
     local room = player.room
     local targets = table.map(table.filter(room.alive_players, function(p) return H.compareKingdomWith(p, player) end), Util.IdMapper)
+    room:doIndicate(player.id, targets)
     room:sortPlayersByAction(targets)
     for _, pid in ipairs(targets) do
       local p = room:getPlayerById(pid)

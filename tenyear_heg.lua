@@ -16,8 +16,7 @@ local wanggui = fk.CreateTriggerSkill{
   mute = true,
   events = {fk.Damage, fk.Damaged},
   can_trigger = function(self, event, target, player, data)
-    if target ~= player or not player:hasSkill(self) or player:usedSkillTimes(self.name) > 0 then return false end
-    return not player:isFakeSkill(self) -- 此武将已明置
+    return target == player and player:hasShownSkill(self) and player:usedSkillTimes(self.name) == 0
   end,
   on_cost = function(self, event, target, player, data)
     local room = player.room

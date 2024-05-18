@@ -845,7 +845,7 @@ local peace_spell_maxcards = fk.CreateMaxCardsSkill{
       if player.kingdom == "unknown" then
         return 1
       else
-        local num = H.getSameKingdomPlayersNum(Fk:currentRoom(), nil, "qun")
+        local num = H.getSameKingdomPlayersNum(Fk:currentRoom(), player)
         return (num or 0) + #player:getPile("heavenly_army")
       end
     end
