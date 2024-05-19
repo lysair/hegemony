@@ -2591,8 +2591,7 @@ local xunzuo = fk.CreateTriggerSkill{
   anim_type = "special",
   events = {fk.EventPhaseStart},
   can_trigger = function (self, event, target, player, data)
-    return player:hasSkill(self) and H.compareKingdomWith(player, target) and H.getGeneralsRevealedNum(target) == 2 
-     and (player == target or H.hasShownSkill(player, self)) and target:getMark("wk_heg__xunzuo-turn") == 0
+    return player:hasSkill(self) and H.compareKingdomWith(player, target) and H.getGeneralsRevealedNum(target) == 2 and player.phase == Player.Start and (player == target or H.hasShownSkill(player, self))
   end,
   on_use = function (self, event, target, player, data)
     local room = player.room
@@ -2600,13 +2599,13 @@ local xunzuo = fk.CreateTriggerSkill{
     local general = Fk.generals[target.general]
     local deputy = Fk.generals[target.deputyGeneral]
     for _, s in ipairs(general:getSkillNameList()) do
-      if target:hasSkill(s.name) then
-        table.insert(skills, s.name)
+      if target:hasSkill(s) then
+        table.insert(skills, s)
       end
     end
     for _, s in ipairs(deputy:getSkillNameList()) do
-      if target:hasSkill(s.name) then
-        table.insert(skills, s.name)
+      if target:hasSkill(s) then
+        table.insert(skills, s)
       end
     end
     local choice_lose = room:askForChoice(target, skills, self.name)
@@ -2800,7 +2799,7 @@ local qiceXZ = fk.CreateActiveSkill{
 }
 
 local yijiXZ = fk.CreateTriggerSkill{
-  name = "wk_heg__yiji",
+  name = "wk_heg__hs__yiji",
   anim_type = "masochism",
   events = {fk.Damaged},
   on_trigger = function(self, event, target, player, data)
