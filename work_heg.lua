@@ -1192,8 +1192,8 @@ Fk:loadTranslationTable{
   ["wk_heg__lianhuan"] = "连环",
   [":wk_heg__lianhuan"] = "你可将一张♣手牌当【铁索连环】使用或重铸",
 
-  ["$wk_heg__jianjie1"] = "",
-  ["$wk_heg__jianjie2"] = "",
+  ["$wk_heg__jianjie1"] = "卧龙凤雏，二者得一，可安天下。",
+  ["$wk_heg__jianjie2"] = "二人齐聚，汉室可兴。",
   ["$wk_heg__jingqi1"] = "",
   ["$wk_heg__jingqi2"] = "",
 
@@ -2033,6 +2033,13 @@ Fk:loadTranslationTable{
   ["#wk_heg__yuchen-give"] = "驭臣：你可交给其两张牌，令其执行一个额外的出牌阶段",
   ["#wk_heg__mingsong-ask"] = "明讼：你可选择一名角色，将 %dest 装备区内的一张牌移动至其装备区内，<br />防止此伤害并令一名体力值最小的角色回复1点体力",
   ["#wk_heg__mingsong-choose"] = "明讼：你可选择一名体力值最小的角色回复1点体力",
+
+  ["$wk_heg__yuchen1"] = "大展宏图，就在今日。",
+  ["$wk_heg__yuchen2"] = "复我大魏，扬我国威。",
+  ["$wk_heg__mingsong1"] = "你我推心置腹，岂能相负。",
+  ["$wk_heg__mingsong2"] = "孰忠孰奸，朕尚能明辨。",
+
+  ["~wk_heg__caorui"] = "",
 }
 
 local hudu = General(extension, "wk_heg__hudu", "shu", 4, 4, General.Male)
@@ -2078,7 +2085,7 @@ local fuman = fk.CreateActiveSkill{
       local use = room:useVirtualCard("slash", nil, target, player, self.name, true)
       room:damage{
         from = player,
-        to = from,
+        to = target,
         damage = 1,
         skillName = self.name,
       }
@@ -2143,6 +2150,12 @@ Fk:loadTranslationTable{
   ["#wk_heg__fuman-give2"] = "交给 %src 两张黑色牌",
   ["#wk_heg__fuwei-reset"] = "扶危：选择 %src 一个已发动过的限定技，令此技能视为未发动过",
   ["#wk_heg__fuman_trigger"] = "抚蛮",
+
+  ["$wk_heg__fuman1"] = "",
+  ["$wk_heg__fuman2"] = "",
+  ["$wk_heg__fuwei1"] = "",
+  ["$wk_heg__fuwei2"] = "",
+  ["~wk_heg__hudu"] = "",
 }
 
 local zhuran = General(extension, "wk_heg__zhuran", "wu", 4, 4, General.Male)
@@ -2331,10 +2344,10 @@ Fk:loadTranslationTable{
 
   ["wk_heg__duanyi_discard"] = "令 %dest 弃置两张牌",
 
-  ["$wk_heg__xuci1"] = "",
-  ["$wk_heg__xuci2"] = "",
-  ["$wk_heg__gaojie1"] = "",
-  ["$wk_heg__gaojie2"] = "",
+  ["$wk_heg__duanyi1"] = "",
+  ["$wk_heg__duanyi2"] = "",
+  ["$wk_heg__gaojie1"] = "失路青山隐，藏名白水游。",
+  ["$wk_heg__gaojie2"] = "隐居青松畔，遁走孤竹丘。",
 
   ["~wk_heg__guanning"] = "",
 }
@@ -2450,6 +2463,15 @@ Fk:loadTranslationTable{
 
   ["#wk_heg__shefu-use"] = "设伏：你可以将一张牌当【调虎离山】使用",
   ["wk_heg__danli_remove"] = "移除副将并获得一个“珠联璧合”标记",
+
+  ["#wk_heg__shefu_viewas"] = "设伏",
+
+  ["$wk_heg__shefu1"] = "圈套已设，埋伏已完，只等敌军进来。",
+  ["$wk_heg__shefu2"] = "如此天网，谅你插翅也难逃。",
+  ["$wk_heg__danli1"] = "曹公智略乃上天所授。",
+  ["$wk_heg__danli2"] = "天下大乱，群雄并起，必有命世。",
+
+  ["~wk_heg__chengyu"] = "",
 }
 
 local luji = General(extension, "wk_heg__luji", "wu", 3, 3, General.Male)
@@ -2556,10 +2578,10 @@ Fk:loadTranslationTable{
   ["#wk_heg__huaiju_discard_choose"] = "弃置 %dest 的一张牌",
   ["#wk_heg__zhenglun-discard"] = "整论：弃置手牌中数量最多的一种花色的所有牌",
 
-  ["$wk_heg__huaiju1"] = "",
-  ["$wk_heg__huaiju2"] = "",
-  ["$wk_heg__zhenglun1"] = "",
-  ["$wk_heg__zhenglun2"] = "",
+  ["$wk_heg__huaiju1"] = "情深舐犊，怀拙藏橘。",
+  ["$wk_heg__huaiju2"] = "袖中怀绿橘，遗母报乳哺。",
+  ["$wk_heg__zhenglun1"] = "遗失礼仪，则具非议。",
+  ["$wk_heg__zhenglun2"] = "行遗礼之举，于不敬王者。",
 
   ["~wk_heg__luji"] = "",
 }
@@ -2591,7 +2613,7 @@ local xunzuo = fk.CreateTriggerSkill{
   anim_type = "special",
   events = {fk.EventPhaseStart},
   can_trigger = function (self, event, target, player, data)
-    return player:hasSkill(self) and H.compareKingdomWith(player, target) and H.getGeneralsRevealedNum(target) == 2 and player.phase == Player.Start and (player == target or H.hasShownSkill(player, self))
+    return player:hasSkill(self) and H.compareKingdomWith(player, target) and H.getGeneralsRevealedNum(target) == 2 and target.phase == Player.Start and (player == target or H.hasShownSkill(player, self))
   end,
   on_use = function (self, event, target, player, data)
     local room = player.room
@@ -2902,7 +2924,7 @@ Fk:loadTranslationTable{
   ["wk_heg__chengqi"] = "承启",
   [":wk_heg__chengqi"] = "当你使用基本牌或锦囊牌选择目标后，你可为此牌重新指定至多等量个目标（无视合法性）。",
   ["wk_heg__xunzuo"] = "勋佐",
-  [":wk_heg__xunzuo"] = "与你势力相同角色的准备阶段，若其武将牌均已明置，其可以失去武将牌上一个技能，然后获得下列一个所有角色均没有的技能：遗计，驱虎，设伏，奇策，筹略，且其无视“鏖战”规则直至游戏结束。",
+  [":wk_heg__xunzuo"] = "与你势力相同角色的准备阶段，若其武将牌均明置，你可以令其选择并失去武将牌上一个技能，然后其选择并获得下列一个所有角色均没有的技能：遗计，驱虎，设伏，奇策，筹略，且其无视“鏖战”规则直至游戏结束。",
 
   ["#wk_heg__chengqi-choose"] = "承启：你可以为 此牌 重新指定至多等量个目标",
   ["#wk_heg__xunzuo-choose"] = "勋佐：请选择一个技能获得",
@@ -2920,6 +2942,13 @@ Fk:loadTranslationTable{
   ["@@wk_heg__ld__qice_transform"] = "奇策 已变更",
   ["wk_heg__wk_heg__choulue"] = "筹略",
   [":wk_heg__wk_heg__choulue"] = "①当你受到伤害后，若你的“阴阳鱼”标记数小于你体力上限，你可获得一个“阴阳鱼”标记；②与你势力相同的角色使用普通锦囊牌指定唯一目标后，你可移去一个“阴阳鱼”标记，令此牌结算两次。",
+
+  ["$wk_heg__chengqi1"] = "世有十万字形，亦当有十万字体。",
+  ["$wk_heg__chengqi2"] = "笔画如骨，不可据于一形。",
+  ["$wk_heg__xunzuo1"] = "只有忠心，没有谋略，是不够的",
+  ["$wk_heg__xunzuo2"] = "承君恩宠，报效国家。",
+
+  ["~wk_heg__zhongyao"] = "",
 
 }
 
@@ -3332,10 +3361,12 @@ Fk:loadTranslationTable{
   ["wk_heg__jubao"] = "聚宝",
   [":wk_heg__jubao"] = "锁定技，①结束阶段，若弃牌堆或场上存在【定澜夜明珠】，你摸一张牌，然后获得拥有【定澜夜明珠】的角色的一张牌；②其他角色获得你装备区内的宝物牌时，取消之。",
 
-  ["$wk_heg__bizheng1"] = "",
-  ["$wk_heg__bizheng2"] = "",
-  ["$wk_heg__ceci1"] = "",
-  ["$wk_heg__ceci2"] = "",
+  ["#wk_heg__fenghuotu"] = "烽火图",
+
+  ["$wk_heg__bizheng1"] = "弼亮四世，正色率下。",
+  ["$wk_heg__bizheng2"] = "弼佐辅君，国事正法。",
+  ["$wk_heg__ceci1"] = "无传书卷记，功过自有评",
+  ["$wk_heg__ceci2"] = "佚以典传，千秋谁记？",
 
   ["~wk_heg__sunshao"] = "",
 }

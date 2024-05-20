@@ -442,7 +442,7 @@ local threatenEmperorExtra = fk.CreateTriggerSkill{
   -- global = true,
   events = {fk.EventPhaseEnd},
   can_trigger = function(self, event, target, player, data)
-    return target.phase == Player.Discard and player:getMark("_TEeffect-turn") > 0
+    return target.phase == Player.Discard and player:getMark("_TEeffect-turn") > 0 and player.room.current == target
   end,
   on_cost = function(self, event, target, player, data)
     local card = player.room:askForDiscard(player, 1, 1, false, self.name, true, nil, "#TE-ask", true)
@@ -482,7 +482,7 @@ extension:addCards{
 ]]
 Fk:loadTranslationTable{
   ["threaten_emperor"] = "挟天子以令诸侯",
-  [":threaten_emperor"] = "锦囊牌<br/><b>时机</b>：出牌阶段<br/><b>目标</b>：为大势力角色的你<br/><b>效果</b>：目标角色结束出牌阶段，此回合的弃牌阶段结束时，其可弃置一张手牌，然后其获得一个额外回合。",
+  [":threaten_emperor"] = "锦囊牌<br/><b>时机</b>：出牌阶段<br/><b>目标</b>：为大势力角色的你<br/><b>效果</b>：目标角色结束出牌阶段，此回合的弃牌阶段结束时，若其为当前回合角色，其可弃置一张手牌，然后其获得一个额外回合。",
   ["#TE-ask"] = "受到【挟天子以令诸侯】影响，你可以弃置一张手牌，获得一个额外回合",
   ["threaten_emperor_skill"] = "挟天子以令诸侯",
   ["#threaten_emperor_extra"] = "挟天子以令诸侯",
