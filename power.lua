@@ -80,10 +80,10 @@ local zhengbi_targetmod = fk.CreateTargetModSkill{
   name = "#ld__zhengbi_targetmod",
   frequency = Skill.Compulsory,
   bypass_times = function(self, player, skill, scope, card, to)
-    return player:hasSkill(self) and to:getMark("@@ld__zhengbi_choose-turn") > 0
+    return player:hasSkill(zhengbi) and to:getMark("@@ld__zhengbi_choose-turn") > 0
   end,
   bypass_distances =  function(self, player, skill, card, to)
-    return player:hasSkill(self) and to:getMark("@@ld__zhengbi_choose-turn") > 0
+    return player:hasSkill(zhengbi) and to:getMark("@@ld__zhengbi_choose-turn") > 0
   end,
 }
 
@@ -100,19 +100,14 @@ local fengying = fk.CreateActiveSkill{
   end,
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
-    local use = {
-      from = player.id,
-      tos = table.map(player, function(id) return {id} end),
-      card = Fk:cloneCard("threaten_emperor"),
-    }
-    use.card:addSubcards(player:getCardIds(Player.Hand))
-    use.card.skillName = self.name
-    room:useCard(use)
+    room:useVirtualCard("threaten_emperor", player:getCardIds(Player.Hand), player, player, self.name)
     local targets = table.map(table.filter(room.alive_players, function(p) return H.compareKingdomWith(p, player) end), Util.IdMapper)
     if #targets > 0 then
       for _, pid in ipairs(targets) do
         local p = room:getPlayerById(pid)
-        p:drawCards(math.max(0, p.maxHp - p:getHandcardNum()), self.name)
+        if not p.dead then
+          p:drawCards(math.max(0, p.maxHp - p:getHandcardNum()), self.name)
+        end
       end
     end 
   end,
@@ -136,7 +131,7 @@ Fk:loadTranslationTable{
   ["zhengbi_giveCard"] = "交给有势力角色基本牌",
   ["zhengbi_useCard"] = "选择无势力角色用牌无限制",
 
-  ["#ld__zhengbi-give"] = "请选择一张基本牌",
+  ["#ld__zhengbi-give"] = "请选择一张基本牌，交给一名有势力的角色",
   ["zhengbi__basic-back"] = "交给%src两张基本牌",
   ["zhengbi__nobasic-back"] = "交给%src一张非基本牌",
 
@@ -359,7 +354,7 @@ local wusheng_targetmod = fk.CreateTargetModSkill{
   name = "#xuanhuo__hs__wusheng_targetmod",
   anim_type = "offensive",
   bypass_distances = function (self, player, skill, card, to)
-    return player:hasSkill(wushengXH.name) and skill.trueName == "slash_skill" and card.suit == Card.Diamond
+    return player:hasSkill(wushengXH) and skill.trueName == "slash_skill" and card.suit == Card.Diamond
   end
 }
 wushengXH:addRelatedSkill(wusheng_targetmod)

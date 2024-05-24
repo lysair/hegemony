@@ -705,7 +705,7 @@ local paoxiaoTrigger = fk.CreateTriggerSkill{
     if target ~= player or not player:hasSkill(self) or data.card.trueName ~= "slash" then return false end
     local events = player.room.logic:getEventsOfScope(GameEvent.UseCard, 2, function(e)
       local use = e.data[1]
-      return use.from == player.id and use.card.trueName == "slash" 
+      return use.from == player.id and use.card.trueName == "slash"
     end, Player.HistoryTurn)
     return #events == 2 and events[2].id == player.room.logic:getCurrentEvent().id
   end,
@@ -2817,7 +2817,7 @@ local kuangfu = fk.CreateTriggerSkill{
     local room = player.room
     local choice = {}
     for _ , choicePlayers in ipairs(AimGroup:getAllTargets(data.tos)) do
-       if #room:getPlayerById(choicePlayers):getCardIds("e") > 0 then
+      if #room:getPlayerById(choicePlayers):getCardIds("e") > 0 then
         table.insert(choice, choicePlayers)
       end
     end
@@ -2852,7 +2852,7 @@ Fk:loadTranslationTable{
   ["illustrator:hs__panfeng"] = "凡果",
 
   ["hs__kuangfu"] = "狂斧",
-  [":hs__kuangfu"] = "当你于出牌阶段内使用【杀】指定目标后，若你于此阶段内未发动过此技能，你可获得此牌其中一个目标角色装备区内的一张牌，若如此做，此牌结算后，若此牌未造成过伤害，你弃置两张牌。",
+  [":hs__kuangfu"] = "当你于出牌阶段内使用【杀】指定目标后，若你于此阶段内未发动过此技能，你可获得此牌其中一个目标角色装备区内的一张牌，然后此牌结算后，若此牌未造成过伤害，你弃置两张牌。",
 
 
   ["#hs__kuangfu_delay"] = "狂斧",

@@ -718,7 +718,7 @@ local halberdDelay = fk.CreateTriggerSkill{
   events = {fk.CardEffectCancelledOut},
   frequency = Skill.Compulsory,
   can_trigger = function(self, event, target, player, data)
-    return target == player and data.card.trueName == "slash" and table.contains(data.card.skillNames, "sa__halberd")
+    return target == player and data.card.trueName == "slash" and (player.room.logic:getCurrentEvent():findParent(GameEvent.UseCard).data[1].extra_data or {}).saHalberd
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
@@ -759,6 +759,8 @@ local halberdSkill = fk.CreateTriggerSkill{
     room:broadcastPlaySound("./packages/standard_cards/audio/card/halberd")
     room:setEmotion(player, "./packages/standard_cards/image/anim/halberd")
     room:doIndicate(player.id, self.cost_data)
+    data.extra_data = data.extra_data or {}
+    data.extra_data.saHalberd = true
     data.card.skillName = "sa__halberd"
     room:sendLog{
       type = "#HalberdTargets",
@@ -791,10 +793,10 @@ Fk:loadTranslationTable{
   "可以令任意名{势力各不相同且与已选择的目标势力均不相同的}角色和任意名没有势力的角色也成为目标，当此【杀】被【闪】抵消后，此【杀】对所有目标均无效。",
   ["#sa__halberd_skill"] = "方天画戟",
   ["#sa__halberd_targets"] = "方天画戟",
-  ["#sa__halberd-ask"] = "你可发动【方天画戟】，令任意名势力各不相同且与已选择的目标势力均不相同的角色和任意名没有势力的角色也成为目标",
+  ["#sa__halberd-ask"] = "你可发动〖方天画戟〗，令任意名势力各不相同且与已选择的目标势力均不相同的角色和任意名没有势力的角色也成为目标",
   ["#sa__halberd_delay"] = "方天画戟",
-  ["#HalberdTargets"] = "%from 发动了 “%arg” ，令 %to 也成为 %card 的目标",
-  ["#HalberdNullified"] = "由于 “%arg” 的效果，%from 对所有剩余目标使用的 %arg2 无效",
+  ["#HalberdTargets"] = "%from 发动了〖%arg〗，令 %to 也成为 %card 的目标",
+  ["#HalberdNullified"] = "由于〖%arg〗的效果，%from 对所有剩余目标使用的 %arg2 无效",
 }
 
 local damage_nature_table = {
@@ -843,7 +845,7 @@ Fk:loadTranslationTable{
   ["#sa__breastplate_skill"] = "护心镜",
   [":sa__breastplate"] = "装备牌·防具<br/><b>防具技能</b>：当你伤害时，若此伤害大于或等于你当前的体力值，你可将装备区里的【护心镜】置入弃牌堆，然后防止此伤害。",
   ["#sa__breastplate-ask"] = "护心镜：你可将装备区里的【护心镜】置入弃牌堆，防止 %arg 点 %arg2 伤害",
-  ["#BreastplateSkill"] = "%from 发动了 “%arg”，防止了 %arg2 点 %arg3 伤害",
+  ["#BreastplateSkill"] = "%from 发动了〖%arg〗，防止了 %arg2 点 %arg3 伤害",
 }
 
 local ironArmorSkill = fk.CreateTriggerSkill{
