@@ -1249,7 +1249,7 @@ Fk:loadTranslationTable{
   ["~fk_heg__chengong"] = "请出就戮！",
 }
 
-local caifuren = General(extension, "caifuren", "qun", 3)
+local caifuren = General(extension, "fk_heg__caifuren", "qun", 3)
 caifuren:addSkill("qieting")
 caifuren:addSkill("xianzhou")
 Fk:loadTranslationTable{

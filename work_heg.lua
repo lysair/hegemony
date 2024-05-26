@@ -2949,28 +2949,29 @@ Fk:loadTranslationTable{
 }
 
 local zhugezhan = General(extension, "wk_heg__zhugezhan", "shu", 4, 4, General.Male)
-
+zhugezhan.deputyMaxHpAdjustedValue = -1
 local zuilun = fk.CreateTriggerSkill{
   name = "wk_heg__zuilun",
-  anim_type = "special",
+  anim_type = "negative",
   frequency = Skill.Compulsory,
   events = {fk.EventPhaseStart},
+  mute = true,
   can_trigger = function (self, event, target, player, data)
-    return player:hasSkill(self) and player.phase == Player.Finish
+    return player:hasSkill(self) and target == player and player.phase == Player.Finish
   end,
   on_use = function (self, event, target, player, data)
     local room = player.room
-    local choices = {}
-    if player:getMark("wk_heg__zuilun-chain") == 0 then
-      table.insert(choices, "wk_heg__zuilun-chain")
-    end
-    if player:getMark("wk_heg__zuilun-discard") == 0 then
-      table.insert(choices, "wk_heg__zuilun-discard")
-    end
-    if player:getMark("wk_heg__zuilun-losehp") == 0 then
-      table.insert(choices, "wk_heg__zuilun-losehp")
+    player:broadcastSkillInvoke(self.name)
+    local all_choices = {"wk_heg__zuilun-chain", "wk_heg__zuilun-discard", "wk_heg__zuilun-losehp"}
+    local choices = table.clone(all_choices)
+    for i = 3, 1, -1 do
+      local c = all_choices[i]
+      if player:getMark(c) > 0 then
+        table.remove(choices, i)
+      end
     end
     if #choices == 0 then
+      room:notifySkillInvoked(player, self.name, "offensive")
       local targets = table.map(room:getOtherPlayers(player), Util.IdMapper)
       local tos = room:askForChoosePlayers(player, targets, 1, 1, "wk_heg__zuilun-choose", self.name, false)
       local to = room:getPlayerById(tos[1])
@@ -2981,25 +2982,22 @@ local zuilun = fk.CreateTriggerSkill{
         skillName = self.name,
       }
     else
-      local choice = room:askForChoice(player, choices, self.name)
+      room:notifySkillInvoked(player, self.name, "negative")
+      local choice = room:askForChoice(player, choices, self.name, nil, false, all_choices)
       if choice == "wk_heg__zuilun-chain" then
         player:setChainState(true)
-        room:setPlayerMark(player, "wk_heg__zuilun-chain", 1)
-      end
-      if choice == "wk_heg__zuilun-discard" then
+      elseif choice == "wk_heg__zuilun-discard" then
         local n = player:getHandcardNum() - 1
         if n > 0 then
           room:askForDiscard(player, n, n, false, self.name, false)
         end
-        room:setPlayerMark(player, "wk_heg__zuilun-discard", 1)
-      end
-      if choice == "wk_heg__zuilun-losehp" then
+      elseif choice == "wk_heg__zuilun-losehp" then
         local n = player.hp - 1
         if n > 0 then
           room:loseHp(player, n, self.name)
         end
-        room:setPlayerMark(player, "wk_heg__zuilun-losehp", 1)
       end
+      room:setPlayerMark(player, choice, 1)
     end
   end,
 }
@@ -3016,10 +3014,12 @@ local longfeiTrig = fk.CreateTriggerSkill{
   events = {fk.EventPhaseStart},
   mute = true,
   can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self) and #player.room.alive_players >= 4 and H.inFormationRelation(player, target) and target.phase == Player.Start
+    return player:hasSkill(longfei) and #player.room.alive_players >= 4 and H.inFormationRelation(player, target) and target.phase == Player.Start
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
+    room:notifySkillInvoked(player, longfei.name)
+    player:broadcastSkillInvoke(longfei.name)
     local num = 0
     for _, p in ipairs(room.alive_players) do
       if H.inFormationRelation(p, player) then
@@ -3038,10 +3038,10 @@ local kuangzhis = fk.CreateTriggerSkill{
   can_trigger = function (self, event, target, player, data)
     if event == fk.Damage then
       if not (player:hasSkill(self) and H.compareKingdomWith(player, target) and player.room.current == target) then return false end
-      local events = player.room.logic:getActualDamageEvents(2, function(e)
-        return H.compareKingdomWith(e.data[1].from, player)
+      local events = player.room.logic:getActualDamageEvents(1, function(e)
+        return e.data[1].from == target
       end, Player.HistoryTurn)
-      return #events == 1
+      return #events == 1 and events[1].data[1] == data
     else
       return player:hasSkill(self) and player == target and player:getMark("wk_heg__kuangzhis-exchange") == 0
     end
@@ -3071,22 +3071,18 @@ local kuangzhis = fk.CreateTriggerSkill{
       SwapMainAndDeputy(room, player)
 
       local targets = {}
-      local n = 9999
+      local n = -1
       for _, p in ipairs(room.alive_players) do
-        if not H.compareKingdomWith(p, player) then
-          if #targets == 0 then
-            table.insert(targets, p.id)
+        if H.compareKingdomWith(p, player, true) then
+          if p:getHandcardNum() > n then
+            targets = {p.id}
             n = p:getHandcardNum()
-          else
-            if p:getHandcardNum() > n then
-              targets = {p.id}
-              n = p:getHandcardNum()
-            elseif p:getHandcardNum() == n then
-              table.insert(targets, p.id)
-            end
+          elseif p:getHandcardNum() == n then
+            table.insert(targets, p.id)
           end
         end
       end
+      if #targets == 0 then return end
       local tos = room:askForChoosePlayers(player, targets, 1, 1, "wk_heg__kuangzhis-choose", self.name, false)
       local to = room:getPlayerById(tos[1])
       room:useVirtualCard("duel", nil, player, to, self.name)
@@ -3106,7 +3102,7 @@ Fk:loadTranslationTable{
   ["wk_heg__zuilun"] = "罪论",
   [":wk_heg__zuilun"] = "锁定技，结束阶段，你执行并移除一项：1.横置；2.弃置手牌至一张；3.失去体力至1点；若均已执行过，则改为对一名其他角色造成1点伤害。",
   ["wk_heg__longfei"] = "龙飞",
-  [":wk_heg__longfei"] = "主将技，阵法技，与你处于同一队列角色的准备阶段，你可观看牌堆顶X张牌并将这些牌以任意顺序置于牌堆顶或牌堆底（X为与你处于同一队列角色数）。",
+  [":wk_heg__longfei"] = "主将技，阵法技，与你处于同一队列角色的准备阶段，你观看牌堆顶X张牌并将这些牌以任意顺序置于牌堆顶或牌堆底（X为与你处于同一队列角色数）。",
   ["wk_heg__kuangzhis"] = "匡志",
   [":wk_heg__kuangzhis"] = "副将技，此武将牌上单独的阴阳鱼个数-1；①与你势力相同的角色于其回合内首次造成伤害后，你可与其各摸一张牌；②当你进入濒死状态时，你将体力回复至1点，交换主副将，然后视为对一名与你势力不同且手牌数为全场最多的角色使用一张【决斗】。<br />"..
   "<font color = 'gray'>注：若不能交换主副将，则二效果也仅会发动一次，后期修复。</font>",
@@ -3114,14 +3110,14 @@ Fk:loadTranslationTable{
   ["wk_heg__zuilun-chain"] = "横置",
   ["wk_heg__zuilun-discard"] = "弃置手牌至一张",
   ["wk_heg__zuilun-losehp"] = "失去体力至1点",
-  ["wk_heg__zuilun-choose"] = "罪论：你可对一名其他角色造成1点伤害",
+  ["wk_heg__zuilun-choose"] = "罪论：你对一名其他角色造成1点伤害",
 
   ["#wk_heg__longfei_trigger"] = "龙飞",
 
   ["wk_heg__kuangzhis-drawcard"] = "匡志：你可与当前回合角色各摸一张牌",
   ["wk_heg__kuangzhis-choose"] = "匡志：选择一名手牌数全场最多且与你势力不同的角色，视为对其使用一张【决斗】",
 
- 
+
   ["$wk_heg__zuilun1"] = "",
   ["$wk_heg__zuilun2"] = "",
   ["$wk_heg__longfei1"] = "",

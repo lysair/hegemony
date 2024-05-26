@@ -588,8 +588,8 @@ Fk:loadTranslationTable{
   ["zx_heg__zhulian"] = "株连",
   [":zx_heg__zhulian"] = "锁定技，其他角色于你的回合内受到伤害时，若其此回合内使用过【桃】或成为过【桃】的目标，此伤害+1。",
 
-  ["#zx_heg__suchao-ask:"] = "肃朝：你可对 %src 使用一张【杀】",
-          
+  ["#zx_heg__suchao-ask"] = "肃朝：你可对 %src 使用一张【杀】",
+
   ["$zx_heg__suchao1"] = "不顺我意者，当填在野之壑。",
   ["$zx_heg__suchao2"] = "吾令不从者，当膏霜锋之锷。",
   ["$zx_heg__zhulian1"] = "你们，都要为我殉葬！",
