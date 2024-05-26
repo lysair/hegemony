@@ -1789,7 +1789,7 @@ local congcha_delay = fk.CreateTriggerSkill{
     end
   end,
 
-  refresh_events = {fk.TurnStart},
+  refresh_events = {fk.TurnStart, fk.BuryVictim},
   can_refresh = function(self, event, target, player, data)
     return target == player and player:getMark("_ld__congcha") ~= 0
   end,
@@ -1899,29 +1899,29 @@ local zhengjian = fk.CreateTriggerSkill{
   end,
   on_use = function (self, event, target, player, data)
     H.addHegMark(player.room, target, "companion")
-    player.room:setPlayerMark(target, "ld__zhengjian", 1)
+    player.room:setPlayerMark(target, "@@ld__zhengjian-forbidden", 1)
   end,
 
-  refresh_events = {fk.TargetConfirmed, fk.Death, fk.EnterDying},
+  refresh_events = {fk.TargetConfirmed, fk.BuryVictim, fk.EnterDying},
   can_refresh = function (self, event, target, player, data)
     if event == fk.TargetConfirmed then
       return player:hasSkill(self) and player == target and data.card.trueName == "slash"
-    elseif event == fk.Death then
-      return player:hasSkill(self.name, false, true) and player == target
+    elseif event == fk.BuryVictim then
+      return player == target and player:hasSkill(self)
     elseif event == fk.EnterDying then
-      return player:hasSkill(self) and target:getMark("ld__zhengjian") > 0
+      return player:hasSkill(self) and target:getMark("@@ld__zhengjian-forbidden") > 0
     end
   end,
   on_refresh = function (self, event, target, player, data)
-    if event == fk.TargetConfirmed or event == fk.Death then
-      local targets = table.filter(player.room.alive_players, function(p) return p:getMark("ld__zhengjian") > 0 end)
+    if event == fk.TargetConfirmed or event == fk.BuryVictim then
+      local targets = table.filter(player.room.alive_players, function(p) return p:getMark("@@ld__zhengjian-forbidden") > 0 end)
       if #targets > 0 then
         for _, p in ipairs(targets) do
-          player.room:setPlayerMark(p, "ld__zhengjian", 0)
+          player.room:setPlayerMark(p, "@@ld__zhengjian-forbidden", 0)
         end
       end
     else
-      player.room:setPlayerMark(target, "ld__zhengjian", 0)
+      player.room:setPlayerMark(target, "@@ld__zhengjian-forbidden", 0)
     end
   end,
 }
@@ -1929,7 +1929,7 @@ local zhengjian = fk.CreateTriggerSkill{
 local zhengjian_prohibit = fk.CreateProhibitSkill{
   name = "#zhengjian_prohibit",
   prohibit_use = function(self, player, card)
-    return card.trueName == "peach" and player:getMark("ld__zhengjian") > 0
+    return card.trueName == "peach" and player:getMark("@@ld__zhengjian-forbidden") > 0
   end,
 }
 
@@ -1944,6 +1944,8 @@ Fk:loadTranslationTable{
 
   ["ld__zhengjian"] = "诤荐",
   [":ld__zhengjian"] = "与你势力相同角色的结束阶段，若其本回合使用牌数不小于其体力上限且没有“珠联璧合”标记，你可令其获得一个“珠联璧合”标记，若如此做，其不能使用【桃】直至你成为【杀】的目标或其进入濒死状态。",
+
+  ["@@ld__zhengjian-forbidden"] = "诤荐 禁用桃",
 
   ["$ld__zhengjian1"] = "需持续投入，方有回报。",
   ["$ld__zhengjian2"] = "心无旁骛，断而敢行。",
@@ -2013,7 +2015,7 @@ local shicai = fk.CreateTriggerSkill{
       player:drawCards(1, self.name)
     else
       room:notifySkillInvoked(player, self.name, "negative")
-      room:throwCard(player:getCardIds("h"), self.name, player, player)
+      player:throwAllCards("h")
     end
   end,
 }

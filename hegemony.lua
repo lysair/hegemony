@@ -610,6 +610,7 @@ local heg_rule = fk.CreateTriggerSkill{
           if ps.general == "anjiang" then 
             -- 是野人则强制亮出来
             if ps:getMark("__heg_wild") == 1 then
+              room:setPlayerMark(ps, "_wild_final_end", 1)
               ps:revealGeneral(false)
             end
           end
@@ -720,7 +721,7 @@ local heg_rule = fk.CreateTriggerSkill{
         wildChooseKingdom(room, player, general_name)
         -- 野人亮出来的时候询问拉拢
         local choices = {"Cancel"}
-        if player:getMark("__heg_wild") == 1 then
+        if player:getMark("__heg_wild") == 1 and player:getMark("_wild_final_end") == 0 then
           table.insert(choices, "heg_build_country:::" .. player.role)
         end
         if room:askForChoice(player, choices, "#heg_rule") ~= "Cancel" then
@@ -739,6 +740,7 @@ local heg_rule = fk.CreateTriggerSkill{
             if p.general == "anjiang" then 
               -- 是野人则强制亮出来
               if p:getMark("__heg_wild") == 1 then
+                room:setPlayerMark(p, "_wild_final_end", 1)
                 p:revealGeneral(false)
               end
             end

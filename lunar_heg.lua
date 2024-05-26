@@ -17,7 +17,7 @@ Fk:loadTranslationTable{
   ["#fk_heg__guohuai"] = "垂问秦雍",
   ["illustrator:fk_heg__guohuai"] = "张帅", -- 御蜀屏障
 
-  [":fk_heg__jingce"] = "出牌阶段结束时，若你本回合已使用的牌数大于或等于你的体力值，你可以摸两张牌。",
+  [":fk_heg__jingce"] = "出牌阶段结束时，若你本回合使用的牌数不小于你的体力值，你可以摸两张牌。",
   ["~fk_heg__guohuai"] = "姜维小儿，竟然……",
 }
 
@@ -686,6 +686,16 @@ Fk:loadTranslationTable{
   ["~fk_heg__guyong"] = "此番患疾，吾必不起……",
 }
 
+local bulianshi = General(extension, "fk_heg__bulianshi", "wu", 3)
+bulianshi:addSkill("anxu")
+bulianshi:addSkill("zhuiyi")
+
+bulianshi:addCompanions("hs__sunquan")
+Fk:loadTranslationTable{
+  ["fk_heg__bulianshi"] = "步练师",
+  ["~fk_heg__bulianshi"] = "",
+}
+
 --[====[
 
 local zhangxuan = General(extension, "fk_heg__zhangxuan", "wu", 3, 3, General.Female)
@@ -1237,6 +1247,14 @@ Fk:loadTranslationTable{
   -- ["$fk_heg__mingce1"] = "如此，霸业可图也。",
   -- ["$fk_heg__mingce2"] = "如此，一击可擒也。",
   ["~fk_heg__chengong"] = "请出就戮！",
+}
+
+local caifuren = General(extension, "caifuren", "qun", 3)
+caifuren:addSkill("qieting")
+caifuren:addSkill("xianzhou")
+Fk:loadTranslationTable{
+  ["fk_heg__caifuren"] = "蔡夫人",
+  ["~fk_heg__caifuren"] = "",
 }
 
 return extension

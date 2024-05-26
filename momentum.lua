@@ -280,9 +280,8 @@ local hunshang = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     local room = player.room
     room:handleAddLoseSkills(player, 'heg_sunce__yingzi|heg_sunce__yinghun')
-    local logic = room.logic
-    logic:getCurrentEvent():findParent(GameEvent.Turn):addExitFunc(function()
-      room:handleAddLoseSkills(player, '-heg_sunce__yingzi|-heg_sunce__yinghun')
+    room.logic:getCurrentEvent():findParent(GameEvent.Turn):addCleaner(function()
+      room:handleAddLoseSkills(player, '-heg_sunce__yingzi|-heg_sunce__yinghun', nil, true, false)
     end)
   end,
 }

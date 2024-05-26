@@ -121,10 +121,10 @@ Fk:loadTranslationTable{
   ["#zx_heg__fuli_delay"] = "复礼",
   ["#zx_heg__fuli-invoke"] = "复礼",
 
-  ["$zx_heg__fuli1"] = "",
-  ["$zx_heg__fuli2"] = "",
-  ["$zx_heg__fengwu1"] = "",
-  ["$zx_heg__fengwu2"] = "",
+  ["$zx_heg__fuli1"] = "辅弼天家，以扶超纲。",
+  ["$zx_heg__fuli2"] = "为国治政，尽忠匡辅。",
+  ["$zx_heg__fengwu1"] = "身临朝阙，腰悬太阿。",
+  ["$zx_heg__fengwu2"] = "位登三事，当配龙泉。",
   ["~zx_heg__zhanghua"] = "",
 }
 
@@ -214,18 +214,18 @@ Fk:loadTranslationTable{
 
   ["#zx_heg__tongjun"] = "恸君：选择处于濒死状态角色的一张牌",
 
-  ["$zx_heg__zhangding1"] = "",
-  ["$zx_heg__zhangding2"] = "",
-  ["$zx_heg__tongjun1"] = "",
-  ["$zx_heg__tongjun2"] = "",
+  ["$zx_heg__zhangding1"] = "陛下所托，臣必尽心尽力。",
+  ["$zx_heg__zhangding2"] = "纵吾荏弱难持，亦不推诿君命。",
+  ["$zx_heg__tongjun1"] = "臣心怀二心，不可事君也。",
+  ["$zx_heg__tongjun2"] = "竭力致身，以尽臣节。",
   ["~zx_heg__simafu"] = "",
 }
 
 
 local qianzhou = General(extension, "zx_heg__qiaozhou", "shu", 3)
 
-local huiming = fk.CreateTriggerSkill{
-  name = "zx_heg__huiming",
+local zhengtian = fk.CreateTriggerSkill{
+  name = "zx_heg__zhengtian",
   events = {fk.EventPhaseStart},
   can_trigger = function (self, event, target, player, data)
     return player:hasSkill(self) and player:usedSkillTimes(self.name, Player.HistoryRound) == 0 and target 
@@ -233,7 +233,7 @@ local huiming = fk.CreateTriggerSkill{
   end,
   on_use = function (self, event, target, player, data)
     local room = player.room
-    local card = room:askForGuanxing(player, room:getNCards(3), nil, nil, self.name, true, {"zx_heg__huiming_top", "zx_heg__huiming_pidp"})
+    local card = room:askForGuanxing(player, room:getNCards(3), nil, nil, self.name, true, {"zx_heg__zhengtian_top", "zx_heg__zhengtian_pidp"})
     if #card.top > 0 then
       for i = #card.top, 1, -1 do
         table.insert(room.draw_pile, 1, card.top[i])
@@ -247,8 +247,8 @@ local huiming = fk.CreateTriggerSkill{
     end
     if #card.bottom > 0 then
       room:moveCardTo(card.bottom, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, self.name, nil, false, player.id)
-      local choice = room:askForChoice(target, {"zx_heg__huiming-get", "Cancel"}, self.name)
-      if choice == "zx_heg__huiming-get" then
+      local choice = room:askForChoice(target, {"zx_heg__zhengtian-get", "Cancel"}, self.name)
+      if choice == "zx_heg__zhengtian-get" then
         room:damage{
           to = target,
           damage = 1,
@@ -291,25 +291,25 @@ local jiguo = fk.CreateTriggerSkill{
     end
   end,
 }
-qianzhou:addSkill(huiming)
+qianzhou:addSkill(zhengtian)
 qianzhou:addSkill(jiguo)
 
 Fk:loadTranslationTable{
   ["zx_heg__qiaozhou"] = "谯周", --蜀国
   ["designer:zx_heg__qiaozhou"] = "紫乔",
-  ["zx_heg__huiming"] = "汇命",
-  [":zx_heg__huiming"] = "每轮限一次，已确定势力角色的准备阶段，你可观看牌堆顶三张牌并将其中任意张牌置入弃牌堆，其余的牌以任意顺序置于牌堆顶，然后若你以此法将牌置入弃牌堆，其可受到1点无来源伤害，获得你以此法置入弃牌堆的牌。",
+  ["zx_heg__zhengtian"] = "征天",
+  [":zx_heg__zhengtian"] = "已确定势力角色的准备阶段，你可观看牌堆顶三张牌并将其中任意张牌置入弃牌堆，其余的牌以任意顺序置于牌堆顶，然后此技能于本轮内失效，若你以此法将牌置入弃牌堆，其可受到1点无来源伤害，获得你以此法置入弃牌堆的牌。",
   ["zx_heg__jiguo"] = "寄国",
   [":zx_heg__jiguo"] = "限定技，其他角色死亡后，你可令所有与你势力相同的角色依次交给伤害来源一张牌并回复1点体力。",
-  ["zx_heg__huiming_top"] = "置于牌堆顶",
-  ["zx_heg__huiming_pidp"] = "置入弃牌堆",
-  ["zx_heg__huiming-get"] = "受到一点无来源伤害并获得这些牌",
+  ["zx_heg__zhengtian_top"] = "置于牌堆顶",
+  ["zx_heg__zhengtian_pidp"] = "置入弃牌堆",
+  ["zx_heg__zhengtian-get"] = "受到一点无来源伤害并获得这些牌",
   ["#zx_heg__jiguo-give"] = "寄国：你可以交给 %src 一张牌，然后回复一点体力",
 
-  ["$zx_heg__huiming1"] = "",
-  ["$zx_heg__huiming2"] = "",
-  ["$zx_heg__jiguo1"] = "",
-  ["$zx_heg__jiguo2"] = "",
+  ["$zx_heg__zhengtian1"] = "今天命在北，我等已尽人事。",
+  ["$zx_heg__zhengtian2"] = "益州国疲民弊，非人力可续之。",
+  ["$zx_heg__jiguo1"] = "典午忽兮，月酉没兮。",
+  ["$zx_heg__jiguo2"] = "周慕孔子遗风，可与刘扬同轨。",
   ["~zx_heg__qiaozhou"] = "",
 }
 
@@ -374,10 +374,10 @@ Fk:loadTranslationTable{
 
   ["#zx_heg__guyuan-active"] = "孤援：你可叠置，视为使用任意一张伤害类锦囊牌，若没有与你势力相同的其他角色，此牌不可被响应",
 
-  ["$zx_heg__jinhun1"] = "",
-  ["$zx_heg__jinhun2"] = "",
-  ["$zx_heg__guyuan1"] = "",
-  ["$zx_heg__guyuan2"] = "",
+  ["$zx_heg__jinhun1"] = "戍守孤城，其势不侵。",
+  ["$zx_heg__jinhun2"] = "吾头可得，而城不可得",
+  ["$zx_heg__guyuan1"] = "哀兵必胜，换吾众志成城。",
+  ["$zx_heg__guyuan2"] = "扼守孤城，试问万夫谁开。",
   ["~zx_heg__huoyi"] = "",
 }
 
@@ -589,11 +589,11 @@ Fk:loadTranslationTable{
   [":zx_heg__zhulian"] = "锁定技，其他角色于你的回合内受到伤害时，若其此回合内使用过【桃】或成为过【桃】的目标，此伤害+1。",
 
   ["#zx_heg__suchao-ask:"] = "肃朝：你可对 %src 使用一张【杀】",
-
-  ["$zx_heg__suchao1"] = "",
-  ["$zx_heg__suchao2"] = "",
-  ["$zx_heg__zhulian1"] = "",
-  ["$zx_heg__zhulian2"] = "",
+          
+  ["$zx_heg__suchao1"] = "不顺我意者，当填在野之壑。",
+  ["$zx_heg__suchao2"] = "吾令不从者，当膏霜锋之锷。",
+  ["$zx_heg__zhulian1"] = "你们，都要为我殉葬！",
+  ["$zx_heg__zhulian2"] = "杀了我，你们也别想活！",
   ["~zx_heg__sunjun"] = "",
 }
 
@@ -657,10 +657,10 @@ Fk:loadTranslationTable{
   ["zx_heg__anjing"] = "安境",
   [":zx_heg__anjing"] = "每回合限一次，与你势力相同的角色受到伤害后，你可令所有与你势力相同的角色各摸一张牌。",
 
-  ["$zx_heg__suifu1"] = "",
-  ["$zx_heg__suifu2"] = "",
-  ["$zx_heg__anjing1"] = "",
-  ["$zx_heg__anjing2"] = "",
+  ["$zx_heg__suifu1"] = "以柔克刚，方是良策。",
+  ["$zx_heg__suifu2"] = "镇抚边疆，为国家计。",
+  ["$zx_heg__anjing1"] = "群寇来袭，愿和将军同御外侮。",
+  ["$zx_heg__anjing2"] = "天下不宁，愿与阁下共守此州。",
   ["~zx_heg__liuyu"] = "",
 }
 
@@ -736,10 +736,10 @@ Fk:loadTranslationTable{
 
   ["@@zx_heg__rangjie_transform"] = "让节 已变更",
 
-  ["$zx_heg__rangjie1"] = "",
-  ["$zx_heg__rangjie2"] = "",
-  ["$zx_heg__yichi1"] = "",
-  ["$zx_heg__yichi2"] = "",
+  ["$zx_heg__rangjie1"] = "公既执掌权柄，又何必令君臣遭乱。",
+  ["$zx_heg__rangjie2"] = "公虽权倾朝野，亦当尊圣上之意。",
+  ["$zx_heg__yichi1"] = "一人劫天子，一人质公卿，此可行邪？",
+  ["$zx_heg__yichi2"] = "诸君举事，当上顺天子，奈何如是！",
 
   ["~zx_heg__yangbiao"] = "",
 }
