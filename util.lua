@@ -924,6 +924,7 @@ H.transformGeneral = function(room, player, isMain)
   room:returnToGeneralPile(generals)
   room:changeHero(player, general, false, not isMain, true, false, false)
   room:setPlayerMark(player, isMain and "__heg_general" or "__heg_deputy", general)
+  room.logic:trigger("fk.GeneralTransformed", player, orig)
 end
 
 -- 技能相关
