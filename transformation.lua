@@ -166,43 +166,44 @@ local wanwei = fk.CreateTriggerSkill{
 
 local yuejian = fk.CreateTriggerSkill{
   name = "ld__yuejian",
+  anim_type = "support",
   frequency = Skill.Compulsory,
-  events = {fk.EventPhaseStart, fk.EventPhaseEnd},
+  events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
-    if event == fk.EventPhaseStart then
-      return H.compareKingdomWith(player, target) and player:hasSkill(self) and target.phase == Player.Discard 
-        and target:getMark("ld__yuejian-turn") == 0 and player.room.current == target
-    else
-      return H.compareKingdomWith(player, target) and player:hasSkill(self) and target.phase == Player.Discard 
-        and target:getMark("ld__yuejian-add") == 1 and player.room.current == target
-    end
+    return H.compareKingdomWith(player, target) and player:hasSkill(self) and target.phase == Player.Discard 
+      and target:getMark("ld__yuejian-turn") == 0 and player.room.current == target
   end,
   on_cost = Util.TrueFunc,
   on_use = function(self, event, target, player, data)
-    if event == fk.EventPhaseStart then
-      player.room:addPlayerMark(target, MarkEnum.AddMaxCards, target.maxHp - target.hp)
-      player.room:setPlayerMark(target, "ld__yuejian-add", 1)
-    else
-      player.room:addPlayerMark(target, MarkEnum.MinusMaxCards, target.maxHp - target.hp)
-      player.room:setPlayerMark(target, "ld__yuejian-add", 0)
-    end
+    local room = player.room
+    room:doIndicate(player.id, {target.id})
+    room:addPlayerMark(target, "_yuejian_maxcard-turn", 1)
   end,
 
   refresh_events = {fk.TargetSpecified},
   can_refresh = function(self, event, target, player, data)
-    return H.compareKingdomWith(target, player) and target == player.room.current 
+    return H.compareKingdomWith(target, player) and target == player.room.current
       and target:getMark("ld__yuejian-turn") == 0 and data.firstTarget and data.card.type ~= Card.TypeEquip
   end,
   on_refresh = function(self, event, target, player, data)
-    if #AimGroup:getAllTargets(data.tos) == 0 then return end
+    local room = player.room
     for _, id in ipairs(AimGroup:getAllTargets(data.tos)) do
-      if not H.compareKingdomWith(player.room:getPlayerById(id), target) then
-        player.room:addPlayerMark(target, "ld__yuejian-turn", 1)
+      if not H.compareKingdomWith(room:getPlayerById(id), target) then
+        room:addPlayerMark(target, "ld__yuejian-turn", 1)
         break
       end
     end
   end,
 }
+local yuejian_maxcards = fk.CreateMaxCardsSkill{
+  name = "#yuejian_maxcards",
+  fixed_func = function(self, player)
+    if player:getMark("_yuejian_maxcard-turn") > 0 then
+      return player.maxHp
+    end
+  end
+}
+yuejian:addRelatedSkill(yuejian_maxcards)
 
 bianfuren:addCompanions("hs__caocao")
 bianfuren:addSkill(wanwei)

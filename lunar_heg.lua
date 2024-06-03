@@ -318,11 +318,14 @@ local jiezhong = fk.CreateTriggerSkill{
   can_trigger = function(self, event, target, player, data)
     return player:hasSkill(self) and H.compareKingdomWith(player, target) and target.phase == Player.Finish and target:getHandcardNum() < target:getMaxCards()
   end,
+  on_cost = function(self, event, target, player, data)
+    return player.room:askForSkillInvoke(player, self.name, nil, "#fk_heg__jiezhong-invoke::" .. target.id)
+  end,
   on_use = function(self, event, target, player, data)
     local room = player.room
     target:drawCards(1, self.name)
     if target.dead then return end
-    if not U.askForPlayCard(room, target, nil, ".", self.name, nil, {bypass_times = true}) then
+    if not U.askForPlayCard(room, target, nil, ".", self.name, "#fk_heg__jiezhong-ask", {bypass_times = true}) then
       local card = room:askForCard(target, 1, 1, true, self.name, false)
       room:moveCards({
         ids = card,
@@ -339,6 +342,7 @@ local jiezhong = fk.CreateTriggerSkill{
 local qingshiz = fk.CreateActiveSkill{
   name = "fk_heg__qingshiz",
   anim_type = "control",
+  prompt = "#fk_heg__qingshiz-active",
   card_num = 0,
   target_num = 1,
   can_use = function(self, player)
@@ -351,7 +355,7 @@ local qingshiz = fk.CreateActiveSkill{
   on_use = function (self, room, effect)
     local player = room:getPlayerById(effect.from)
     local target = room:getPlayerById(effect.tos[1])
-    U.viewCards(player, target:getCardIds("h"), self.name)
+    U.viewCards(player, target:getCardIds("h"), self.name, "#fk_heg__qingshiz::" .. target.id)
     if table.find(target:getCardIds("h"), function(id) return Fk:getCardById(id).trueName == "slash" end) then
       local tos = table.map(table.filter(room.alive_players, function (p)
         return target:inMyAttackRange(p) and H.compareKingdomWith(p, player)
@@ -379,6 +383,11 @@ Fk:loadTranslationTable{
   [":fk_heg__jiezhong"] = "与你势力相同角色的结束阶段，若其手牌数小于其手牌上限，你可令其摸一张牌，然后其使用一张牌或将一张牌置于牌堆顶。",
   ["fk_heg__qingshiz"] = "清识",
   [":fk_heg__qingshiz"] = "出牌阶段限一次，你可观看一名其他角色所有手牌，若其中有【杀】，其攻击范围内与你势力相同的角色各摸一张牌。",
+
+  ["#fk_heg__jiezhong-invoke"] = "你可对 %dest 发动〖诫忠〗",
+  ["#fk_heg__jiezhong-ask"] = "诫忠：使用一张牌，否则将一张牌置于牌堆顶",
+  ["#fk_heg__qingshiz-active"] = "发动 清识，观看一名其他角色所有手牌，若其中有【杀】，其攻击范围内与你势力相同的角色各摸一张牌",
+  ["#fk_heg__qingshiz"] = "清识：观看 %dest 的手牌",
 }
 
 local maliang = General(extension, "fk_heg__maliang", "shu", 3)
