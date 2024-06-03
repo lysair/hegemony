@@ -380,9 +380,10 @@ end
 ---@param from ServerPlayer @ 军令发起者
 ---@param to ServerPlayer @ 军令执行者
 ---@param skill_name string @ 技能名
----@param isMust? boolean @ 是否强制执行
+---@param forced? boolean @ 是否强制执行
 ---@return boolean @ 是否执行
-H.askCommandTo = function(from, to, skill_name, isMust)
+H.askCommandTo = function(from, to, skill_name, forced)
+  if from.dead or to.dead then return false end
   local room = from.room
   room:sendLog{
     type = "#AskCommandTo",
@@ -404,7 +405,7 @@ H.askCommandTo = function(from, to, skill_name, isMust)
   room:doBroadcastNotify("ServerMessage", ret)
   --]]
   local index = H.startCommand(from, skill_name)
-  local invoke = H.doCommand(to, skill_name, index, from, isMust)
+  local invoke = H.doCommand(to, skill_name, index, from, forced)
   return invoke
 end
 
@@ -442,16 +443,16 @@ end
 ---@param skill_name string @ 技能名
 ---@param index integer @ 军令序数
 ---@param from ServerPlayer @ 军令发起者
----@param isMust? boolean @ 是否强制执行
+---@param forced? boolean @ 是否强制执行
 ---@return boolean @ 是否执行
-H.doCommand = function(to, skill_name, index, from, isMust)
+H.doCommand = function(to, skill_name, index, from, forced)
   if to.dead or from.dead then return false end
   local room = to.room
 
   local allcommands = {"command1", "command2", "command3", "command4", "command5", "command6"}
 
   local choice
-  if not isMust then
+  if not forced then
     choice = room:askForChoice(to, {allcommands[index], "Cancel"}, "do_command", nil, true)
   else
     choice = room:askForChoice(to, {allcommands[index]}, "do_command", nil, true, {allcommands[index], "Cancel"})
@@ -862,7 +863,7 @@ H.removeGeneral = function(room, player, isDeputy)
 
   orig = Fk.generals[orig]
 
-  local orig_skills = orig and orig:getSkillNameList() or Util.DummyTable
+  local orig_skills = orig and orig:getSkillNameList() or {}
 
   local new_general = orig.gender == General.Male and "blank_shibing" or "blank_nvshibing"
 

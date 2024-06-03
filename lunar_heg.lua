@@ -313,7 +313,7 @@ local U = require "packages/utility/utility"
 local xinxianying = General(extension, "fk_heg__xinxianying", "wei", 3, 3, General.Female)
 local jiezhong = fk.CreateTriggerSkill{
   name = "fk_heg__jiezhong",
-  anim_type = "special",
+  anim_type = "support",
   events ={fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
     return player:hasSkill(self) and H.compareKingdomWith(player, target) and target.phase == Player.Finish and target:getHandcardNum() < target:getMaxCards()
@@ -321,11 +321,12 @@ local jiezhong = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     local room = player.room
     target:drawCards(1, self.name)
+    if target.dead then return end
     if not U.askForPlayCard(room, target, nil, ".", self.name, nil, {bypass_times = true}) then
-      local card = room:askForCard(player, 1, 1, true, self.name, false)
+      local card = room:askForCard(target, 1, 1, true, self.name, false)
       room:moveCards({
         ids = card,
-        from = player.id,
+        from = target.id,
         toArea = Card.DrawPile,
         moveReason = fk.ReasonPut,
         skillName = self.name,
@@ -377,7 +378,7 @@ Fk:loadTranslationTable{
   ["fk_heg__jiezhong"] = "诫忠",
   [":fk_heg__jiezhong"] = "与你势力相同角色的结束阶段，若其手牌数小于其手牌上限，你可令其摸一张牌，然后其使用一张牌或将一张牌置于牌堆顶。",
   ["fk_heg__qingshiz"] = "清识",
-  [":fk_heg__qingshiz"] = "出牌阶段限一次，你可观看一名其他角色所有手牌，若其中含有【杀】，其攻击范围内与你势力相同的角色各摸一张牌。",
+  [":fk_heg__qingshiz"] = "出牌阶段限一次，你可观看一名其他角色所有手牌，若其中有【杀】，其攻击范围内与你势力相同的角色各摸一张牌。",
 }
 
 local maliang = General(extension, "fk_heg__maliang", "shu", 3)
