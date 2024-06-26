@@ -565,7 +565,7 @@ local function AskForBuildCountry(room, player, generalName, isActive)
 end
 
 local heg_rule = fk.CreateTriggerSkill{
-  name = "#heg_rule",
+  name = "#nos_heg_rule",
   priority = 0.001,
   events = {fk.BeforeTurnStart, fk.TurnStart, fk.GameOverJudge, fk.Deathed, fk.GeneralRevealed, fk.EventPhaseChanging, fk.GeneralShown, fk.GameStart},
   can_trigger = function(self, event, target, player, data)

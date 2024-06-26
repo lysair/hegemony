@@ -649,8 +649,8 @@ local xuyi = fk.CreateTriggerSkill{
   end,
 }
 
-xinxianying:addSkill(jiezhong)
-xinxianying:addSkill(qingshiz)
+zhanghuanghou:addSkill(xianwan)
+zhanghuanghou:addSkill(xuyi)
 Fk:loadTranslationTable{
   ["fk_heg__zhanghuanghou"] = "张皇后",
   ["designer:fk_heg__zhanghuanghou"] = "静谦",
