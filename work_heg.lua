@@ -1071,7 +1071,7 @@ local jianjie_delay = fk.CreateTriggerSkill{
   events = {fk.AfterSkillEffect},
   anim_type = "special",
   can_trigger = function (self, event, target, player, data)
-    if player:usedSkillTimes(jianjie.name, Player.HistoryGame) == 0 and not target then return false end
+    if player:usedSkillTimes(jianjie.name, Player.HistoryGame) == 0 or not target then return false end
     if target:getMark("@wk_heg__jianjie2") ~= 0 then
       local general2 = target:getMark("@wk_heg__jianjie2")
       return table.contains(Fk.generals[general2]:getSkillNameList(), data.name)
@@ -1203,7 +1203,6 @@ Fk:loadTranslationTable{
 }
 
 local huanfan = General(extension, "wk_heg__huanfan", "wei", 3)
-huanfan.hidden = true
 
 local liance_viewas = fk.CreateViewAsSkill{
   name = "#wk_heg__liance_viewas",
@@ -1222,6 +1221,7 @@ local liance_viewas = fk.CreateViewAsSkill{
   view_as = function(self, cards)
     if not self.interaction.data then return end
     local card = Fk:cloneCard(self.interaction.data)
+    if not Self:canUse(card) or Self:prohibitUse(card) then return end
     return card
   end,
 }
@@ -1237,18 +1237,13 @@ local liance = fk.CreateTriggerSkill{
       if table.contains(usedCardNames, e.data[1].card.name) then
         return use.from == target.id and (use.card.type == Card.TypeTrick or use.card.type == Card.TypeBasic)
       else
-        table.insertIfNeed(usedCardNames, e.data[1].card.name)
+        if use.from == target.id and (use.card.type == Card.TypeTrick or use.card.type == Card.TypeBasic)
+          table.insert(usedCardNames, e.data[1].card.name)
+        end
         return false
       end
     end, Player.HistoryPhase)
-    if #events > 0 then
-      local usedCardTwice = {}
-      table.forEach(events, function(e)
-        table.insertIfNeed(usedCardTwice, e.data[1].card.name)
-      end)
-      self.cost_data = usedCardTwice
-      return #usedCardTwice > 0
-    end
+    return #events > 0
   end,
   on_cost = function(self, event, target, player, data)
     local cards = player.room:askForDiscard(player, 1, 1, true, self.name, true, ".", "#wk_heg__liance-invoke::"..target.id, true)
@@ -1259,13 +1254,32 @@ local liance = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    room:throwCard(self.cost_data, self.name, player, player)
-    room:setPlayerMark(target, "wk_heg__liance-phase", self.cost_data)
+    local usedCardNames = {}
+    room:throwCard(self.cost_data, self.name, player, player)     
+    local events = player.room.logic:getEventsOfScope(GameEvent.UseCard, 998, function(e) 
+      local use = e.data[1]
+      if table.contains(usedCardNames, e.data[1].card.name) then
+        return use.from == target.id and (use.card.type == Card.TypeTrick or use.card.type == Card.TypeBasic)
+      else
+        if use.from == target.id and (use.card.type == Card.TypeTrick or use.card.type == Card.TypeBasic)
+          table.insert(usedCardNames, e.data[1].card.name)
+        end
+        return false
+      end
+    end, Player.HistoryPhase)
+    if #events > 0 then
+      local usedCardTwice = {}
+      table.forEach(events, function(e)
+        table.insertIfNeed(usedCardTwice, e.data[1].card.name)
+      end)
+    end
+    
+    room:setPlayerMark(target, "wk_heg__liance-phase", usedCardTwice)
     local success, dat = player.room:askForUseActiveSkill(target, "#wk_heg__liance_viewas", "#wk_heg__liance-choose", true)
     if not success then
       H.askCommandTo(player, target, self.name, true)
     else
-      local card = Fk.skills["#wk_heg__liance_viewas"]:viewAs(self.cost_data.cards)
+      local card = Fk.skills["#wk_heg__liance_viewas"]:viewAs(usedCardTwice.cards)
         room:useCard{
         from = target.id,
         tos = table.map(dat.targets, function(id) return {id} end),
@@ -2526,8 +2540,6 @@ local zhenglun = fk.CreateTriggerSkill{
     local choice = room:askForChoice(player, choices, self.name, "#wk_heg__zhenglun-discard")
     local cid = suitMapper[table.indexOf(all_suits, choice)]
     room:throwCard(cid, self.name, player, player)
-    data.n = 0
-    return true
   end,
 }
 
@@ -2589,15 +2601,18 @@ local jiexuan = fk.CreateTriggerSkill{
   name = "wk_heg__jiexuan",
   relate_to_place = 'm',
   anim_type = "special",
-  events = {fk.TargetSpecified},
+  -- events = {fk.TargetSpecified},
+  events = {fk.DamageCaused},
   can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self) and target == player and data.card.color == Card.Black
-      and data.tos and #AimGroup:getAllTargets(data.tos) == 1
-      and player.room:getPlayerById(data.to):getMark("@@wk_heg__jiexuan-turn") == 0
-      and AimGroup:getAllTargets(data.tos)[1] ~= player.id and not player.room:getPlayerById(AimGroup:getAllTargets(data.tos)[1]):isKongcheng()
+    -- return player:hasSkill(self) and target == player and data.card.color == Card.Black
+    --   and data.tos and #AimGroup:getAllTargets(data.tos) == 1
+    --   and player.room:getPlayerById(data.to):getMark("@@wk_heg__jiexuan-turn") == 0
+    --   and AimGroup:getAllTargets(data.tos)[1] ~= player.id and not player.room:getPlayerById(AimGroup:getAllTargets(data.tos)[1]):isKongcheng()
+    return player:hasSkill(self) and target == player and data.to and 
+      data.to:getMark("@@wk_heg__jiexuan-turn") == 0 and not data.to:isKongcheng()
   end,
   on_cost = function(self, event, target, player, data)
-    local to = player.room:askForChoosePlayers(player, AimGroup:getAllTargets(data.tos), 1, 1, "#wk_heg__jiexuan-choose::" .. AimGroup:getAllTargets(data.tos)[1], self.name, true)
+    local to = player.room:askForChoosePlayers(player, target, 1, 1, "#wk_heg__jiexuan-choose::" .. data.to.id, self.name, true)
     if #to > 0 then
       self.cost_data = to[1]
       return true
@@ -2605,9 +2620,11 @@ local jiexuan = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    local to = room:getPlayerById(self.cost_data)
+    -- local to = room:getPlayerById(self.cost_data)
+    local to = data.to
     room:setPlayerMark(to, "@@wk_heg__jiexuan-turn", 1)
-    table.insertIfNeed(data.nullifiedTargets, self.cost_data)
+    -- table.insertIfNeed(data.nullifiedTargets, self.cost_data)
+    data.damage = 0
     if not to:isKongcheng() then
       local extra_data = {bypass_times = true}
       local availableCards = {}
@@ -2639,42 +2656,70 @@ local jiexuan = fk.CreateTriggerSkill{
   end,
 }
 
-local lianji = fk.CreateActiveSkill{
+-- local lianji = fk.CreateActiveSkill{
+--   name = "wk_heg__lianji",
+--   anim_type = "offensive",
+--   prompt = function(self, selected_cards, selected_targets)
+--     if #selected_targets == 0 then
+--       return "#wk_heg__lianji0-active"
+--     elseif #selected_targets == 1 then
+--       return "#wk_heg__lianji1-active:" .. selected_targets[1]
+--     else
+--       return "#wk_heg__lianji2-active:" .. selected_targets[1] .. ":" .. selected_targets[2]
+--     end
+--   end,
+--   can_use = function(self, player)
+--     return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
+--   end,
+--   card_filter = Util.FalseFunc,
+--   target_num = 2,
+--   target_filter = function(self, to_select, selected)
+--     return #selected < 2
+--   end,
+--   on_use = function(self, room, effect)
+--     local target1 = room:getPlayerById(effect.tos[1])
+--     local target2 = room:getPlayerById(effect.tos[2])
+--     local player = room:getPlayerById(effect.from)
+--     if H.askCommandTo(target1, target2, self.name) then
+--       H.askCommandTo(target2, target1, self.name, true)
+--     else
+--       for _, p in ipairs{target1, target2} do
+--         if not player.dead and not p.dead then
+--           room:damage{
+--             from = player,
+--             to = p,
+--             damage = 1,
+--             skillName = self.name,
+--           }
+--         end
+--       end
+--     end
+--   end,
+-- }
+local lianji = fk.CreateTriggerSkill{
   name = "wk_heg__lianji",
-  anim_type = "offensive",
-  prompt = function(self, selected_cards, selected_targets)
-    if #selected_targets == 0 then
-      return "#wk_heg__lianji0-active"
-    elseif #selected_targets == 1 then
-      return "#wk_heg__lianji1-active:" .. selected_targets[1]
-    else
-      return "#wk_heg__lianji2-active:" .. selected_targets[1] .. ":" .. selected_targets[2]
+  anim_type = "special",
+  events = {fk.TargetSpecified},
+  can_trigger = function (self, event, target, player, data)
+    return player:hasSkill(self) and target == player and data.card:isCommonTrick()
+      and data.tos and #AimGroup:getAllTargets(data.tos) == 1
+  end,
+  on_cost = function(self, event, target, player, data)
+    local to = player.room:askForChoosePlayers(player, target, 1, 1, "#wk_heg__lianji-choose::" .. player.room:getPlayerById(AimGroup:getAllTargets(data.tos)[1]), self.name, true)
+    if #to > 0 then
+      self.cost_data = to[1]
+      return true
     end
   end,
-  can_use = function(self, player)
-    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
-  end,
-  card_filter = Util.FalseFunc,
-  target_num = 2,
-  target_filter = function(self, to_select, selected)
-    return #selected < 2
-  end,
-  on_use = function(self, room, effect)
-    local target1 = room:getPlayerById(effect.tos[1])
-    local target2 = room:getPlayerById(effect.tos[2])
-    local player = room:getPlayerById(effect.from)
-    if H.askCommandTo(target1, target2, self.name) then
-      H.askCommandTo(target2, target1, self.name, true)
+  on_use = function (self, event, target, player, data)
+    local room = player.room
+    table.insertIfNeed(data.nullifiedTargets, self.cost_data)
+    local to = room:getPlayerById(self.cost_data)
+    if to:getMark("wk_heg__lianji_must-turn") ~= 0 then
+      H.askCommandTo(player, to, self.name, true)
     else
-      for _, p in ipairs{target1, target2} do
-        if not player.dead and not p.dead then
-          room:damage{
-            from = player,
-            to = p,
-            damage = 1,
-            skillName = self.name,
-          }
-        end
+      if not H.askCommandTo(player, to, self.name) then
+        room:setPlayerMark(to, "wk_heg__lianji_must-turn", 1)
       end
     end
   end,
@@ -2686,22 +2731,25 @@ wangyun:addSkill(jiexuan)
 
 Fk:loadTranslationTable{
   ["wk_heg__wangyun"] = "王允",
-  ["designer:wk_heg__wangyun"] = "教父&静谦",
+  ["designer:wk_heg__wangyun"] = "教父&静谦&朱古力",
   ["wk_heg__jingong"] = "矜功",
   [":wk_heg__jingong"] = "锁定技，结束阶段，若本回合受到你造成伤害的角色数：为1，你摸两张牌；大于1，你失去1点体力。",
   ["wk_heg__lianji"] = "连计",
-  [":wk_heg__lianji"] = "出牌阶段限一次，你可以选择两名角色，令前者对后者发起“军令”，若后者：执行，其对前者发起强制执行的“军令”；不执行，你对前者和后者各造成1点伤害。",
+  [":wk_heg__lianji"] = "当你使用普通锦囊牌指定唯一目标后，你可令此牌无效，对其发起“军令”，若其不执行，直至本回合结束，你以此法对其发起的“军令”改为强制执行。",
   ["wk_heg__jiexuan"] = "解悬",
-  [":wk_heg__jiexuan"] = "主将技，此武将牌上单独的阴阳鱼个数-1；每回合每名角色限一次，当你使用黑色牌指定其他角色为唯一目标后，你可令此牌无效，观看其至多三张手牌并可使用其中一张。",
+  [":wk_heg__jiexuan"] = "主将技，此武将牌上单独的阴阳鱼个数-1；每回合每名角色限一次，当你对其他角色造成伤害时，你可防止之，观看其至多三张手牌并可使用其中一张。",
 
   ["#wk_heg__jiexuan-use"] = "解悬：你可以使用其中一张牌",
-  ["#wk_heg__jiexuan-choose"] = "解悬：选择 %dest，观看其至多三张手牌并可使用其中一张",
-  ["#wk_heg__lianji0-active"] = "发动 连计，选择两名角色，令第一个选择的角色对第二个选择的角色发起“军令”<br />" ..
-    "若后者执行，其对前者发起强制执行的“军令”；<br />不执行，你对前者和后者各造成1点伤害",
-  ["#wk_heg__lianji1-active"] = "发动 连计，再选择一名角色，令 %src 对其发起“军令”<br />" ..
-    "若其：执行，其对 %src 发起强制执行的“军令”；<br />不执行，你对 %src 和其各造成1点伤害",
-  ["#wk_heg__lianji2-active"] = "发动 连计，令 %src 对 %dest 发起“军令”，<br />" ..
-    "若 %dest ：执行，其对 %src 发起强制执行的“军令”；<br />不执行，你对 %src 和 %dest 各造成1点伤害",
+  ["#wk_heg__jiexuan-choose"] = "解悬：选择 %dest，防止对其的伤害，观看其至多三张手牌并可使用其中一张",
+
+  ["#wk_heg__lianji-choose"] = "连计：选择 %dest，令此牌对其无效且对其发起“军令”",
+
+  -- ["#wk_heg__lianji0-active"] = "发动 连计，选择两名角色，令第一个选择的角色对第二个选择的角色发起“军令”<br />" ..
+  --   "若后者执行，其对前者发起强制执行的“军令”；<br />不执行，你对前者和后者各造成1点伤害",
+  -- ["#wk_heg__lianji1-active"] = "发动 连计，再选择一名角色，令 %src 对其发起“军令”<br />" ..
+  --   "若其：执行，其对 %src 发起强制执行的“军令”；<br />不执行，你对 %src 和其各造成1点伤害",
+  -- ["#wk_heg__lianji2-active"] = "发动 连计，令 %src 对 %dest 发起“军令”，<br />" ..
+  --   "若 %dest ：执行，其对 %src 发起强制执行的“军令”；<br />不执行，你对 %src 和 %dest 各造成1点伤害",
   ["@@wk_heg__jiexuan-turn"] = "已解悬",
 }
 
@@ -3889,4 +3937,139 @@ Fk:loadTranslationTable{
   ["wk_heg__zhenliang-give"] = "借调 卢植"
 }
 
+
+local zhangsong = General(extension, "wk_heg__zhangsong", "shu", 3)
+local qiangzhi = fk.CreateTriggerSkill{
+  name = "wk_heg__qiangzhi",
+  anim_type = "special",
+  events = {fk.EventPhaseStart},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self) and target.phase == Player.Finish
+  end,
+  on_cost = function(self, event, target, player, data)
+    local room = player.room
+    local targets = table.map(table.filter(room:getOtherPlayers(player), function(p)
+      return not p:isKongcheng() end), Util.IdMapper)
+    local to = room:askForChoosePlayers(player, targets, 1, 1, "#wk_heg__qiangzhi-choose", self.name, true)
+    if #to > 0 then
+      self.cost_data = to[1]
+      return true
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    player:broadcastSkillInvoke(self.name, 1)
+    room:notifySkillInvoked(player, self.name, "control")
+    local to = room:getPlayerById(self.cost_data)
+    room:doIndicate(player.id, {self.cost_data})
+    local cards1 = room:askForCardsChosen(player, to, 1, 99, "h", self.name)
+    to:showCards(cards1)
+
+    local cards2 = player:getCardIds(Player.Hand)
+    player:showCards(cards2)
+    room:delay(300)
+
+    local suit = {}
+    for _, cid in ipairs(cards2) do
+      local card = Fk:getCardById(cid)
+      if not table.contains(suit, card.suit) then
+        table.insert(suit, card.suit)
+      end
+    end
+    local all_contain = true
+    local card_name = {}
+    for _, cid in ipairs(cards1) do
+      local card = Fk:getCardById(cid)
+      if not table.contains(suit, card.suit) then
+        all_contain = false
+        break
+      end
+      if not table.contains(card_name, card.name) then
+        table.insert(card_name, card.name)
+      end
+    end
+    if all_contain == true then
+      room:setPlayerMark(target, "wk_heg__liance-phase", card_name)
+      local success, dat = player.room:askForUseActiveSkill(target, "#wk_heg__liance_viewas", "#wk_heg__liance-choose", true)
+      local card = Fk.skills["#wk_heg__liance_viewas"]:viewAs(card_name.cards)
+        room:useCard{
+        from = target.id,
+        tos = table.map(dat.targets, function(id) return {id} end),
+        card = card,
+      }
+    end
+  end,
+}
+
+local xiantu = fk.CreateTriggerSkill{
+  name = "wk_heg__xiantu",
+  mute = true,
+  anim_type = "support",
+  events = {fk.EventPhaseStart},
+  can_trigger = function(self, event, target, player, data)
+    return target ~= player and player:hasSkill(self) and target.phase == Player.Play and not target.dead
+  end,
+  on_cost = function(self, event, target, player, data)
+    local room = player.room
+    local cards = room:askForCard(player, 2, 2, true, self.name, true, ".", "#wk_heg__xiantu-give::"..target.id)
+    if #cards == 2 then 
+      self.cost_data = cards
+      return true
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    player:broadcastSkillInvoke(self.name, 1)
+    room:doIndicate(player.id, {target.id})
+    room:moveCardTo(self.cost_data, Player.Hand, target, fk.ReasonGive, self.name, nil, false, player.id)
+    room:setPlayerMark(player, "xiantu-phase", 1)
+  end,
+}
+
+local xiantu_trigger = fk.CreateTriggerSkill{
+  name = "#wk_heg__xiantu_trigger",
+  mute = true,
+  events = {fk.EventPhaseEnd},
+  can_trigger = function(self, event, target, player, data)
+    return target ~= player and target.phase == Player.Play and player:getMark("xiantu-phase") > 0
+  end,
+  on_cost = Util.TrueFunc,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    if #player.room.logic:getEventsOfScope(GameEvent.Death, 1, function(e)
+          local death = e.data[1]
+          return death.damage and death.damage.from == target
+        end, Player.HistoryPhase) == 0 then
+      player:broadcastSkillInvoke("wk_heg__xiantu", 2)
+      room:notifySkillInvoked(player, "wk_heg__xiantu", "negative")
+      room:loseHp(player, 1, self.name)
+    else
+      player:broadcastSkillInvoke("wk_heg__xiantu", 1)
+      room:notifySkillInvoked(player, "wk_heg__xiantu", "positive")
+      player:drawCards(2, self.name)
+      room:handleAddLoseSkills(player, "-wk_heg__xiantu", nil)
+    end
+  end,
+}
+
+xiantu:addRelatedSkill(xiantu_trigger)
+zhangsong:addSkill(qiangzhi)
+zhangsong:addSkill(xiantu)
+Fk:loadTranslationTable{
+  ["wk_heg__zhangsong"] = "张松",
+  ["#wk_heg__zhangsong"] = "怀璧待凤仪",
+  ["designer:wk_heg__zhangsong"] = "教父&祭祀&<br />朱古力&边缘",
+  ["wk_heg__qiangzhi"] = "强识",
+  [":wk_heg__qiangzhi"] = "结束阶段，你可展示一名其他角色任意张手牌，然后你展示所有手牌，若包含其展示的所有花色，你可视为使用其展示的一张基本牌或普通锦囊牌。",
+  ["wk_heg__xiantu"] = "献图",
+  [":wk_heg__xiantu"] = "其他角色的出牌阶段开始时，你可以交给其两张牌，若如此做，此阶段结束时，若其于此回合内杀死过角色，你摸两张牌并失去此技能，否则你失去1点体力。",
+ 
+  ["#wk_heg__xiantu-give"] = "献图：选择交给 %dest 的两张牌",
+
+  ["$qiangzhi1"] = "容我过目，即刻咏来。",
+  ["$qiangzhi2"] = "文书强识，才可博于运筹。",
+  ["$xiantu1"] = "将军莫虑，且看此图。",
+  ["$xiantu2"] = "我已诚心相献，君何踌躇不前？",
+  ["~zhangsong"] = "皇叔不听吾谏言，悔时晚矣！",
+}
 return extension
