@@ -1231,19 +1231,18 @@ local liance = fk.CreateTriggerSkill{
   events = {fk.EventPhaseEnd},
   can_trigger = function(self, event, target, player, data)
     if not player:hasSkill(self) or not target.phase == Player.Play or player == target or player:isNude() then return false end
-    local usedCardNames = {}     
-    local events = player.room.logic:getEventsOfScope(GameEvent.UseCard, 998, function(e) 
+    local usedCardNames = {}
+    return #player.room.logic:getEventsOfScope(GameEvent.UseCard, 1, function(e)
       local use = e.data[1]
       if table.contains(usedCardNames, e.data[1].card.name) then
         return use.from == target.id and (use.card.type == Card.TypeTrick or use.card.type == Card.TypeBasic)
       else
-        if use.from == target.id and (use.card.type == Card.TypeTrick or use.card.type == Card.TypeBasic)
+        if use.from == target.id and (use.card.type == Card.TypeTrick or use.card.type == Card.TypeBasic) then
           table.insert(usedCardNames, e.data[1].card.name)
         end
         return false
       end
-    end, Player.HistoryPhase)
-    return #events > 0
+    end, Player.HistoryPhase) > 0
   end,
   on_cost = function(self, event, target, player, data)
     local cards = player.room:askForDiscard(player, 1, 1, true, self.name, true, ".", "#wk_heg__liance-invoke::"..target.id, true)
@@ -1255,25 +1254,23 @@ local liance = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     local room = player.room
     local usedCardNames = {}
-    room:throwCard(self.cost_data, self.name, player, player)     
-    local events = player.room.logic:getEventsOfScope(GameEvent.UseCard, 998, function(e) 
+    room:throwCard(self.cost_data, self.name, player, player)
+    local events = player.room.logic:getEventsOfScope(GameEvent.UseCard, 998, function(e)
       local use = e.data[1]
       if table.contains(usedCardNames, e.data[1].card.name) then
         return use.from == target.id and (use.card.type == Card.TypeTrick or use.card.type == Card.TypeBasic)
       else
-        if use.from == target.id and (use.card.type == Card.TypeTrick or use.card.type == Card.TypeBasic)
+        if use.from == target.id and (use.card.type == Card.TypeTrick or use.card.type == Card.TypeBasic) then
           table.insert(usedCardNames, e.data[1].card.name)
         end
         return false
       end
     end, Player.HistoryPhase)
-    if #events > 0 then
-      local usedCardTwice = {}
-      table.forEach(events, function(e)
-        table.insertIfNeed(usedCardTwice, e.data[1].card.name)
-      end)
-    end
-    
+    local usedCardTwice = {}
+    table.forEach(events, function(e)
+      table.insertIfNeed(usedCardTwice, e.data[1].card.name)
+    end)
+
     room:setPlayerMark(target, "wk_heg__liance-phase", usedCardTwice)
     local success, dat = player.room:askForUseActiveSkill(target, "#wk_heg__liance_viewas", "#wk_heg__liance-choose", true)
     if not success then
