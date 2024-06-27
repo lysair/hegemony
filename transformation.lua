@@ -973,7 +973,7 @@ local ld__shelie = fk.CreateTriggerSkill{
         table.insert(get, id)
       end
     end
-    get = U.askForArrangeCards(player, self.name, cards, "#ld__lordsunquan_shelie-choose",
+    get = room:askForArrangeCards(player, self.name, cards, "#ld__lordsunquan_shelie-choose",
       false, 0, {5, 4}, {0, #get}, ".", "shelie", {{}, get})[2]
     if #get > 0 then
       room:obtainCard(player, get, true, fk.ReasonPrey)

@@ -1618,7 +1618,7 @@ local ld__xunxun = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    local ret = U.askForArrangeCards(player, self.name, {room:getNCards(4), "Bottom", "Top"}, "#xunxun", true, 0, {4, 2}, {0, 2})
+    local ret = room:askForArrangeCards(player, self.name, {room:getNCards(4), "Bottom", "Top"}, "#xunxun", true, 0, {4, 2}, {0, 2})
     local top, bottom = ret[2], ret[1]
     for i = #top, 1, -1 do
       table.insert(room.draw_pile, 1, top[i])
