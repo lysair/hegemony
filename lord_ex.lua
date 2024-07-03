@@ -625,7 +625,7 @@ local fengyangTrig = fk.CreateTriggerSkill{
   events = {fk.BeforeCardsMove},
   mute = true,
   can_trigger = function(self, event, target, player, data)
-    if not player:hasSkill(self) or #player.room.alive_players < 4 then return end
+    if not player:hasSkill(fengyang) or #player.room.alive_players < 4 then return end
     local room = player.room
     for _, move in ipairs(data) do
       if move.from and H.inFormationRelation(player, room:getPlayerById(move.from)) and

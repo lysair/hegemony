@@ -695,6 +695,16 @@ Fk:loadTranslationTable{
 }
 
 local zhangfei = General(extension, "hs__zhangfei", "shu", 4)
+local paoxiao = fk.CreateTargetModSkill{
+  name = "hs__paoxiao",
+  frequency = Skill.Compulsory,
+  bypass_times = function(self, player, skill, scope)
+    if player:hasSkill(self) and skill.trueName == "slash_skill"
+      and scope == Player.HistoryPhase then
+      return true
+    end
+  end,
+}
 local paoxiaoTrigger = fk.CreateTriggerSkill{
   name = "#hs__paoxiaoTrigger",
   events = {fk.CardUsing},
@@ -702,7 +712,7 @@ local paoxiaoTrigger = fk.CreateTriggerSkill{
   visible = false,
   frequency = Skill.Compulsory,
   can_trigger = function(self, event, target, player, data)
-    if target ~= player or not player:hasSkill(self) or data.card.trueName ~= "slash" then return false end
+    if target ~= player or not player:hasSkill(paoxiao) or data.card.trueName ~= "slash" then return false end
     local events = player.room.logic:getEventsOfScope(GameEvent.UseCard, 2, function(e)
       local use = e.data[1]
       return use.from == player.id and use.card.trueName == "slash"
@@ -717,7 +727,7 @@ local paoxiaoTrigger = fk.CreateTriggerSkill{
   can_refresh = function(self, event, target, player, data)
     if player ~= target then return false end -- 摆一下
     if event == fk.CardUsing then
-      return player:hasSkill(self) and data.card.trueName == "slash" and player:usedCardTimes("slash") > 1
+      return player:hasSkill(paoxiao) and data.card.trueName == "slash" and player:usedCardTimes("slash") > 1
     else
       if event == fk.CardUseFinished then
         return (data.extra_data or {}).hsPaoxiaoNullifiled
@@ -749,16 +759,6 @@ local paoxiaoTrigger = fk.CreateTriggerSkill{
       data.extra_data = data.extra_data or {}
       data.extra_data.hsPaoxiaoNullifiled = data.extra_data.hsPaoxiaoNullifiled or {}
       data.extra_data.hsPaoxiaoNullifiled[tostring(data.to)] = (data.extra_data.hsPaoxiaoNullifiled[tostring(data.to)] or 0) + 1
-    end
-  end,
-}
-local paoxiao = fk.CreateTargetModSkill{
-  name = "hs__paoxiao",
-  frequency = Skill.Compulsory,
-  bypass_times = function(self, player, skill, scope)
-    if player:hasSkill(self) and skill.trueName == "slash_skill"
-      and scope == Player.HistoryPhase then
-      return true
     end
   end,
 }

@@ -339,9 +339,14 @@ H.CreateArraySummonSkill = function(spec)
     local player = room:getPlayerById(effect.from)
     local pattern = curSkill.arrayType
     local kingdom = H.getKingdom(player)
-    local function ArraySummonAskForReveal(kingdom, to, skill_name)
-      local main = Fk.generals[to:getMark("__heg_general")].kingdom == kingdom
-      local deputy = Fk.generals[to:getMark("__heg_deputy")].kingdom == kingdom
+    local function ArraySummonAskForReveal(_kingdom, to, skill_name)
+      local main, deputy = false, false
+      if H.compareExpectedKingdomWith(to, player) then
+        local general = Fk.generals[to:getMark("__heg_general")]
+        main = general.kingdom == _kingdom or general.subkingdom == _kingdom
+        general = Fk.generals[to:getMark("__heg_deputy")]
+        deputy = general.kingdom == _kingdom or general.subkingdom == _kingdom
+      end
       return H.askForRevealGenerals(room, to, skill_name, main, deputy)
     end
     if pattern == "formation" then
@@ -697,6 +702,12 @@ end
 --- 询问亮将
 ---@param room Room
 ---@param player ServerPlayer
+---@param skill_name string
+---@param main? boolean
+---@param deputy? boolean
+---@param all? boolean
+---@param cancelable? boolean
+---@param lord_convert? boolean
 ---@return boolean
 H.askForRevealGenerals = function(room, player, skill_name, main, deputy, all, cancelable, lord_convert)
   if H.getGeneralsRevealedNum(player) == 2 then return false end
