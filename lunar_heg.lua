@@ -609,16 +609,20 @@ local zhanghuanghou = General(extension, "fk_heg__zhanghuanghou", "shu", 3, 3, G
 local xianwan = fk.CreateTriggerSkill{
   name = "fk_heg__xianwan",
   anim_type = "support",
-  events ={fk.EventPhaseStart},
+  events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self) and H.compareKingdomWith(player, target) and target.phase == Player.Discard and target:getHandcardNum() ~= target.hp
+    return player:hasSkill(self) and H.compareKingdomWith(player, target) and target.phase == Player.Discard and ((target:getHandcardNum() > target.hp and target ~= player and target:getHandcardNum() > 0) or target:getHandcardNum() < target.hp)
+  end,
+  on_cost = function(self, event, target, player, data)
+    return player.room:askForSkillInvoke(player, self.name, data, "#fk_heg__xianwan-invoke" .. (target:getHandcardNum() > target.hp and "1" or "2") .. "::" .. target.id)
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    if target:getHandcardNum() > target.hp then
-      local cards = room:askForCard(target, 1, 1, false, self.name, true, ".", "#wk_heg__xianwan-give")
-      room:obtainCard(player, cards, false, fk.ReasonGive)
-    else
+    room:doIndicate(player.id, {target.id})
+    if target:getHandcardNum() > target.hp and target:getHandcardNum() > 0 then
+      local cards = room:askForCard(target, 1, 1, false, self.name, true, ".", "#fk_heg__xianwan-give::" .. player.id)
+      room:obtainCard(player, cards, false, fk.ReasonGive, player.id, self.name)
+    elseif target:getHandcardNum() < target.hp then
       target:drawCards(1, self.name)
     end
   end,
@@ -633,17 +637,13 @@ local xuyi = fk.CreateTriggerSkill{
   end,
   on_use = function (self, event, target, player, data)
     local room = player.room
-    local targets = table.map(table.filter(room.alive_players,  function(p)
-      return not p:hasSkill(self) end), Util.IdMapper)
+    local targets = table.map(room:getOtherPlayers(player), Util.IdMapper)
     if #targets > 0 then
-      local to = room:askForChoosePlayers(player, targets, 1, 1, "#fk_heg__xuyi-choose", self.name, true)
-      if #to > 0 then
-        to = room:getPlayerById(to[1])
-        if to.gender == General.Male then
-          H.addHegMark(room, to, "companion")
-        else
-          room:handleAddLoseSkills(to, xianwan.name, nil)
-        end
+      local to = room:getPlayerById(room:askForChoosePlayers(player, targets, 1, 1, "#fk_heg__xuyi-choose", self.name, false)[1])
+      if to.gender == General.Male then
+        H.addHegMark(room, to, "companion")
+      else
+        room:handleAddLoseSkills(to, xianwan.name, nil)
       end
     end
   end,
@@ -658,10 +658,12 @@ Fk:loadTranslationTable{
   ["fk_heg__xianwan"] = "贤婉",
   [":fk_heg__xianwan"] = "与你势力相同角色的弃牌阶段开始时，若其手牌数：大于体力值，你可令其交给你一张手牌；小于体力值，你可令其摸一张牌。",
   ["fk_heg__xuyi"] = "续仪",
-  [":fk_heg__xuyi"] = "你死亡时，你可以选择一名其他角色，若其为：男性，其获得一个“珠联璧合”标记；女性，其获得“贤婉”。",
+  [":fk_heg__xuyi"] = "你死亡时，你可以选择一名其他角色，若其为：男性，其获得一枚“珠联璧合”；女性，其获得〖贤婉〗。",
 
-  ["#wk_heg__xianwan-give"] = "贤婉：请选择一张牌",
-  ["#fk_heg__xuyi-choose"] = "续仪：选择一名其他角色，若其为男性获得一个“珠联璧合”标记，若其为女性获得“贤婉”",
+  ["#fk_heg__xianwan-invoke1"] = "你可对 %dest 发动 贤婉，令其交给你一张手牌",
+  ["#fk_heg__xianwan-invoke2"] = "你可对 %dest 发动 贤婉，令其摸一张牌",
+  ["#fk_heg__xianwan-give"] = "贤婉：请选择一张牌，交给 %dest",
+  ["#fk_heg__xuyi-choose"] = "续仪：选择一名其他角色，若其为男性获得一枚“珠联璧合”，若其为女性获得〖贤婉〗",
 }
 
 

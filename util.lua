@@ -967,24 +967,29 @@ end
 
 -- 国战标记
 
+--- 国战标记类型
+---@alias HegMarkType "vanguard" | "yinyangfish" | "companion" | "wild"
+
 --- 添加国战标记
----@param room Room
----@param player ServerPlayer
----@param markName string @ 值为vanguard|yinyangfish|companion|wild
-H.addHegMark = function(room, player, markName)
+---@param room Room @ 房间
+---@param player ServerPlayer @ 角色
+---@param markName string|HegMarkType @ 标记种类
+---@param number? integer @ 数量，默认为1
+H.addHegMark = function(room, player, markName, number)
+  if not number then number = 1 end
   if markName == "vanguard" then
-    room:addPlayerMark(player, "@!vanguard", 1)
+    room:addPlayerMark(player, "@!vanguard", number)
     player:addFakeSkill("vanguard_skill&")
   elseif markName == "yinyangfish" then
-    room:addPlayerMark(player, "@!yinyangfish", 1)
+    room:addPlayerMark(player, "@!yinyangfish", number)
     player:addFakeSkill("yinyangfish_skill&")
     player:prelightSkill("yinyangfish_skill&", true)
   elseif markName == "companion" then
-    room:addPlayerMark(player, "@!companion", 1)
+    room:addPlayerMark(player, "@!companion", number)
     player:addFakeSkill("companion_skill&")
     player:addFakeSkill("companion_peach&")
   elseif markName == "wild" then
-    room:addPlayerMark(player, "@!wild", 1)
+    room:addPlayerMark(player, "@!wild", number)
     player:addFakeSkill("wild_draw&")
     player:addFakeSkill("wild_peach&")
     player:prelightSkill("wild_draw&", true)
