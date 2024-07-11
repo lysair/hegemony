@@ -495,13 +495,13 @@ local fengxiang = fk.CreateTriggerSkill{
   anim_type = "masochism",
   can_trigger = function(self, event, target, player, data)
     return player == target and player:hasSkill(self)
-      and table.find(player.room.alive_players, function(p) return player:inMyAttackRange(p) and (#player:getCardIds(Player.Equip) > 0 or #p:getCardIds(Player.Equip) > 0) end)
+      and table.find(player.room.alive_players, function(p) return player:distanceTo(p) == 1 and (#player:getCardIds(Player.Equip) > 0 or #p:getCardIds(Player.Equip) > 0) end)
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
     local hasEquip = #player:getCardIds(Player.Equip) > 0
     local tos = player.room:askForChoosePlayers(player, table.map(table.filter(room.alive_players, function (p)
-      return player:inMyAttackRange(p) and (hasEquip or #p:getCardIds(Player.Equip) > 0)
+      return player:distanceTo(p) == 1 and (hasEquip or #p:getCardIds(Player.Equip) > 0)
     end), Util.IdMapper), 1, 1, "#fk_heg__fengxiang-choose", self.name, false)
     local to = room:getPlayerById(tos[1])
     local num = 0
@@ -592,7 +592,7 @@ Fk:loadTranslationTable{
   ["fk_heg__danxin"] = "丹心",
   [":fk_heg__danxin"] = "出牌阶段限一次，你可交给一名其他角色两张牌，然后其交给你两张牌，若你以此法获得红桃牌，你本回合使用【杀】次数上限+1。",
   ["fk_heg__fengxiang"] = "封乡",
-  [":fk_heg__fengxiang"] = "锁定技，当你受到伤害后，你与你攻击范围内的一名角色交换装备区内所有牌，若你装备区内牌数因此减少，你回复1点体力。",
+  [":fk_heg__fengxiang"] = "锁定技，当你受到伤害后，你与你计算距离为1的一名角色交换装备区内所有牌，若你装备区内牌数因此减少，你回复1点体力。",
 
   ["@fk_heg__danxin_buff-turn"] = "丹心",
   ["#fk_heg__danxin-give"] = "丹心：请交给刘永两张牌",

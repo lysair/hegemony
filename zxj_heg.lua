@@ -713,7 +713,7 @@ local yichi = fk.CreateActiveSkill{
     if pindian.results[target.id].winner then
       local winner = pindian.results[target.id].winner ---@type ServerPlayer
       local loser = winner == player and target or player
-      if not winner.dead then
+      if not winner.dead and not loser:isNude() then
         local card = room:askForCardChosen(winner, loser, "he", self.name)
         room:obtainCard(winner, card, false, fk.ReasonPrey)
       end
