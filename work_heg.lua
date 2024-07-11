@@ -4019,19 +4019,19 @@ zhangsong:addSkill(xiantu)
 Fk:loadTranslationTable{
   ["wk_heg__zhangsong"] = "张松",
   ["#wk_heg__zhangsong"] = "怀璧待凤仪",
-  ["designer:wk_heg__zhangsong"] = "教父&祭祀&<br />朱古力&边缘",
+  ["designer:wk_heg__zhangsong"] = "教父&祭祀&朱古力&边缘",
   ["wk_heg__qiangzhi"] = "强识",
   [":wk_heg__qiangzhi"] = "结束阶段，你可展示一名其他角色任意张手牌，然后你展示所有手牌，若包含其展示的所有花色，你可视为使用其展示的一张基本牌或普通锦囊牌。",
   ["wk_heg__xiantu"] = "献图",
   [":wk_heg__xiantu"] = "其他角色的出牌阶段开始时，你可以交给其两张牌，若如此做，此阶段结束时，若其于此回合内杀死过角色，你摸两张牌并失去此技能，否则你失去1点体力。",
- 
+
   ["#wk_heg__xiantu-give"] = "献图：选择交给 %dest 的两张牌",
 
-  ["$qiangzhi1"] = "容我过目，即刻咏来。",
-  ["$qiangzhi2"] = "文书强识，才可博于运筹。",
-  ["$xiantu1"] = "将军莫虑，且看此图。",
-  ["$xiantu2"] = "我已诚心相献，君何踌躇不前？",
-  ["~zhangsong"] = "皇叔不听吾谏言，悔时晚矣！",
+  ["$wk_heg__qiangzhi1"] = "容我过目，即刻咏来。",
+  ["$wk_heg__qiangzhi2"] = "文书强识，才可博于运筹。",
+  ["$wk_heg__xiantu1"] = "将军莫虑，且看此图。",
+  ["$wk_heg__xiantu2"] = "我已诚心相献，君何踌躇不前？",
+  ["~wk_heg__zhangsong"] = "皇叔不听吾谏言，悔时晚矣！",
 }
 
 local wangji = General(extension, "wk_heg__wangji", "wei", 3, 3, General.Male)
@@ -4238,7 +4238,7 @@ weiwenzhugezhi:addSkill(mingchao)
 Fk:loadTranslationTable{
   ["wk_heg__weiwenzhugezhi"] = "卫温诸葛直",
   ["#wk_heg__weiwenzhugezhi"] = "谜络长洲",
-  ["designer:wk_heg__zhangsong"] = "祭祀",
+  ["designer:wk_heg__weiwenzhugezhi"] = "祭祀",
   ["wk_heg__mingchao"] = "鸣潮",
   [":wk_heg__mingchao"] = "出牌阶段，你可以选择一项：1.展示X张未展示牌，然后使用其中一张牌；2.弃置X张未展示牌，然后交换选项效果（即选项中“然后”后面的文字效果）并摸一张牌。（X为本回合发动此技能次数+1）。。",
 
