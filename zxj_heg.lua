@@ -268,9 +268,9 @@ local jiguo = fk.CreateTriggerSkill{
   frequency = Skill.Limited,
   events = {fk.AfterDying},
   can_trigger = function (self, event, target, player, data)
-    return player:hasSkill(self) and player:usedSkillTimes(self.name, Player.HistoryGame) == 0 
-      and target and target ~= player and target.dead and data.damage and data.damage.from 
-      and table.find(player.room:getAlivePlayers(), function (e) return H.compareKingdomWith(player, e) and e ~= data.damage.from and not e:isNude() end)
+    return player:hasSkill(self) and player:usedSkillTimes(self.name, Player.HistoryGame) == 0
+      and target and target ~= player and target.dead and data.damage and data.damage.from
+      and table.find(player.room.alive_players, function (e) return H.compareKingdomWith(player, e) and e ~= data.damage.from and not e:isNude() end)
   end,
   on_use = function (self, event, target, player, data)
     local room = player.room
@@ -622,7 +622,7 @@ local suifu = fk.CreateTriggerSkill{
       moveReason = fk.ReasonJustMove,
       skillName = self.name,
     })
-    room:useVirtualCard("amazing_grace", {}, player, room.alive_players, self.name)
+    room:useVirtualCard("amazing_grace", {}, player, room:getAlivePlayers(false), self.name)
   end,
 }
 

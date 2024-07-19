@@ -1118,7 +1118,7 @@ local zhuihuan = fk.CreateTriggerSkill{
     return player:hasSkill(self) and player.phase == Player.Finish
   end,
   on_cost = function(self, event, target, player, data)
-    local to = player.room:askForChoosePlayers(player, table.map(player.room:getAlivePlayers(), Util.IdMapper), 1, 2, "#ty_heg__zhuihuan-choose", self.name, true, true)
+    local to = player.room:askForChoosePlayers(player, table.map(player.room.alive_players, Util.IdMapper), 1, 2, "#ty_heg__zhuihuan-choose", self.name, true, true)
     if #to > 0 then
       self.cost_data = to
       return true

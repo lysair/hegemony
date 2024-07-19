@@ -228,7 +228,7 @@ local zhanmeng_record = fk.CreateTriggerSkill{
       room:setTag("fk_heg__zhanmeng1", fk_heg__zhanmeng2)  --上回合使用的牌
       fk_heg__zhanmeng2 = {}
       room:setTag("fk_heg__zhanmeng2", fk_heg__zhanmeng2)  --当前回合使用的牌
-      for _, p in ipairs(room:getAlivePlayers()) do
+      for _, p in ipairs(room.alive_players) do
         if type(p:getMark("fk_heg__zhanmeng2_invoke")) == "string" then
           room:setPlayerMark(p, "fk_heg__zhanmeng2_get-turn", p:getMark("fk_heg__zhanmeng2_invoke"))
           room:setPlayerMark(p, "fk_heg__zhanmeng2_invoke", 0)
