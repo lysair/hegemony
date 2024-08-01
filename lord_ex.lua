@@ -1891,37 +1891,42 @@ local zhengjian = fk.CreateTriggerSkill{
   can_trigger = function (self, event, target, player, data)
     if not (H.compareKingdomWith(player, target) and target.phase == Player.Finish and player:hasSkill(self)) then return false end
     if target:getMark("@!companion") ~= 0 then return end
-    local events = target.room.logic:getEventsOfScope(GameEvent.UseCard, 999, function(e)
+    local events = target.room.logic:getEventsOfScope(GameEvent.UseCard, target.maxHp, function(e)
       local use = e.data[1]
       return use.from == target.id
     end, Player.HistoryTurn)
     return #events >= target.maxHp
   end,
   on_use = function (self, event, target, player, data)
-    H.addHegMark(player.room, target, "companion")
-    player.room:setPlayerMark(target, "@@ld__zhengjian-forbidden", 1)
+    local room = player.room
+    H.addHegMark(room, target, "companion")
+    room:setPlayerMark(target, "@@ld__zhengjian-forbidden", 1)
+    local record = U.getMark(player, "_ld__zhengjian")
+    table.insert(record, target.id)
+    room:setPlayerMark(player, "_ld__zhengjian", record)
   end,
 
   refresh_events = {fk.TargetConfirmed, fk.BuryVictim, fk.EnterDying},
   can_refresh = function (self, event, target, player, data)
     if event == fk.TargetConfirmed then
-      return player:hasSkill(self) and player == target and data.card.trueName == "slash"
+      return player == target and player:getMark("_ld__zhengjian") ~= 0 and data.card.trueName == "slash"
     elseif event == fk.BuryVictim then
-      return player == target and player:hasSkill(self)
+      return player == target and player:getMark("_ld__zhengjian") ~= 0
     elseif event == fk.EnterDying then
-      return player:hasSkill(self) and target:getMark("@@ld__zhengjian-forbidden") > 0
+      return target:getMark("@@ld__zhengjian-forbidden") > 0 and table.contains(U.getMark(player, "_ld__zhengjian"), target.id)
     end
   end,
   on_refresh = function (self, event, target, player, data)
+    local room = player.room
     if event == fk.TargetConfirmed or event == fk.BuryVictim then
-      local targets = table.filter(player.room.alive_players, function(p) return p:getMark("@@ld__zhengjian-forbidden") > 0 end)
-      if #targets > 0 then
-        for _, p in ipairs(targets) do
-          player.room:setPlayerMark(p, "@@ld__zhengjian-forbidden", 0)
-        end
-      end
+      table.forEach(U.getMark(player, "_ld__zhengjian"), function(pid) room:setPlayerMark(room:getPlayerById(pid), "@@ld__zhengjian-forbidden", 0) end)
+      room:setPlayerMark(player, "_ld__zhengjian", 0)
     else
-      player.room:setPlayerMark(target, "@@ld__zhengjian-forbidden", 0)
+      room:setPlayerMark(target, "@@ld__zhengjian-forbidden", 0)
+      local record = U.getMark(player, "_ld__zhengjian")
+      table.removeOne(record, target.id)
+      if #record == 0 then record = 0 end
+      room:setPlayerMark(player, "_ld__zhengjian", record)
     end
   end,
 }

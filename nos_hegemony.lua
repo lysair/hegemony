@@ -115,8 +115,12 @@ function HegLogic:chooseGenerals()
   generals = table.filter(generals, function(g) return not table.contains(selected, g) end)
   room:returnToGeneralPile(generals)
 
+  local allKingdoms = {}
+  table.forEach(room.general_pile, function(name) table.insertIfNeed(allKingdoms, Fk.generals[name].kingdom) end)
+  table.removeOne(allKingdoms, "wild")
+  table.sort(allKingdoms)
+
   for _, p in ipairs(players) do
-    local allKingdoms = {"wei", "shu", "wu", "qun"}
     local curGeneral = Fk.generals[p:getMark("__heg_general")]
     local kingdoms = {curGeneral.kingdom, curGeneral.subkingdom}
     curGeneral = Fk.generals[p:getMark("__heg_deputy")]
@@ -646,8 +650,9 @@ heg = fk.CreateGameMode{
 }
 
 Fk:loadTranslationTable{
-  ["nos_heg_mode"] = "国战（全亮）",
+  ["nos_heg_mode"] = "国战[全亮]",
   [":nos_heg_mode"] = heg_description,
+  ["#nos_heg_rule"] = "全亮国战",
   }
 
 return heg

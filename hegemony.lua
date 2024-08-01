@@ -341,8 +341,12 @@ function HegLogic:chooseGenerals()
   generals = table.filter(generals, function(g) return not table.contains(selected, g) end)
   room:returnToGeneralPile(generals)
 
+  local allKingdoms = {}
+  table.forEach(room.general_pile, function(name) table.insertIfNeed(allKingdoms, Fk.generals[name].kingdom) end)
+  table.removeOne(allKingdoms, "wild")
+  table.sort(allKingdoms)
+
   for _, p in ipairs(players) do
-    local allKingdoms = {"wei", "shu", "wu", "qun"}
     local curGeneral = Fk.generals[p:getMark("__heg_general")]
     local kingdoms = {curGeneral.kingdom, curGeneral.subkingdom}
     curGeneral = Fk.generals[p:getMark("__heg_deputy")]
@@ -603,6 +607,9 @@ local heg_rule = fk.CreateTriggerSkill{
       -- if table.every(room.alive_players, function (p) return H.compareKingdomWith(p, player) end) then
       player:revealGeneral(false)
       player:revealGeneral(true)
+      if player.kingdom == 'wild' then
+        wildChooseKingdom(room, player, player.general)
+      end
       local winner = Fk.game_modes[room.settings.gameMode]:getWinner(player)
       if winner ~= "" then
         for _, ps in ipairs(room.alive_players) do

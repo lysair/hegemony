@@ -693,7 +693,7 @@ local yuyan = fk.CreateTriggerSkill{
     if not player:hasSkill(self) or player.room.current == player then return end
     local n = 0
     for _, move in ipairs(data) do
-      if move.to and move.to == player.id and move.from and move.from ~= player.id then
+      if move.to and move.to == player.id and move.from and move.from ~= player.id and move.toArea == Card.PlayerHand then
         for _, info in ipairs(move.moveInfo) do
           if info.fromArea == Card.PlayerHand or info.fromArea == Card.PlayerEquip then
             n = n + 1
@@ -4164,16 +4164,18 @@ local weiwenzhugezhi = General(extension, "wk_heg__weiwenzhugezhi", "wu", 4)
 local mingchao = fk.CreateActiveSkill{
   name = "wk_heg__mingchao",
   anim_type = "special",
-  prompt = "#wk_heg__mingchao",
+  prompt = function(self)
+    return "#wk_heg__mingchao"
+  end,
   interaction = function(self)
-    return UI.ComboBox { choices = {"wk_heg__mingchao_show", "wk_heg__mingchao_discard"} }
+    return UI.ComboBox { choices = {"wk_heg__mingchao_show" .. Self:getMark("@@wk_heg__mingchao_exchange") .. ":::" .. Self:usedSkillTimes(self.name) + 1, "wk_heg__mingchao_discard" .. Self:getMark("@@wk_heg__mingchao_exchange") .. ":::" .. Self:usedSkillTimes(self.name) + 1} }
   end,
   can_use = Util.TrueFunc,
   card_filter = function(self, to_select, selected)
-    if self.interaction.data == "wk_heg__mingchao_discard" then
-      return Fk:getCardById(to_select):getMark("@@wk_heg__mingchao_show-inhand-turn") == 0 and not Self:prohibitDiscard(to_select)
+    if self.interaction.data:startsWith("wk_heg__mingchao_discard") then
+      return Fk:getCardById(to_select):getMark("@@wk_heg__mingchao_shown-inhand-turn") == 0 and not Self:prohibitDiscard(to_select)
     else
-      return Fk:getCardById(to_select):getMark("@@wk_heg__mingchao_show-inhand-turn") == 0
+      return Fk:getCardById(to_select):getMark("@@wk_heg__mingchao_shown-inhand-turn") == 0
     end
   end,
   target_filter = Util.FalseFunc,
@@ -4182,13 +4184,13 @@ local mingchao = fk.CreateActiveSkill{
   end,
   target_num = 0,
   on_use = function(self, room, effect)
+    if not self.interaction.data then return end
     local player = room:getPlayerById(effect.from)
-    local n = player:usedSkillTimes(self.name, Player.HistoryTurn)
     local card = effect.cards
-    if self.interaction.data == "wk_heg__mingchao_show" then
+    if self.interaction.data:startsWith("wk_heg__mingchao_show") then
       player:showCards(card)
       for _, id in ipairs(card) do
-        room:setCardMark(Fk:getCardById(id), "@@wk_heg__mingchao_show-inhand-turn", 1)
+        room:setCardMark(Fk:getCardById(id), "@@wk_heg__mingchao_shown-inhand-turn", 1)
       end
       if player:getMark("@@wk_heg__mingchao_exchange") == 0 then
         local to = player
@@ -4211,11 +4213,11 @@ local mingchao = fk.CreateActiveSkill{
         player:drawCards(1, self.name)
         room:setPlayerMark(player, "@@wk_heg__mingchao_exchange", 0)
       end
-    else 
+    else
       room:throwCard(card, self.name, player, player)
       if player:getMark("@@wk_heg__mingchao_exchange") == 0 then
-        room:setPlayerMark(player, "@@wk_heg__mingchao_exchange", 1)
         player:drawCards(1, self.name)
+        room:setPlayerMark(player, "@@wk_heg__mingchao_exchange", 1)
       else
         -- 摆，直接偷定谏函数用
         local to_use = {}
@@ -4240,13 +4242,16 @@ Fk:loadTranslationTable{
   ["#wk_heg__weiwenzhugezhi"] = "谜络长洲",
   ["designer:wk_heg__weiwenzhugezhi"] = "祭祀",
   ["wk_heg__mingchao"] = "鸣潮",
-  [":wk_heg__mingchao"] = "出牌阶段，你可以选择一项：1.展示X张未展示牌，然后使用其中一张牌；2.弃置X张未展示牌，然后交换选项效果（即选项中“然后”后面的文字效果）并摸一张牌。（X为本回合发动此技能次数+1）。。",
+  [":wk_heg__mingchao"] = "出牌阶段，你可以选择一项：1.展示X张此回合未展示的牌，然后<u>使用其中一张牌</u>" ..
+  "；2.弃置X张此回合未展示的牌，然后<u>摸一张牌并交换选项效果</u>（即每个选项中“然后”后面的文字效果，也即下划线部分）。（X为此回合发动此技能次数+1）。",
 
-  ["@@wk_heg__mingchao_show-inhand-turn"] = "鸣潮",
+  ["@@wk_heg__mingchao_shown-inhand-turn"] = "鸣潮",
   ["@@wk_heg__mingchao_exchange"] = "鸣潮 交换效果",
-  ["wk_heg__mingchao_show"] = "展示牌",
-  ["wk_heg__mingchao_discard"] = "弃置牌",
-  ["#wk_heg__mingchao"] = "鸣潮：你可以展示或弃置本回合未展示过的牌，然后执行对应效果",
+  ["wk_heg__mingchao_show0"] = "展示%arg牌，然后使用其中一张牌",
+  ["wk_heg__mingchao_show1"] = "展示%arg牌，然后摸一张牌并交换选项效果",
+  ["wk_heg__mingchao_discard0"] = "弃置%arg牌，然后摸一张牌并交换选项效果",
+  ["wk_heg__mingchao_discard1"] = "弃置%arg牌，然后使用其中一张牌",
+  ["#wk_heg__mingchao"] = "鸣潮：你可以展示或弃置此回合未展示过的牌，然后执行对应效果",
 
   ["$wk_heg__mingchao1"] = "宦海沉浮，生死难料！",
   ["$wk_heg__mingchao2"] = "跨海南征，波涛起浮。",
