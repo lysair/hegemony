@@ -4243,14 +4243,14 @@ Fk:loadTranslationTable{
   ["designer:wk_heg__weiwenzhugezhi"] = "祭祀",
   ["wk_heg__mingchao"] = "鸣潮",
   [":wk_heg__mingchao"] = "出牌阶段，你可以选择一项：1.展示X张此回合未展示的牌，然后<u>使用其中一张牌</u>" ..
-  "；2.弃置X张此回合未展示的牌，然后<u>摸一张牌并交换选项效果</u>（即每个选项中“然后”后面的文字效果，也即下划线部分）。（X为此回合发动此技能次数+1）。",
+  "；2.弃置X张此回合未展示的牌，然后<u>摸一张牌并交换选项效果</u>（即每个选项中“然后”后面的文字效果，也即下划线部分）。（X为此回合发动此技能次数+1）",
 
   ["@@wk_heg__mingchao_shown-inhand-turn"] = "鸣潮",
   ["@@wk_heg__mingchao_exchange"] = "鸣潮 交换效果",
-  ["wk_heg__mingchao_show0"] = "展示%arg牌，然后使用其中一张牌",
-  ["wk_heg__mingchao_show1"] = "展示%arg牌，然后摸一张牌并交换选项效果",
-  ["wk_heg__mingchao_discard0"] = "弃置%arg牌，然后摸一张牌并交换选项效果",
-  ["wk_heg__mingchao_discard1"] = "弃置%arg牌，然后使用其中一张牌",
+  ["wk_heg__mingchao_show0"] = "展示%arg张牌，然后使用其中一张牌",
+  ["wk_heg__mingchao_show1"] = "展示%arg张牌，然后摸一张牌并交换选项效果", 
+  ["wk_heg__mingchao_discard0"] = "弃置%arg张牌，然后摸一张牌并交换选项效果",
+  ["wk_heg__mingchao_discard1"] = "弃置%arg张牌，然后使用其中一张牌",
   ["#wk_heg__mingchao"] = "鸣潮：你可以展示或弃置此回合未展示过的牌，然后执行对应效果",
 
   ["$wk_heg__mingchao1"] = "宦海沉浮，生死难料！",
