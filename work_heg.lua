@@ -4041,8 +4041,6 @@ local qizhi = fk.CreateTriggerSkill{
   events = {fk.Damage},
   can_trigger = function(self, event, target, player, data)
     if not (player:hasSkill(self) and target == player.room.current and H.compareKingdomWith(player, target)) then return false end
-    local targets = table.map(table.filter(room.alive_players, function(p) return p ~= data.to and not p:isNude() end), Util.IdMapper)
-    if #targets == 0 then return false end
     local room = player.room
     local damage_event = room.logic:getCurrentEvent()
     if not damage_event then return false end
@@ -4146,7 +4144,7 @@ wangji:addSkill(jinqu)
 Fk:loadTranslationTable{
   ["wk_heg__wangji"] = "王基", --魏国
   ["wk_heg__qizhi"] = "奇制",
-  [":wk_heg__qizhi"] = "与你势力相同的角色于其回合内首次造成伤害后，其可以弃置不为受伤角色的一张牌，然后以此法失去牌的角色摸一张牌。",
+  [":wk_heg__qizhi"] = "与你势力相同的角色于其回合内首次造成伤害后，你可以弃置不为受伤角色的一张牌，然后以此法失去牌的角色摸一张牌。",
   ["wk_heg__jinqu"] = "进趋",
   [":wk_heg__jinqu"] = "每回合限一次，当你不因使用或打出而失去牌后，你可令一名与你势力相同的角色摸两张牌，然后其将手牌弃至X张（X为此回合进入弃牌堆的牌花色数）。",
 
@@ -4158,6 +4156,206 @@ Fk:loadTranslationTable{
   ["$wk_heg__jinqu1"] = "建上昶水城，以逼夏口！",
   ["$wk_heg__jinqu2"] = "通川聚粮，伐吴之业，当步步为营。",
   ["~wk_heg__wangji"] = "天下之势，必归大魏，可恨，未能得见呐！",
+}
+
+
+-- 封锁 判定区
+local heg_judge_forbidden = fk.CreateTriggerSkill{
+  name = "#heg_judge_forbidden",
+  anim_type = "control",
+  events = {fk.EventPhaseStart},
+  frequency = Skill.Compulsory,
+  can_trigger = function (self, event, target, player, data)
+    return player:getMark("@@heg_judge_forbidden") ~= 0 and player == target and player.phase == Player.Judge
+  end, 
+  on_use = Util.TrueFunc,
+}
+
+-- 封锁 手牌区
+local heg_hand_forbidden = fk.CreateTriggerSkill{
+  name = "#heg_hand_forbidden",
+  anim_type = "control",
+  events = {fk.CardUsing},
+  frequency = Skill.Compulsory,
+  can_trigger = function (self, event, target, player, data)
+    return player:getMark("@@heg_hand_forbidden") ~= 0 and player == target
+  end, 
+  on_use = function (self, event, target, player, data)
+    data.toCard = nil
+    data.tos = {}
+  end,
+}
+
+-- 封锁 装备区
+local heg_equip_forbidden = fk.CreateInvaliditySkill {
+  name = "#heg_equip_forbidden",
+  global = true,
+  invalidity_func = function(self, from, skill)
+    if from:getMark("@@heg_equip_forbidden") > 0 and skill.attached_equip then
+      for _, card in ipairs(Fk.cards) do
+        if card.type == Card.TypeEquip and skill.attached_equip == card.name then
+          return true
+        end
+      end
+    end
+  end
+}
+
+Fk:loadTranslationTable{
+  ["heg_judge_forbidden"] = "封锁 判定区", 
+  ["heg_hand_forbidden"] = "封锁 手牌区", 
+  ["heg_equip_forbidden"] = "封锁 装备区", 
+
+  ["@@heg_judge_forbidden"] = "封锁 判定区", 
+  ["@@heg_hand_forbidden"] = "封锁 手牌区", 
+  ["@@heg_equip_forbidden"] = "封锁 装备区",
+  
+  ["heg_judge_recover"] = "恢复 判定区", 
+  ["heg_hand_recover"] = "恢复 手牌区", 
+  ["heg_equip_recover"] = "恢复 装备区",
+
+  ["#heg_equip_forbidden"] = "封锁",
+  ["#heg_hand_forbidden"] = "封锁",
+  ["#heg_judge_forbidden"] = "封锁",
+}
+
+local lihui = General(extension, "wk_heg__lihui", "shu", 3)
+local ziqi = fk.CreateTriggerSkill{
+  name = "wk_heg__ziqi",
+  anim_type = "offensive",
+  events = {fk.EventPhaseStart},
+  can_trigger = function (self, event, target, player, data)
+    return player:hasSkill(self) and H.compareKingdomWith(player, target) and target.phase == Player.Start and 
+     (player:getMark("@@heg_judge_forbidden") == 0 or player:getMark("@@heg_equip_forbidden") == 0 or player:getMark("@@heg_hand_forbidden") == 0)
+  end,
+  on_use = function (self, event, target, player, data)
+    local room = player.room
+    local choices = {}
+    if player:getMark("@@heg_judge_forbidden") == 0 then
+      table.insert(choices, "heg_judge_forbidden")
+    end
+    if player:getMark("@@heg_hand_forbidden") == 0 then
+      table.insert(choices, "heg_hand_forbidden")
+    end
+    if player:getMark("@@heg_equip_forbidden") == 0 then
+      table.insert(choices, "heg_equip_forbidden")
+    end
+    local choice = room:askForChoice(player, choices, self.name)
+    room:setPlayerMark(player, "wk_heg__ziqi_forbidden", 1)
+    if choice == "heg_judge_forbidden" then
+      room:setPlayerMark(player, "wk_heg__ziqi_judge-turn", 1)
+      room:setPlayerMark(player, "@@heg_judge_forbidden", 1)
+    elseif choice == "heg_hand_forbidden" then
+      room:setPlayerMark(player, "wk_heg__ziqi_hand-turn", 1)
+      room:setPlayerMark(player, "@@heg_hand_forbidden", 1)
+    else
+      room:setPlayerMark(player, "wk_heg__ziqi_equip-turn", 1)
+      room:setPlayerMark(player, "@@heg_equip_forbidden", 1)
+    end
+  end,
+
+  refresh_events = {fk.TurnStart, fk.BuryVictim},
+  can_refresh = function (self, event, target, player, data)
+    return player:getMark("wk_heg__ziqi_forbidden") > 0 and target == player
+  end,
+  on_refresh = function (self, event, target, player, data)
+    player.room:setPlayerMark(player, "wk_heg__ziqi_forbidden", 0)
+    player.room:setPlayerMark(player, "@@heg_judge_forbidden", 0)
+    player.room:setPlayerMark(player, "@@heg_hand_forbidden", 0)
+    player.room:setPlayerMark(player, "@@heg_equip_forbidden", 0)
+  end
+}
+
+local ziqi_trigger = fk.CreateTriggerSkill{
+  name = "#wk_heg__ziqi_trigger",
+  anim_type = "offensive",
+  events = {fk.Damage},
+  can_trigger = function (self, event, target, player, data)
+    return target and target == player.room.current and not H.compareKingdomWith(data.to, target) and player:usedSkillTimes(ziqi.name, Player.HistoryTurn) == 1
+  end,
+  on_cost = Util.TrueFunc,
+  on_use = function (self, event, target, player, data)
+    if player:getMark("wk_heg__ziqi_judge-turn") == 1 then
+      player.room:setPlayerMark(data.to, "@@heg_judge_forbidden", 1)
+    end
+    if player:getMark("wk_heg__ziqi_hand-turn") == 1 then
+      player.room:setPlayerMark(data.to, "@@heg_hand_forbidden", 1)
+    end
+    if player:getMark("wk_heg__ziqi_equip-turn") == 1 then
+      player.room:setPlayerMark(data.to, "@@heg_equip_forbidden", 1)
+    end
+  end
+}
+
+ziqi:addRelatedSkill(ziqi_trigger)
+ziqi:addRelatedSkill(heg_hand_forbidden)
+ziqi:addRelatedSkill(heg_judge_forbidden)
+ziqi:addRelatedSkill(heg_equip_forbidden)
+
+local xingzhang = fk.CreateTriggerSkill{
+  name = "wk_heg__xingzhang",
+  anim_type = "control",
+  events = {"fk.AfterCommandUse", fk.HpRecover, fk.AfterDying},
+  frequency = Skill.Compulsory,
+  can_trigger = function (self, event, target, player, data)
+    if not (player:hasSkill(self) and player:inMyAttackRange(target)) then return false end
+    if event == "fk.AfterCommandUse" then
+      return not target:isKongcheng()
+    elseif event == fk.HpRecover then
+      return true
+    else
+      return not target.dead
+    end
+  end,
+  on_use = function (self, event, target, player, data)
+    local room = player.room
+    if event == "fk.AfterCommandUse" then
+      local card = room:askForCard(target, 1, 1, false, self.name, false)
+      if not target.dead then
+        room:recover({
+          who = target,
+          num = 1,
+          recoverBy = player,
+          skillName = self.name,
+        })
+      end
+    elseif event == fk.HpRecover then
+      local choices = {}
+      if target:getMark("@@heg_judge_forbidden") ~= 0 then
+        table.insert(choices, "heg_judge_recover")
+      end
+      if target:getMark("@@heg_hand_forbidden") ~= 0 then
+        table.insert(choices, "heg_hand_recover")
+      end
+      if target:getMark("@@heg_equip_forbidden") ~= 0 then
+        table.insert(choices, "heg_equip_recover")
+      end
+      if #choices == 0 then return false end
+      local choice = room:askForChoice(target, choices, self.name)
+      if choice == "heg_judge_forbidden" then
+        room:setPlayerMark(target, "@@heg_judge_forbidden", 0)
+      elseif choice == "heg_hand_forbidden" then
+        room:setPlayerMark(target, "@@heg_hand_forbidden", 0)
+      else
+        room:setPlayerMark(target, "@@heg_equip_forbidden", 0)
+      end
+    else
+      H.askCommandTo(player, target, self.name, true)
+    end
+  end,
+}
+
+lihui:addSkill(ziqi)
+lihui:addSkill(xingzhang)
+Fk:loadTranslationTable{
+  ["wk_heg__lihui"] = "李恢", --蜀国
+  ["wk_heg__ziqi"] = "自器",
+  [":wk_heg__ziqi"] = "回合开始时，你恢复所有区域；与你势力相同角色的准备阶段，你可以封锁一个区域，若如此做，直至此回合结束，其对与你势力不同的角色造成伤害后，受伤角色封锁对应的区域。"..
+  "<font color = 'gray'>封锁：部分技能拥有封锁区域的效果，被封锁的区域内所有牌的技能无效，但原始牌面信息有效。",
+  ["wk_heg__xingzhang"] = "刑张",
+  [":wk_heg__xingzhang"] = "锁定技，你攻击范围内的角色：1.进入濒死状态被救回后，你对其发起强制执行的“军令”；2.成为“军令”的目标结算后，其交给你一张手牌并回复1点体力；3.回复体力后，其恢复一个区域。",
+
+  ["#wk_heg__ziqi_trigger"] = "自器",
 }
 
 local weiwenzhugezhi = General(extension, "wk_heg__weiwenzhugezhi", "wu", 4)
