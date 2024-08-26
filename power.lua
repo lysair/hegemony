@@ -1792,6 +1792,7 @@ extension_card.game_modes_whitelist = { 'nos_heg_mode', 'new_heg_mode' }
 
 local liulongcanjiaSkill = fk.CreateDistanceSkill{
   name = "#liulongcanjiaSkill",
+  attached_equip = "liulongcanjia",
   correct_func = function(self, from, to)
     local n = 0
     if from:hasSkill(self) then
