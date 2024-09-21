@@ -251,7 +251,7 @@ Fk:loadTranslationTable{
   ["$wk_heg__juanshe1"] = "自古，就是邪不胜正！。",
   ["$wk_heg__juanshe2"] = "主公面前，岂容小人搬弄是非。",
 
-  ["~wk_heg__dongyun"] = "大汉，要亡于宦官之手了...",
+  ["~wk_heg__dongyun"] = "大汉，要亡于宦官之手了…",
 }
 
 local luotong = General(extension, "wk_heg__luotong", "wu", 3)
@@ -499,7 +499,7 @@ Fk:loadTranslationTable{
   ["$wk_heg__tugui2"] = "命系袁氏，一心向北。",
   ["$wk_heg__yingshou1"] = "由缓至急，循循而进。",
   ["$wk_heg__yingshou2"] = "事须缓图，欲速不达也。",
-  ["~wk_heg__jvshou"] = "身处河南，魂归河北...",
+  ["~wk_heg__jvshou"] = "身处河南，魂归河北…",
 }
 
 --- 推举
@@ -810,7 +810,7 @@ Fk:loadTranslationTable{
   ["$wk_heg__yuyan2"] = "一腔青云之志，正待梦日之时。",
   ["$wk_heg__caixia1"] = "吾习扫天下之术，不善净一屋之秽。",
   ["$wk_heg__caixia2"] = "玉有十色五光，微瑕难掩其瑜。",
-  ["~wk_heg__xujing"] = "时人如江鲫，所逐者功利尔...",
+  ["~wk_heg__xujing"] = "时人如江鲫，所逐者功利尔…",
 }
 
 local buzhi = General(extension, "wk_heg__buzhi", "wu", 4)
@@ -1199,7 +1199,7 @@ Fk:loadTranslationTable{
   ["$wk_heg__jingqi1"] = "好，很好，非常好！",
   ["$wk_heg__jingqi2"] = "您的话也很好！",
 
-  ["~wk_heg__simahui"] = "",
+  ["~wk_heg__simahui"] = "这似乎，没那么好了…",
 }
 
 local huanfan = General(extension, "wk_heg__huanfan", "wei", 3)
@@ -1614,7 +1614,7 @@ local dingjian = fk.CreateActiveSkill{
     local old_mark = player:getMark("@wk_heg__dingjian-turn")
     if old_mark == 0 then old_mark = {} end
     local choices = {"wk_heg__dingjian_discard", "wk_heg__dingjian_forbidden"}
-    if table.contains(old_mark, card_get:getSuitString(true)) then
+    if table.contains(old_mark, card_get:getSuitString(true)) or player:getMark("wk_heg__dingjian_forbidden_none-turn") > 0 then
       choices = {"wk_heg__dingjian_discard"}
     end
     local choice = room:askForChoice(player, choices, self.name)
@@ -1627,10 +1627,11 @@ local dingjian = fk.CreateActiveSkill{
         skillName = self.name,
         proposer = player.id
       })
-      local mark = player:getMark("@wk_heg__dingjian-turn")
-      if mark == 0 then mark = {} end
-      table.insertIfNeed(mark, card_get:getSuitString(true))
-      room:setPlayerMark(player, "@wk_heg__dingjian-turn", mark)
+      -- local mark = player:getMark("@wk_heg__dingjian-turn")
+      -- if mark == 0 then mark = {} end
+      -- table.insertIfNeed(mark, card_get:getSuitString(true))
+      -- room:setPlayerMark(player, "@wk_heg__dingjian-turn", mark)
+      room:setPlayerMark(player, "wk_heg__dingjian_forbidden_none-turn", 1)
     else
       room:moveCards({
         ids = get,
@@ -1653,24 +1654,28 @@ local dingjian = fk.CreateActiveSkill{
   end,
 }
 
-local dingjian_prohibit = fk.CreateProhibitSkill{
-  name = "#dingjian_prohibit",
-  prohibit_use = function(self, player, card)
-    if player:getMark("@wk_heg__dingjian-turn") == 0 then return false end
-    local subcards = Card:getIdList(card)
-    return #subcards > 0 and table.every(subcards, function(id)
-      return table.contains(player:getCardIds(Player.Hand), id)
-        and table.contains(player:getMark("@wk_heg__dingjian-turn"), Fk:getCardById(id):getSuitString(true))
-    end)
-  end,
-}
+-- local dingjian_prohibit = fk.CreateProhibitSkill{
+--   name = "#dingjian_prohibit",
+--   prohibit_use = function(self, player, card)
+--     if player:getMark("@wk_heg__dingjian-turn") == 0 then return false end
+--     local subcards = Card:getIdList(card)
+--     return #subcards > 0 and table.every(subcards, function(id)
+--       return table.contains(player:getCardIds(Player.Hand), id)
+--         and table.contains(player:getMark("@wk_heg__dingjian-turn"), Fk:getCardById(id):getSuitString(true))
+--     end)
+--   end,
+-- }
 
 local jiexun = fk.CreateTriggerSkill{
   name = "wk_heg__jiexun",
   events = {fk.TargetSpecifying},
   anim_type = "special",
   can_trigger = function (self, event, target, player, data)
-    return player:hasSkill(self) and H.compareKingdomWith(player, target) and data.firstTarget
+    if not (player:hasSkill(self) and H.compareKingdomWith(player, target) and data.firstTarget) then return false end
+    if #AimGroup:getAllTargets(data.tos) == 1 and AimGroup:getAllTargets(data.tos)[1] == player.id  then
+      return false
+    end
+    return true
   end,
   on_use = function (self, event, target, player, data)
     local room = player.room
@@ -1715,7 +1720,7 @@ local jiexun_trigger = fk.CreateTriggerSkill{
   end,
 }
 
-dingjian:addRelatedSkill(dingjian_prohibit)
+-- dingjian:addRelatedSkill(dingjian_prohibit)
 xuezong:addSkill(dingjian)
 
 jiexun:addRelatedSkill(jiexun_trigger)
@@ -1724,9 +1729,9 @@ Fk:loadTranslationTable{
   ["wk_heg__xuezong"] = "薛综",
   ["designer:wk_heg__xuezong"] = "教父",
   ["wk_heg__dingjian"] = "定谏",
-  [":wk_heg__dingjian"] = "出牌阶段，若你有手牌，你可展示牌堆顶一张牌，选择一项：1.弃置半数手牌（向上取整），然后使用其中一张与展示牌花色相同的牌；2.若你可以使用此花色的手牌，获得此牌，然后你本回合不能使用此花色的手牌。",
+  [":wk_heg__dingjian"] = "出牌阶段，你可展示牌堆顶一张牌并选择一项：1.弃置半数手牌（向上取整），然后使用其中一张与展示牌花色相同的牌；2.获得此牌，然后你本回合不能选择此项。",
   ["wk_heg__jiexun"] = "诫训",
-  [":wk_heg__jiexun"] = "与你势力相同角色使用牌指定目标时，你可令其摸一张牌并展示之并取消此牌一个目标，若两牌花色相同，其本回合下次使用此花色的牌选择目标后，其可以额外指定一个目标。",
+  [":wk_heg__jiexun"] = "与你势力相同角色使用牌指定其以外的角色为目标时，你可令其摸一张牌并展示之并取消此牌一个目标，若两牌花色相同，其本回合下次使用此花色的牌选择目标后，其可以额外指定一个目标。",
 
   ["#wk_heg__dingjian-use"] = "定谏：你可以使用其中一张牌",
   ["#wk_heg__jiexun-choose-add"] = "诫训：你可以为 %arg 额外指定一个合法目标",
@@ -1737,13 +1742,13 @@ Fk:loadTranslationTable{
   ["dingjian"] = "定谏",
 
   ["wk_heg__dingjian_discard"] = "弃牌，使用其中一张",
-  ["wk_heg__dingjian_forbidden"] = "获得牌，不能使用同花色手牌",
+  ["wk_heg__dingjian_forbidden"] = "获得牌，不能再选择此项",
 
   ["$wk_heg__dingjian1"] = "礼尚往来，乃君子风范。",
   ["$wk_heg__dingjian2"] = "以子之矛，攻子之盾。",
   ["$wk_heg__jiexun1"] = "帝王应以社稷为重，以大观为主。",
   ["$wk_heg__jiexun2"] = "吾冒昧进谏，只求陛下思虑。",
-  ["~wk_heg__xuezong"] = "",
+  ["~wk_heg__xuezong"] = "尔等竟做如此有辱斯文之事。",
 }
 
 local kuaizi = General(extension, "wk_heg__kuaizi", "qun", 3, 3, General.Male)
@@ -1756,7 +1761,9 @@ local zongpo = fk.CreateTriggerSkill{
   end,
   on_cost = function(self, event, target, player, data)
     local room = player.room
-    local targets = table.map(room:getOtherPlayers(player), Util.IdMapper)
+    local targets = table.map(table.filter(room.alive_players, function (p)
+      return not H.compareKingdomWith(player, p)
+    end), Util.IdMapper)
     local tos, id = room:askForChooseCardAndPlayers(player, targets, 1, 1, ".|.|.|.|.|basic", "#wk_heg__zongpo-choose", self.name, true)
     if #tos ~= 0 then
       self.cost_data = {tos, id}
@@ -1891,7 +1898,7 @@ Fk:loadTranslationTable{
   ["designer:wk_heg__kuaizi"] = "教父&风箫",
 
   ["wk_heg__zongpo"] = "纵迫",
-  [":wk_heg__zongpo"] = "每回合限一次，当你使用牌结算后，你可交给一名其他角色一张基本牌，此牌于其手牌区内视为拥有“合纵”标记，然后其可令你获得你使用的牌。",
+  [":wk_heg__zongpo"] = "每回合限一次，当你使用牌结算后，你可交给一名与你势力不同的角色一张基本牌，此牌于其手牌区内视为拥有“合纵”标记，然后其可令你获得你使用的牌。",
   ["wk_heg__shenshi"] = "审时",
   [":wk_heg__shenshi"] = "与你势力不同的角色获得你的牌后，你可令其摸一张牌，若如此做，此回合结束时，若此回合内所有以此法摸牌的角色于以此法摸牌后未对与你势力相同的角色造成过伤害，与你势力相同的角色各摸一张牌。",
 
@@ -2032,7 +2039,7 @@ Fk:loadTranslationTable{
   ["$wk_heg__mingsong1"] = "你我推心置腹，岂能相负。",
   ["$wk_heg__mingsong2"] = "孰忠孰奸，朕尚能明辨。",
 
-  ["~wk_heg__caorui"] = "",
+  ["~wk_heg__caorui"] = "悔不该耽于逸乐，至由今日。",
 }
 
 local hudu = General(extension, "wk_heg__hudu", "shu", 4, 4, General.Male)
@@ -2149,7 +2156,7 @@ Fk:loadTranslationTable{
   ["$wk_heg__fuman2"] = "跟着我们丞相走，错不了。",
   ["$wk_heg__fuwei1"] = "",
   ["$wk_heg__fuwei2"] = "",
-  ["~wk_heg__hudu"] = "",
+  ["~wk_heg__hudu"] = "南征不定，后患无穷…",
 }
 
 local zhuran = General(extension, "wk_heg__zhuran", "wu", 4, 4, General.Male)
@@ -2334,7 +2341,7 @@ Fk:loadTranslationTable{
   ["$wk_heg__gaojie1"] = "失路青山隐，藏名白水游。",
   ["$wk_heg__gaojie2"] = "隐居青松畔，遁走孤竹丘。",
 
-  ["~wk_heg__guanning"] = "",
+  ["~wk_heg__guanning"] = "高节始终，无憾矣…",
 }
 
 local chengyu = General(extension, "wk_heg__chengyu", "wei", 3)
@@ -2365,7 +2372,7 @@ local shefu = fk.CreateTriggerSkill{
       local too = room:getPlayerById(to[i])
       room:setPlayerMark(too, "@@lure_tiger-turn", 1)
       room:setPlayerMark(too, MarkEnum.PlayerRemoved .. "-turn", 1)
-      room:handleAddLoseSkills(too, "#lure_tiger_hp|#lure_tiger_prohibit", nil, false, true) -- global...
+      room:handleAddLoseSkills(too, "#lure_tiger_hp|#lure_tiger_prohibit", nil, false, true) -- global…
       room.logic:trigger("fk.RemoveStateChanged", too, nil) -- FIXME
     end
     local targets = table.map(table.filter(room.alive_players, function (p)
@@ -2450,7 +2457,7 @@ Fk:loadTranslationTable{
   ["$wk_heg__danli1"] = "曹公智略乃上天所授。",
   ["$wk_heg__danli2"] = "天下大乱，群雄并起，必有命世。",
 
-  ["~wk_heg__chengyu"] = "",
+  ["~wk_heg__chengyu"] = "此诚报效国家之时，吾却休矣…",
 }
 local luji = General(extension, "wk_heg__luji", "wu", 3, 3, General.Male)
 local huaiju = fk.CreateTriggerSkill{
@@ -2562,7 +2569,7 @@ Fk:loadTranslationTable{
   ["$wk_heg__zhenglun1"] = "遗失礼仪，则具非议。",
   ["$wk_heg__zhenglun2"] = "行遗礼之举，于不敬王者。",
 
-  ["~wk_heg__luji"] = "",
+  ["~wk_heg__luji"] = "恨不能见，车同轨，书同文…",
 }
 
 local wangyun = General(extension, "wk_heg__wangyun", "qun", 4)
@@ -2702,7 +2709,9 @@ Fk:loadTranslationTable{
   [":wk_heg__mingjie"] = "主将技，此武将牌上单独的阴阳鱼个数-1；出牌阶段开始时，你可选择一名其他角色，你于本回合内：1.使用牌可以额外指定其为目标；2.防止对其造成的伤害。",
 
   ["#wk_heg__lianji-choose"] = "连计：你可以取消 %arg 的唯一目标且对其发起“军令”",
-  ["@@wk_heg__mingjie-turn"] = "连计 强制军令",
+
+  ["@@wk_heg__mingjie-turn"] = "铭戒",
+  ["@@wk_heg__lianji_must-turn"] = "连计 强制军令",
 
   ["#wk_heg__mingjie-choose"] = "铭戒：你可以选择一名其他角色，防止本回合对其造成的伤害且本回合使用牌可以额外指定其为目标",
 
@@ -2712,6 +2721,7 @@ Fk:loadTranslationTable{
   --   "若其：执行，其对 %src 发起强制执行的“军令”；<br />不执行，你对 %src 和其各造成1点伤害",
   -- ["#wk_heg__lianji2-active"] = "发动 连计，令 %src 对 %dest 发起“军令”，<br />" ..
   --   "若 %dest ：执行，其对 %src 发起强制执行的“军令”；<br />不执行，你对 %src 和 %dest 各造成1点伤害",
+  ["~wk_heg__wangyun"] = "获罪于君，当伏大辟以谢天下…",
 }
 
 local zhongyao = General(extension, "wk_heg__zhongyao", "wei", 3)
@@ -3243,6 +3253,7 @@ local kuangzhis = fk.CreateTriggerSkill{
       local tos = room:askForChoosePlayers(player, targets, 1, 1, "wk_heg__kuangzhis-choose", self.name, false)
       local to = room:getPlayerById(tos[1])
       room:useVirtualCard("duel", nil, player, to, self.name)
+      
     end
   end,
 }
@@ -3281,7 +3292,7 @@ Fk:loadTranslationTable{
   ["$wk_heg__kuangzhi1"] = "",
   ["$wk_heg__kuangzhi2"] = "",
 
-  ["~wk_heg__zhugezhan"] = "",
+  ["~wk_heg__zhugezhan"] = "临难而死义，无愧先父…",
 }
 
 local sunshao = General(extension, "wk_heg__sunshao", "wu", 3, 3, General.Male)
@@ -3701,7 +3712,7 @@ Fk:loadTranslationTable{
   ["$wk_heg__ceci1"] = "无传书卷记，功过自有评",
   ["$wk_heg__ceci2"] = "佚以典传，千秋谁记？",
 
-  ["~wk_heg__sunshao"] = "",
+  ["~wk_heg__sunshao"] = "此去一别，难见文举…",
 }
 
 --- 借调
@@ -4142,6 +4153,7 @@ wangji:addSkill(qizhi)
 wangji:addSkill(jinqu)
 Fk:loadTranslationTable{
   ["wk_heg__wangji"] = "王基", --魏国
+  ["designer:wk_heg__wangji"] = "教父",
   ["wk_heg__qizhi"] = "奇制",
   [":wk_heg__qizhi"] = "与你势力相同的角色于其回合内首次造成伤害后，你可以弃置不为受伤角色的一张牌，然后以此法失去牌的角色摸一张牌。",
   ["wk_heg__jinqu"] = "进趋",
@@ -4263,6 +4275,7 @@ local ziqi = fk.CreateTriggerSkill{
     room:setPlayerMark(player, "@@heg_judge_forbidden", 0)
     room:setPlayerMark(player, "@@heg_hand_forbidden", 0)
     room:setPlayerMark(player, "@@heg_equip_forbidden", 0)
+    room.logic:trigger("fk.RecoverRegion", player, nil)
   end
 }
 
@@ -4295,13 +4308,13 @@ ziqi:addRelatedSkill(heg_equip_forbidden)
 local xingzhang = fk.CreateTriggerSkill{
   name = "wk_heg__xingzhang",
   anim_type = "control",
-  events = {"fk.AfterCommandUse", fk.HpRecover, fk.AfterDying},
+  events = {"fk.AfterCommandUse", "fk.RecoverRegion", fk.AfterDying},
   frequency = Skill.Compulsory,
   can_trigger = function (self, event, target, player, data)
     if not (player:hasSkill(self) and player:inMyAttackRange(target)) then return false end
     if event == "fk.AfterCommandUse" then
       return not target:isKongcheng()
-    elseif event == fk.HpRecover then
+    elseif event == "fk.RecoverRegion" then
       return true
     else
       return not target.dead
@@ -4311,6 +4324,7 @@ local xingzhang = fk.CreateTriggerSkill{
     local room = player.room
     if event == "fk.AfterCommandUse" then
       local card = room:askForCard(target, 1, 1, false, self.name, false)
+      room:moveCardTo(card, Player.Hand, player, fk.ReasonGive, self.name, nil, false, player.id)
       if not target.dead then
         room:recover({
           who = target,
@@ -4319,7 +4333,7 @@ local xingzhang = fk.CreateTriggerSkill{
           skillName = self.name,
         })
       end
-    elseif event == fk.HpRecover then
+    elseif event == fk.AfterDying then
       local choices = {}
       if target:getMark("@@heg_judge_forbidden") ~= 0 then
         table.insert(choices, "heg_judge_recover")
@@ -4339,6 +4353,7 @@ local xingzhang = fk.CreateTriggerSkill{
       else
         room:setPlayerMark(target, "@@heg_equip_forbidden", 0)
       end
+      room.logic:trigger("fk.RecoverRegion", target, nil)
     else
       H.askCommandTo(player, target, self.name, true)
     end
@@ -4353,7 +4368,7 @@ Fk:loadTranslationTable{
   [":wk_heg__ziqi"] = "回合开始时，你恢复所有区域；与你势力相同角色的准备阶段，你可以封锁一个区域，若如此做，直至此回合结束，其对与你势力不同的角色造成伤害后，受伤角色封锁对应的区域。"..
   "<font color = 'gray'>封锁：部分技能拥有封锁区域的效果，被封锁的区域内所有牌的技能无效，但原始牌面信息有效。",
   ["wk_heg__xingzhang"] = "刑张",
-  [":wk_heg__xingzhang"] = "锁定技，你攻击范围内的角色：1.进入濒死状态被救回后，你对其发起强制执行的“军令”；2.成为“军令”的目标结算后，其交给你一张手牌并回复1点体力；3.回复体力后，其恢复一个区域。",
+  [":wk_heg__xingzhang"] = "锁定技，你攻击范围内的角色：1.恢复区域后，你对其发起强制执行的“军令”；2.成为“军令”的目标结算后，其交给你一张手牌并回复1点体力；3.进入濒死状态被救回后，其恢复一个区域。",
 
   ["#wk_heg__ziqi_trigger"] = "自器",
 }
@@ -4454,6 +4469,90 @@ Fk:loadTranslationTable{
   ["$wk_heg__mingchao1"] = "宦海沉浮，生死难料！",
   ["$wk_heg__mingchao2"] = "跨海南征，波涛起浮。",
   ["~wk_heg__weiwenzhugezhi"] = "吾皆海岱清士，岂料生死易逝……",
+}
+
+local yuantanyuanshang = General(extension, "wk_heg__yuantanyuanshang", "qun", 4)
+local neifa = fk.CreateViewAsSkill{
+  name = "wk_heg__neifa",
+  anim_type = "special",
+  card_filter = function(self, to_select, selected)
+    if #selected == 0 then
+      return true
+    elseif #selected == 1 then
+      return not Fk:getCardById(to_select):compareColorWith(Fk:getCardById(selected[1]))
+    else
+      return false
+    end
+  end,
+  view_as = function(self, cards)
+    if #cards ~= 2 then
+      return nil
+    end
+    local c = Fk:cloneCard("fight_together")
+    c.skillName = self.name
+    c:addSubcards(cards)
+    return c
+  end,
+  enabled_at_play = function(self, player)
+    return player:getMark("wk_heg__neifa-turn") == 0
+  end,
+}
+
+local neifa_effect = fk.CreateTriggerSkill{
+  name = "#wk_heg__neifa_effect",
+  mute = true,
+  events = {fk.CardUseFinished},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:getMark("wk_heg__neifa_damage") == 1 and player.chained and data.card and table.contains(data.card.skillNames, "wk_heg__neifa")
+  end,
+  on_cost = Util.TrueFunc,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local targets = table.map(table.filter(room.alive_players, function(p) return p.chained end), Util.IdMapper)
+    if #targets > 0 then
+      local tos = room:askForChoosePlayers(player, targets, 1, 1, "#wk_heg__neifa-choose")
+      if #tos > 0 then
+        local to = room:getPlayerById(tos[1])
+        room:damage{
+          from = player,
+          to = to,
+          damage = 1,
+          skillName = self.name,
+        }
+      end
+    end
+    room:setPlayerMark(player, "wk_heg__neifa_damage", 0)
+  end,
+
+  refresh_events = {fk.TargetConfirmed},
+  can_refresh = function(self, event, target, player, data)
+    local room = player.room
+    return data.card and table.contains(data.card.skillNames, "wk_heg__neifa")
+     and (not table.find(TargetGroup:getRealTargets(data.tos), function(id) return not room:getPlayerById(id).chained end) or not player.chained)
+  end,
+  on_refresh = function(self, event, target, player, data)
+    local room = player.room
+    if not table.find(TargetGroup:getRealTargets(data.tos), function(id) return not room:getPlayerById(id).chained end) then
+      room:setPlayerMark(player, "wk_heg__neifa-turn", 1)
+    end
+    if not player.chained then
+      room:setPlayerMark(player, "wk_heg__neifa_damage", 1)
+    end
+  end,
+}
+
+neifa:addRelatedSkill(neifa_effect)
+yuantanyuanshang:addSkill(neifa)
+Fk:loadTranslationTable{
+  ["wk_heg__yuantanyuanshang"] = "袁谭袁尚",
+  ["#wk_heg__yuantanyuanshang"] = "兄弟阋墙",
+  ["designer:wk_heg__yuantanyuanshang"] = "静谦",
+  ["wk_heg__neifa"] = "内伐",
+  [":wk_heg__neifa"] = "你可将两张花色不同的牌当【勠力同心】使用，此牌结算后若你因此横置，你可以对一名横置的角色造成1点伤害，若没有角色因此横置，此技能失效至本回合结束。",
+
+  ["$wk_heg__neifa1"] = "自相恩残，相煎何急。",
+  ["$wk_heg__neifa2"] = "同室内伐，贻笑外人。",
+  ["~wk_heg__yuantanyuanshang"] = "",
 }
 
 return extension

@@ -5,8 +5,9 @@ extension.extensionName = "hegemony"
 extension.game_modes_whitelist = { 'nos_heg_mode', 'new_heg_mode' }
 
 Fk:loadTranslationTable{
-  ["zxj_heg"] = "国战-紫星居设计",
+  ["zxj_heg"] = "国战-紫星&三设",
   ["zx_heg"] = "紫星",
+  ["ss_heg"] = "三设",
 }
 
 local zhanghua = General(extension, "zx_heg__zhanghua", "wei", 3)
@@ -741,7 +742,7 @@ Fk:loadTranslationTable{
   ["$zx_heg__yichi1"] = "一人劫天子，一人质公卿，此可行邪？",
   ["$zx_heg__yichi2"] = "诸君举事，当上顺天子，奈何如是！",
 
-  ["~zx_heg__yangbiao"] = "",
+  ["~zx_heg__yangbiao"] = "未能效死佑汉，只因宗族之踵。",
 }
 
 return extension
