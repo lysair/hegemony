@@ -4461,7 +4461,7 @@ Fk:loadTranslationTable{
   ["@@wk_heg__mingchao_shown-inhand-turn"] = "鸣潮",
   ["@@wk_heg__mingchao_exchange"] = "鸣潮 交换效果",
   ["wk_heg__mingchao_show0"] = "展示%arg张牌，然后使用其中一张牌",
-  ["wk_heg__mingchao_show1"] = "展示%arg张牌，然后摸一张牌并交换选项效果", 
+  ["wk_heg__mingchao_show1"] = "展示%arg张牌，然后摸一张牌并交换选项效果",
   ["wk_heg__mingchao_discard0"] = "弃置%arg张牌，然后摸一张牌并交换选项效果",
   ["wk_heg__mingchao_discard1"] = "弃置%arg张牌，然后使用其中一张牌",
   ["#wk_heg__mingchao"] = "鸣潮：你可以展示或弃置此回合未展示过的牌，然后执行对应效果",
@@ -4479,7 +4479,7 @@ local neifa = fk.CreateViewAsSkill{
     if #selected == 0 then
       return true
     elseif #selected == 1 then
-      return not Fk:getCardById(to_select):compareColorWith(Fk:getCardById(selected[1]))
+      return Fk:getCardById(to_select):compareColorWith(Fk:getCardById(selected[1]), true)
     else
       return false
     end
@@ -4528,7 +4528,7 @@ local neifa_effect = fk.CreateTriggerSkill{
   can_refresh = function(self, event, target, player, data)
     local room = player.room
     return data.card and table.contains(data.card.skillNames, "wk_heg__neifa")
-     and (not table.find(TargetGroup:getRealTargets(data.tos), function(id) return not room:getPlayerById(id).chained end) or not player.chained)
+      and (not table.find(TargetGroup:getRealTargets(data.tos), function(id) return not room:getPlayerById(id).chained end) or not player.chained)
   end,
   on_refresh = function(self, event, target, player, data)
     local room = player.room
@@ -4548,7 +4548,7 @@ Fk:loadTranslationTable{
   ["#wk_heg__yuantanyuanshang"] = "兄弟阋墙",
   ["designer:wk_heg__yuantanyuanshang"] = "静谦",
   ["wk_heg__neifa"] = "内伐",
-  [":wk_heg__neifa"] = "你可将两张花色不同的牌当【勠力同心】使用，此牌结算后若你因此横置，你可以对一名横置的角色造成1点伤害，若没有角色因此横置，此技能失效至本回合结束。",
+  [":wk_heg__neifa"] = "你可将两张颜色不同的牌当【勠力同心】使用，此牌结算后若你因此横置，你可以对一名横置的角色造成1点伤害，若没有角色因此横置，此技能失效至本回合结束。",
 
   ["$wk_heg__neifa1"] = "自相恩残，相煎何急。",
   ["$wk_heg__neifa2"] = "同室内伐，贻笑外人。",

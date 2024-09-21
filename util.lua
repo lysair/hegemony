@@ -416,11 +416,13 @@ end
 
 --- 军令发起者抽取并选择军令
 ---@param from ServerPlayer @ 军令发起者
----@param skill_name string @ 技能名
+---@param skill_name? string @ 技能名
+---@param num? integer @ 抽取数量
 ---@return integer @ 选择的军令序号
-H.startCommand = function(from, skill_name)
+H.startCommand = function(from, skill_name, num)
   local allcommands = {"command1", "command2", "command3", "command4", "command5", "command6"}
-  local commands = table.random(allcommands, 2) ---@type string[]
+  num = num or 2
+  local commands = table.random(allcommands, num) ---@type string[]
 
   local room = from.room
   local choice = room:askForChoice(from, commands, "start_command", nil, true)
@@ -640,6 +642,7 @@ H.hegNullification = fk.CreateTrickCard{
   suit = Card.Spade,
   number = 11,
   skill = hegNullificationSkill,
+  is_passive = true,
 }
 
 Fk:loadTranslationTable{

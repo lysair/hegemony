@@ -368,7 +368,7 @@ local paoxiaoTriggerXH = fk.CreateTriggerSkill{
     if target ~= player or not player:hasSkill(self) or data.card.trueName ~= "slash" then return false end
     local events = player.room.logic:getEventsOfScope(GameEvent.UseCard, 2, function(e) 
       local use = e.data[1]
-      return use.from == player.id and use.card.trueName == "slash" 
+      return use.from == player.id and use.card.trueName == "slash"
     end, Player.HistoryTurn)
     return #events == 2 and events[2].id == player.room.logic:getCurrentEvent().id
   end,

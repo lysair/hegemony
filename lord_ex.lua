@@ -1442,10 +1442,10 @@ local wenji = fk.CreateTriggerSkill{
 local wenji_targetmod = fk.CreateTargetModSkill{
   name = "#wenji_targetmod",
   bypass_times = function(self, player, skill, scope, card, to)
-    return player:hasSkill(self) and card.id == player:getMark("ld__wenji-turn")
+    return card.id == player:getMark("ld__wenji-turn")
   end,
   bypass_distances =  function(self, player, skill, card, to)
-    return player:hasSkill(self) and card.id == player:getMark("ld__wenji-turn")
+    return card.id == player:getMark("ld__wenji-turn")
   end,
 }
 
