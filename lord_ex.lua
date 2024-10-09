@@ -920,7 +920,7 @@ local zhidao_distance = fk.CreateDistanceSkill{
 local jilix = fk.CreateTriggerSkill{
   name = "ld__jilix",
   frequency = Skill.Compulsory,
-  relate_to_place = "d",
+  -- relate_to_place = "d",
   events = {fk.TargetConfirmed, fk.DamageInflicted},
   can_trigger = function (self, event, target, player, data)
     if event == fk.TargetConfirmed then
@@ -960,7 +960,7 @@ Fk:loadTranslationTable{
   ["ld__zhidao"] = "雉盗",
   [":ld__zhidao"] = "锁定技，出牌阶段开始时，你选择一名其他角色，你于此回合内：1.使用牌仅能指定你或其为目标；2.计算与其距离为1；3.首次对其造成伤害后，获得其区域内一张牌。",
   ["ld__jilix"] = "寄篱",
-  [":ld__jilix"] = "副将技，锁定技，①当你成为红色基本牌或红色普通锦囊牌的唯一目标后，你令此牌结算两次；②当你于一回合内第二次受到伤害时，你移除此武将牌，防止之。",
+  [":ld__jilix"] = "锁定技，①当你成为红色基本牌或红色普通锦囊牌的唯一目标后，你令此牌结算两次；②当你于一回合内第二次受到伤害时，你移除此武将牌，防止之。",
 
   ["#ld_zhidao_trigger"] = "雉盗",
   ["@@ld__zhidao-turn"] = "雉盗",
@@ -1442,10 +1442,10 @@ local wenji = fk.CreateTriggerSkill{
 local wenji_targetmod = fk.CreateTargetModSkill{
   name = "#wenji_targetmod",
   bypass_times = function(self, player, skill, scope, card, to)
-    return card.id == player:getMark("ld__wenji-turn")
+    return card.id == player:getMark("ld__wenji-turn") and not card:isVirtual()
   end,
   bypass_distances =  function(self, player, skill, card, to)
-    return card.id == player:getMark("ld__wenji-turn")
+    return card.id == player:getMark("ld__wenji-turn") and not card:isVirtual()
   end,
 }
 

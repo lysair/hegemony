@@ -1383,6 +1383,7 @@ Fk:loadTranslationTable{
   [":wk_heg__shilun"] = "当你受到伤害后，你可展示所有手牌并弃至每种花色各一张，然后若你的手牌：包含四种花色，你可移动场上一张牌；不包含四种花色，你从牌堆中检索并获得手牌中没有的花色牌各一张。",
 
   ["#wk_heg__liance-invoke"] = "连策：你可以弃置一张牌，令 %dest 视为使用锦囊牌或执行强制“军令”",
+  ["#wk_heg__liance-choose"] = "连策：选择你要使用的牌",
   ["#wk_heg__shilun_active-choose"] = "世论：选择花色各不相同的手牌各一张",
   ["#wk_heg__shilun-move"] = "世论：你可以移动场上一张牌",
   ["#wk_heg__liance_viewas"] = "连策",
@@ -1672,7 +1673,7 @@ local jiexun = fk.CreateTriggerSkill{
   anim_type = "special",
   can_trigger = function (self, event, target, player, data)
     if not (player:hasSkill(self) and H.compareKingdomWith(player, target) and data.firstTarget) then return false end
-    if #AimGroup:getAllTargets(data.tos) == 1 and AimGroup:getAllTargets(data.tos)[1] == player.id  then
+    if #AimGroup:getAllTargets(data.tos) == 1 and AimGroup:getAllTargets(data.tos)[1] == target.id  then
       return false
     end
     return true
@@ -1970,7 +1971,7 @@ local mingsong = fk.CreateTriggerSkill{
   anim_type = "support",
   can_trigger = function (self, event, target, player, data)
     return player:hasSkill(self) and target and H.compareKingdomWith(player, target) and #target:getCardIds("e") > 0
-      and table.find(player.room.alive_players, function(p) return target:canMoveCardsInBoardTo(p, "e") end)
+      and table.find(player.room.alive_players, function(p) return target:canMoveCardsInBoardTo(p, "e") end) and player:usedSkillTimes(self.name, Player.HistoryTurn) == 0
   end,
   on_cost = function(self, event, target, player, data)
     local room = player.room
@@ -2025,7 +2026,7 @@ Fk:loadTranslationTable{
   ["wk_heg__yuchen"] = "驭臣",
   [":wk_heg__yuchen"] = "其他角色的结束阶段，若其本回合未造成过伤害，你可以交给其两张牌，令其执行一个额外的出牌阶段，若如此做，此额外的阶段结束时，若其于此阶段未造成过伤害，你对其造成1点伤害。",
   ["wk_heg__mingsong"] = "明讼",
-  [":wk_heg__mingsong"] = "与你势力相同的角色造成伤害时，你可以移动其装备区里的一张牌，防止此伤害，然后你可令一名体力值最小的角色回复1点体力。",
+  [":wk_heg__mingsong"] = "每回合限一次，与你势力相同的角色造成伤害时，你可以移动其装备区里的一张牌，防止此伤害，然后你可令一名体力值最小的角色回复1点体力。",
 
   ["@@wk_heg__yuchen-turn"] = "驭臣",
   ["#wk_heg__yuchen_delay"] = "驭臣",
@@ -2635,7 +2636,7 @@ local lianji = fk.CreateTriggerSkill{
   anim_type = "special",
   events = {fk.TargetSpecifying},
   can_trigger = function (self, event, target, player, data)
-    return player:hasSkill(self) and target == player and data.card.type == Card.TypeTrick
+    return player:hasSkill(self) and target == player and data.card:isCommonTrick()
       and data.tos and #AimGroup:getAllTargets(data.tos) == 1
   end,
   on_use = function (self, event, target, player, data)
@@ -2644,11 +2645,11 @@ local lianji = fk.CreateTriggerSkill{
     local tos = #targets == 1 and targets or room:askForChoosePlayers(player, targets, 1, 1, "#wk_heg__lianji-choose:::" .. data.card:toLogString(), self.name, false)
     AimGroup:cancelTarget(data, tos[1])
     local to = room:getPlayerById(tos[1])
-    if to:getMark("wk_heg__lianji_must-turn") ~= 0 then
+    if to:getMark("@@wk_heg__lianji_must-turn") ~= 0 then
       H.askCommandTo(player, to, self.name, true)
     else
       if not H.askCommandTo(player, to, self.name) then
-        room:setPlayerMark(to, "wk_heg__lianji_must-turn", 1)
+        room:setPlayerMark(to, "@@wk_heg__lianji_must-turn", 1)
       end
     end
   end,
@@ -2706,21 +2707,14 @@ Fk:loadTranslationTable{
   ["wk_heg__lianji"] = "连计",
   [":wk_heg__lianji"] = "当你使用普通锦囊牌指定唯一目标时，你可取消之，对其发起“军令”，若其不执行，直至本回合结束，你以此法对其发起的“军令”改为强制执行。",
   ["wk_heg__mingjie"] = "铭戒",
-  [":wk_heg__mingjie"] = "主将技，此武将牌上单独的阴阳鱼个数-1；出牌阶段开始时，你可选择一名其他角色，你于本回合内：1.使用牌可以额外指定其为目标；2.防止对其造成的伤害。",
+  [":wk_heg__mingjie"] = "主将技，此武将牌上单独的阴阳鱼个数-1；出牌阶段开始时，你可选择一名其他角色，你于本回合内使用牌可额外指定其为目标且防止对其造成的伤害。",
 
   ["#wk_heg__lianji-choose"] = "连计：你可以取消 %arg 的唯一目标且对其发起“军令”",
-
   ["@@wk_heg__mingjie-turn"] = "铭戒",
   ["@@wk_heg__lianji_must-turn"] = "连计 强制军令",
 
   ["#wk_heg__mingjie-choose"] = "铭戒：你可以选择一名其他角色，防止本回合对其造成的伤害且本回合使用牌可以额外指定其为目标",
 
-  -- ["#wk_heg__lianji0-active"] = "发动 连计，选择两名角色，令第一个选择的角色对第二个选择的角色发起“军令”<br />" ..
-  --   "若后者执行，其对前者发起强制执行的“军令”；<br />不执行，你对前者和后者各造成1点伤害",
-  -- ["#wk_heg__lianji1-active"] = "发动 连计，再选择一名角色，令 %src 对其发起“军令”<br />" ..
-  --   "若其：执行，其对 %src 发起强制执行的“军令”；<br />不执行，你对 %src 和其各造成1点伤害",
-  -- ["#wk_heg__lianji2-active"] = "发动 连计，令 %src 对 %dest 发起“军令”，<br />" ..
-  --   "若 %dest ：执行，其对 %src 发起强制执行的“军令”；<br />不执行，你对 %src 和 %dest 各造成1点伤害",
   ["~wk_heg__wangyun"] = "获罪于君，当伏大辟以谢天下…",
 }
 
@@ -2760,7 +2754,8 @@ local xunzuo = fk.CreateTriggerSkill{
   anim_type = "special",
   events = {fk.EventPhaseStart},
   can_trigger = function (self, event, target, player, data)
-    return player:hasSkill(self) and H.compareKingdomWith(player, target) and H.getGeneralsRevealedNum(target) == 2 and target.phase == Player.Finish and (player == target or H.hasShownSkill(player, self))
+    return player:hasSkill(self) and H.compareKingdomWith(player, target) and H.getGeneralsRevealedNum(target) == 2 
+     and target.phase == Player.Finish and target:getMark("wk_heg__xunzuo-turn") == 0
   end,
   on_use = function (self, event, target, player, data)
     local room = player.room
@@ -3093,10 +3088,9 @@ Fk:loadTranslationTable{
   ["wk_heg__chengqi"] = "承启",
   [":wk_heg__chengqi"] = "当你使用基本牌或普通锦囊牌选择目标后，你可弃置一张黑桃牌，为此牌重新指定至多等量个目标（无视合法性）。",
   ["wk_heg__xunzuo"] = "勋佐",
-  [":wk_heg__xunzuo"] = "与你势力相同角色的结束阶段，若其武将牌均明置，你可以令其选择并失去武将牌上一个技能，然后其选择并获得下列一个所有角色均没有的技能：遗计，驱虎，帷幕，奇策，筹略，且其无视“鏖战”规则直至游戏结束。",
+  [":wk_heg__xunzuo"] = "与你势力相同角色的结束阶段，若其武将牌均明置且其未以此法获得过技能，你可以令其选择并失去武将牌上一个技能，然后其选择并获得下列一个所有角色均没有的技能：遗计，驱虎，帷幕，奇策，筹略，且无视“鏖战”规则。",
 
   ["#wk_heg__chengqi-choose"] = "承启：你可以弃置一张黑桃牌，为此牌重新指定至多等量个目标",
-  -- ["#wk_heg__xunzuo-choose"] = "勋佐：请选择一个技能失去",
   ["#wk_heg__xunzuo-choice"] = "勋佐：请选择一个技能获得",
 
   ["_heg__BattleRoyalMode_ignore"] = "无视鏖战",
@@ -4553,6 +4547,111 @@ Fk:loadTranslationTable{
   ["$wk_heg__neifa1"] = "自相恩残，相煎何急。",
   ["$wk_heg__neifa2"] = "同室内伐，贻笑外人。",
   ["~wk_heg__yuantanyuanshang"] = "",
+}
+
+
+local manchong = General(extension, "wk_heg__manchong", "wei", 4)
+buzhi.mainMaxHpAdjustedValue = -1
+local fuyu = fk.CreateTriggerSkill{
+  name = "wk_heg__fuyu",
+  anim_type = "control",
+  events = {fk.CardUseFinished, fk.CardRespondFinished},
+  can_trigger = function(self, event, target, player, data)
+    return player:hasSkill(self) and target == player and data.responseToEvent and data.responseToEvent.card
+     and not H.compareKingdomWith(player.room:getPlayerById(data.responseToEvent.from), player) 
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local to = room:getPlayerById(data.responseToEvent.from)
+    to:setChainState(true)
+    if not table.find(room.alive_players, function (p) return H.compareKingdomWith(p, to) and not p.chained end) then
+      H.askCommandTo(player, to, self.name, true)
+    end
+  end,
+}
+
+local kaoxun = fk.CreateActiveSkill{
+  name = "wk_heg__kaoxun",
+  relate_to_place = "m",
+  anim_type = "offensive",
+  prompt = "#wk_heg__kaoxun_pro",
+  can_use = Util.TrueFunc,
+  card_num = 0,
+  card_filter = Util.FalseFunc,
+  target_num = 1,
+  target_filter = function(self, to_select, selected, selected_cards)
+    local target = Fk:currentRoom():getPlayerById(to_select)
+    return #selected == 0 and target.chained and target ~= Self
+  end,
+  on_use = function(self, room, effect)
+    local player = room:getPlayerById(effect.from)
+    local target = room:getPlayerById(effect.tos[1])
+    target:setChainState(false)
+    if not target.dead and not target:isKongcheng() then
+      local cards = room:askForCardChosen(player, target, "h", self.name)
+      local card = Fk:getCardById(cards)
+      target:showCards(card)
+      if card.is_damage_card and not target.dead and not player.dead then
+        room:damage{
+          from = player,
+          to = target,
+          damage = 1,
+          skillName = self.name,
+        }
+      end
+    end
+  end,
+}
+
+local lishi = fk.CreateTriggerSkill{
+  name = "wk_heg__lishi",
+  relate_to_place = "d",
+  anim_type = "special",
+  events = {fk.EventPhaseStart},
+  can_trigger = function(self, event, target, player, data)
+    if not (player:hasSkill(self) and target ~= player and target.phase == Player.Finish) then return false end 
+    local targets = {}
+    player.room.logic:getActualDamageEvents(1, function(e)
+      local damage = e.data[1]
+      table.insertIfNeed(targets, damage.to.id)
+      return false
+    end)
+    if #targets > 0 then
+      self.cost_data = targets
+      return true
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local tos = room:askForChoosePlayers(player, self.cost_data, 1, 1, "wk_heg__lishi_pro", self.name, true)
+    if tos then
+      local to = room:getPlayerById(tos[1])
+      to:reset()
+      if not to.dead and not to:isNude() then
+        U.askForPlayCard(room, to, nil, ".", self.name, nil, {bypass_times = true})
+      end
+    end
+  end,
+}
+
+manchong:addSkill(fuyu)
+manchong:addSkill(kaoxun)
+manchong:addSkill(lishi)
+Fk:loadTranslationTable{
+  ["wk_heg__manchong"] = "满宠", 
+  ["#wk_heg__manchong"] = "政法兵谋",
+  ["designer:wk_heg__manchong"] = "小曹神",
+  ["wk_heg__fuyu"] = "伏御",
+  [":wk_heg__fuyu"] = "当你响应与你势力不同角色使用的牌后，你可令其横置，然后若所有与其势力相同的角色武将牌均横置，你对其发起强制执行的“军令”。",
+  ["wk_heg__kaoxun"] = "拷讯",
+  [":wk_heg__kaoxun"] = "主将技，此武将牌上单独的阴阳鱼个数-1；出牌阶段，你可令一名已横置的其他角色重置并展示其一张手牌，若此牌为伤害类牌，你对其造成1点伤害。",
+  ["wk_heg__lishi"] = "励势",
+  [":wk_heg__lishi"] = "副将技，其他角色的结束阶段，你可以令一名本回合受到过伤害的角色复原武将牌，然后其可以使用一张牌。",
+
+  ["#wk_heg__kaoxun_pro"] = "拷讯：你可以展示一名已横置其他角色的一张牌，若为伤害类牌，你对其造成1点伤害",
+  ["wk_heg__lishi_pro"] = "励势：你可以令一名本回合受到过伤害的角色复原武将牌，然后其可以使用一张牌",
+
+  ["~wk_heg__manchong"] = "",
 }
 
 return extension

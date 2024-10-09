@@ -376,18 +376,21 @@ local duanxie = fk.CreateActiveSkill{
   end,
   card_filter = function() return false end,
   target_filter = function(self, to_select, selected)
-    return #selected == 0 and to_select ~= Self.id and
+    return to_select ~= Self.id and
       not Fk:currentRoom():getPlayerById(to_select).chained
   end,
-  target_num = 1,
+  max_target_num = function (self)
+    return math.max(1, Self.maxHp - Self.hp)
+  end,
+  min_target_num = 1,
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
-    local target = room:getPlayerById(effect.tos[1])
-
-    if not target.chained then
-      target:setChainState(true)
+    for _, pid in ipairs(effect.tos) do
+      local target = room:getPlayerById(pid)
+      if not target.chained then
+        target:setChainState(true)
+      end
     end
-
     if not player.chained then
       player:setChainState(true)
     end
@@ -420,7 +423,7 @@ Fk:loadTranslationTable{
   ["illustrator:ld__chenwudongxi"] = "地狱许",
 
   ['ld__duanxie'] = '断绁',
-  [':ld__duanxie'] = '出牌阶段限一次，你可以令一名其他角色横置，然后你横置。',
+  [':ld__duanxie'] = '出牌阶段限一次，你可以令至多X名其他角色横置，然后你横置（X为你已损失的体力值且至少为1）。',
   ['ld__fenming'] = '奋命',
   [':ld__fenming'] = '结束阶段，若你处于横置状态，你可弃置所有处于横置状态角色的各一张牌。',
 

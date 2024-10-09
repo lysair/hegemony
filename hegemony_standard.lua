@@ -540,12 +540,39 @@ Fk:loadTranslationTable{
 }
 
 local xunyu = General(extension, "hs__xunyu", "wei", 3)
+
+local jieming = fk.CreateTriggerSkill{
+  name = "hs__jieming",
+  anim_type = "masochism",
+  events = {fk.Damaged},
+  on_cost = function(self, event, target, player, data)
+    local room = player.room
+    local to = room:askForChoosePlayers(player, table.map(room.alive_players, Util.IdMapper), 1, 1, "#jieming-choose", self.name, true)
+    if #to > 0 then
+      self.cost_data = {tos = to}
+      return true
+    end
+    self.cancel_cost = true
+  end,
+  on_use = function(self, event, target, player, data)
+    local to = player.room:getPlayerById(self.cost_data.tos[1])
+    local num = math.min(to.maxHp, 5) - to:getHandcardNum()
+    if num > 0 then
+      to:drawCards(num, self.name)
+    end
+  end,
+}
+
 xunyu:addSkill("quhu")
-xunyu:addSkill("jieming")
+xunyu:addSkill(jieming)
 Fk:loadTranslationTable{
   ['hs__xunyu'] = '荀彧',
   ["#hs__xunyu"] = "王佐之才",
   ["illustrator:hs__xunyu"] = "LiuHeng",
+
+  ["hs__jieming"] = "节命",
+  [":hs__jieming"] = "当你受到伤害后，你可令一名角色将手牌补至X张（X为其体力上限且最多为5）。",
+
   ["~hs__xunyu"] = "主公要臣死，臣不得不死。",
 }
 
@@ -565,7 +592,7 @@ local fangzhu = fk.CreateTriggerSkill{
     local room = player.room
     local to = room:getPlayerById(self.cost_data)
     local num = player:getLostHp()
-    if to.hp > 0 and #room:askForDiscard(to, 1, 1, true, self.name, true, nil, "hs__fangzhu_ask:::" .. num, false) > 0 then
+    if to.hp > 0 and #room:askForDiscard(to, num, num, true, self.name, true, nil, "hs__fangzhu_ask:::" .. num, false) > 0 then
       if not to.dead then room:loseHp(to, 1, self.name) end
     else
       to:drawCards(num, self.name)
@@ -586,7 +613,7 @@ Fk:loadTranslationTable{
   [":hs__fangzhu"] = "当你受到伤害后，你可令一名其他角色选择一项：1.摸X张牌并叠置（X为你已损失的体力值）；2.弃置一张牌并失去1点体力。",
 
   ["#hs__fangzhu-choose"] = "放逐：你可令一名其他角色选择摸%arg张牌并叠置，或弃置一张牌并失去1点体力",
-  ["hs__fangzhu_ask"] = "放逐：弃置一张牌并失去1点体力，或点击“取消”，摸%arg张牌并叠置",
+  ["hs__fangzhu_ask"] = "放逐：弃置%arg张牌并失去1点体力，或点击“取消”，摸牌并叠置",
 
   ["$hs__fangzhu1"] = "死罪可免，活罪难赦！",
   ["$hs__fangzhu2"] = "给我翻过来！",

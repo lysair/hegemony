@@ -383,9 +383,14 @@ local diaodu = fk.CreateTriggerSkill{
   events = {fk.CardUsing, fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
     if not player:hasSkill(self) then return false end
-    if event == fk.CardUsing then return H.compareKingdomWith(target, player) and data.card.type == Card.TypeEquip and (player:hasShownSkill(self) or player == target)
-    else return target == player and target.phase == Player.Play and table.find(player.room.alive_players, function(p)
-    return H.compareKingdomWith(p, player) and #p:getCardIds(Player.Equip) > 0 end) end
+    if event == fk.CardUsing then 
+      return H.compareKingdomWith(target, player) and data.card.type == Card.TypeEquip 
+       and (player:hasShownSkill(self) or player == target)
+       -- and target:getMark("diaodu_use-turn") == 0
+    else 
+      return target == player and target.phase == Player.Play and table.find(player.room.alive_players, function(p)
+        return H.compareKingdomWith(p, player) and #p:getCardIds(Player.Equip) > 0 end)     
+    end
   end,
   on_cost = function(self, event, target, player, data)
     local room = player.room
@@ -405,6 +410,7 @@ local diaodu = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     if event == fk.CardUsing then
       target:drawCards(1, self.name)
+      player.room:setPlayerMark(target, "diaodu_use-turn", 1)
     else
       local room = player.room
       local target = room:getPlayerById(self.cost_data)
@@ -414,7 +420,8 @@ local diaodu = fk.CreateTriggerSkill{
       local card = Fk:getCardById(cid)
       if player.dead then return false end
       local targets = table.map(table.filter(room.alive_players, function(p) return p ~= player and p ~= target end), Util.IdMapper)
-      local to = room:askForChoosePlayers(player, targets, 1, 1, "#diaodu-give:::" .. card:toLogString(), self.name, target ~= player)
+      -- local to = room:askForChoosePlayers(player, targets, 1, 1, "#diaodu-give:::" .. card:toLogString(), self.name, target ~= player)
+      local to = room:askForChoosePlayers(player, targets, 1, 1, "#diaodu-give:::" .. card:toLogString(), self.name, true)
       if #to > 0 then
         room:moveCardTo(card, Card.PlayerHand, room:getPlayerById(to[1]), fk.ReasonGive, self.name, nil, true, player.id)
       end
@@ -466,6 +473,7 @@ Fk:loadTranslationTable{
 
   ['diaodu'] = '调度',
   [':diaodu'] = '①当与你势力相同的角色使用装备牌时，其可摸一张牌。②出牌阶段开始时，你可获得与你势力相同的一名角色装备区里的一张牌，若其：为你，你将此牌交给一名角色；不为你，你可将此牌交给另一名角色。',
+  -- [':diaodu'] = '①每回合限一次，当与你势力相同的角色使用装备牌时，其可摸一张牌。②出牌阶段开始时，你可获得与你势力相同的一名角色装备区里的一张牌，然后你可将此牌交给另一名角色。',
   ["diancai"] = "典财",
   [":diancai"] = "其他角色的出牌阶段结束时，若你于此阶段失去过不少于X张牌（X为你的体力值），则你可将手牌摸至你体力上限，然后你可变更。",
 

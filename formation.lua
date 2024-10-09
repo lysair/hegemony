@@ -148,11 +148,9 @@ local heyiTrig = fk.CreateTriggerSkill{ -- FIXME
   end,
   on_refresh = function(self, event, target, player, data)
     local room = player.room
-    local ret = #room.alive_players > 3 and player:hasSkill(self)
     for _, p in ipairs(room.alive_players) do
-      if H.inFormationRelation(p, player) then
-        room:handleAddLoseSkills(p, ret and 'ld__feiying' or "-ld__feiying", nil, false, true)
-      end
+      local ret = #room.alive_players > 3 and player:hasSkill(self) and H.inFormationRelation(p, player)
+      room:handleAddLoseSkills(p, ret and 'ld__feiying' or "-ld__feiying", nil, false, true)
     end
   end,
 }
@@ -443,7 +441,7 @@ Fk:loadTranslationTable{
   ["illustrator:ld__jiangwanfeiyi"] = "cometrue",
 
   ["ld__shengxi"] = "生息",
-  [":ld__shengxi"] = "结束阶段开始时，若你于此回合内未造成过伤害，你可摸两张牌。",
+  [":ld__shengxi"] = "结束阶段，若你于此回合内未造成过伤害，你可摸两张牌。",
   ["shoucheng"] = "守成",
   [":shoucheng"] = "与你势力相同的角色于其回合外失去手牌后，若其没有手牌，你可令其摸一张牌。",
 
@@ -461,9 +459,10 @@ local xusheng = General(extension, "ld__xusheng", "wu", 4)
 local yicheng = fk.CreateTriggerSkill{
   name = "yicheng",
   anim_type = "defensive",
-  events = {fk.TargetConfirmed},
+  events = {fk.TargetConfirmed, fk.TargetSpecified},
   can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self) and H.compareKingdomWith(target, player) and data.card.trueName == "slash"
+    return player:hasSkill(self) and H.compareKingdomWith(target, player) and data.card.trueName == "slash" and H.inFormationRelation(player, target)
+     and (event == fk.TargetConfirmed or (event == fk.TargetSpecified and data.firstTarget))
   end,
   on_cost = function(self, event, target, player, data)
     return player.room:askForSkillInvoke(player, self.name, nil, "#yicheng-ask::" .. target.id)
@@ -487,7 +486,7 @@ Fk:loadTranslationTable{
   ["designer:ld__xusheng"] = "淬毒",
   ["illustrator:ld__xusheng"] = "天信",
   ["yicheng"] = "疑城",
-  [":yicheng"] = "当与你势力相同的角色成为【杀】的目标后，你可令其摸一张牌，然后其弃置一张牌。",
+  [":yicheng"] = "当与你处于同一队列的角色使用【杀】指定目标后或成为【杀】的目标后，你可令其摸一张牌，然后其弃置一张牌。",
 
   ["#yicheng-ask"] = "疑城：你可令 %dest 摸一张牌，然后其弃置一张牌",
 

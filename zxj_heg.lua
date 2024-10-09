@@ -438,7 +438,7 @@ local pofu_effect = fk.CreateTriggerSkill{
   events = {fk.CardUseFinished, fk.CardRespondFinished},
   can_trigger = function(self, event, target, player, data)
     if not (data.responseToEvent and data.card.skillName == pofu.name) then return false end
-    if table.find(TargetGroup:getRealTargets(data.responseToEvent.tos), function(id) return id ~= player.id end) then return false end
+    if table.find(TargetGroup:getRealTargets(data.responseToEvent.tos), function(p) return p ~= player end) then return false end
     if ((data.responseToEvent and data.responseToEvent.from.dead) and player.room:getCardArea(data.responseToEvent.card) ~= Card.Processing) then return false end
     if event == fk.CardUseFinished then
       return data.toCard and data.toCard.trueName ~= "nullification" and data.toCard:isCommonTrick()
@@ -743,6 +743,265 @@ Fk:loadTranslationTable{
   ["$zx_heg__yichi2"] = "诸君举事，当上顺天子，奈何如是！",
 
   ["~zx_heg__yangbiao"] = "未能效死佑汉，只因宗族之踵。",
+}
+
+-- local qinmi = General(extension, "ss_heg__qinmi", "shu", 3, 3, General.Male)
+-- local zhuandui = fk.CreateTriggerSkill{
+--   name = "ss_heg__zhuandui",
+--   frequency = Skill.Compulsory,
+--   anim_type = "special",
+--   events = {fk.CardUsing},
+--   can_trigger = function (self, event, target, player, data)
+--     local room = player.room
+--     if not (player:hasSkill(self) and room.current == player and player == target) then return false end
+--     local first = room.logic:getEventsOfScope(GameEvent.UseCard, 1, function(e) 
+--       local use = e.data[1]
+--       return use.from == player.id
+--     end, Player.HistoryTurn)
+--     if #first > 0 and first[1].data[1] == data then 
+--       self.cost_data = data.card.number
+--       return true 
+--     end
+
+--     local turn_event = room.logic:getCurrentEvent():findParent(GameEvent.Turn)
+--     if turn_event == nil then return false end
+--     local use_event = room.logic:getCurrentEvent():findParent(GameEvent.UseCard, true)
+--     if use_event == nil then return false end
+--     local mark = target:getTableMark("ss_heg__zhuandui-turn")
+--     if table.contains(mark, use_event.id) then
+--       return #mark > 1 and mark[2] == use_event.id
+--     end
+--     if #mark > 1 then return false end
+--     mark = {}
+--     room.logic:getEventsOfScope(GameEvent.UseCard, 2, function(e)
+--       local use = e.data[1]
+--       if use.from == player.id then
+--         table.insert(mark, e.id)
+--         return true
+--       end
+--       return false
+--     end, Player.HistoryTurn)
+--     room:setPlayerMark(target, "ss_heg__zhuandui-turn", mark)
+--     if not (#mark > 1 and mark[2] == use_event.id) then return false end
+--     local events = room.logic.event_recorder[GameEvent.UseCard] or {}
+--     local last_find = false
+--     for i = #events, 1, -1 do
+--       local e = events[i]
+--       if e.id < turn_event.id then return false end
+--       if e.id == use_event.id then
+--         last_find = true
+--       elseif last_find then
+--         if e.data[1].card.number < data.card.number then
+--           self.cost_data = 0
+--           return true
+--         end
+--       end
+--     end
+--   end,
+--   on_use = function (self, event, target, player, data)
+--     if self.cost_data ~= 0 then
+--       player.room:setPlayerMark(player, "@ss_heg__zhuandui_forbidden-turn", self.cost_data)
+--     else
+--       player:drawCards(1, self.name)
+--     end
+--   end,
+-- }
+
+-- local zhuandui_prohibit = fk.CreateProhibitSkill{
+--   name = "#ss_heg__zhuandui_prohibit",
+--   prohibit_use = function(self, player, card)
+--     local mark = player:getMark("@ss_heg__zhuandui_forbidden-turn")
+--     return not card:isVirtual() and card.number < mark
+--   end,
+--   prohibit_response = function(self, player, card)
+--     local mark = player:getMark("@ss_heg__zhuandui_forbidden-turn")
+--     return not card:isVirtual() and card.number < mark
+--   end,
+-- }
+
+-- local jianzheng = fk.CreateTriggerSkill{
+--   name = "ss_heg__jianzheng",
+--   anim_type = "special",
+--   events = {fk.EventPhaseStart},
+--   can_trigger = function (self, event, target, player, data)
+--     return player:hasSkill(self) and H.compareKingdomWith(player, target) and target.phase == Player.Play
+--   end,
+--   on_use = function (self, event, target, player, data)
+--     local room = player.room
+--     local targets = table.map(table.filter(room.alive_players, function(p) return not H.compareKingdomWith(p, player) end), Util.IdMapper)
+--     local tos = room:askForChoosePlayers(targets, targets, 1, 1, "#ss_heg__jianzheng-choose", self.name, true)
+--     if #tos > 0 then
+--       local to = room:getPlayerById(tos[1])
+--       room:useVirtualCard("befriend_attacking", nil, target, to, self.name)
+--       room:setPlayerMark(target, "ss_heg__jianzheng-turn", 1)
+--     end
+--   end,
+-- }
+
+-- local jianzheng_delay = fk.CreateTriggerSkill{
+--   name = "#ss_heg__jianzheng_delay",
+--   events = {fk.CardUseFinished},
+--   can_trigger = function (self, event, target, player, data)
+--     return player:usedSkillTimes(jianzheng.name, Player.HistoryTurn) > 0 and data.card.trueName == "slash" 
+--      and target:getMark("ss_heg__jianzheng-turn") > 0 and not player.dead
+--   end,
+--   on_cost = util.TrueFunc,
+--   on_use = function (self, event, target, player, data)
+--     local isDeputy = H.inGeneralSkills(player, jianzheng.name)
+--     if isDeputy then
+--       H.removeGeneral(player.room, player, isDeputy == "d")
+--     end
+--   end,
+-- }
+
+-- zhuandui:addRelatedSkill(zhuandui_prohibit)
+-- jianzheng:addRelatedSkill(jianzheng_delay)
+-- qinmi:addSkill(zhuandui)
+-- qinmi:addSkill(jianzheng)
+
+-- Fk:loadTranslationTable{
+--   ["ss_heg__qinmi"] = "秦宓", --蜀国
+--   ["designer:ss_heg__guanning"] = "",
+--   ["ss_heg__zhuandui"] = "专对",
+--   [":ss_heg__zhuandui"] = "锁定技，当你于回合内使用：首张牌时，所有其他角色本回合不能使用或打出点数小于此牌的牌；第二张牌时，若此牌的点数大于本回合上一张被使用的牌，你摸一张牌。",
+--   ["ss_heg__jianzheng"] = "谏征",
+--   [":ss_heg__jianzheng"] = "与你势力相同角色的出牌阶段开始时，你可令其选择是否视为使用一张【远交近攻】，若如此做，本回合其使用【杀】结算后，你移除此武将牌。",
+
+--   ["~ss_heg__qinmi"] = "",
+-- }
+
+local liuyan = General(extension, "ss_heg__liuyan", "qun", 3, 3, General.Male)
+
+local jueguan_active = fk.CreateActiveSkill{
+  name = "#ss_heg__jueguan_active",
+  can_use = Util.FalseFunc,
+  target_num = 0,
+  card_filter = function(self, to_select, selected)
+    if Fk:currentRoom():getCardArea(to_select) == Player.Equip then return end
+    return table.every(selected, function (id) return Fk:getCardById(to_select).suit ~= Fk:getCardById(id).suit end)
+  end,
+}
+
+local jueguan = fk.CreateTriggerSkill{
+  name = "ss_heg__jueguan",
+  events = {fk.EventPhaseStart},
+  anim_type = "offensive",
+  can_trigger = function (self, event, target, player, data)
+    return player:hasSkill(self) and player == target and player.phase == Player.Play
+  end,
+  on_use = function (self, event, target, player, data)
+    local room = player.room
+    local _, ret = room:askForUseActiveSkill(player, "#ss_heg__jueguan_active", "#ss_heg__jueguan-choose", false)
+    local to_remain
+    if ret then
+      to_remain = ret.cards
+    end
+    player:showCards(to_remain)
+    local suits = {}
+    for _, id in ipairs(to_remain) do
+      local card = Fk:getCardById(id)
+      room:setCardMark(card, "@@ss_heg__jueguan-inhand-turn", 1)
+      local suit = card.suit
+      if suit ~= Card.NoSuit then
+        table.insert(suits, suit)
+      end
+    end
+    room:setPlayerMark(player, "@ss_heg__jueguan_suit-phase", suits)
+  end,
+}
+
+local jueguan_maxcards = fk.CreateMaxCardsSkill{
+  name = "#ss_heg__jueguan_maxcards",
+  frequency = Skill.Compulsory,
+  exclude_from = function(self, player, card)
+    return player:hasSkill(jueguan.name) and card:getMark("@@ss_heg__jueguan-inhand-turn") > 0
+  end,
+}
+
+local jueguan_prohibit = fk.CreateProhibitSkill{
+  name = "#ss_heg__jueguan_prohibit",
+  prohibit_use = function(self, player, card)
+    local mark = player:getMark("@ss_heg__jueguan_suit-phase")
+    return type(mark) == "table" and table.contains(mark, card.suit)
+  end,
+}
+
+local limu_filter = fk.CreateActiveSkill{
+  name = "#ss_heg__limu_filter",
+  card_num = 1,
+  visible = false,
+  card_filter = function(self, to_select, selected)
+    return table.contains(Self:getMark("ss_heg__limu-turn"), Fk:getCardById(to_select).suit)
+  end,
+  target_filter = Util.FalseFunc,
+  can_use = Util.FalseFunc,
+}
+
+local limu = fk.CreateTriggerSkill{
+  name = "ss_heg__limu",
+  events = {fk.EventPhaseStart},
+  anim_type = "special",
+  can_trigger = function (self, event, target, player, data)
+    return player:hasSkill(self) and player == target and player.phase == Player.Finish
+  end,
+  on_use = function (self, event, target, player, data)
+    local room = player.room
+    local targets = table.map(room.alive_players, Util.IdMapper)
+    if #targets == 0 then return end
+    local tos = room:askForChoosePlayers(player, targets, 1, 1, "#ss_heg__limu-choose", self.name, false)
+    local to = room:getPlayerById(tos[1])
+    local no_used_color = {Card.Spade, Card.Heart, Card.Diamond, Card.Club}
+    player.room.logic:getEventsOfScope(GameEvent.UseCard, 999, function(e)
+      local use = e.data[1]
+      if use.from == player.id and use.card.suit ~= Card.NoSuit then
+        table.removeOne(no_used_color, use.card.suit)
+      end
+    end, Player.HistoryTurn)
+    room:setPlayerMark(player, "ss_heg__limu-turn", no_used_color)
+    local result, dat = room:askForUseActiveSkill(player, "#ss_heg__limu_filter", "#ss_heg__limu", true)
+    if result then
+      room:throwCard(dat.cards, self.name, to, to)
+    else
+      to:drawCards(4-#no_used_color, self.name)
+      if H.hasGeneral(to, true) then
+        H.removeGeneral(room, to, true)
+        if not to.dead then
+          to:gainAnExtraTurn(true, self.name)
+        end
+      end
+    end
+  end,
+}
+
+jueguan:addRelatedSkill(jueguan_active)
+jueguan:addRelatedSkill(jueguan_maxcards)
+jueguan:addRelatedSkill(jueguan_prohibit)
+limu:addRelatedSkill(limu_filter)
+liuyan:addSkill(limu)
+liuyan:addSkill(jueguan)
+
+Fk:loadTranslationTable{
+  ["ss_heg__liuyan"] = "刘焉", --群雄
+  ["designer:ss_heg__liuyan"] = "静谦",
+  ["ss_heg__jueguan"] = "绝关",
+  [":ss_heg__jueguan"] = "出牌阶段开始时，你可以展示任意张花色各不相同的牌，令所有角色于此阶段内均不能使用或打出这些花色的牌且这些牌本回合不计入你手牌上限。",
+  ["ss_heg__limu"] = "立牧",
+  [":ss_heg__limu"] = "结束阶段，你可以令一名角色选择一项：1.弃置一张你本回合未使用过的花色的牌；2.摸X张牌，然后移除副将并执行一个额外回合（X为你本回合使用过的花色数）。",
+
+  ["jueguan"] = "绝关",
+  ["@@ss_heg__jueguan-inhand"] = "绝关",
+  ["@ss_heg__jueguan_suit-phase"] = "绝关",
+  ["@ss_heg__jueguan_suit"] = "绝关",
+  ["@@ss_heg__jueguan-inhand-turn"] = "绝关",
+  ["#ss_heg__jueguan_prohibit"] = "绝关",
+  ["#ss_heg__jueguan_active"] = "绝关",
+  ["#ss_heg__jueguan-choose"] = "绝关：选择任意张花色各不相同的牌",
+
+  ["#ss_heg__limu-choose"] = "立牧：选择一名角色，令其弃置你本回合未使用花色的牌，或移除副将并执行一个额外的回合",
+  ["#ss_heg__limu_filter"] = "立牧",
+  ["#ss_heg__limu"] = "立牧：弃置一张本回合未使用花色的牌，或摸牌移除副将并执行一个额外的回合",
+
+  ["~ss_heg__liuyan"] = "",
 }
 
 return extension
