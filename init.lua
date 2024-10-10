@@ -5,9 +5,6 @@ local transformation = require "packages/hegemony/transformation"[1]
 local power = require "packages/hegemony/power"[1]
 local tenyear = require "packages/hegemony/tenyear_heg"
 local overseas = require "packages/hegemony/overseas_heg"
-local lunar = require "packages/hegemony/lunar_heg"
-local work = require "packages/hegemony/work_heg"
-local zxj = require "packages/hegemony/zxj_heg"
 local ex = require "packages/hegemony/lord_ex"
 
 local hegemony_cards = require "packages/hegemony/hegemony_cards"
@@ -28,9 +25,6 @@ return {
   power,
   tenyear,
   overseas,
-  lunar,
-  work,
-  zxj,
   ex,
 
   hegemony_cards,

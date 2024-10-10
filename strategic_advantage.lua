@@ -742,7 +742,7 @@ local halberdSkill = fk.CreateTriggerSkill{
   events = {fk.AfterCardTargetDeclared},
   mute = true,
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self) and data.card.trueName == "slash" and #U.getUseExtraTargets(player.room, data) > 0
+    return target == player and player:hasSkill(self) and data.card.trueName == "slash" and #player.room:getUseExtraTargets(data) > 0
   end,
   on_cost = function(self, event, target, player, data)
     local room = player.room
