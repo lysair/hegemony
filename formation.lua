@@ -461,8 +461,7 @@ local yicheng = fk.CreateTriggerSkill{
   anim_type = "defensive",
   events = {fk.TargetConfirmed, fk.TargetSpecified},
   can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self) and H.compareKingdomWith(target, player) and data.card.trueName == "slash" and H.inFormationRelation(player, target)
-     and (event == fk.TargetConfirmed or (event == fk.TargetSpecified and data.firstTarget))
+    return player:hasSkill(self) and H.compareKingdomWith(target, player) and data.card.trueName == "slash" and (event == fk.TargetConfirmed or (event == fk.TargetSpecified and data.firstTarget))
   end,
   on_cost = function(self, event, target, player, data)
     return player.room:askForSkillInvoke(player, self.name, nil, "#yicheng-ask::" .. target.id)
@@ -486,7 +485,7 @@ Fk:loadTranslationTable{
   ["designer:ld__xusheng"] = "淬毒",
   ["illustrator:ld__xusheng"] = "天信",
   ["yicheng"] = "疑城",
-  [":yicheng"] = "当与你处于同一队列的角色使用【杀】指定目标后或成为【杀】的目标后，你可令其摸一张牌，然后其弃置一张牌。",
+  [":yicheng"] = "当与你势力相同的角色使用【杀】指定目标后或成为【杀】的目标后，你可令其摸一张牌，然后其弃置一张牌。",
 
   ["#yicheng-ask"] = "疑城：你可令 %dest 摸一张牌，然后其弃置一张牌",
 

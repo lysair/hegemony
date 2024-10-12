@@ -1323,7 +1323,13 @@ local shushen = fk.CreateTriggerSkill{
     self.cancel_cost = true
   end,
   on_use = function(self, event, target, player, data)
-    player.room:getPlayerById(self.cost_data):drawCards(1, self.name)
+    local room = player.room
+    local to = room:getPlayerById(self.cost_data)
+    if not to:isKongcheng() then
+      to:drawCards(1, self.name)
+    else
+      to:drawCards(2, self.name)
+    end
   end,
 }
 
@@ -1337,7 +1343,7 @@ Fk:loadTranslationTable{
   ["designer:hs__ganfuren"] = "淬毒",
 
   ["hs__shushen"] = "淑慎",
-  [":hs__shushen"] = "当你回复1点体力后，你可令一名其他角色摸一张牌。",
+  [":hs__shushen"] = "当你回复1点体力后，你可令一名其他角色摸一张牌，若其没有手牌，则改为摸两张牌。",
 
   ["#hs__shushen-choose"] = "淑慎：你可令一名其他角色摸一张牌",
 
@@ -1666,24 +1672,19 @@ local qianxun = fk.CreateTriggerSkill{
   end
 }
 
-local duoshi = fk.CreateViewAsSkill{
+local duoshi = fk.CreateTriggerSkill{
   name = "duoshi",
   anim_type = "drawcard",
-  pattern = "await_exhausted",
-  card_filter = function(self, to_select, selected)
-    return #selected == 0 and Fk:getCardById(to_select).color == Card.Red and Fk:currentRoom():getCardArea(to_select) == Player.Hand
+  events = {fk.EventPhaseStart},
+  can_trigger = function(self, event, target, player, data)
+    local card = Fk:cloneCard("await_exhausted")
+    return player:hasSkill(self) and player == target and player.phase == Player.Play and not player:prohibitUse(card)
   end,
-  view_as = function(self, cards)
-    if #cards ~= 1 then
-      return nil
-    end
-    local c = Fk:cloneCard("await_exhausted")
-    c.skillName = self.name
-    c:addSubcard(cards[1])
-    return c
-  end,
-  enabled_at_play = function(self, player)
-    return player:usedSkillTimes(self.name, Player.HistoryTurn) < 4
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local targets = table.filter(room.alive_players, function(p) return
+      H.compareKingdomWith(p, player) end)
+    room:useVirtualCard("await_exhausted", {}, player, targets, self.name)
   end,
 }
 
@@ -1698,10 +1699,11 @@ Fk:loadTranslationTable{
   ["hs__qianxun"] = "谦逊",
   [":hs__qianxun"] = "锁定技，当你成为【顺手牵羊】或【乐不思蜀】的目标时，你取消此目标。",
   ["duoshi"] = "度势",
-  [":duoshi"] = "出牌阶段限四次，你可将一张红色手牌当【以逸待劳】使用。",
+  [":duoshi"] = "出牌阶段开始时，你可以视为使用一张【以逸待劳】。",
   
   ["~hs__luxun"] = "还以为我已经不再年轻……",
 }
+
 
 local sunshangxiang = General(extension, "hs__sunshangxiang", "wu", 3, 3, General.Female)
 

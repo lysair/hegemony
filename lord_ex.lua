@@ -1034,7 +1034,7 @@ local xishe_delay = fk.CreateTriggerSkill{
         room:notifySkillInvoked(player, xishe.name, "special")
         player:broadcastSkillInvoke(xishe.name)
         room:setPlayerMark(player, "@@ld__xishe_change_before", 1)
-        H.transformGeneral(room, player)
+        H.transformGeneral(room, player, false, true)
       end
     end
   end,
@@ -1049,7 +1049,7 @@ Fk:loadTranslationTable{
   ["illustrator:ld__huangzu"] = "YanBai",
 
   ["ld__xishe"] = "袭射",
-  [":ld__xishe"] = "其他角色的准备阶段，你可以弃置一张装备区内的牌，视为对其使用一张【杀】（体力值小于你的角色不能响应），然后你可以重复此流程。此回合结束时，若你以此法杀死了一名角色，你可以变更副将。 <br>注：变更副将后暗置的效果尚在施工中。",
+  [":ld__xishe"] = "其他角色的准备阶段，你可以弃置一张装备区内的牌，视为对其使用一张【杀】（体力值小于你的角色不能响应），然后你可以重复此流程。此回合结束时，若你以此法杀死了一名角色，你可以暗置变更副将。",
   ["#ld__xishe_noresponse"] = "袭射",
   ["#ld__xishe"] = "袭射：你可以弃置一张装备区内的牌，视为对 %dest 使用一张【杀】",
 

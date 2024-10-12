@@ -909,11 +909,26 @@ Fk:loadTranslationTable{
   ["#GeneralRemoved"] = "%from 移除了 %arg %arg2",
 }
 
+local function addHegSkill(player, skill, room)
+  if skill.frequency == Skill.Compulsory then
+    player:addFakeSkill("reveal_skill&")
+  end
+  player:addFakeSkill(skill)
+  local toget = {table.unpack(skill.related_skills)}
+  table.insert(toget, skill)
+  for _, s in ipairs(toget) do
+    if s:isInstanceOf(TriggerSkill) then
+      room.logic:addTriggerSkill(s)
+    end
+  end
+end
+
 --- 变更武将牌
 ---@param room Room
 ---@param player ServerPlayer
 ---@param isMain bool @ 是否为主将，默认副将
-H.transformGeneral = function(room, player, isMain)
+---@param isHidden bool @ 是否暗置变更
+H.transformGeneral = function(room, player, isMain, isHidden)
   local orig = isMain and player.general or player.deputyGeneral
   if not orig then return false end
   if orig == "anjiang" then
@@ -937,7 +952,31 @@ H.transformGeneral = function(room, player, isMain)
   table.removeOne(generals, general)
   table.insert(generals, orig)
   room:returnToGeneralPile(generals)
-  room:changeHero(player, general, false, not isMain, true, false, false)
+  if not isHidden then
+    room:changeHero(player, general, false, not isMain, true, false, false)
+  else
+    if isMain then
+      room:setPlayerGeneral(player, "anjiang", true)
+      local general = Fk.generals[player:getMark("__heg_general")]
+      local skills = table.connect(general.skills, table.map(general.other_skills, Util.Name2SkillMapper))
+      for _, s in ipairs(skills) do
+        if s.relate_to_place ~= "d" then
+          addHegSkill(player, s, room)
+        end
+      end
+    else
+      room:setDeputyGeneral(player, "anjiang")
+      local deputy = Fk.generals[player:getMark("__heg_deputy")]
+      if deputy then
+        local skills = table.connect(deputy.skills, table.map(deputy.other_skills, Util.Name2SkillMapper))
+        for _, s in ipairs(skills) do
+          if s.relate_to_place ~= "m" then
+            addHegSkill(player, s, room)
+          end
+        end
+      end
+    end
+  end
   room:setPlayerMark(player, isMain and "__heg_general" or "__heg_deputy", general)
   room.logic:trigger("fk.GeneralTransformed", player, orig)
 end

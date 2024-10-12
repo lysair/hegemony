@@ -34,8 +34,8 @@ local hengjiang = fk.CreateTriggerSkill{
     local target = room.current
     if target ~= nil and not target.dead then
       room:doIndicate(player.id, {target.id})
-      room:addPlayerMark(target, "@hengjiang-turn", data.damage)
-      room:addPlayerMark(target, MarkEnum.MinusMaxCardsInTurn, data.damage)
+      room:addPlayerMark(target, "@hengjiang-turn", math.min(1, #target:getCardIds("e")))
+      room:addPlayerMark(target, MarkEnum.MinusMaxCardsInTurn, math.min(1, #target:getCardIds("e")))
     end
   end
 }
@@ -83,7 +83,9 @@ local hengjiangdelay = fk.CreateTriggerSkill{
   end,
   on_cost = Util.TrueFunc,
   on_use = function(_, _, _, player, _)
-    player:drawCards(1, hengjiang.name)
+    if player:getHandcardNum() < player.maxHp then
+      player:drawCards(player.maxHp - player:getHandcardNum() , hengjiang.name)
+    end
   end,
 }
 hengjiang:addRelatedSkill(hengjiangdelay)
@@ -95,8 +97,8 @@ Fk:loadTranslationTable{
   ["illustrator:ld__zangba"] = "HOOO",
   ["cv:ld__zangba"] = "墨禅",
   ['hengjiang'] = '横江',
-  [':hengjiang'] = '当你受到伤害后，你可以令当前回合角色本回合手牌上限-X（X为伤害值）。' ..
-    '然后若其本回合弃牌阶段内没有弃牌，你摸一张牌。',
+  [':hengjiang'] = '当你受到伤害后，你可以令当前回合角色本回合手牌上限-X（X为其装备区内牌数且至少为1）。' ..
+    '然后若其本回合弃牌阶段内没有弃牌，你将手牌摸至体力上限。',
   ['@hengjiang-turn'] = '横江',
   ['#hengjiang_delay'] = '横江',
 

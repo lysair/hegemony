@@ -386,7 +386,7 @@ local diaodu = fk.CreateTriggerSkill{
     if event == fk.CardUsing then 
       return H.compareKingdomWith(target, player) and data.card.type == Card.TypeEquip 
        and (player:hasShownSkill(self) or player == target)
-       -- and target:getMark("diaodu_use-turn") == 0
+       and target:getMark("diaodu_use-turn") == 0
     else 
       return target == player and target.phase == Player.Play and table.find(player.room.alive_players, function(p)
         return H.compareKingdomWith(p, player) and #p:getCardIds(Player.Equip) > 0 end)     
@@ -472,8 +472,7 @@ Fk:loadTranslationTable{
   ["illustrator:ld__lvfan"] = "铭zmy",
 
   ['diaodu'] = '调度',
-  [':diaodu'] = '①当与你势力相同的角色使用装备牌时，其可摸一张牌。②出牌阶段开始时，你可获得与你势力相同的一名角色装备区里的一张牌，若其：为你，你将此牌交给一名角色；不为你，你可将此牌交给另一名角色。',
-  -- [':diaodu'] = '①每回合限一次，当与你势力相同的角色使用装备牌时，其可摸一张牌。②出牌阶段开始时，你可获得与你势力相同的一名角色装备区里的一张牌，然后你可将此牌交给另一名角色。',
+  [':diaodu'] = '①每回合限一次，当与你势力相同的角色使用装备牌时，其可摸一张牌。②出牌阶段开始时，你可获得与你势力相同的一名角色装备区里的一张牌，然后你可将此牌交给另一名角色。',
   ["diancai"] = "典财",
   [":diancai"] = "其他角色的出牌阶段结束时，若你于此阶段失去过不少于X张牌（X为你的体力值），则你可将手牌摸至你体力上限，然后你可变更。",
 
@@ -994,24 +993,19 @@ local ld__shelie = fk.CreateTriggerSkill{
   end,
 }
 
-local ld__duoshi = fk.CreateViewAsSkill{
+local ld__duoshi = fk.CreateTriggerSkill{
   name = "ld__lordsunquan_duoshi",
   anim_type = "drawcard",
-  pattern = "await_exhausted",
-  card_filter = function(self, to_select, selected)
-    return #selected == 0 and Fk:getCardById(to_select).color == Card.Red and Fk:currentRoom():getCardArea(to_select) == Player.Hand
+  events = {fk.EventPhaseStart},
+  can_trigger = function(self, event, target, player, data)
+    local card = Fk:cloneCard("await_exhausted")
+    return player:hasSkill(self) and player == target and player.phase == Player.Play and not player:prohibitUse(card)
   end,
-  view_as = function(self, cards)
-    if #cards ~= 1 then
-      return nil
-    end
-    local c = Fk:cloneCard("await_exhausted")
-    c.skillName = self.name
-    c:addSubcard(cards[1])
-    return c
-  end,
-  enabled_at_play = function(self, player)
-    return player:usedSkillTimes(self.name, Player.HistoryTurn) < 4
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local targets = table.filter(room.alive_players, function(p) return
+      H.compareKingdomWith(p, player) end)
+    room:useVirtualCard("await_exhausted", {}, player, targets, self.name)
   end,
 }
 
@@ -1274,7 +1268,7 @@ Fk:loadTranslationTable{
   [":ld__lordsunquan_yingzi"] = "锁定技，摸牌阶段，你多摸一张牌。你的手牌上限为你的体力上限。 ",
   [":ld__lordsunquan_haoshi"] = "摸牌阶段，你可以多摸两张牌，若如此做，此阶段结束时，若你的手牌数大于5，你将一半的手牌（向下取整）交给一名手牌数最小的其他角色。",
   [":ld__lordsunquan_shelie"] = "摸牌阶段，你可以改为亮出牌堆顶的五张牌，获得其中每种花色的牌各一张。 ",
-  [":ld__lordsunquan_duoshi"] = "出牌阶段限四次，你可将一张红色手牌当【以逸待劳】使用。 ",
+  [":ld__lordsunquan_duoshi"] = "出牌阶段开始时，你可以视为使用一张【以逸待劳】。 ",
 
   ["ld__lordsunquan_zhiheng"] = "制衡",
   [":ld__lordsunquan_zhiheng"] = "出牌阶段限一次，你可以弃置至多X张牌（X为你体力上限），摸等量的牌。",
