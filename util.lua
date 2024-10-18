@@ -480,12 +480,15 @@ H.doCommand = function(to, skill_name, index, from, forced)
   ret = ret .. "</b></font> " .. Fk:translate("chose") .. " <b>" .. Fk:translate(result) .. "</b>"
   room:doBroadcastNotify("ServerMessage", ret)
   --]]
-  if choice == "Cancel" then return false end
   local commandData = {
     from = from,
     to = to,
     command = index,
   }
+  if choice == "Cancel" then 
+    room.logic:trigger("fk.AfterCommandUse", to, commandData)
+    return false 
+  end
   if room.logic:trigger("fk.ChooseDoCommand", to, commandData) then
     room.logic:trigger("fk.AfterCommandUse", to, commandData)
     return true
@@ -978,6 +981,24 @@ H.transformGeneral = function(room, player, isMain, isHidden)
     end
   end
   room:setPlayerMark(player, isMain and "__heg_general" or "__heg_deputy", general)
+  if not isHidden then
+    room:changeHero(player, general, false, not isMain, true, false, false)
+  else
+    -- 暗置变更
+    local lose = Fk.generals[orig]
+    local general = isMain and Fk.generals[player:getMark("__heg_general")] or Fk.generals[player:getMark("__heg_deputy")]
+    room:setPlayerGeneral(player, "anjiang", isMain)
+    local skills = table.connect(general.skills, table.map(general.other_skills, Util.Name2SkillMapper))
+    local location = isMain and "d" or "m"
+    for _, s in ipairs(skills) do
+      if s.relate_to_place ~= location then
+        addHegSkill(player, s, room)
+      end
+    end
+    for _, s in ipairs(lose:getSkillNameList()) do
+      room:handleAddLoseSkills(player, "-"..s, nil)
+    end
+  end
   room.logic:trigger("fk.GeneralTransformed", player, orig)
 end
 

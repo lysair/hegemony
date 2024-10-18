@@ -34,8 +34,8 @@ local hengjiang = fk.CreateTriggerSkill{
     local target = room.current
     if target ~= nil and not target.dead then
       room:doIndicate(player.id, {target.id})
-      room:addPlayerMark(target, "@hengjiang-turn", math.min(1, #target:getCardIds("e")))
-      room:addPlayerMark(target, MarkEnum.MinusMaxCardsInTurn, math.min(1, #target:getCardIds("e")))
+      room:addPlayerMark(target, "@hengjiang-turn", math.max(1, #target:getCardIds("e")))
+      room:addPlayerMark(target, MarkEnum.MinusMaxCardsInTurn, math.max(1, #target:getCardIds("e")))
     end
   end
 }

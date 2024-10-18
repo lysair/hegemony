@@ -3,6 +3,7 @@ extension.extensionName = "hegemony"
 extension.game_modes_whitelist = { 'nos_heg_mode', 'new_heg_mode' }
 
 local H = require "packages/hegemony/util"
+local U = require "packages/utility/utility"
 
 Fk:loadTranslationTable{
   ["overseas_heg"] = "国战-国际服专属",
@@ -492,4 +493,5 @@ Fk:loadTranslationTable{
   ["$yuanyuk2"] = "这片土地的人，真是太有趣了。",
   ["~os_heg__himiko"] = "我还会从黄泉比良坂回来的……",
 }
+
 return extension

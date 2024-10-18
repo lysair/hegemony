@@ -940,7 +940,10 @@ local jilix = fk.CreateTriggerSkill{
     if event == fk.TargetConfirmed then
       data.additionalEffect = 1
     else
-      H.removeGeneral(room, player, true)
+      local isDeputy = H.inGeneralSkills(player, self.name)
+      if isDeputy then
+        H.removeGeneral(room, player, isDeputy == "d")
+      end
       return true
     end
   end,
