@@ -810,6 +810,7 @@ heg = fk.CreateGameMode{
     "tenyear_heg",
     "overseas_heg",
     "lord_ex",
+    "offline_heg",
 
     "formation_cards",
     "momentum_cards",

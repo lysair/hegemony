@@ -585,10 +585,9 @@ heg = fk.CreateGameMode{
     "strategic_advantage",
     "tenyear_heg",
     "overseas_heg",
-    "lunar_heg",
-    "work_heg",
-    "zxj_heg",
     "lord_ex",
+    "offline_heg",
+
     "formation_cards",
     "momentum_cards",
     "transformation_cards",
