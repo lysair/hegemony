@@ -912,20 +912,20 @@ on_use = function(self, event, target, player, data)
         local from = move.from and room:getPlayerById(move.from)
         local to = move.to and room:getPlayerById(move.to)
         -- 处理木牛移出装备区
-        if info.fromArea == Card.PlayerEquip and from and #from:getPile("carriage&") > 0 then
-          local ids = from:getPile("carriage&")
+        if info.fromArea == Card.PlayerEquip and from and #from:getPile("$carriage&") > 0 then
+          local ids = from:getPile("$carriage&")
           if move.toArea == Card.PlayerEquip and to and not to.dead then
             -- 若木马进入装备区，“辎”移动到他的私人牌堆
             table.insert(moveInfos, {
               moveInfo = table.map(ids, function(id)
-                return {cardId = id,fromArea = Card.PlayerSpecial,fromSpecialName = "carriage&"}
+                return {cardId = id,fromArea = Card.PlayerSpecial,fromSpecialName = "$carriage&"}
               end),
               from = move.from,
               toArea = Card.PlayerSpecial,
               to = move.to,
               moveReason = fk.ReasonPut,
               skillName = self.name,
-              specialName = "carriage&",
+              specialName = "$carriage&",
               moveVisible = false,
               visiblePlayers = {from.id, to.id},
             })
@@ -933,7 +933,7 @@ on_use = function(self, event, target, player, data)
             -- 如果木马进入处理区，先把“辎”移动到处理区
             table.insert(moveInfos, {
               moveInfo = table.map(ids, function(id)
-                return {cardId = id,fromArea = Card.PlayerSpecial,fromSpecialName = "carriage&"}
+                return {cardId = id,fromArea = Card.PlayerSpecial,fromSpecialName = "$carriage&"}
               end),
               from = move.from,
               toArea = Card.Processing,
@@ -949,7 +949,7 @@ on_use = function(self, event, target, player, data)
             -- 其他情况下，“辎”牌置入弃牌堆
             table.insert(moveInfos, {
               moveInfo = table.map(ids, function(id)
-                return {cardId = id,fromArea = Card.PlayerSpecial,fromSpecialName = "carriage&"}
+                return {cardId = id,fromArea = Card.PlayerSpecial,fromSpecialName = "$carriage&"}
               end),
               from = move.from,
               toArea = Card.DiscardPile,
@@ -977,7 +977,7 @@ on_use = function(self, event, target, player, data)
                 to = move.to,
                 moveReason = fk.ReasonPut,
                 skillName = self.name,
-                specialName = "carriage&",
+                specialName = "$carriage&",
                 moveVisible = false,
                 visiblePlayers = {mark.from, to.id},
               })
@@ -1010,7 +1010,7 @@ local wooden_ox_skill = fk.CreateActiveSkill{
   attached_equip = "wooden_ox",
   prompt = "#wooden_ox-prompt",
   can_use = function(self, player, card)
-    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and not player:isKongcheng() and #player:getPile("carriage&") < 5
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and not player:isKongcheng() and #player:getPile("$carriage&") < 5
   end,
   card_num = 1,
   card_filter = function(self, to_select, selected)
@@ -1019,7 +1019,7 @@ local wooden_ox_skill = fk.CreateActiveSkill{
   target_num = 0,
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
-    player:addToPile("carriage&", effect.cards[1], false, self.name)
+    player:addToPile("$carriage&", effect.cards[1], false, self.name)
     if player.dead then return end
     local targets = table.filter(room:getOtherPlayers(player), function(p) return p:hasEmptyEquipSlot(Card.SubtypeTreasure) end)
     local ox = table.find(player:getCardIds("e"), function (id) return Fk:getCardById(id).name == "wooden_ox" end)
@@ -1051,7 +1051,7 @@ Fk:loadTranslationTable{
   ["wooden_ox_skill"] = "木牛",
   [":wooden_ox_skill"] = "出牌阶段限一次，你可将一张手牌置入仓廪（称为“辎”，“辎”数至多为5），然后你可将装备区里的【木牛流马】置入一名其他角色的装备区。你可如手牌般使用或打出“辎”。",
   ["#wooden_ox-move"] = "你可以将【木牛流马】移动至一名其他角色的装备区",
-  ["carriage&"] = "辎",
+  ["$carriage&"] = "辎",
   ["#wooden_ox_trigger"] = "木牛流马",
   ["#wooden_ox-prompt"] = "你可以将一张手牌扣置于木牛流马下",
 }
