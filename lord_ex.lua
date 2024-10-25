@@ -448,7 +448,7 @@ local jianyan = fk.CreateActiveSkill{
         table.insert(cards, id)
       end
     end
-    local availableTargets = table.map(table.filter(room.alive_players, function(p) return p.gender == General.Male end), function(p) return p.id end)
+    local availableTargets = table.map(table.filter(room.alive_players, function(p) return p:isMale() end), Util.IdMapper)
     if #availableTargets == 0 then
       table.insert(cards, card.id)
     else
@@ -1751,7 +1751,7 @@ local congcha = fk.CreateTriggerSkill{
       local to = room:askForChoosePlayers(player, targets, 1, 1, "#ld__congcha_choose", self.name, true)
       if #to > 0 then
         target = room:getPlayerById(to[1])
-        local record = U.getMark(target, "@@ld__congcha_delay")
+        local record = target:getTableMark("@@ld__congcha_delay")
         table.insert(record, player.id)
         room:setPlayerMark(target, "@@ld__congcha_delay", record)
         room:setPlayerMark(player, "_ld__congcha", target.id)
@@ -1799,7 +1799,7 @@ local congcha_delay = fk.CreateTriggerSkill{
   on_refresh = function(self, event, target, player, data)
     local room = player.room
     target = room:getPlayerById(player:getMark("_ld__congcha"))
-    local record = U.getMark(target, "@@ld__congcha_delay")
+    local record = target:getTableMark("@@ld__congcha_delay")
     table.removeOne(record, player.id)
     if #record == 0 then record = 0 end
     room:setPlayerMark(target, "@@ld__congcha_delay", record)
@@ -1904,7 +1904,7 @@ local zhengjian = fk.CreateTriggerSkill{
     local room = player.room
     H.addHegMark(room, target, "companion")
     room:setPlayerMark(target, "@@ld__zhengjian-forbidden", 1)
-    local record = U.getMark(player, "_ld__zhengjian")
+    local record = player:getTableMark("_ld__zhengjian")
     table.insert(record, target.id)
     room:setPlayerMark(player, "_ld__zhengjian", record)
   end,
@@ -1916,17 +1916,17 @@ local zhengjian = fk.CreateTriggerSkill{
     elseif event == fk.BuryVictim then
       return player == target and player:getMark("_ld__zhengjian") ~= 0
     elseif event == fk.EnterDying then
-      return target:getMark("@@ld__zhengjian-forbidden") > 0 and table.contains(U.getMark(player, "_ld__zhengjian"), target.id)
+      return target:getMark("@@ld__zhengjian-forbidden") > 0 and table.contains(player:getTableMark("_ld__zhengjian"), target.id)
     end
   end,
   on_refresh = function (self, event, target, player, data)
     local room = player.room
     if event == fk.TargetConfirmed or event == fk.BuryVictim then
-      table.forEach(U.getMark(player, "_ld__zhengjian"), function(pid) room:setPlayerMark(room:getPlayerById(pid), "@@ld__zhengjian-forbidden", 0) end)
+      table.forEach(player:getTableMark("_ld__zhengjian"), function(pid) room:setPlayerMark(room:getPlayerById(pid), "@@ld__zhengjian-forbidden", 0) end)
       room:setPlayerMark(player, "_ld__zhengjian", 0)
     else
       room:setPlayerMark(target, "@@ld__zhengjian-forbidden", 0)
-      local record = U.getMark(player, "_ld__zhengjian")
+      local record = player:getTableMark("_ld__zhengjian")
       table.removeOne(record, target.id)
       if #record == 0 then record = 0 end
       room:setPlayerMark(player, "_ld__zhengjian", record)
@@ -2515,7 +2515,7 @@ local shilus = fk.CreateTriggerSkill{
   end,
   on_refresh = function(self, event, target, player, data)
     local room = player.room
-    room:returnToGeneralPile(U.getMark(player, "@&massacre"), "bottom")
+    room:returnToGeneralPile(player:getTableMark("@&massacre"), "bottom")
     room:setPlayerMark(player, "@&massacre", 0)
   end,
 }

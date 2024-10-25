@@ -502,7 +502,7 @@ local addFangkeSkill = function(player, skillName)
     return
   end
 
-  local fangke_skills = U.getMark(player, "ld__xing_skills")
+  local fangke_skills = player:getTableMark("ld__xing_skills")
   table.insert(fangke_skills, skillName)
   room:setPlayerMark(player, "ld__xing_skills", fangke_skills)
   player:addFakeSkill(skill)
@@ -515,7 +515,7 @@ local removeFangkeSkill = function(player, skillName)
   local room = player.room
   local skill = Fk.skills[skillName]
 
-  local fangke_skills = U.getMark(player, "ld__xing_skills")
+  local fangke_skills = player:getTableMark("ld__xing_skills")
   if not table.contains(fangke_skills, skillName) then
     return
   end
@@ -548,7 +548,7 @@ end
 ---@param general string
 local function removeFangke(player, general)
   local room = player.room
-  local glist = U.getMark(player, "@&ld__xing")
+  local glist = player:getTableMark("@&ld__xing")
   if table.removeOne(glist, general) then
     if #glist == 0 then glist = 0 end
     room:setPlayerMark(player, "@&ld__xing", glist)
@@ -635,7 +635,7 @@ local huashen = fk.CreateTriggerSkill{
   events = {fk.AfterSkillEffect},
   can_trigger = function(self, _, target, player, data)
     return target == player and player:hasSkill(self) and
-      table.contains(U.getMark(player, "ld__xing_skills"), data.name)
+      table.contains(player:getTableMark("ld__xing_skills"), data.name)
   end,
   on_cost = Util.TrueFunc,
   on_use = function(self, _, target, player, data)

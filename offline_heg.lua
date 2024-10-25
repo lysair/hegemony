@@ -359,7 +359,7 @@ local xionghuo_record = fk.CreateTriggerSkill{
           skillName = "of_heg__xionghuo",
         }
         if not (player.dead or target.dead) then
-          local mark = U.getMark(target, "of_heg__xionghuo_prohibit-turn")
+          local mark = target:getTableMark("of_heg__xionghuo_prohibit-turn")
           table.insert(mark, player.id)
           room:setPlayerMark(target, "of_heg__xionghuo_prohibit-turn", mark)
         end
@@ -400,7 +400,7 @@ local xionghuo_record = fk.CreateTriggerSkill{
 local xionghuo_prohibit = fk.CreateProhibitSkill{
   name = "#of_heg__xionghuo_prohibit",
   is_prohibited = function(self, from, to, card)
-    return card.trueName == "slash" and table.contains(U.getMark(from, "of_heg__xionghuo_prohibit-turn") ,to.id)
+    return card.trueName == "slash" and table.contains(from:getTableMark("of_heg__xionghuo_prohibit-turn") ,to.id)
   end,
 }
 

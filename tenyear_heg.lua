@@ -193,7 +193,7 @@ local mingfa_delay = fk.CreateTriggerSkill{
   events = {fk.TurnEnd},
   can_trigger = function (self, event, target, player, data)
     if target.dead or player.dead then return false end
-    return table.contains(U.getMark(target, "@@ty_heg__mingfa_delay"), player.id)
+    return table.contains(target:getTableMark("@@ty_heg__mingfa_delay"), player.id)
   end,
   on_cost = Util.TrueFunc,
   on_use = function (self, event, target, player, data)

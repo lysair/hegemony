@@ -238,7 +238,7 @@ local HegLogic = {}
 function HegLogic:assignRoles()
   local room = self.room
   for _, p in ipairs(room.players) do
-    p.role_shown = false
+    room:setPlayerProperty(p, "role_shown", false)
     p.role = "hidden"
     room:broadcastProperty(p, "role")
   end
@@ -249,6 +249,7 @@ end
 
 function HegLogic:prepareDrawPile()
   local room = self.room
+  local seed = math.random(2 << 32 - 1)
   local allCardIds = Fk:getAllCardIds()
 
   for i = #allCardIds, 1, -1 do
@@ -266,11 +267,13 @@ function HegLogic:prepareDrawPile()
     end
   end
 
-  table.shuffle(allCardIds)
+  table.shuffle(allCardIds, seed)
   room.draw_pile = allCardIds
   for _, id in ipairs(room.draw_pile) do
     room:setCardArea(id, Card.DrawPile, nil)
   end
+
+  room:doBroadcastNotify("PrepareDrawPile", seed)
 end
 
 function HegLogic:chooseGenerals()
@@ -504,7 +507,7 @@ local function wildChooseKingdom(room, player, generalName)
   end
   if choice then
     player.role = choice
-    player.role_shown = true
+    room:setPlayerProperty(player, "role_shown", true)
     room:broadcastProperty(player, "role")
     room:sendLog{
       type = "#WildChooseKingdom",
@@ -533,7 +536,7 @@ local function AskForBuildCountry(room, player, generalName, isActive)
       local choice = room:askForChoice(p, choices, "#heg_rule", "#wild_join-choose")
       if choice ~= "Cancel" then
         p.role = player.role
-        p.role_shown = true
+        room:setPlayerProperty(p, "role_shown", true)
         room:broadcastProperty(p, "role")
         room:sendLog{
           type = "#WildChooseKingdom",
@@ -719,7 +722,7 @@ local heg_rule = fk.CreateTriggerSkill{
         for _, p in ipairs(room.players) do
           if p:getMark("__heg_kingdom") == kingdom and p.kingdom == "wild" and p:getMark("__heg_wild") == 0 then
             room:setPlayerProperty(p, "kingdom", kingdom)
-            p.role_shown = false
+            room:setPlayerProperty(p, "role_shown", false)
             room:setPlayerProperty(p, "role", kingdom)
           end
         end
@@ -736,7 +739,8 @@ local heg_rule = fk.CreateTriggerSkill{
         --   room:setPlayerMark(player, "_wild_gained", 1)
         -- end
       elseif player:getMark("__heg_join_wild") == 0 and player:getMark("__heg_construct_wild") == 0 then
-        player.role = player.kingdom
+        -- player.role = player.kingdom
+        room:setPlayerProperty(player, "role", player.kingdom)
       end
 
       for _, v in pairs(H.getKingdomPlayersNum(room)) do
@@ -905,6 +909,7 @@ Fk:loadTranslationTable{
   ["@@alliance-inhand"] = "合",
   ["@@alliance-inhand-turn"] = "合",
   ["@seat"] = "",
+  ["stack"] = "叠置",
 
   ["#SuccessBuildCountry"] = "%from 成功建立国家，国号 %arg ，队友是 %arg2",
   ["heg_rule_join_country"] = "加入 <b><font color='purple'>%src</font></b> 的阵营 <b><font color='purple'>%arg</font></b>，回复1点体力，将手牌摸至4张",

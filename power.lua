@@ -1485,7 +1485,7 @@ local jianan = fk.CreateTriggerSkill{
     elseif H.getGeneralsRevealedNum(target) == 2 then 
       isDeputy = H.doHideGeneral(room, target, target, self.name)
     end
-    local record = U.getMark(target, MarkEnum.RevealProhibited)
+    local record = target:getTableMark(MarkEnum.RevealProhibited)
     table.insert(record, isDeputy and "d" or "m")
     room:setPlayerMark(target, MarkEnum.RevealProhibited, record)
 
@@ -1516,7 +1516,7 @@ local jianan = fk.CreateTriggerSkill{
     if result == "" then return false end
     local choice = json.decode(result)[1]
     room:handleAddLoseSkills(target, choice, nil)
-    record = U.getMark(target, "@jianan_skills")
+    record = target:getTableMark("@jianan_skills")
     table.insert(record, choice)
     room:setPlayerMark(target, "@jianan_skills", record)
   end,

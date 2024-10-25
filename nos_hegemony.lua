@@ -12,7 +12,7 @@ local HegLogic = {}
 function HegLogic:assignRoles()
   local room = self.room
   for _, p in ipairs(room.players) do
-    p.role_shown = false
+    room:setPlayerProperty(p, "role_shown", false)
     p.role = "hidden"
     room:broadcastProperty(p, "role")
   end
@@ -23,6 +23,7 @@ end
 
 function HegLogic:prepareDrawPile()
   local room = self.room
+  local seed = math.random(2 << 32 - 1)
   local allCardIds = Fk:getAllCardIds()
 
   for i = #allCardIds, 1, -1 do
@@ -40,11 +41,12 @@ function HegLogic:prepareDrawPile()
     end
   end
 
-  table.shuffle(allCardIds)
+  table.shuffle(allCardIds, seed)
   room.draw_pile = allCardIds
   for _, id in ipairs(room.draw_pile) do
     room:setCardArea(id, Card.DrawPile, nil)
   end
+  room:doBroadcastNotify("PrepareDrawPile", seed)
 end
 
 function HegLogic:chooseGenerals()
@@ -278,7 +280,7 @@ local function wildChooseKingdom(room, player, generalName)
   end
   if choice then
     player.role = choice
-    player.role_shown = true
+    room:setPlayerProperty(player, "role_shown", true)
     room:broadcastProperty(player, "role")
     room:sendLog{
       type = "#WildChooseKingdom",
@@ -307,7 +309,7 @@ local function AskForBuildCountry(room, player, generalName, isActive)
       local choice = room:askForChoice(p, choices, "#heg_rule", "#wild_join-choose")
       if choice ~= "Cancel" then
         p.role = player.role
-        p.role_shown = true
+        room:setPlayerProperty(p, "role_shown", true)
         room:broadcastProperty(p, "role")
         room:sendLog{
           type = "#WildChooseKingdom",
@@ -491,7 +493,7 @@ local heg_rule = fk.CreateTriggerSkill{
         for _, p in ipairs(room.players) do
           if p:getMark("__heg_kingdom") == kingdom and p.kingdom == "wild" and p:getMark("__heg_wild") == 0 then
             room:setPlayerProperty(p, "kingdom", kingdom)
-            p.role_shown = false
+            room:setPlayerProperty(p, "role_shown", false)
             room:setPlayerProperty(p, "role", kingdom)
           end
         end

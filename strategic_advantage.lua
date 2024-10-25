@@ -645,7 +645,7 @@ local bladeSkill = fk.CreateTriggerSkill{
     for _, id in ipairs(TargetGroup:getRealTargets(data.tos)) do
       local p = room:getPlayerById(id)
       room:addPlayerMark(p, "@@sa__blade")
-      local record = U.getMark(p, MarkEnum.RevealProhibited)
+      local record = p:getTableMark(MarkEnum.RevealProhibited)
       table.insertTable(record, {"m", "d"})
       room:setPlayerMark(p, MarkEnum.RevealProhibited, record)
       data.extra_data = data.extra_data or {}
@@ -664,7 +664,7 @@ local bladeSkill = fk.CreateTriggerSkill{
       local p = room:getPlayerById(tonumber(key))
       if p:getMark("@@sa__blade") > 0 then
         room:removePlayerMark(p, "@@sa__blade", num)
-        local record = U.getMark(p, MarkEnum.RevealProhibited)
+        local record = p:getTableMark(MarkEnum.RevealProhibited)
         table.removeOne(record, "m")
         table.removeOne(record, "d")
         if #record == 0 then record = 0 end

@@ -138,7 +138,7 @@ local guojia = General(extension, "hs__guojia", "wei", 3)
 local hs__yiji_active = fk.CreateActiveSkill{
   name = "hs__yiji_active",
   expand_pile = function(self)
-    return U.getMark(Self, "hs__yiji_cards")
+    return Self:getTableMark("hs__yiji_cards")
   end,
   min_card_num = 1,
   target_num = 1,
@@ -2388,7 +2388,7 @@ local duanchang = fk.CreateTriggerSkill{
     end
     if #choices == 0 then return false end
     local choice = room:askForChoice(player, choices, self.name, "#hs__duanchang-ask::" .. to.id)
-    local record = U.getMark(to, "@hs__duanchang")
+    local record = to:getTableMark("@hs__duanchang")
     table.insert(record, choice)
     room:setPlayerMark(to, "@hs__duanchang", record)
     local _g = (choice == "mainGeneral" or choice == to.general) and to.general or to.deputyGeneral
@@ -2407,7 +2407,7 @@ local duanchang = fk.CreateTriggerSkill{
         local skill = Fk.skills[s]
         to:loseFakeSkill(skill)
       end
-      record = U.getMark(to, "_hs__duanchang_anjiang")
+      record = to:getTableMark("_hs__duanchang_anjiang")
       table.insert(record, _g)
       room:setPlayerMark(to, "_hs__duanchang_anjiang", record)
     end
@@ -2921,7 +2921,7 @@ local huoshui = fk.CreateTriggerSkill{ -- FIXME
       local targets = {}
       for _, p in ipairs(room:getOtherPlayers(player)) do
         room:setPlayerMark(p, "@@huoshui-turn", 1)
-        local record = U.getMark(p, MarkEnum.RevealProhibited .. "-turn")
+        local record = p:getTableMark(MarkEnum.RevealProhibited .. "-turn")
         table.insertTable(record, {"m", "d"})
         room:setPlayerMark(p, MarkEnum.RevealProhibited .. "-turn", record)
         table.insert(targets, p.id)
@@ -2938,7 +2938,7 @@ local huoshui = fk.CreateTriggerSkill{ -- FIXME
     else
       for _, p in ipairs(room:getOtherPlayers(player)) do
         room:setPlayerMark(p, "@@huoshui-turn", 0)
-        local record = U.getMark(p, MarkEnum.RevealProhibited .. "-turn")
+        local record = p:getTableMark(MarkEnum.RevealProhibited .. "-turn")
         table.removeOne(record, "m")
         table.removeOne(record, "d")
         if #record == 0 then record = 0 end
