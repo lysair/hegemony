@@ -1683,7 +1683,7 @@ local baolie = fk.CreateTriggerSkill{
       if player.dead then return end
       local to = room:getPlayerById(p)
       if not to.dead then
-        local use = room:askForUseCard(to, "slash", "slash", "#baolie-use:" .. player.id, true, {include_targets = {player.id} })
+        local use = room:askForUseCard(to, "slash", "slash", "#baolie-use:" .. player.id, true, {exclusive_targets = {player.id} })
         if use then
           use.extraUse = true
           room:useCard(use)
@@ -2084,7 +2084,7 @@ local tongling = fk.CreateTriggerSkill{
           end
         end
         local prompt = data.card and "#ld__tongling_card-use:" .. player.id .. ":" .. victim .. ":" .. data.card:toLogString() or "#ld__tongling_nocard-use:" .. player.id .. ":" .. data.to.id
-        local use = room:askForUseCard(user, "", table.concat(cardNames, ","), prompt, true, {include_targets = {victim}, bypass_times = true }) -- ……
+        local use = room:askForUseCard(user, "", table.concat(cardNames, ","), prompt, true, {exclusive_targets = {victim}, bypass_times = true }) -- ……
         if use then
           use.extra_data = use.extra_data or {}
           use.extra_data.ld__tonglingUser = player.id

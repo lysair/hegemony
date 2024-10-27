@@ -258,7 +258,7 @@ function HegLogic:prepareDrawPile()
         return table.contains(allCardIds, c.id)
       end)) then
       local id = allCardIds[i]
-      table.removeOne(allCardIds, id)
+      table.remove(allCardIds, i)
       table.insert(room.void, id)
       room:setCardArea(id, Card.Void, nil)
     end
@@ -324,13 +324,6 @@ function HegLogic:chooseGenerals()
       deputy = general_ret[2]
     end
     table.insertTableIfNeed(selected, {general, deputy})
-
---[[ -- FIXME
-    p:setMark("__heg_general", general) 
-    p:setMark("__heg_deputy", deputy)
-    p:doNotify("SetPlayerMark", json.encode{ p.id, "__heg_general", general})
-    p:doNotify("SetPlayerMark", json.encode{ p.id, "__heg_deputy", deputy})
-]]
 
     room:setPlayerMark(p, "__heg_general", general)
     room:setPlayerMark(p, "__heg_deputy", deputy)
