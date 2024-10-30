@@ -679,7 +679,7 @@ local xuanhuo = fk.CreateTriggerSkill{
   refresh_events = {fk.EventAcquireSkill, fk.EventLoseSkill, fk.Deathed, fk.GeneralRevealed, fk.GeneralHidden},
   can_refresh = function(self, event, target, player, data)
     if player ~= target then return false end
-    if event == fk.Deathed then return player:hasSkill(self.name, true, true)
+    if event == fk.Deathed then return player:hasSkill(self, true, true)
     elseif event == fk.EventAcquireSkill or event == fk.EventLoseSkill then return data == self
     else return true end
   end,

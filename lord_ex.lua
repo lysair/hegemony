@@ -172,7 +172,7 @@ local juejue_delay = fk.CreateTriggerSkill{
     local logic = player.room.logic
     logic:getEventsOfScope(GameEvent.MoveCards, 1, function (e)
       for _, move in ipairs(e.data) do
-        if move.from == player.id and move.moveReason == fk.ReasonDiscard and move.skillName == "game_rule" then
+        if move.from == player.id and move.moveReason == fk.ReasonDiscard and move.skillName == "phase_discard" then
           x = x + #move.moveInfo
           if x > 1 then return true end
         end
@@ -1072,7 +1072,7 @@ local qiuan = fk.CreateTriggerSkill{
   events = {fk.DamageInflicted},
   derived_piles = "ld__mengda_letter",
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and data.card
+    return target == player and player:hasSkill(self) and data.card
       and #player:getPile("ld__mengda_letter") == 0 and U.hasFullRealCard(player.room, data.card)
   end,
   on_use = function(self, event, target, player, data)
@@ -1089,10 +1089,10 @@ local liangfan = fk.CreateTriggerSkill{
   events = {fk.EventPhaseStart, fk.Damage},
   can_trigger = function(self, event, target, player, data)
     if event == fk.EventPhaseStart then
-      return player:hasSkill(self.name) and player.phase == Player.Start and #player:getPile("ld__mengda_letter") > 0
+      return player:hasSkill(self) and player.phase == Player.Start and #player:getPile("ld__mengda_letter") > 0
     end
     if event == fk.Damage then
-      return target == player and player:hasSkill(self.name) and data.card and data.card:getMark("@@ld__mengda_letter-turn") > 0
+      return target == player and player:hasSkill(self) and data.card and data.card:getMark("@@ld__mengda_letter-turn") > 0
         and not data.to:isNude() and not player.dead and not data.to.dead and data.to ~= player
     end
   end,
@@ -2380,7 +2380,7 @@ local suzhi_target = fk.CreateTargetModSkill{
   name = "#ld__suzhi_target",
   frequency = Skill.Compulsory,
   bypass_distances = function(self, player, skill, card)
-    return player:hasSkill(suzhi.name) and player.phase ~= Player.NotActive and player:getMark("@ld__suzhi-turn") < 3 and
+    return player:hasSkill(suzhi) and player.phase ~= Player.NotActive and player:getMark("@ld__suzhi-turn") < 3 and
     card and card.type == Card.TypeTrick and (not card:isVirtual() or #card.subcards == 0)
   end,
 }

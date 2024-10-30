@@ -135,7 +135,7 @@ local zhuihuan = fk.CreateTriggerSkill{
       return player:hasSkill(self) and target == player
     end
     if event == fk.Death then
-      return player:hasSkill(self.name, false, true) and player == target
+      return player:hasSkill(self, false, true) and player == target
     end
   end,
   on_refresh = function (self, event, target, player, data)
@@ -322,7 +322,7 @@ local xionghuo_record = fk.CreateTriggerSkill{
   anim_type = "offensive",
   events = {fk.GeneralRevealed, fk.DamageCaused, fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
-    if player:hasSkill(xionghuo.name) then
+    if player:hasSkill(xionghuo) then
       if event == fk.GeneralRevealed then
         if player:usedSkillTimes(self.name, Player.HistoryGame) == 0 then
           for _, v in pairs(data) do

@@ -703,7 +703,7 @@ local wusheng_targetmod = fk.CreateTargetModSkill{
   name = "#hs__wusheng_targetmod",
   anim_type = "offensive",
   bypass_distances = function (self, player, skill, card, to)
-    return player:hasSkill(wusheng.name) and skill.trueName == "slash_skill" and card.suit == Card.Diamond
+    return player:hasSkill(wusheng) and skill.trueName == "slash_skill" and card.suit == Card.Diamond
   end
 }
 wusheng:addRelatedSkill(wusheng_targetmod)
@@ -2374,7 +2374,7 @@ local duanchang = fk.CreateTriggerSkill{
   frequency = Skill.Compulsory,
   events = {fk.Death},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name, false, true) and data.damage and data.damage.from and not data.damage.from.dead
+    return target == player and player:hasSkill(self, false, true) and data.damage and data.damage.from and not data.damage.from.dead
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room

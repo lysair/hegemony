@@ -772,7 +772,7 @@ local jiahe = fk.CreateTriggerSkill{
   events = {fk.GeneralRevealed},
   derived_piles = "lord_fenghuo",
   can_trigger = function (self, event, target, player, data)
-    if target == player and player:hasSkill(self.name, true) then
+    if target == player and player:hasSkill(self, true) then
       for _, v in pairs(data) do
         if table.contains(Fk.generals[v]:getSkillNameList(), self.name) then return true end
       end
@@ -835,7 +835,7 @@ local fenghuotu = fk.CreateTriggerSkill{
   refresh_events = {fk.EventAcquireSkill, fk.EventLoseSkill, fk.Deathed, fk.GeneralRevealed},
   can_refresh = function(self, event, target, player, data)
     if player ~= target then return false end
-    if event == fk.Deathed then return player:hasSkill(self.name, true, true)
+    if event == fk.Deathed then return player:hasSkill(self, true, true)
     elseif event == fk.EventAcquireSkill or event == fk.EventLoseSkill then return data == self
     else return true end
   end,
