@@ -10,6 +10,104 @@ Fk:loadTranslationTable{
   ["of_heg"] = "线下",
 }
 
+local lifeng = General (extension,"of_heg__lifeng","shu",3) --李丰
+local tunchu = fk.CreateTriggerSkill{
+  name = "of_heg__tunchu",
+  anim_type = "drawcard",
+  derived_piles = "of_heg__lifeng_liang",
+  events = {fk.DrawNCards, fk.AfterDrawNCards},
+  can_trigger = function(self, event, target, player, data)
+    if target == player then
+      if event == fk.DrawNCards then
+        return player:hasSkill(self) 
+      else
+        return player:usedSkillTimes(self.name, Player.HistoryPhase) > 0 and not player:isKongcheng()
+      end
+    end
+  end,
+  on_cost = function(self, event, target, player, data)
+    if event == fk.DrawNCards then
+      return player.room:askForSkillInvoke(player, self.name)
+    else
+      local cards = player.room:askForCard(player, 1, 2, false, self.name, false, ".", "#of_heg__tunchu-put")
+      if #cards > 0 then
+        self.cost_data = cards
+        return true
+      end
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    if event == fk.DrawNCards then
+      data.n = data.n + 2
+      player.room:setPlayerMark(player, "@@of_heg__tunchu_prohibit-turn", 1)
+    else
+      player:addToPile("of_heg__lifeng_liang", self.cost_data, true, self.name)
+    end
+  end,
+}
+local tunchu_prohibit = fk.CreateProhibitSkill{
+  name = "#of_heg__tunchu_prohibit",
+  prohibit_use = function(self, player, card)
+    return player:hasSkill(tunchu) and player:getMark("@@of_heg__tunchu_prohibit-turn") > 0 and card.trueName == "slash"
+  end,
+}
+local shuliang = fk.CreateTriggerSkill{
+  name = "of_heg__shuliang",
+  anim_type = "support",
+  expand_pile = "of_heg__lifeng_liang",
+  events = {fk.EventPhaseStart},
+  can_trigger = function(self, event, target, player, data)
+    return player:hasSkill(self) and target.phase == Player.Finish and (target == player or (H.compareKingdomWith(target, player) and player:distanceTo(target) <= #(player:getPile("of_heg__lifeng_liang") or {}))) and
+    #player:getPile("of_heg__lifeng_liang") > 0
+  end,
+  on_cost = function(self, event, target, player, data)
+    local card = player.room:askForCard(player, 1, 1, false, self.name, true,
+      ".|.|.|of_heg__lifeng_liang|.|.", "#of_heg__shuliang-invoke::"..target.id, "of_heg__lifeng_liang")
+    if #card > 0 then
+      self.cost_data = card
+      return true
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    room:doIndicate(player.id, {target.id})
+    room:moveCards({
+      from = player.id,
+      ids = self.cost_data,
+      toArea = Card.DiscardPile,
+      moveReason = fk.ReasonPutIntoDiscardPile,
+      skillName = self.name,
+      specialName = self.name,
+    })
+    if not target.dead then
+      target:drawCards(2, self.name)
+    end
+  end,
+}
+tunchu:addRelatedSkill(tunchu_prohibit)
+lifeng:addSkill(tunchu)
+lifeng:addSkill(shuliang)
+Fk:loadTranslationTable{
+  ["of_heg__lifeng"] = "李丰",
+  ["#of_heg__lifeng"] = "朱提太守",
+  ["cv:of_heg__lifeng"] = "秦且歌",
+  ["illustrator:of_heg__lifeng"] = "NOVART",
+  ["of_heg__tunchu"] = "屯储",
+  [":of_heg__tunchu"] = "摸牌阶段，你可以多摸两张牌，然后将至多两张手牌置于你的武将牌上，称为“粮”；然后本回合你不能使用【杀】。",
+  ["of_heg__shuliang"] = "输粮",
+  [":of_heg__shuliang"] = "一名与你势力相同角色的结束阶段，若你与其距离不大于“粮”数，你可以移去一张“粮”，然后该角色摸两张牌。",
+  ["of_heg__lifeng_liang"] = "粮",
+  ["@@of_heg__tunchu_prohibit-turn"] = "屯储",
+  ["#of_heg__tunchu-put"] = "屯储：你可以将至多两张手牌置为“粮”",
+  ["#of_heg__shuliang-invoke"] = "输粮：你可以移去一张“粮”，令 %dest 摸两张牌",
+  ["of_heg__tunchu"] = "屯储",
+  ["$of_heg__tunchu1"] = "屯粮事大，暂不与尔等计较。",
+  ["$of_heg__tunchu2"] = "屯粮待战，莫动刀枪。",
+  ["$of_heg__shuliang1"] = "将军驰劳，酒肉慰劳。",
+  ["$of_heg__shuliang2"] = "将军，牌来了。",
+  ["~of_heg__lifeng"] = "吾，有负丞相重托。",
+}
+
 local yangwan = General(extension, "ty_heg__yangwan", "shu", 3, 3,General.Female) -- 保留原本的前缀
 
 local youyan = fk.CreateTriggerSkill{
@@ -224,6 +322,51 @@ Fk:loadTranslationTable{
   ["$ty_heg__zhuihuan1"] = "伤人者，追而还之！",
   ["$ty_heg__zhuihuan2"] = "追而还击，皆为因果。",
   ["~ty_heg__yangwan"] = "遇人不淑……",
+}
+
+local lingcao = General(extension, "of_heg__lingcao", "wu", 4)--凌操
+local dujin = fk.CreateTriggerSkill{
+ name ="of_heg__dujin",
+ anim_type = "drawcard",
+ events = {fk.DrawNCards,fk.GeneralRevealed},
+ can_trigger = function (self, event, target, player, data)
+    if target ~= player or not player:hasSkill(self) then return false end
+      if event == fk.GeneralRevealed then
+        if player:usedSkillTimes(self.name, Player.HistoryGame) == 0 then
+          for _, v in pairs(data) do
+            if table.contains(Fk.generals[v]:getSkillNameList(), self.name) then return true end
+          end
+        end
+      else
+        return player.phase == Player.Draw
+      end
+ end,
+ on_use = function(self, event, target, player, data)
+    local room = player.room
+    if event == fk.GeneralRevealed then
+      if player and H.getKingdomPlayersNum(room,true)[H.getKingdom(player)] == 1 then
+        H.addHegMark(player.room, player, "vanguard")
+      end
+    else
+      data.n = data.n + math.ceil(#player:getCardIds(Player.Equip) / 2) 
+    end 
+ end,
+}
+
+
+
+
+lingcao:addSkill(dujin)
+Fk:loadTranslationTable{
+ ["of_heg__lingcao"]= "凌操",
+ ["#of_heg__lingcao"] = "激流勇进",
+  ["illustrator:of_heg__lingcao"] = "樱花闪乱",
+ ["of_heg__dujin"]="独进",
+ [":of_heg__dujin"]="摸牌阶段，你可以多摸X张牌（X为你装备区牌数的一半，向上取整）。当你首次明置此武将牌后，若没有与你势力相同的{其他角色或已死亡的角色}，你获得1枚“先驱”标记。 ",
+ ["#of_heg__reveral"]="独进",
+ ["$of_heg__dujin1"] = "带兵十万，不如老夫多甲一件！",
+ ["$of_heg__dujin2"] = "轻舟独进，破敌先锋！",
+ ["~of_heg__lingcao"] = "呃啊！（扑通）此箭……何来……",
 }
 
 
