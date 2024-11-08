@@ -93,8 +93,28 @@ local ld__qice = fk.CreateActiveSkill{
     end
   end,
 }
+
+local ld__zhiyu = fk.CreateTriggerSkill{
+  name = "ld__zhiyu",
+  anim_type = "masochism",
+  events = {fk.Damaged},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self)
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    player:drawCards(1, self.name)
+    local cards = player:getCardIds("h")
+    player:showCards(cards)
+    if data.from and not data.from.dead and not data.from:isKongcheng() and
+      table.every(cards, function(id) return #cards == 0 or Fk:getCardById(id).color == Fk:getCardById(cards[1]).color end) then
+      room:askForDiscard(data.from, 1, 1, false, self.name, false)
+    end
+  end,
+}
+
 xunyou:addSkill(ld__qice)
-xunyou:addSkill("zhiyu")
+xunyou:addSkill(ld__zhiyu)
 xunyou:addCompanions("hs__xunyu")
 
 Fk:loadTranslationTable{
@@ -105,14 +125,19 @@ Fk:loadTranslationTable{
 
   ["ld__qice"] = "奇策",
   [":ld__qice"] = "出牌阶段限一次，你可将所有手牌当任意一张普通锦囊牌使用，你不能以此法使用目标数大于X的牌（X为你的手牌数），然后你可变更副将。",
+  ["ld__zhiyu"] = "智愚",
+  [":ld__zhiyu"] = "每当你受到一次伤害后，你可以摸一张牌，然后展示所有手牌，若颜色均相同，伤害来源弃置一张手牌。",
 
   ["#ld__qice-active"] = "发动 奇策，将所有手牌当一张锦囊牌使用",
   ["@@ld__qice_transform"] = "奇策 已变更",
 
   ["$ld__qice1"] = "倾力为国，算无遗策。",
   ["$ld__qice2"] = "奇策在此，谁与争锋？",
+  ["$ld__zhiyu1"] = "大勇若怯，大智如愚。",
+  ["$ld__zhiyu2"] = "愚者既出，智者何存？",
   ["~ld__xunyou"] = "主公，臣下……先行告退……",
 }
+
 
 
 local bianfuren = General(extension, "ld__bianfuren", "wei", 3)
@@ -229,16 +254,101 @@ Fk:loadTranslationTable{
 }
 
 local shamoke = General(extension, "ld__shamoke", "shu", 4)
-shamoke:addSkill("jilis")
+local jilis = fk.CreateTriggerSkill{
+  name = "ld__jilis",
+  anim_type = "drawcard",
+  events = {fk.CardUsing, fk.CardResponding},
+  can_trigger = function(self, event, target, player, data)
+    if target == player and player:hasSkill(self) then
+      local x, y = player:getAttackRange(), player:getMark("ld__jilis_times-turn")
+      if x >= y then
+        local room = player.room
+        local logic = room.logic
+        local end_id = player:getMark("ld__jilis_record-turn")
+        local e = logic:getCurrentEvent()
+        if end_id == 0 then
+          local turn_event = e:findParent(GameEvent.Turn, false)
+          if turn_event == nil then return false end
+          end_id = turn_event.id
+        end
+        room:setPlayerMark(player, "ld__jilis_record-turn", logic.current_event_id)
+        local events = logic.event_recorder[GameEvent.UseCard] or Util.DummyTable
+        for i = #events, 1, -1 do
+          e = events[i]
+          if e.id <= end_id then break end
+          local use = e.data[1]
+          if use.from == player.id then
+            y = y + 1
+          end
+        end
+        events = logic.event_recorder[GameEvent.RespondCard] or Util.DummyTable
+        for i = #events, 1, -1 do
+          e = events[i]
+          if e.id <= end_id then break end
+          local use = e.data[1]
+          if use.from == player.id then
+            y = y + 1
+          end
+        end
+        room:setPlayerMark(player, "ld__jilis_times-turn", y)
+        return x == y
+      end
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    player:drawCards(player:getAttackRange())
+  end,
+}
+shamoke:addSkill(jilis)
 Fk:loadTranslationTable{
   ['ld__shamoke'] = '沙摩柯',
   ["#ld__shamoke"] = "五溪蛮王",
   ["illustrator:ld__shamoke"] = "LiuHeng",
   ["designer:ld__shamoke"] = "韩旭",
+
+  ["ld__jilis"] = "蒺藜",
+  [":ld__jilis"] = "当你于一回合内使用或打出第X张牌时，你可以摸X张牌（X为你的攻击范围）。",
+
+  ["$ld__jilis1"] = "蒺藜骨朵，威震慑敌！",
+  ["$ld__jilis2"] = "看我一招，铁蒺藜骨朵！",
   ['~ld__shamoke'] = '五溪蛮夷，不可能输！',
 }
 
 local masu = General(extension, "ld__masu", "shu", 3)
+local sanyao = fk.CreateActiveSkill{
+  name = "ld__sanyao",
+  anim_type = "offensive",
+  card_num = 1,
+  target_num = 1,
+  can_use = function(self, player)
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and not player:isNude()
+  end,
+  card_filter = function(self, to_select, selected)
+    return #selected == 0 and not Self:prohibitDiscard(Fk:getCardById(to_select))
+  end,
+  target_filter = function(self, to_select, selected)
+    if #selected == 0 then
+      local n = 0
+      for _, p in ipairs(Fk:currentRoom().alive_players) do
+        if p.hp > n then
+          n = p.hp
+        end
+      end
+      return Fk:currentRoom():getPlayerById(to_select).hp == n
+    end
+  end,
+  on_use = function(self, room, effect)
+    local player = room:getPlayerById(effect.from)
+    local target = room:getPlayerById(effect.tos[1])
+    room:throwCard(effect.cards, self.name, player, player)
+    room:damage{
+      from = player,
+      to = target,
+      damage = 1,
+      skillName = self.name,
+    }
+  end
+}
 local zhiman = fk.CreateTriggerSkill{
   name = "ld__zhiman",
   events = {fk.DamageCaused},
@@ -264,13 +374,15 @@ local zhiman = fk.CreateTriggerSkill{
     return true
   end
 }
-masu:addSkill("sanyao")
+masu:addSkill(sanyao)
 masu:addSkill(zhiman)
 Fk:loadTranslationTable{
   ['ld__masu'] = '马谡',
   ["#ld__masu"] = "帷幄经谋",
   ["designer:ld__masu"] = "点点",
   ["illustrator:ld__masu"] = "蚂蚁君",
+  ["ld__sanyao"] = "散谣",
+  [":ld__sanyao"] = "出牌阶段限一次，你可以弃置一张牌并选择一名体力值最大的角色，你对其造成1点伤害。",
   ["ld__zhiman"] = "制蛮",
   [":ld__zhiman"] = "当你对其他角色造成伤害时，你可防止此伤害，你获得其装备区或判定区里的一张牌。若其与你势力相同，你可令其选择是否变更。",
 
@@ -278,6 +390,8 @@ Fk:loadTranslationTable{
   ["ld__zhiman_transform"] = "令%dest选择是否变更副将",
   ["@@ld__zhiman_transform"] = "制蛮 已变更",
 
+  ["$ld__sanyao1"] = "三人成虎，事多有。",
+  ["$ld__sanyao2"] = "散谣惑敌，不攻自破！",
   ["$ld__zhiman1"] = "兵法谙熟于心，取胜千里之外！",
   ["$ld__zhiman2"] = "丞相多虑，且看我的！",
   ["~ld__masu"] = "败军之罪，万死难赎……" ,

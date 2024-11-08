@@ -1806,11 +1806,33 @@ local congcha_delay = fk.CreateTriggerSkill{
     room:setPlayerMark(player, "_ld__congcha", 0)
   end,
 }
-
+local gongqing = fk.CreateTriggerSkill{
+  name = "ld__gongqing",
+  mute = true,
+  frequency = Skill.Compulsory,
+  events = {fk.DamageInflicted},
+  can_trigger = function(self, event, target, player, data)
+    if target == player and player:hasSkill(self) and data.from then
+      return (data.from:getAttackRange() < 3 and data.damage > 1) or data.from:getAttackRange() > 3
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    if data.from:getAttackRange() < 3 then
+      data.damage = 1
+      player:broadcastSkillInvoke(self.name, 1)
+      room:notifySkillInvoked(player, self.name, "defensive")
+    elseif data.from:getAttackRange() > 3 then
+      data.damage = data.damage + 1
+      player:broadcastSkillInvoke(self.name, 2)
+      room:notifySkillInvoked(player, self.name, "negative")
+    end
+  end,
+}
 
 panjun:addSkill(congcha)
 congcha:addRelatedSkill(congcha_delay)
-panjun:addSkill("gongqing")
+panjun:addSkill(gongqing)
 Fk:loadTranslationTable{
   ["ld__panjun"] = "潘濬",
   ["#ld__panjun"] = "逆鳞之砥",
@@ -1826,6 +1848,8 @@ Fk:loadTranslationTable{
 
   ["$ld__congcha1"] = "窥一斑而知全豹。",
   ["$ld__congcha2"] = "问一事则明其心。",
+  ["$ld__gongqing1"] = "尔辈何故与降虏交善。",
+  ["$ld__gongqing2"] = "豪将在外，增兵必成祸患啊！",
   ["~ld__panjun"] = "密谋既泄，难处奸贼啊……",
 }
 
