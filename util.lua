@@ -931,8 +931,10 @@ end
 ---@param player ServerPlayer
 ---@param isMain bool @ 是否为主将，默认副将
 ---@param isHidden bool @ 是否暗置变更
+---@param num? integer @ 选将数量，默认为3
 H.transformGeneral = function(room, player, isMain, isHidden)
   local orig = isMain and player.general or player.deputyGeneral
+  num = num or 3
   if not orig then return false end
   if orig == "anjiang" then
     player:revealGeneral(not isMain, true)
@@ -950,7 +952,7 @@ H.transformGeneral = function(room, player, isMain, isHidden)
   end
   local generals = room:findGenerals(function(g)
     return Fk.generals[g].kingdom == kingdom or Fk.generals[g].subkingdom== kingdom
-  end, 3)
+  end, num)
   local general = room:askForGeneral(player, generals, 1, true) ---@type string
   table.removeOne(generals, general)
   table.insert(generals, orig)

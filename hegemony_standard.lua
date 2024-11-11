@@ -1700,7 +1700,11 @@ Fk:loadTranslationTable{
   [":hs__qianxun"] = "锁定技，当你成为【顺手牵羊】或【乐不思蜀】的目标时，你取消此目标。",
   ["duoshi"] = "度势",
   [":duoshi"] = "出牌阶段开始时，你可以视为使用一张【以逸待劳】。",
-  
+
+  ["$hs__qianxun1"] = "儒生脱尘，不为贪逸淫乐之事。",
+  ["$hs__qianxun2"] = "谦谦君子，不饮盗泉之水。",
+  ["$duoshi1"] = "以今日之大势，当行此计。",
+  ["$duoshi2"] = "国之大计，审势为先。",
   ["~hs__luxun"] = "还以为我已经不再年轻……",
 }
 
@@ -2834,7 +2838,7 @@ local kuangfu = fk.CreateTriggerSkill{
   name = "hs__kuangfu",
   events = {fk.TargetSpecified},
   can_trigger = function (self, event, target, player, data)
-    if player:hasSkill(self) and data.card and data.card.trueName == "slash" and player.phase == Player.Play and player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 then
+    if player:hasSkill(self) and data.card and data.card.trueName == "slash" and player.phase == Player.Play and player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and target == player then
       for _, p in ipairs(AimGroup:getAllTargets(data.tos)) do
         if #player.room:getPlayerById(p):getCardIds(Player.Equip) > 0 then
           return true
@@ -2895,7 +2899,7 @@ local huoshui = fk.CreateTriggerSkill{ -- FIXME
   name = "huoshui",
   anim_type = "control",
   frequency = Skill.Compulsory,
-  events = {fk.TurnStart, fk.GeneralRevealed, fk.EventAcquireSkill, fk.EventLoseSkill, fk.Deathed, fk.TargetSpecified},
+  events = {fk.TurnStart, fk.GeneralRevealed, fk.EventAcquireSkill, fk.EventLoseSkill, fk.Deathed, fk.CardUsing},
   can_trigger = function(self, event, target, player, data)
     if target ~= player or player.room.current ~= player then return false end
     if event == fk.TurnStart then
@@ -2909,8 +2913,8 @@ local huoshui = fk.CreateTriggerSkill{ -- FIXME
           if table.contains(Fk.generals[v]:getSkillNameList(), self.name) then return true end
         end
       end
-    elseif event == fk.TargetSpecified then
-      return player:hasSkill(self) and data.firstTarget and (data.card.trueName == "slash" or data.card.trueName == "archery_attack")
+    elseif event == fk.CardUsing then
+      return player:hasSkill(self)  and (data.card.trueName == "slash" or data.card.trueName == "archery_attack")
     else
       return player:hasSkill(self, true, true)
     end
@@ -2927,7 +2931,7 @@ local huoshui = fk.CreateTriggerSkill{ -- FIXME
         table.insert(targets, p.id)
       end
       room:doIndicate(player.id, targets)
-    elseif event == fk.TargetSpecified then
+    elseif event == fk.CardUsing then
       local targets = table.filter(room.alive_players, function(p) return (not H.compareKingdomWith(p, player)) and H.getGeneralsRevealedNum(p) == 1 end)
       if #targets > 0 then
         data.disresponsiveList = data.disresponsiveList or {}
@@ -2985,7 +2989,7 @@ zoushi:addSkill(qingcheng)
 Fk:loadTranslationTable{
   ["hs__zoushi"] = "邹氏",
   ["huoshui"] = "祸水",
-  [":huoshui"] = "锁定技，你的回合内：1.其他角色不能明置其武将牌；2.当你使用【杀】或【万箭齐发】指定目标后，你令此牌不能被与你势力不同且有暗置武将牌的角色响应。",
+  [":huoshui"] = "锁定技，你的回合内：1.其他角色不能明置其武将牌；2.当你使用【杀】或【万箭齐发】时，你令此牌不能被与你势力不同且有暗置武将牌的角色响应。",
   ["qingcheng"] = "倾城",
   [":qingcheng"] = "出牌阶段，你可弃置一张黑色牌并选择一名武将牌均明置的其他角色，然后你暗置其一张武将牌。然后若你以此法弃置的牌是黑色装备牌，则你可再选择另一名武将牌均明置的其他角色，暗置其一张武将牌。",
 

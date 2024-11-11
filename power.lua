@@ -1462,6 +1462,7 @@ local duanliang_invalidityJA = fk.CreateInvaliditySkill {
 local jianan = fk.CreateTriggerSkill{
   name = "jianan",
   anim_type = "support",
+  frequency = Skill.Compulsory,
   events = {fk.EventPhaseStart},
   can_trigger = function (self, event, target, player, data)
     if not (target == player and not target:isNude() and target.phase == Player.Start) then return end

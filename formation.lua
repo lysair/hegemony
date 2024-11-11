@@ -192,7 +192,6 @@ local huyuan_active = fk.CreateActiveSkill{
     end
   end,
 }
-Fk:addSkill(huyuan_active)
 local huyuan = fk.CreateTriggerSkill{
   name = 'ld__huyuan',
   anim_type = "defensive",
@@ -200,7 +199,7 @@ local huyuan = fk.CreateTriggerSkill{
   can_trigger = function (self, event, target, player, data)
     return player:hasSkill(self) and player.phase == Player.Finish and not player:isNude()
   end,
-  on_cost = function (self, event, target, player, data)
+   on_cost = function (self, event, target, player, data)
     local success, dat = player.room:askForUseActiveSkill(player, "huyuan_active", "#ld__huyuan-choose", true)
     if success then
       self.cost_data = dat
@@ -218,14 +217,16 @@ local huyuan = fk.CreateTriggerSkill{
       if not player.dead then
         local targets = table.map(table.filter(room.alive_players, function(p)
           return #p:getCardIds("ej") > 0 end), Util.IdMapper)
-        local to2 = room:askForChoosePlayers(player, targets, 1, 1, "#ld__huyuan_discard-choose", self.name, false, true)
+        local to2 = room:askForChoosePlayers(player, targets, 1, 1, "#ld__huyuan_discard-choose", self.name, true, true)
+        if #to2 > 0 then
         local cid = room:askForCardChosen(player, room:getPlayerById(to2[1]), "ej", self.name)
         room:throwCard({cid}, self.name, room:getPlayerById(to2[1]), player)
+        end
       end
     end
   end,
 }
-
+huyuan:addRelatedSkill(huyuan_active)
 caohong:addSkill(heyi)
 caohong:addSkill(huyuan)
 Fk:addSkill(feiying)
@@ -240,7 +241,7 @@ Fk:loadTranslationTable{
   ["heyi"] = "鹤翼",
   [":heyi"] = "阵法技，与你处于同一队列的角色拥有〖飞影〗。",
   ["ld__huyuan"] = "护援",
-  [":ld__huyuan"] = "结束阶段，你可选择：1.将一张手牌交给一名角色；2.将一张装备牌置入一名角色的装备区，然后弃置场上的一张牌。",
+  [":ld__huyuan"] = "结束阶段，你可选择：1.将一张手牌交给一名角色；2.将一张装备牌置入一名角色的装备区，然后你可以弃置场上的一张牌。",
 
   ["huyuan_active"] = "护援",
   ["ld__huyuan_give"] = "给出手牌",
@@ -506,7 +507,7 @@ local niaoxiangTrigger = fk.CreateTriggerSkill{
   events = {fk.TargetSpecified},
   can_trigger = function(self, event, target, player, data)
     return player:hasSkill(self) and data.card.trueName == "slash" and H.inSiegeRelation(target, player, player.room:getPlayerById(data.to)) 
-      and #player.room.alive_players > 3
+      and #player.room.alive_players > 3 and H.hasShownSkill(player,niaoxiang)
   end,
   on_cost = Util.TrueFunc,
   on_use = function(self, event, target, player, data)

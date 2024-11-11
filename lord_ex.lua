@@ -222,7 +222,7 @@ local fangyuanTrigger = fk.CreateTriggerSkill{
     local prev_player = player:getLastAlive()
     local next_player = player:getNextAlive()
     return player:hasSkill(self) and player.phase == Player.Finish and H.inSiegeRelation(prev_player, next_player, player)
-      and #player.room.alive_players > 3
+      and #player.room.alive_players > 3 and H.hasShownSkill(player, fangyuan)
   end,
   on_cost = Util.TrueFunc,
   on_use = function(self, event, target, player, data)
@@ -310,6 +310,7 @@ Fk:loadTranslationTable{
   ["ld__juejue_putcard"] = "将牌置入弃牌堆",
 
   ["#ld__fangyuan-choose"] = "方圆：选择此围攻关系中的一名围攻角色，视为对其使用一张【杀】",
+  ["#ld__fangyuan_trigger"] = "方圆",
 
   ["$ld__juejue1"] = "",
   ["$ld__juejue2"] = "",

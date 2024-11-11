@@ -467,7 +467,7 @@ local xionghuo_record = fk.CreateTriggerSkill{
   can_trigger = function(self, event, target, player, data)
     if player:hasSkill(xionghuo) then
       if event == fk.GeneralRevealed then
-        if player:usedSkillTimes(self.name, Player.HistoryGame) == 0 then
+        if player:usedSkillTimes(xionghuo.name, Player.HistoryGame) == 0 then
           for _, v in pairs(data) do
             if table.contains(Fk.generals[v]:getSkillNameList(), xionghuo.name) then return true end
           end
