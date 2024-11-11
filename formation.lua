@@ -18,13 +18,12 @@ local tuntian = fk.CreateTriggerSkill{
   derived_piles = "ld__dengai_field",
   events = {fk.AfterCardsMove},
   can_trigger = function(self, event, target, player, data)
-    if player:hasSkill(self) and player.phase == Player.NotActive then
-      for _, move in ipairs(data) do
-        if move.from == player.id then
-          for _, info in ipairs(move.moveInfo) do
-            if info.fromArea == Card.PlayerHand or info.fromArea == Card.PlayerEquip then
-              return true
-            end
+    if not (player:hasSkill(self) and player.phase == Player.NotActive) then return end
+    for _, move in ipairs(data) do
+      if move.from == player.id then
+        for _, info in ipairs(move.moveInfo) do
+          if info.fromArea == Card.PlayerHand or info.fromArea == Card.PlayerEquip then
+            return true
           end
         end
       end
@@ -38,7 +37,7 @@ local tuntian = fk.CreateTriggerSkill{
       pattern = ".|.|spade,club,diamond",
     }
     room:judge(judge)
-    if judge.card.suit ~= Card.Heart and room:getCardArea(judge.card.id) == Card.DiscardPile and
+    if judge.card.suit ~= Card.Heart and room:getCardArea(judge.card.id) == Card.DiscardPile and not player.dead and
       room:askForSkillInvoke(player, self.name, nil, "ld__tuntian_field:::" .. judge.card:toLogString()) then
       player:addToPile("ld__dengai_field", judge.card, true, self.name)
     end
@@ -166,7 +165,7 @@ local feiying = fk.CreateDistanceSkill{
 }
 
 local huyuan_active = fk.CreateActiveSkill{
-  name = "huyuan_active",
+  name = "#huyuan_active",
   mute = true,
   card_num = 1,
   target_num = 1,
@@ -199,7 +198,7 @@ local huyuan = fk.CreateTriggerSkill{
   can_trigger = function (self, event, target, player, data)
     return player:hasSkill(self) and player.phase == Player.Finish and not player:isNude()
   end,
-   on_cost = function (self, event, target, player, data)
+  on_cost = function (self, event, target, player, data)
     local success, dat = player.room:askForUseActiveSkill(player, "huyuan_active", "#ld__huyuan-choose", true)
     if success then
       self.cost_data = dat
@@ -243,7 +242,7 @@ Fk:loadTranslationTable{
   ["ld__huyuan"] = "护援",
   [":ld__huyuan"] = "结束阶段，你可选择：1.将一张手牌交给一名角色；2.将一张装备牌置入一名角色的装备区，然后你可以弃置场上的一张牌。",
 
-  ["huyuan_active"] = "护援",
+  ["#huyuan_active"] = "护援",
   ["ld__huyuan_give"] = "给出手牌",
   ["ld__huyuan_equip"] = "置入装备",
 

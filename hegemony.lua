@@ -288,6 +288,7 @@ function HegLogic:chooseGenerals()
   local players = room.players
   local generals = room:getNGenerals(#players * generalNum) -- Fk:getGeneralsRandomly
   table.shuffle(generals)
+  local req = Request:new(players, "AskForGeneral")
   for k, p in ipairs(players) do
     -- local arg = { map = table.map }
     local arg = table.slice(generals, (k - 1) * generalNum + 1, k * generalNum + 1)
@@ -298,31 +299,20 @@ function HegLogic:chooseGenerals()
       local g2 = Fk.generals[arg[idx + 1]]
       if (g.kingdom == g2.kingdom and g.kingdom ~= "wild") or (g.kingdom == "wild" and g2.kingdom ~= "wild") or
         (g.subkingdom ~= nil and g.subkingdom == g2.subkingdom) or g.kingdom == g2.subkingdom or g.subkingdom == g2.kingdom then
-          p.default_reply = arg[idx] .. "+" .. arg[idx + 1]
+          req:setDefaultReply(p, {arg[idx], arg[idx + 1]})
           break
       end
     end
 
-    p.request_data = json.encode{ arg, 2, false, true }
+    req:setData(p, {arg, 2, false, true})
   end
-
-  room:notifyMoveFocus(players, "AskForGeneral")
-  room:doBroadcastRequest("AskForGeneral", players)
 
   local selected = {}
   for _, p in ipairs(players) do
-    local general, deputy
-    if p.general == "" and p.reply_ready then
-      local general_ret = json.decode(p.client_reply)
-      general = general_ret[1]
-      deputy = general_ret[2]
-      room:setPlayerGeneral(p, general, true)
-      room:setDeputyGeneral(p, deputy)
-    else
-      local general_ret = string.split(p.default_reply, "+")
-      general = general_ret[1]
-      deputy = general_ret[2]
-    end
+    local general_ret = req:getResult(p)
+    local general, deputy = general_ret[1], general_ret[2]
+    room:setPlayerGeneral(p, general, true)
+    room:setDeputyGeneral(p, deputy)
     table.insertTableIfNeed(selected, {general, deputy})
 
     room:setPlayerMark(p, "__heg_general", general)
@@ -330,8 +320,6 @@ function HegLogic:chooseGenerals()
 
     room:setPlayerGeneral(p, "anjiang", true)
     room:setDeputyGeneral(p, "anjiang")
-
-    p.default_reply = ""
   end
 
   generals = table.filter(generals, function(g) return not table.contains(selected, g) end)
@@ -341,6 +329,10 @@ function HegLogic:chooseGenerals()
   table.forEach(room.general_pile, function(name) table.insertIfNeed(allKingdoms, Fk.generals[name].kingdom) end)
   table.removeOne(allKingdoms, "wild")
   table.sort(allKingdoms)
+
+  req = Request:new(players, "AskForChoice")
+  req.focus_text = "AskForKingdom"
+  req.receive_decode = false
 
   for _, p in ipairs(players) do
     local curGeneral = Fk.generals[p:getMark("__heg_general")]
@@ -353,22 +345,12 @@ function HegLogic:chooseGenerals()
       kingdoms = table.filter(kingdoms, function(k) return curGeneral.kingdom == k or curGeneral.subkingdom == k end)
     end
 
-    p.default_reply = kingdoms[1]
-
-    local data = json.encode({ kingdoms, allKingdoms, "AskForKingdom", "#ChooseHegInitialKingdom" })
-    p.request_data = data
+    req:setData(p, {kingdoms, allKingdoms, "AskForKingdom", "#ChooseHegInitialKingdom"})
+    req:setDefaultReply(p, kingdoms[1])
   end
 
-  room:notifyMoveFocus(players, "AskForKingdom")
-  room:doBroadcastRequest("AskForChoice", players)
-
   for _, p in ipairs(players) do
-    local kingdomChosen
-    if p.reply_ready then
-      kingdomChosen = p.client_reply
-    else
-      kingdomChosen = p.default_reply
-    end
+    local kingdomChosen = req:getResult(p)
     room:setPlayerMark(p, "__heg_kingdom", kingdomChosen) -- 变野后变为wild
     room:setPlayerMark(p, "__heg_init_kingdom", kingdomChosen) -- 保存初始势力
     p.default_reply = ""
