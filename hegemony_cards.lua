@@ -117,13 +117,9 @@ local befriendAttackingSkill = fk.CreateActiveSkill{
     local player = Fk:currentRoom():getPlayerById(user)
     return player ~= target and H.compareKingdomWith(target, player, true)
   end,
-  target_filter = function(self, to_select, selected, _, card)
-    if #selected == 0 then
-      return self:modTargetFilter(to_select, selected, Self.id, card, true)
-    end
-  end,
+  target_filter = Util.TargetFilter,
   can_use = function(self, player)
-    return player.kingdom ~= "unknown"
+    return player.kingdom ~= "unknown" and Util.CanUse(self, player)
   end,
   on_effect = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
@@ -152,16 +148,13 @@ Fk:loadTranslationTable{
 local knownBothSkill = fk.CreateActiveSkill{
   name = "known_both_skill",
   prompt = "#known_both_skill",
+  can_use = Util.CanUse,
   target_num = 1,
   mod_target_filter = function(self, to_select, selected, user)
     local target = Fk:currentRoom():getPlayerById(to_select)
     return Fk:currentRoom():getPlayerById(user) ~= target and (not target:isKongcheng() or target.general == "anjiang" or target.deputyGeneral == "anjiang")
   end,
-  target_filter = function(self, to_select, selected, _, card)
-    if #selected == 0 then
-      return self:modTargetFilter(to_select, selected, Self.id, card, true)
-    end
-  end,
+  target_filter = Util.TargetFilter,
   on_effect = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
     local target = room:getPlayerById(effect.to)
@@ -218,6 +211,7 @@ local awaitExhaustedSkill = fk.CreateActiveSkill{
     return H.compareKingdomWith(target, player, false)
   end,
   can_use = function(self, player, card)
+    if player:prohibitUse(card) then return end
     for _, p in ipairs(Fk:currentRoom().alive_players) do
       if not player:isProhibited(p, card) and self:modTargetFilter(p.id, {}, player.id, card, true) then
         return true

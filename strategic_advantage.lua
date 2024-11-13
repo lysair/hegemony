@@ -67,15 +67,12 @@ end
 local drowningSkill = fk.CreateActiveSkill{
   name = "sa__drowning_skill",
   prompt = "#sa__drowning_skill",
+  can_use = Util.CanUse,
   target_num = 1,
   mod_target_filter = function(self, to_select, selected, user, card, distance_limited)
     return to_select ~= user and #Fk:currentRoom():getPlayerById(to_select):getCardIds(Player.Equip) > 0
   end,
-  target_filter = function(self, to_select, selected, _, card)
-    if #selected < self:getMaxTargetNum(Self, card) then
-      return self:modTargetFilter(to_select, selected, Self.id, card, true)
-    end
-  end,
+  target_filter = Util.TargetFilter,
   on_effect = function(self, room, effect)
     local from = room:getPlayerById(effect.from)
     local to = room:getPlayerById(effect.to)
@@ -128,7 +125,7 @@ local burningCampsSkill = fk.CreateActiveSkill{
     return prev.id ~= user and (to_select == prev.id or H.inFormationRelation(prev, Fk:currentRoom():getPlayerById(to_select)))
   end,
   can_use = function(self, player, card)
-    return not player:isProhibited(player:getNextAlive(), card) and player:getNextAlive() ~= player
+    return Util.CanUse(self, player, card) and not player:isProhibited(player:getNextAlive(), card) and player:getNextAlive() ~= player
   end,
   on_use = function(self, room, use)
     if not use.tos or #TargetGroup:getRealTargets(use.tos) == 0 then
@@ -190,16 +187,13 @@ Fk:loadTranslationTable{
 local lureTigerSkill = fk.CreateActiveSkill{
   name = "lure_tiger_skill",
   prompt = "#lure_tiger_skill",
+  can_use = Util.CanUse,
   min_target_num = 1,
   max_target_num = 2,
   mod_target_filter = function(self, to_select, selected, user)
     return user ~= to_select
   end,
-  target_filter = function(self, to_select, selected)
-    if #selected <= 1 then
-      return self:modTargetFilter(to_select, selected, Self.id)
-    end
-  end,
+  target_filter = Util.TargetFilter,
   on_effect = function(self, room, effect)
     local target = room:getPlayerById(effect.to)
     room:setPlayerMark(target, "@@lure_tiger-turn", 1)
@@ -269,13 +263,14 @@ local fightTogetherSkill = fk.CreateActiveSkill{
       return H.isBigKingdomPlayer(Fk:currentRoom():getPlayerById(selected[1])) == H.isBigKingdomPlayer(Fk:currentRoom():getPlayerById(to_select))
     end
   end,
-  target_filter = function(self, to_select, selected, _, card)
+  target_filter = function(self, to_select, selected, _, card, extra_data)
     if #selected == 0 then
-      return self:modTargetFilter(to_select, selected, Self.id, card, true)
+      return Util.TargetFilter(self, to_select, selected, _, card, extra_data)
     end
   end,
   can_use = function(self, player, card)
-    return table.find(Fk:currentRoom().alive_players, function(p) return H.isBigKingdomPlayer(p) end)
+    return not player:prohibitUse(card) and table.find(Fk:currentRoom().alive_players, function(p)
+      return H.isBigKingdomPlayer(p) end)
   end,
   on_use = function(self, room, use)
     if use.tos and #TargetGroup:getRealTargets(use.tos) > 0 then -- 如果一开始的目标被取消了就寄了，还是需要originalTarget
@@ -341,8 +336,8 @@ local allianceFeastSkill = fk.CreateActiveSkill{
     local target = Fk:currentRoom():getPlayerById(selected[1])
     return H.compareKingdomWith(to, target)
   end,
-  target_filter = function(self, to_select, selected, _, card)
-    return #selected == 0 and self:modTargetFilter(to_select, selected, Self.id, card, true) and to_select ~= Self.id
+  target_filter = function(self, to_select, selected, _, card, extra_data)
+    return #selected == 0 and Util.TargetFilter(self, to_select, selected, _, card, extra_data)
   end,
   can_use = function(self, player, card)
     return not player:prohibitUse(card) and player.kingdom ~= "unknown"
