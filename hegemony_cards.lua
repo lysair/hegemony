@@ -118,8 +118,8 @@ local befriendAttackingSkill = fk.CreateActiveSkill{
     return player ~= target and H.compareKingdomWith(target, player, true)
   end,
   target_filter = Util.TargetFilter,
-  can_use = function(self, player)
-    return player.kingdom ~= "unknown" and Util.CanUse(self, player)
+  can_use = function(self, player, card)
+    return player.kingdom ~= "unknown" and not player:prohibitUse(card) 
   end,
   on_effect = function(self, room, effect)
     local player = room:getPlayerById(effect.from)

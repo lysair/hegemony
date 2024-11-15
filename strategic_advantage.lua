@@ -125,7 +125,7 @@ local burningCampsSkill = fk.CreateActiveSkill{
     return prev.id ~= user and (to_select == prev.id or H.inFormationRelation(prev, Fk:currentRoom():getPlayerById(to_select)))
   end,
   can_use = function(self, player, card)
-    return Util.CanUse(self, player, card) and not player:isProhibited(player:getNextAlive(), card) and player:getNextAlive() ~= player
+    return not player:prohibitUse(card) and not player:isProhibited(player:getNextAlive(), card) and player:getNextAlive() ~= player
   end,
   on_use = function(self, room, use)
     if not use.tos or #TargetGroup:getRealTargets(use.tos) == 0 then
