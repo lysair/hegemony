@@ -314,9 +314,9 @@ Fk:loadTranslationTable{
 
   ["$ld__juejue1"] = "",
   ["$ld__juejue2"] = "",
-  ["$ld__fangyuan1"] = "",
-  ["$ld__fangyuan2"] = "",
-  ["~ld__zhuling"] = "",
+  ["$ld__fangyuan1"] = "布阵合围，滴水不漏，待敌自溃。",
+  ["$ld__fangyuan2"] = "乘敌阵未猛，待我斩将易旗，先奋士气。",
+  ["~ld__zhuling"] = "母亲，弟弟，我来了……",
 }
 
 --[[
@@ -970,11 +970,11 @@ Fk:loadTranslationTable{
   ["@@ld__zhidao-turn"] = "雉盗",
   ["#ld__zhidao-choose"] = "雉盗：选择一名其他角色，本回合你使用牌仅能指定你或其为目标",
 
-  ["$ld__zhidao1"] = "",
-  ["$ld__zhidao2"] = "",
-  ["$ld__jilix1"] = "",
-  ["$ld__jilix2"] = "",
-  ["~ld__yanbaihu"] = "",
+  ["$ld__zhidao1"] = "一朝得势，自当尽诸其力！",
+  ["$ld__zhidao2"] = "本王要的，没有得不到的！",
+  ["$ld__jilix1"] = "处处受制于人，难施拳脚。",
+  ["$ld__jilix2"] = "寄居人下，终是气短！",
+  ["~ld__yanbaihu"] = "江东，有我..一半...",
 }
 
 local huangzu = General(extension, "ld__huangzu", "qun", 4)

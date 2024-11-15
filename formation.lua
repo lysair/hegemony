@@ -199,7 +199,7 @@ local huyuan = fk.CreateTriggerSkill{
     return player:hasSkill(self) and player.phase == Player.Finish and not player:isNude()
   end,
   on_cost = function (self, event, target, player, data)
-    local success, dat = player.room:askForUseActiveSkill(player, "huyuan_active", "#ld__huyuan-choose", true)
+    local success, dat = player.room:askForUseActiveSkill(player, "#huyuan_active", "#ld__huyuan-choose", true)
     if success then
       self.cost_data = dat
       return true
