@@ -692,6 +692,7 @@ local heg_rule = fk.CreateTriggerSkill{
         room:setTag("TheFirstToShowRewarded", player.id)
       end
       local general_name = data["m"] or data["d"]
+      -- 君主拉回野人
       if general_name and string.find(general_name, "lord") then
         local kingdom = player:getMark("__heg_kingdom")
         for _, p in ipairs(room.players) do

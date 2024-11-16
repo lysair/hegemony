@@ -87,12 +87,26 @@ local zaoyun = fk.CreateActiveSkill{
     return #selected == 0 and H.compareKingdomWith(target, Self, true)
       and Self:distanceTo(target) - 1 == #selected_cards and #selected_cards > 0
   end,
+  target_tip = function (self, to_select, selected, selected_cards, card, selectable, extra_data)
+    local target = Fk:currentRoom():getPlayerById(to_select)
+    if not H.compareKingdomWith(target, Self, true) then return end
+    local n = Self:distanceTo(target) - 1
+    if n < 1 then
+      return -- { {content = "zaoyun_unable", type = "warning"} }
+    elseif n == #selected_cards or #selected_cards == 0 then
+      return { {content = "zaoyun_num:::" .. n, type = "normal"} }
+    else
+      return { {content = "zaoyun_num:::" .. n, type = "warning"} }
+    end
+  end,
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
     local target = room:getPlayerById(effect.tos[1])
     room:throwCard(effect.cards, self.name, player, player)
-    room:setPlayerMark(player, "_zaoyun_distance-turn", target.id)
-    room:damage{ from = player, to = target, damage = 1, skillName = self.name }
+    if not player.dead and not target.dead then
+      room:setPlayerMark(player, "_zaoyun_distance-turn", target.id)
+      room:damage{ from = player, to = target, damage = 1, skillName = self.name }
+    end
   end,
 }
 local zaoyun_distance = fk.CreateDistanceSkill{
@@ -123,6 +137,7 @@ Fk:loadTranslationTable{
   ["#quanjin-active"] = "发动 劝进，选择一张手牌交给一名此阶段内受到过伤害的角色并对其发起军令",
   ["#zaoyun-discard"] = "凿运：弃置 %arg 张手牌（你至%src的距离-1）",
   ["#zaoyun"] = "凿运：选择任意张手牌弃置，再选择一名与你势力不同且你至其距离为弃置手牌数+1的角色",
+  ["zaoyun_num"] = "弃置%arg张牌",
 
   ["$quanjin1"] = "今称魏公，则可以藩卫之名，征吴伐蜀也。",
   ["$quanjin2"] = "明公受封，正合天心人意！",

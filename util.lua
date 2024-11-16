@@ -205,55 +205,8 @@ end
 ---@class ArraySummonSkill : ActiveSkill
 H.ArraySummonSkill = ActiveSkill:subclass("ArraySummonSkill")
 
-local function readCommonSpecToSkill(skill, spec)
-  skill.mute = spec.mute
-  skill.anim_type = spec.anim_type
-
-  if spec.attached_equip then
-    assert(type(spec.attached_equip) == "string")
-    skill.attached_equip = spec.attached_equip
-  end
-
-  if spec.switch_skill_name then
-    assert(type(spec.switch_skill_name) == "string")
-    skill.switchSkillName = spec.switch_skill_name
-  end
-
-  if spec.relate_to_place then
-    assert(type(spec.relate_to_place) == "string")
-    skill.relate_to_place = spec.relate_to_place
-  end
-end
-
-local function readUsableSpecToSkill(skill, spec)
-  readCommonSpecToSkill(skill, spec)
-  assert(spec.main_skill == nil or spec.main_skill:isInstanceOf(UsableSkill))
-  if type(spec.derived_piles) == "string" then
-    skill.derived_piles = {spec.derived_piles}
-  else
-    skill.derived_piles = spec.derived_piles or {}
-  end
-  skill.main_skill = spec.main_skill
-  skill.target_num = spec.target_num or skill.target_num
-  skill.min_target_num = spec.min_target_num or skill.min_target_num
-  skill.max_target_num = spec.max_target_num or skill.max_target_num
-  skill.target_num_table = spec.target_num_table or skill.target_num_table
-  skill.card_num = spec.card_num or skill.card_num
-  skill.min_card_num = spec.min_card_num or skill.min_card_num
-  skill.max_card_num = spec.max_card_num or skill.max_card_num
-  skill.card_num_table = spec.card_num_table or skill.card_num_table
-  skill.max_use_time = {
-    spec.max_phase_use_time or 9999,
-    spec.max_turn_use_time or 9999,
-    spec.max_round_use_time or 9999,
-    spec.max_game_use_time or 9999,
-  }
-  skill.distance_limit = spec.distance_limit or skill.distance_limit
-  skill.expand_pile = spec.expand_pile
-end
-
 local function readActiveSpecToSkill(skill, spec)
-  readUsableSpecToSkill(skill, spec)
+  fk.readUsableSpecToSkill(skill, spec)
 
   if spec.can_use then
     skill.canUse = function(curSkill, player, card)
@@ -1099,13 +1052,6 @@ function H.AllianceSkill:allowAlliance(from, to)
   return false
 end
 
-local function readStatusSpecToSkill(skill, spec)
-  readCommonSpecToSkill(skill, spec)
-  if spec.global then
-    skill.global = spec.global
-  end
-end
-
 ---@class StatusSkillSpec: StatusSkill
 
 ---@class AllianceSpec: StatusSkillSpec
@@ -1118,7 +1064,7 @@ H.CreateAllianceSkill = function(spec)
   assert(type(spec.allow_alliance) == "function")
 
   local skill = H.AllianceSkill:new(spec.name)
-  readStatusSpecToSkill(skill, spec)
+  fk.readStatusSpecToSkill(skill, spec)
   skill.allowAlliance = spec.allow_alliance or skill.allowAlliance
   return skill
 end
@@ -1159,7 +1105,7 @@ H.CreateBigKingdomSkill = function(spec)
   assert(type(spec.fixed_func) == "function")
 
   local skill = H.BigKingdomSkill:new(spec.name)
-  readStatusSpecToSkill(skill, spec)
+  fk.readStatusSpecToSkill(skill, spec)
 
   if spec.fixed_func then
     skill.getFixed = spec.fixed_func
