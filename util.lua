@@ -885,7 +885,16 @@ end
 ---@param isMain bool @ 是否为主将，默认副将
 ---@param isHidden bool @ 是否暗置变更
 ---@param num? integer @ 选将数量，默认为3
-H.transformGeneral = function(room, player, isMain, isHidden)
+H.transformGeneral = function(room, player, isMain, isHidden, num)
+  local data = {
+    isMain = isMain,
+    isHidden = isHidden,
+    num = num,
+  }
+  if room.logic:trigger("fk.GeneralTransforming", player, data) then return false end
+  isMain = data.isMain
+  isHidden = data.isHidden
+  num = data.num
   local orig = isMain and player.general or player.deputyGeneral
   num = num or 3
   if not orig then return false end
@@ -898,7 +907,6 @@ H.transformGeneral = function(room, player, isMain, isHidden)
     table.insert(existingGenerals, H.getActualGeneral(p, false))
     table.insert(existingGenerals, H.getActualGeneral(p, true))
   end
-  if room.logic:trigger("fk.GeneralTransforming", player, orig) then return false end
   local kingdom = player:getMark("__heg_kingdom")
   if kingdom == "wild" then
     kingdom = player:getMark("__heg_init_kingdom")
