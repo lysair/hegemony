@@ -247,35 +247,6 @@ function HegLogic:assignRoles()
   room.players[1].role = "lord"
 end
 
-function HegLogic:prepareDrawPile()
-  local room = self.room
-  local seed = math.random(2 << 32 - 1)
-  local allCardIds = Fk:getAllCardIds()
-
-  for i = #allCardIds, 1, -1 do
-    local card = Fk:getCardById(allCardIds[i])
-    if card.is_derived or (H.convertCards[card.name] and table.find(H.convertCards[card.name], function(c)
-        return table.contains(allCardIds, c.id)
-      end)) then
-      local id = allCardIds[i]
-      table.remove(allCardIds, i)
-      table.insert(room.void, id)
-      room:setCardArea(id, Card.Void, nil)
-    end
-    if table.contains(H.allianceCards, card) then
-      room:setCardMark(card, "@@alliance", 1)
-    end
-  end
-
-  table.shuffle(allCardIds, seed)
-  room.draw_pile = allCardIds
-  for _, id in ipairs(room.draw_pile) do
-    room:setCardArea(id, Card.DrawPile, nil)
-  end
-
-  room:doBroadcastNotify("PrepareDrawPile", seed)
-end
-
 function HegLogic:chooseGenerals()
   local room = self.room
   local generalNum = math.max(room.settings.generalNum, 5)
@@ -391,6 +362,24 @@ function HegLogic:broadcastGeneral()
     if general:isCompanionWith(deputy) then
       p:setMark("CompanionEffect", 1)
       p:doNotify("SetPlayerMark", json.encode{ p.id, "CompanionEffect", 1})
+    end
+  end
+end
+
+function HegLogic:prepareDrawPile()
+  GameLogic.prepareDrawPile(self)
+
+  local room = self.room
+  for _, cid in ipairs(room.draw_pile) do
+    local card = Fk:getCardById(cid)
+    if table.contains(H.allianceCards, card) then
+      room:setCardMark(card, "@@alliance", 1)
+    end
+  end
+  for _, cid in ipairs(room.void) do
+    local card = Fk:getCardById(cid)
+    if table.contains(H.allianceCards, card) then
+      room:setCardMark(card, "@@alliance", 1)
     end
   end
 end
@@ -850,6 +839,23 @@ heg = fk.CreateGameMode{
     end
     return { { text = "heg: besieged on all sides", passed = kingdomCheck } }
   end,
+
+  build_draw_pile = function(self)
+    local draw, void = GameMode.buildDrawPile(self)
+
+    for i = #draw, 1, -1 do
+      local card = Fk:getCardById(draw[i])
+      if H.convertCards[card.name] and table.find(H.convertCards[card.name], function(c)
+        return table.contains(draw, c.id)
+      end) then
+        local id = draw[i]
+        table.remove(draw, i)
+        table.insert(void, id)
+      end
+    end
+
+    return draw, void
+  end
 }
 
 Fk:loadTranslationTable{
@@ -860,12 +866,12 @@ Fk:loadTranslationTable{
   ["#heg_rule"] = "国战规则",
   ["revealAll"] = "全部明置",
   ["#EnterBattleRoyalMode"] = "游戏进入 <font color=\"red\"><b>鏖战模式</b></font>，所有的【<font color=\"#3598E8\"><b>桃</b></font>】"..
-  "只能当【<font color=\"#3598E8\"><b>杀</b></font>】或【<font color=\"#3598E8\"><b>闪</b></font>】使用或打出，不能用于回复体力",
+    "只能当【<font color=\"#3598E8\"><b>杀</b></font>】或【<font color=\"#3598E8\"><b>闪</b></font>】使用或打出，不能用于回复体力",
   ["#EnterBattleRoyalModeLog"] = "游戏进入 <font color=\"#CC3131\"><b>鏖战模式</b></font>",
   ["@[:]BattleRoyalDummy"] = "", -- 额
   ["BattleRoyalMode"] = "鏖战模式",
   [":BattleRoyalMode"] = "所有的【<font color=\"#3598E8\"><b>桃</b></font>】"..
-  "只能当【<font color=\"#3598E8\"><b>杀</b></font>】或【<font color=\"#3598E8\"><b>闪</b></font>】使用或打出，不能用于回复体力",
+    "只能当【<font color=\"#3598E8\"><b>杀</b></font>】或【<font color=\"#3598E8\"><b>闪</b></font>】使用或打出，不能用于回复体力",
   ["#wild-choose"] = "野心家建国：选择你要成为的势力！",
   ["heg_qin"] = "秦",
   ["heg_qi"] = "齐",

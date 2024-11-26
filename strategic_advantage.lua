@@ -264,9 +264,7 @@ local fightTogetherSkill = fk.CreateActiveSkill{
     end
   end,
   target_filter = function(self, to_select, selected, _, card, extra_data)
-    if #selected == 0 then
-      return Util.TargetFilter(self, to_select, selected, _, card, extra_data)
-    end
+    return #selected == 0 and Util.TargetFilter(self, to_select, selected, _, card, extra_data)
   end,
   can_use = function(self, player, card)
     return not player:prohibitUse(card) and table.find(Fk:currentRoom().alive_players, function(p)
@@ -337,10 +335,10 @@ local allianceFeastSkill = fk.CreateActiveSkill{
     return H.compareKingdomWith(to, target)
   end,
   target_filter = function(self, to_select, selected, _, card, extra_data)
-    return #selected == 0 and Util.TargetFilter(self, to_select, selected, _, card, extra_data)
+    return #selected == 0 and to_select ~= Self.id and Util.TargetFilter(self, to_select, selected, _, card, extra_data)
   end,
   can_use = function(self, player, card)
-    return not player:prohibitUse(card) and player.kingdom ~= "unknown"
+    return not (player:prohibitUse(card) or player:isProhibited(player, card)) and player.kingdom ~= "unknown"
   end,
   on_use = function(self, room, use)
     local card = use.card
