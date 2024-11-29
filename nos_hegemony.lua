@@ -55,7 +55,7 @@ function HegLogic:chooseGenerals()
   room:doBroadcastNotify("ShowToast", Fk:translate("#HegInitialNotice"))
 
   local lord = room:getLord()
-  room.current = lord
+  room:setCurrent(lord)
   lord.role = "hidden"
 
   local players = room.players
