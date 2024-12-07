@@ -239,8 +239,6 @@ local function readActiveSpecToSkill(skill, spec)
   end
 end
 
----@class ActiveSkillSpec: ActiveSkill
-
 ---@class ArraySummonSpec: ActiveSkillSpec
 ---@field public array_type string
 
@@ -1060,8 +1058,6 @@ function H.AllianceSkill:allowAlliance(from, to)
   return false
 end
 
----@class StatusSkillSpec: StatusSkill
-
 ---@class AllianceSpec: StatusSkillSpec
 ---@field public allow_alliance? fun(self: AllianceSkill, from: Player, to:Player): boolean?
 
@@ -1100,8 +1096,6 @@ H.BigKingdomSkill = StatusSkill:subclass("BigKingdomSkill")
 function H.BigKingdomSkill:getFixed(player)
   return false
 end
-
----@class StatusSkillSpec: StatusSkill
 
 ---@class BigKingdomSpec: StatusSkillSpec
 ---@field public fixed_func? fun(self: BigKingdomSkill, player: Player): boolean?
