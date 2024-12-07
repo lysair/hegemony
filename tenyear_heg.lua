@@ -1708,6 +1708,7 @@ local ty_heg__guanyue = fk.CreateTriggerSkill{
     local room = player.room
     local result = room:askForGuanxing(player, room:getNCards(2), {1, 2}, {1, 1}, self.name, true, {"Top", "prey"})
     if #result.top > 0 then
+      table.removeOne(room.draw_pile, result.top[1])
       table.insert(room.draw_pile, 1, result.top[1])
       room:sendLog{
         type = "#GuanxingResult",

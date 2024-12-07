@@ -788,8 +788,6 @@ local aocai = fk.CreateViewAsSkill{
     local room = player.room
     local names = use.card:getMark("aocai_names")
     local cards = room:getNCards(2)
-    table.insert(room.draw_pile, 1, cards[2])
-    table.insert(room.draw_pile, 1, cards[1])
     --FIXME: 需要判断合法性，但是没法区分是使用还是打出
     local ids = table.filter(cards, function (id)
       return table.contains(names, Fk:getCardById(id).trueName)
@@ -1640,9 +1638,11 @@ local ld__xunxun = fk.CreateTriggerSkill{
     local ret = room:askForArrangeCards(player, self.name, {room:getNCards(4), "Bottom", "Top"}, "#xunxun", true, 0, {4, 2}, {0, 2})
     local top, bottom = ret[2], ret[1]
     for i = #top, 1, -1 do
+      table.removeOne(room.draw_pile, top[i])
       table.insert(room.draw_pile, 1, top[i])
     end
     for i = 1, #bottom, 1 do
+      table.removeOne(room.draw_pile, bottom[i])
       table.insert(room.draw_pile, bottom[i])
     end
     room:sendLog{
