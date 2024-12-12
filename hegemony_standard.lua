@@ -109,9 +109,7 @@ local hs__luoyi_trigger = fk.CreateTriggerSkill{
     return target == player and player:usedSkillTimes("hs__luoyi", Player.HistoryTurn) > 0 and
       not data.chain and data.card and (data.card.trueName == "slash" or data.card.name == "duel")
   end,
-  on_cost = function(self, event, target, player, data)
-    return true
-  end,
+  on_cost = Util.TrueFunc,
   on_use = function(self, event, target, player, data)
     local room = player.room
     player:broadcastSkillInvoke("hs__luoyi")
@@ -1302,9 +1300,6 @@ local shushen = fk.CreateTriggerSkill{
   name = "hs__shushen",
   anim_type = "support",
   events = {fk.HpRecover},
-  can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self)
-  end,
   on_trigger = function(self, event, target, player, data)
     self.cancel_cost = false
     for i = 1, data.num do
