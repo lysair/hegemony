@@ -18,7 +18,7 @@ end
 --- diff为false为相同，true为不同
 ---@param from Player
 ---@param to Player
----@param diff bool
+---@param diff boolean?
 ---@return boolean
 H.compareKingdomWith = function(from, to, diff)
   if from == to then
@@ -38,8 +38,8 @@ end
 --- diff为false为相同，true为不同
 ---@param from Player @ 将明置的角色
 ---@param to Player @ 另一角色
----@param diff bool @ 是否为不同势力
----@return bool
+---@param diff boolean? @ 是否为不同势力
+---@return boolean?
 H.compareExpectedKingdomWith = function(from, to, diff)
   local room = Fk:currentRoom()
   if from == to then
@@ -136,7 +136,7 @@ end
 
 --- 判断角色是否为小势力角色
 ---@param player ServerPlayer
----@return bool
+---@return boolean?
 H.isSmallKingdomPlayer = function(player)
   if H.isBigKingdomPlayer(player) then return false end
   return table.find(Fk:currentRoom().alive_players, function(p) return H.isBigKingdomPlayer(p) end)
@@ -176,7 +176,7 @@ end
 --- 确认与某角色是否处于队列中
 ---@param player Player @ 角色1
 ---@param target Player @ 角色2，若为 player 即 player 是否处于某一队列
----@return bool
+---@return boolean?
 H.inFormationRelation = function(player, target)
   if target == player then
     return #H.getFormationRelation(player) > 0
@@ -189,7 +189,7 @@ end
 ---@param player ServerPlayer @ 围攻角色1
 ---@param target ServerPlayer @ 围攻角色2，可填 player
 ---@param victim ServerPlayer @ 被围攻角色
----@return bool
+---@return boolean?
 H.inSiegeRelation = function(player, target, victim)
   if H.compareKingdomWith(player, victim) or not H.compareKingdomWith(player, target) or victim.kingdom == "unknown" then return false end
   if player == target then
@@ -615,8 +615,8 @@ Fk:loadTranslationTable{
 
 --- 判断有无主将/副将
 ---@param player Player
----@param isDeputy bool
----@return bool
+---@param isDeputy boolean?
+---@return boolean?
 H.hasGeneral = function(player, isDeputy)
   local orig = isDeputy and (player.deputyGeneral or "") or player.general
   return orig ~= "" and not orig:startsWith("blank_")
@@ -624,7 +624,7 @@ end
 
 --- 获得真正的主将/副将（而非暗将）
 ---@param player Player
----@param isDeputy bool
+---@param isDeputy boolean?
 ---@return string
 H.getActualGeneral = function(player, isDeputy)
   if isDeputy then
@@ -800,7 +800,7 @@ Fk:loadTranslationTable{
 -- 根据技能暗置武将牌
 ---@param player ServerPlayer
 ---@param skill string | Skill
----@param allowBothHidden? bool
+---@param allowBothHidden? boolean?
 ---@return string? @ 暗置的是主将还是副将，或没有暗置
 H.hideBySkillName = function(player, skill, allowBothHidden)
   local isDeputy = H.inGeneralSkills(player, skill)
@@ -880,8 +880,8 @@ end
 --- 变更武将牌
 ---@param room Room
 ---@param player ServerPlayer
----@param isMain bool @ 是否为主将，默认副将
----@param isHidden bool @ 是否暗置变更
+---@param isMain boolean? @ 是否为主将，默认副将
+---@param isHidden boolean? @ 是否暗置变更
 ---@param num? integer @ 选将数量，默认为3
 H.transformGeneral = function(room, player, isMain, isHidden, num)
   local data = {
@@ -969,7 +969,7 @@ end
 --- deprecated，已写入本体
 ---@param player Player
 ---@param skill string | Skill
----@return bool
+---@return boolean?
 H.hasShownSkill = function(player, skill, ignoreNullified, ignoreAlive)
   return player:hasShownSkill(skill, ignoreNullified, ignoreAlive)
 end
@@ -1092,7 +1092,7 @@ end
 H.BigKingdomSkill = StatusSkill:subclass("BigKingdomSkill")
 
 ---@param player Player
----@return bool
+---@return boolean?
 function H.BigKingdomSkill:getFixed(player)
   return false
 end
