@@ -1073,11 +1073,11 @@ local tieqi = fk.CreateTriggerSkill{
           choice = table.random(choices, 1)
         end
       end
-      local record = type(to:getMark("@hs__tieqi-turn")) == "table" and to:getMark("@hs__tieqi-turn") or {}
+      local record = to:getTableMark("@hs__tieqi-turn")
       for _, c in ipairs(choice) do
         table.insertIfNeed(record, c)
         room:setPlayerMark(to, "@hs__tieqi-turn", record)
-        local mark = type(to:getMark("_hs__tieqi-turn")) == "table" and to:getMark("_hs__tieqi-turn") or {}
+        local mark = to:getTableMark("_hs__tieqi-turn")
         for _, skill_name in ipairs(Fk.generals[c]:getSkillNameList()) do
           if Fk.skills[skill_name].frequency ~= Skill.Compulsory then
             table.insertIfNeed(mark, skill_name)
@@ -2139,7 +2139,7 @@ local luanji = fk.CreateViewAsSkill{
   pattern = "archery_attack",
   card_filter = function(self, to_select, selected)
     if #selected == 2 or Fk:currentRoom():getCardArea(to_select) ~= Player.Hand then return false end
-    local record = type(Self:getMark("@hs__luanji-turn")) == "table" and Self:getMark("@hs__luanji-turn") or {}
+    local record = Self:getTableMark("@hs__luanji-turn")
     return not table.contains(record, Fk:getCardById(to_select):getSuitString(true))
   end,
   view_as = function(self, cards)
@@ -2153,7 +2153,7 @@ local luanji = fk.CreateViewAsSkill{
   end,
   before_use = function(self, player, use)
     local room = player.room
-    local record = type(player:getMark("@hs__luanji-turn")) == "table" and player:getMark("@hs__luanji-turn") or {}
+    local record = player:getTableMark("@hs__luanji-turn")
     local cards = use.card.subcards
     for _, cid in ipairs(cards) do
       local suit = Fk:getCardById(cid):getSuitString(true)

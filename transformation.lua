@@ -613,9 +613,7 @@ local addFangkeSkill = function(player, skillName)
     return
   end
 
-  local fangke_skills = player:getTableMark("ld__xing_skills")
-  table.insert(fangke_skills, skillName)
-  room:setPlayerMark(player, "ld__xing_skills", fangke_skills)
+  room:addTableMark(player, "ld__xing_skills", skillName)
   player:addFakeSkill(skill)
   player:prelightSkill(skill, true)
 end
@@ -625,14 +623,7 @@ end
 local removeFangkeSkill = function(player, skillName)
   local room = player.room
   local skill = Fk.skills[skillName]
-
-  local fangke_skills = player:getTableMark("ld__xing_skills")
-  if not table.contains(fangke_skills, skillName) then
-    return
-  end
-  table.removeOne(fangke_skills, skillName)
-  room:setPlayerMark(player, "ld__xing_skills", fangke_skills)
-
+  room:removeTableMark(player, "ld__xing_skills", skillName)
   player:loseFakeSkill(skill)
 end
 

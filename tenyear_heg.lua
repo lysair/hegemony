@@ -181,9 +181,7 @@ local mingfa = fk.CreateActiveSkill{
   end,
   on_use = function(self, room, effect)
     local target = room:getPlayerById(effect.tos[1])
-    local mark = type(target:getMark("@@ty_heg__mingfa_delay")) == "table" and target:getMark("@@ty_heg__mingfa_delay") or {}
-    table.insert(mark, effect.from)
-    room:setPlayerMark(target, "@@ty_heg__mingfa_delay", mark)
+    room:addTableMark(target, "@@ty_heg__mingfa_delay", effect.from)
   end,
 }
 

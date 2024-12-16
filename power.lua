@@ -563,11 +563,11 @@ local tieqiXH = fk.CreateTriggerSkill{
       else
         choice = {room:askForChoice(player, choices, self.name, "#hs__tieqi-ask::" .. to.id)}
       end
-      local record = type(to:getMark("@hs__tieqi-turn")) == "table" and to:getMark("@hs__tieqi-turn") or {}
+      local record = to:getTableMark("@hs__tieqi-turn")
       for _, c in ipairs(choice) do
         table.insertIfNeed(record, c)
         room:setPlayerMark(to, "@hs__tieqi-turn", record)
-        local mark = type(to:getMark("_hs__tieqi-turn")) == "table" and to:getMark("_hs__tieqi-turn") or {}
+        local mark = to:getTableMark("_hs__tieqi-turn")
         for _, skill_name in ipairs(Fk.generals[c]:getSkillNameList()) do
           if Fk.skills[skill_name].frequency ~= Skill.Compulsory then
             table.insertIfNeed(mark, skill_name)
@@ -756,9 +756,7 @@ local xuanhuoOther = fk.CreateActiveSkill{
 
     local choice = room:askForChoice(player, choices, self.name, "#ld__xuanhuo-choice", true, all_choices)
     room:handleAddLoseSkills(player, choice, nil)
-    local record = type(player:getMark("@ld__xuanhuo_skills-turn")) == "table" and player:getMark("@ld__xuanhuo_skills-turn") or {}
-    table.insert(record, choice)
-    room:setPlayerMark(player, "@ld__xuanhuo_skills-turn", record)
+    room:addTableMark(player, "@ld__xuanhuo_skills-turn", choice)
   end,
 }
 local xuanhuoOtherLose = fk.CreateTriggerSkill{
@@ -856,15 +854,12 @@ local keshou_filter = fk.CreateActiveSkill{
   name = "#ld__keshou_filter",
   min_card_num = 2,
   max_card_num = 2,
-  visible = false,
   card_filter = function(self, to_select, selected)
     return table.every(selected, function(id)
       return Fk:getCardById(to_select).color == Fk:getCardById(id).color
     end)
   end,
-  target_filter = function (self, to_select, selected)
-    return false
-  end,
+  target_filter = Util.FalseFunc,
   can_use = Util.FalseFunc,
 }
 local keshou = fk.CreateTriggerSkill{

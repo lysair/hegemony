@@ -1944,9 +1944,7 @@ local zhengjian = fk.CreateTriggerSkill{
     local room = player.room
     H.addHegMark(room, target, "companion")
     room:setPlayerMark(target, "@@ld__zhengjian-forbidden", 1)
-    local record = player:getTableMark("_ld__zhengjian")
-    table.insert(record, target.id)
-    room:setPlayerMark(player, "_ld__zhengjian", record)
+    room:addTableMark(player, "_ld__zhengjian", target.id)
   end,
 
   refresh_events = {fk.TargetConfirmed, fk.BuryVictim, fk.EnterDying},
