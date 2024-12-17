@@ -853,7 +853,7 @@ Fk:loadTranslationTable{
   ["designer:ld__lijueguosi"] = "千幻",
   ["illustrator:ld__lijueguosi"] = "旭",
   ["xiongsuan"] = "凶算",
-  [":xiongsuan"] = "限定技，出牌阶段，你可弃置一张手牌并选择与你势力相同的一名角色，你对其造成1点伤害，摸三张牌，选择其一个已发动过的限定技，然后此回合结束前，你令此技能于此局游戏内的发动次数上限+1。",
+  [":xiongsuan"] = "限定技，出牌阶段，你可弃置一张手牌并选择与你势力相同的一名角色，你对其造成1点伤害，摸三张牌，选择其一个已发动过的限定技，然后此回合结束后，你令此技能于此局游戏内的发动次数上限+1。",
   ["#xiongsuan-reset"] = "凶算：请重置%dest的一项技能",
   ["#xiongsuanDelay"] = "凶算",
   ["#XiongsuanReset"] = "%from 重置了限定技“%arg”",
