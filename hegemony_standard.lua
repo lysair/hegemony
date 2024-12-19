@@ -371,6 +371,7 @@ local duanliang = fk.CreateViewAsSkill{
     local room = player.room
     for _, p in ipairs(targets) do
       if player:distanceTo(room:getPlayerById(p)) > 2 then
+        room:invalidateSkill(player, self.name, "-phase")
         room:setPlayerMark(player, "@@hs__duanliang-phase", 1)
       end
     end
@@ -378,21 +379,11 @@ local duanliang = fk.CreateViewAsSkill{
 }
 local duanliang_targetmod = fk.CreateTargetModSkill{
   name = "#hs__duanliang_targetmod",
-  distance_limit_func =  function(self, player, skill)
-    if player:hasSkill(duanliang) and skill.name == "supply_shortage_skill" then
-      return 99
-    end
-  end,
-}
-local duanliang_invalidity = fk.CreateInvaliditySkill {
-  name = "#hs__duanliang_invalidity",
-  invalidity_func = function(self, from, skill)
-    return from:getMark("@@hs__duanliang-phase") > 0 and
-      skill.name == "hs__duanliang"
+  bypass_distances = function (self, player, skill, card, to)
+    return player:hasSkill(duanliang) and skill.trueName == "supply_shortage_skill" and player:distanceTo(to) > 2
   end
 }
 duanliang:addRelatedSkill(duanliang_targetmod)
-duanliang:addRelatedSkill(duanliang_invalidity)
 
 xuhuang:addSkill(duanliang)
 
@@ -701,7 +692,7 @@ local wusheng_targetmod = fk.CreateTargetModSkill{
   name = "#hs__wusheng_targetmod",
   anim_type = "offensive",
   bypass_distances = function (self, player, skill, card, to)
-    return player:hasSkill(wusheng) and skill.trueName == "slash_skill" and card.suit == Card.Diamond
+    return card and player:hasSkill(wusheng) and skill.trueName == "slash_skill" and card.suit == Card.Diamond
   end
 }
 wusheng:addRelatedSkill(wusheng_targetmod)
@@ -724,7 +715,7 @@ local paoxiao = fk.CreateTargetModSkill{
   name = "hs__paoxiao",
   frequency = Skill.Compulsory,
   bypass_times = function(self, player, skill, scope)
-    if player:hasSkill(self) and skill.trueName == "slash_skill"
+    if card and player:hasSkill(self) and skill.trueName == "slash_skill"
       and scope == Player.HistoryPhase then
       return true
     end
@@ -2387,9 +2378,7 @@ local duanchang = fk.CreateTriggerSkill{
     end
     if #choices == 0 then return false end
     local choice = room:askForChoice(player, choices, self.name, "#hs__duanchang-ask::" .. to.id)
-    local record = to:getTableMark("@hs__duanchang")
-    table.insert(record, choice)
-    room:setPlayerMark(to, "@hs__duanchang", record)
+    room:addTableMark(to, "@hs__duanchang", choice)
     local _g = (choice == "mainGeneral" or choice == to.general) and to.general or to.deputyGeneral
     if _g ~= "anjiang" then
       local skills = {}
@@ -2406,9 +2395,7 @@ local duanchang = fk.CreateTriggerSkill{
         local skill = Fk.skills[s]
         to:loseFakeSkill(skill)
       end
-      record = to:getTableMark("_hs__duanchang_anjiang")
-      table.insert(record, _g)
-      room:setPlayerMark(to, "_hs__duanchang_anjiang", record)
+      room:addTableMark(to, "_hs__duanchang_anjiang", _g)
     end
   end,
 

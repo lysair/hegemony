@@ -1767,9 +1767,7 @@ local congcha = fk.CreateTriggerSkill{
       local to = room:askForChoosePlayers(player, targets, 1, 1, "#ld__congcha_choose", self.name, true)
       if #to > 0 then
         target = room:getPlayerById(to[1])
-        local record = target:getTableMark("@@ld__congcha_delay")
-        table.insert(record, player.id)
-        room:setPlayerMark(target, "@@ld__congcha_delay", record)
+        room:addTableMark(target, "@@ld__congcha_delay", player.id)
         room:setPlayerMark(player, "_ld__congcha", target.id)
       end
     else
@@ -2418,7 +2416,7 @@ local suzhi_target = fk.CreateTargetModSkill{
   name = "#ld__suzhi_target",
   frequency = Skill.Compulsory,
   bypass_distances = function(self, player, skill, card)
-    return player:hasSkill(suzhi) and player.phase ~= Player.NotActive and player:getMark("@ld__suzhi-turn") < 3 and
+    return card and player:hasSkill(suzhi) and player.phase ~= Player.NotActive and player:getMark("@ld__suzhi-turn") < 3 and
     card and card.type == Card.TypeTrick and (not card:isVirtual() or #card.subcards == 0)
   end,
 }
@@ -2689,7 +2687,7 @@ local xiongnve_delay = fk.CreateTriggerSkill{
 local xiongnve_targetmod = fk.CreateTargetModSkill{
   name = "#xiongnve_targetmod",
   bypass_times = function(self, player, skill, scope, card, to)
-    return to and player:getMark("@xiongnve_choice-phase") == "xiongnve_effect3" and compareXiongNveKingdom(player, to)
+    return card and to and player:getMark("@xiongnve_choice-phase") == "xiongnve_effect3" and compareXiongNveKingdom(player, to)
   end,
 }
 xiongnve:addRelatedSkill(xiongnve_delay)

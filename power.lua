@@ -80,10 +80,10 @@ local zhengbi_targetmod = fk.CreateTargetModSkill{
   name = "#ld__zhengbi_targetmod",
   frequency = Skill.Compulsory,
   bypass_times = function(self, player, skill, scope, card, to)
-    return player:hasSkill(zhengbi) and to:getMark("@@ld__zhengbi_choose-turn") > 0
+    return card and player:hasSkill(zhengbi) and to:getMark("@@ld__zhengbi_choose-turn") > 0
   end,
   bypass_distances =  function(self, player, skill, card, to)
-    return player:hasSkill(zhengbi) and to:getMark("@@ld__zhengbi_choose-turn") > 0
+    return card and player:hasSkill(zhengbi) and to:getMark("@@ld__zhengbi_choose-turn") > 0
   end,
 }
 
