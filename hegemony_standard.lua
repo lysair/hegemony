@@ -714,7 +714,7 @@ local zhangfei = General(extension, "hs__zhangfei", "shu", 4)
 local paoxiao = fk.CreateTargetModSkill{
   name = "hs__paoxiao",
   frequency = Skill.Compulsory,
-  bypass_times = function(self, player, skill, scope)
+  bypass_times = function(self, player, skill, scope, card)
     if card and player:hasSkill(self) and skill.trueName == "slash_skill"
       and scope == Player.HistoryPhase then
       return true
