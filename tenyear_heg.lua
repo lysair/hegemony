@@ -1507,7 +1507,7 @@ local jinghe = fk.CreateActiveSkill{
     room:sortPlayersByAction(effect.tos)
 
     local num = 0 + #effect.tos
-    local skills = table.random({"ty_heg__leiji", "yinbingn", "huoqi", "guizhu", "xianshou", "lundao", "guanyue", "yanzhengn"}, num)
+    local skills = table.random({"ty_heg__leiji", "ty_heg__yinbingn", "ty_heg__huoqi", "ty_heg__guizhu", "ty_heg__xianshou", "ty_heg__lundao", "ty_heg__guanyue", "ty_heg__yanzhengn"}, num)
     local selected = {}
     for _, id in ipairs(effect.tos) do
       local p = room:getPlayerById(id)

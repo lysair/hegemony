@@ -1564,11 +1564,15 @@ local xingzhao = fk.CreateTriggerSkill{
   frequency = Skill.Compulsory,
   events = {fk.Damaged, fk.AfterCardsMove},
   can_trigger = function(self, event, target, player, data)
+    local kingdoms = {}
+    for _, p in ipairs(table.filter(Fk:currentRoom().alive_players, function(p) return p:isWounded() and p.kingdom ~= "unknown" end)) do
+      table.insertIfNeed(kingdoms, p.kingdom)
+    end
     if player:hasSkill(self) then
       if event == fk.Damaged then
-        return #table.filter(player.room.alive_players, function(p) return p:isWounded() end) > 1 and target == player
+        return #kingdoms > 1 and target == player and data.from ~= player
       elseif event == fk.AfterCardsMove then
-        if not (#table.filter(player.room.alive_players, function(p) return p:isWounded() end) > 3) then return false end
+        if not (#kingdoms > 3) then return false end
         for _, move in ipairs(data) do
           if move.from == player.id then
             for _, info in ipairs(move.moveInfo) do
@@ -1579,7 +1583,7 @@ local xingzhao = fk.CreateTriggerSkill{
           end
         end
       else
-        return #table.filter(player.room.alive_players, function(p) return p:isWounded() end) > 2
+        return #kingdoms > 2
       end
     end
   end,
@@ -1608,7 +1612,11 @@ local xingzhao = fk.CreateTriggerSkill{
   end,
   on_refresh = function(self, event, target, player, data)
     local room = player.room
-    if H.hasShownSkill(player, self.name) and #table.filter(room.alive_players, function(p) return p:isWounded() end) > 0 then
+    local kingdoms = {}
+    for _, p in ipairs(table.filter(Fk:currentRoom().alive_players, function(p) return p:isWounded() and p.kingdom ~= "unknown"  end)) do
+      table.insertIfNeed(kingdoms, p.kingdom)
+    end
+    if H.hasShownSkill(player, self.name) and #kingdoms > 0 then
       room:handleAddLoseSkills(player, "ld__xunxun", nil, false, true)
     else
       room:handleAddLoseSkills(player, "-ld__xunxun", nil, false, true)
@@ -1619,8 +1627,11 @@ local xingzhao = fk.CreateTriggerSkill{
 local xingzhao_maxcards = fk.CreateMaxCardsSkill{
   name = "#ld__xingzhao_maxcards",
   correct_func = function(self, player)
-    if player:hasSkill(self) and #table.filter(Fk:currentRoom().alive_players,
-      function(p) return p:isWounded() end) >= 3 then
+    local kingdoms = {}
+    for _, p in ipairs(table.filter(Fk:currentRoom().alive_players, function(p) return p:isWounded() and p.kingdom ~= "unknown" end)) do
+      table.insertIfNeed(kingdoms, p.kingdom)
+    end
+    if player:hasSkill(self) and #kingdoms >= 3 and H.hasShownSkill(player, xingzhao) then
       return 4
     end
   end
@@ -1664,7 +1675,7 @@ Fk:loadTranslationTable{
   ["illustrator:ld__tangzi"] = "凝聚永恒",
 
   ["ld__xingzhao"] = "兴棹",
-  [":ld__xingzhao"] = "锁定技，场上受伤的角色数为：1个或以上，你拥有技能〖恂恂〗；2个或以上，你受到伤害后，你与伤害来源手牌数较少的角色摸一张牌；3个或以上，你的手牌上限+4；4个或以上，你失去装备区内的牌时，摸一张牌。",
+  [":ld__xingzhao"] = "锁定技，场上受伤角色的势力数为：1个或以上，你拥有技能〖恂恂〗；2个或以上，你受到伤害后，你与伤害来源手牌数较少的角色摸一张牌；3个或以上，你的手牌上限+4；4个或以上，你失去装备区内的牌时，摸一张牌。",
   ["ld__xunxun"] = "恂恂",
   [":ld__xunxun"] = "摸牌阶段开始时，你可观看牌堆顶的四张牌，将其中两张牌以任意顺序置于牌堆顶，其余以任意顺序置于牌堆底。",
 

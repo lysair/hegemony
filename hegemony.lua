@@ -704,8 +704,11 @@ local heg_rule = fk.CreateTriggerSkill{
         --   room:setPlayerMark(player, "_wild_gained", 1)
         -- end
       elseif player:getMark("__heg_join_wild") == 0 and player:getMark("__heg_construct_wild") == 0 then
-        -- player.role = player.kingdom
-        room:setPlayerProperty(player, "role", player.kingdom)
+        if player:getMark("__heg_wild") == 1 then
+           player.role = player.kingdom
+        else
+           room:setPlayerProperty(player, "role", player.kingdom)
+        end
       end
 
       for _, v in pairs(H.getKingdomPlayersNum(room)) do
