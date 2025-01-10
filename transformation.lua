@@ -406,7 +406,7 @@ local xuanlve = fk.CreateTriggerSkill{
       if move.from == player.id then
         for _, info in ipairs(move.moveInfo) do
           if info.fromArea == Card.PlayerEquip then
-            return table.find(room:getOtherPlayers(player), function(p)
+            return table.find(room:getOtherPlayers(player, false), function(p)
               return not p:isNude()
             end) ~= nil
           end
@@ -416,7 +416,7 @@ local xuanlve = fk.CreateTriggerSkill{
   end,
   on_cost = function(self, event, target, player, data)
     local room = player.room
-    local targets = table.filter(room:getOtherPlayers(player), function(p)
+    local targets = table.filter(room:getOtherPlayers(player, false), function(p)
       return not p:isNude()
     end)
 

@@ -1014,7 +1014,7 @@ local wooden_ox_skill = fk.CreateActiveSkill{
     local player = room:getPlayerById(effect.from)
     player:addToPile("$carriage&", effect.cards[1], false, self.name)
     if player.dead then return end
-    local targets = table.filter(room:getOtherPlayers(player), function(p) return p:hasEmptyEquipSlot(Card.SubtypeTreasure) end)
+    local targets = table.filter(room:getOtherPlayers(player, false), function(p) return p:hasEmptyEquipSlot(Card.SubtypeTreasure) end)
     local ox = table.find(player:getCardIds("e"), function (id) return Fk:getCardById(id).name == "wooden_ox" end)
     if ox and #targets > 0 then
       local tos = room:askForChoosePlayers(player, table.map(targets, Util.IdMapper), 1, 1, "#wooden_ox-move", self.name, true)
@@ -1064,7 +1064,7 @@ local jadeSealSkill = fk.CreateTriggerSkill{
       local card = Fk:cloneCard("known_both")
       local max_num = card.skill:getMaxTargetNum(player, card)
       local targets = {}
-      for _, p in ipairs(room:getOtherPlayers(player)) do
+      for _, p in ipairs(room:getOtherPlayers(player, false)) do
         if not player:isProhibited(p, card) then
           table.insert(targets, p.id)
         end

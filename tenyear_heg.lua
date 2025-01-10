@@ -1553,7 +1553,7 @@ local ty_heg__leiji = fk.CreateTriggerSkill{
     return player:hasSkill(self) and target == player and data.card.name == "jink"
   end,
   on_cost = function(self, event, target, player, data)
-    local to = player.room:askForChoosePlayers(player, table.map(player.room:getOtherPlayers(player), Util.IdMapper), 1, 1, "#ty_heg__leiji-choose", self.name, true)
+    local to = player.room:askForChoosePlayers(player, table.map(player.room:getOtherPlayers(player, false), Util.IdMapper), 1, 1, "#ty_heg__leiji-choose", self.name, true)
     if #to > 0 then
       self.cost_data = to[1]
       return true

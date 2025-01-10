@@ -271,7 +271,7 @@ local hs__shensu = fk.CreateTriggerSkill{
     local slash = Fk:cloneCard("slash")
     local max_num = slash.skill:getMaxTargetNum(player, slash)
     local targets = {}
-    for _, p in ipairs(room:getOtherPlayers(player)) do
+    for _, p in ipairs(room:getOtherPlayers(player, false)) do
       if not player:isProhibited(p, slash) then
         table.insert(targets, p.id)
       end
@@ -571,7 +571,7 @@ local fangzhu = fk.CreateTriggerSkill{
   anim_type = "masochism",
   events = {fk.Damaged},
   on_cost = function(self, event, target, player, data)
-    local to = player.room:askForChoosePlayers(player, table.map(player.room:getOtherPlayers(player), Util.IdMapper), 1, 1, "#hs__fangzhu-choose:::"..player:getLostHp(), self.name, true)
+    local to = player.room:askForChoosePlayers(player, table.map(player.room:getOtherPlayers(player, false), Util.IdMapper), 1, 1, "#hs__fangzhu-choose:::"..player:getLostHp(), self.name, true)
     if #to > 0 then
       self.cost_data = to[1]
       return true
@@ -1300,7 +1300,7 @@ local shushen = fk.CreateTriggerSkill{
   end,
   on_cost = function(self, event, target, player, data)
     local room = player.room
-    local to = room:askForChoosePlayers(player, table.map(room:getOtherPlayers(player),
+    local to = room:askForChoosePlayers(player, table.map(room:getOtherPlayers(player, false),
     Util.IdMapper), 1, 1, "#hs__shushen-choose", self.name, true)
     if #to > 0 then
       self.cost_data = to[1]
@@ -1747,8 +1747,7 @@ local yinghun = fk.CreateTriggerSkill{
     return target == player and player:hasSkill(self) and player.phase == Player.Start
   end,
   on_cost = function(self, event, target, player, data)
-    local to = player.room:askForChoosePlayers(player, table.map(player.room:getOtherPlayers(player), function (p)
-      return p.id end), 1, 1, "#yinghun-choose:::"..player:getLostHp()..":"..player:getLostHp(), self.name, true)
+    local to = player.room:askForChoosePlayers(player, table.map(player.room:getOtherPlayers(player, false), Util.IdMapper), 1, 1, "#yinghun-choose:::"..player:getLostHp()..":"..player:getLostHp(), self.name, true)
     if #to > 0 then
       self.cost_data = to[1]
       return true
@@ -1799,7 +1798,7 @@ local tianxiang = fk.CreateTriggerSkill{
     return player:hasSkill(self) and target == player and (player:getMark("hs__tianxiang_damage-turn") == 0 or player:getMark("hs__tianxiang_loseHp-turn") == 0)
   end,
   on_cost = function(self, event, target, player, data)
-    local tar, card =  player.room:askForChooseCardAndPlayers(player, table.map(player.room:getOtherPlayers(player), Util.IdMapper), 1, 1, ".|.|heart|hand", "#hs__tianxiang-choose", self.name, true)
+    local tar, card = player.room:askForChooseCardAndPlayers(player, table.map(player.room:getOtherPlayers(player, false), Util.IdMapper), 1, 1, ".|.|heart|hand", "#hs__tianxiang-choose", self.name, true)
     if #tar > 0 and card then
       self.cost_data = {tar[1], card}
       return true
@@ -2649,14 +2648,14 @@ local shuangren = fk.CreateTriggerSkill{
   anim_type = "offensive",
   events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self) and player.phase == Player.Play and not player:isKongcheng() and table.find(player.room:getOtherPlayers(player), function(p)
+    return player:hasSkill(self) and player.phase == Player.Play and not player:isKongcheng() and table.find(player.room:getOtherPlayers(player, false), function(p)
       return not p:isKongcheng()
     end)
   end,
   on_cost = function(self, event, target, player, data)
     local room = player.room
     local availableTargets = table.map(
-      table.filter(room:getOtherPlayers(player), function(p)
+      table.filter(room:getOtherPlayers(player, false), function(p)
         return not p:isKongcheng()
       end),
       Util.IdMapper
@@ -2678,7 +2677,7 @@ local shuangren = fk.CreateTriggerSkill{
       local slash = Fk:cloneCard("slash")
       if player:prohibitUse(slash) then return false end
       local availableTargets = table.map(
-        table.filter(room:getOtherPlayers(player), function(p)
+        table.filter(room:getOtherPlayers(player, false), function(p)
           return H.compareKingdomWith(p, target) and not player:isProhibited(p, slash)
         end),
         Util.IdMapper
@@ -2905,9 +2904,10 @@ local huoshui = fk.CreateTriggerSkill{ -- FIXME
     local room = player.room
     if table.contains({fk.TurnStart, fk.GeneralRevealed, fk.EventAcquireSkill}, event) then
       local targets = {}
-      for _, p in ipairs(room:getOtherPlayers(player)) do
+      local record
+      for _, p in ipairs(room:getOtherPlayers(player, false)) do
         room:setPlayerMark(p, "@@huoshui-turn", 1)
-        local record = p:getTableMark(MarkEnum.RevealProhibited .. "-turn")
+        record = p:getTableMark(MarkEnum.RevealProhibited .. "-turn")
         table.insertTable(record, {"m", "d"})
         room:setPlayerMark(p, MarkEnum.RevealProhibited .. "-turn", record)
         table.insert(targets, p.id)
@@ -2922,7 +2922,7 @@ local huoshui = fk.CreateTriggerSkill{ -- FIXME
         end
       end
     else
-      for _, p in ipairs(room:getOtherPlayers(player)) do
+      for _, p in ipairs(room:getOtherPlayers(player, false)) do
         room:setPlayerMark(p, "@@huoshui-turn", 0)
         local record = p:getTableMark(MarkEnum.RevealProhibited .. "-turn")
         table.removeOne(record, "m")

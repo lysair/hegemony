@@ -317,7 +317,7 @@ local yinghun = fk.CreateTriggerSkill{
     return target == player and player:hasSkill(self) and player.phase == Player.Start and player:isWounded()
   end,
   on_cost = function(self, event, target, player, data)
-    local to = player.room:askForChoosePlayers(player, table.map(player.room:getOtherPlayers(player), Util.IdMapper), 1, 1, "#yinghun-choose:::"..player:getLostHp()..":"..player:getLostHp(), self.name, true)
+    local to = player.room:askForChoosePlayers(player, table.map(player.room:getOtherPlayers(player, false), Util.IdMapper), 1, 1, "#yinghun-choose:::"..player:getLostHp()..":"..player:getLostHp(), self.name, true)
     if #to > 0 then
       self.cost_data = to[1]
       return true
@@ -444,7 +444,7 @@ local hengzheng = fk.CreateTriggerSkill{
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(self) and player.phase == Player.Draw and
       (player.hp == 1 or player:isKongcheng()) and
-      table.find(player.room:getOtherPlayers(player), function(p) return not p:isAllNude() end)
+      table.find(player.room:getOtherPlayers(player, false), function(p) return not p:isAllNude() end)
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room

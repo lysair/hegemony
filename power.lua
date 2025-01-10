@@ -15,16 +15,17 @@ local zhengbi = fk.CreateTriggerSkill{
   events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(self) and player.phase == Player.Play
-      and (table.find(player:getCardIds(Player.Hand), function(id) return Fk:getCardById(id).type == Card.TypeBasic end) or table.every(player.room:getOtherPlayers(player), function(p) return H.getGeneralsRevealedNum(p) == 0 end))
+      and (table.find(player:getCardIds(Player.Hand), function(id) return Fk:getCardById(id).type == Card.TypeBasic end)
+      or table.every(player.room:getOtherPlayers(player, false), function(p) return H.getGeneralsRevealedNum(p) == 0 end))
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
     local choices = {}
     local basic_cards1 = table.filter(player:getCardIds(Player.Hand), function(id)
       return Fk:getCardById(id).type == Card.TypeBasic end)
-    local targets1 = table.map(table.filter(room:getOtherPlayers(player), function(p)
+    local targets1 = table.map(table.filter(room:getOtherPlayers(player, false), function(p)
       return H.getGeneralsRevealedNum(p) > 0 end), Util.IdMapper)
-    local targets2 = table.map(table.filter(room:getOtherPlayers(player), function(p)
+    local targets2 = table.map(table.filter(room:getOtherPlayers(player, false), function(p)
       return H.getGeneralsRevealedNum(p) == 0 end), Util.IdMapper)
     if #basic_cards1 > 0 and #targets1 > 0 then
       table.insert(choices, "zhengbi_giveCard")
@@ -666,7 +667,7 @@ local kuangguXH = fk.CreateTriggerSkill{
 
   refresh_events = {fk.BeforeHpChanged},
   can_refresh = function(self, event, target, player, data)
-    return data.damageEvent and player == data.damageEvent.from and player:distanceTo(target) < 2 and player:distanceTo(target) > -1
+    return data.damageEvent and player == data.damageEvent.from and player:compareDistance(target, 2, "<")
   end,
   on_refresh = function(self, event, target, player, data)
     data.damageEvent.extra_data = data.damageEvent.extra_data or {}
@@ -719,7 +720,7 @@ local xuanhuoOther = fk.CreateActiveSkill{
   target_num = 0,
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
-    local targets = table.filter(room:getOtherPlayers(player), function(p) return p:hasShownSkill(xuanhuo) and H.compareKingdomWith(p, player) end)
+    local targets = table.filter(room:getOtherPlayers(player, false), function(p) return p:hasShownSkill(xuanhuo) and H.compareKingdomWith(p, player) end)
     if #targets == 0 then return false end
     local to
     if #targets == 1 then
@@ -1022,7 +1023,7 @@ local yongsi = fk.CreateTriggerSkill{
       local card = Fk:cloneCard("known_both")
       local max_num = card.skill:getMaxTargetNum(player, card)
       local targets = {}
-      for _, p in ipairs(room:getOtherPlayers(player)) do
+      for _, p in ipairs(room:getOtherPlayers(player, false)) do
         if not player:isProhibited(p, card) then
           table.insert(targets, p.id)
         end
@@ -1306,11 +1307,11 @@ local tuxiJA = fk.CreateTriggerSkill{
   events = {fk.DrawNCards},
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(self) and data.n > 0 and
-      not table.every(player.room:getOtherPlayers(player), function(p) return p:isKongcheng() end)
+      not table.every(player.room:getOtherPlayers(player, false), function(p) return p:isKongcheng() end)
   end,
   on_cost = function(self, event, target, player, data)
     local room = player.room
-    local targets = table.map(table.filter(room:getOtherPlayers(player), function(p)
+    local targets = table.map(table.filter(room:getOtherPlayers(player, false), function(p)
       return not p:isKongcheng() end), Util.IdMapper)
     local tos = room:askForChoosePlayers(player, targets, 1, data.n, "#jianan__ex__tuxi-choose:::"..data.n, self.name, true)
     if #tos > 0 then
@@ -1354,7 +1355,7 @@ local qiaobianJA = fk.CreateTriggerSkill{
     room:throwCard(self.cost_data, self.name, player, player)
     player:skip(data.to)
     if data.to == Player.Draw then
-      local targets = table.map(table.filter(room:getOtherPlayers(player), function(p)
+      local targets = table.map(table.filter(room:getOtherPlayers(player, false), function(p)
         return not p:isKongcheng() end), Util.IdMapper)
       if #targets > 0 then
         local n = math.min(2, #targets)
