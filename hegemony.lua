@@ -574,7 +574,7 @@ local heg_rule = fk.CreateTriggerSkill{
       -- if table.every(room.alive_players, function (p) return H.compareKingdomWith(p, player) end) then
       player:revealGeneral(false)
       player:revealGeneral(true)
-      if player.kingdom == 'wild' then
+      if player.kingdom == "wild" then
         wildChooseKingdom(room, player, player.general)
       end
       local winner = Fk.game_modes[room.settings.gameMode]:getWinner(player)
@@ -705,9 +705,9 @@ local heg_rule = fk.CreateTriggerSkill{
         -- end
       elseif player:getMark("__heg_join_wild") == 0 and player:getMark("__heg_construct_wild") == 0 then
         if player:getMark("__heg_wild") == 1 then
-           player.role = player.kingdom
+          player.role = player.kingdom
         else
-           room:setPlayerProperty(player, "role", player.kingdom)
+          room:setPlayerProperty(player, "role", player.kingdom)
         end
       end
 

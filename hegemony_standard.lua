@@ -380,7 +380,7 @@ local duanliang = fk.CreateViewAsSkill{
 local duanliang_targetmod = fk.CreateTargetModSkill{
   name = "#hs__duanliang_targetmod",
   bypass_distances = function (self, player, skill, card, to)
-    return player:hasSkill(duanliang) and skill.trueName == "supply_shortage_skill" and player:distanceTo(to) > 2
+    return player:hasSkill(duanliang) and skill.trueName == "supply_shortage_skill"
   end
 }
 duanliang:addRelatedSkill(duanliang_targetmod)

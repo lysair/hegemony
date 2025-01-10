@@ -677,12 +677,10 @@ local kuangguXH = fk.CreateTriggerSkill{
 local xuanhuo = fk.CreateTriggerSkill{
   name = "ld__xuanhuo",
   mute = true,
-  refresh_events = {fk.EventAcquireSkill, fk.EventLoseSkill, fk.Deathed, fk.GeneralRevealed, fk.GeneralHidden},
+  attached_skill_name = "ld__xuanhuo_other&",
+  refresh_events = {fk.AfterPropertyChange, fk.GeneralRevealed, fk.GeneralHidden, fk.Deathed},
   can_refresh = function(self, event, target, player, data)
-    if player ~= target then return false end
-    if event == fk.Deathed then return player:hasSkill(self, true, true)
-    elseif event == fk.EventAcquireSkill or event == fk.EventLoseSkill then return data == self
-    else return true end
+    return target == player
   end,
   on_refresh = function(self, event, target, player, data)
     local room = player.room
@@ -701,7 +699,24 @@ local xuanhuo = fk.CreateTriggerSkill{
     end
     for p, v in pairs(xuanhuo_map) do
       if v ~= p:hasSkill("ld__xuanhuo_other&") then
-        room:handleAddLoseSkills(p, v and "ld__xuanhuo_other&" or "-ld__xuanhuo_other&", nil, false, true)
+        room:handleAddLoseSkills(p, v and self.attached_skill_name or "-" .. self.attached_skill_name, nil, false, true)
+      end
+    end
+  end,
+
+  on_acquire = function(self, player)
+    local room = player.room
+    for _, p in ipairs(room.alive_players) do
+      if p ~= player and H.compareKingdomWith(player, p) then
+        room:handleAddLoseSkills(p, self.attached_skill_name, nil, false, true)
+      end
+    end
+  end,
+  on_lose = function (self, player, is_death)
+    local room = player.room
+    for _, p in ipairs(room.alive_players) do
+      if p ~= player and H.compareKingdomWith(player, p) then
+        room:handleAddLoseSkills(p, "-" .. self.attached_skill_name, nil, false, true)
       end
     end
   end,
