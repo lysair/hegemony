@@ -26,7 +26,7 @@ local ld__qice = fk.CreateActiveSkill{
           local x = 0
           if to_use.multiple_targets and to_use.skill:getMinTargetNum() == 0 then
             for _, p in ipairs(Fk:currentRoom().alive_players) do
-              if not Self:isProhibited(p, card) and card.skill:modTargetFilter(p.id, {}, Self.id, card, true) then
+              if not Self:isProhibited(p, card) and card.skill:modTargetFilter(p.id, {}, Self, card, true) then
                 x = x + 1
               end
             end
@@ -59,7 +59,7 @@ local ld__qice = fk.CreateActiveSkill{
       if to_use.skill:getMaxTargetNum(Self, to_use) == 1 then
         local x = 0
         for _, p in ipairs(Fk:currentRoom().alive_players) do
-          if p.id == to_select or (not Self:isProhibited(p, to_use) and to_use.skill:modTargetFilter(p.id, {to_select}, Self.id, to_use, true)) then
+          if p.id == to_select or (not Self:isProhibited(p, to_use) and to_use.skill:modTargetFilter(p.id, {to_select}, Self, to_use, true)) then
             x = x + 1
           end
         end

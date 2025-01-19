@@ -56,7 +56,7 @@ local quanjinRecorder = fk.CreateTriggerSkill{
     local room = player.room
     if event == fk.Damaged then
       room:setPlayerMark(target, "_quanjin-phase", 1)
-    elseif room:getTag("RoundCount") then
+    elseif room:getBanner("RoundCount") then
       room.logic:getActualDamageEvents(998, function(e)
         local damage = e.data[1]
         local to = damage.to
@@ -2120,7 +2120,7 @@ local tongling = fk.CreateTriggerSkill{
         local selfCards = {"peach", "analeptic", "ex_nihilo", "lightning"} -- FIXME: how to tell ex_niholo from AOE and AG?
         for _, id in ipairs(user:getCardIds(Player.Hand)) do
           local card = Fk:getCardById(id)
-          if card.skill:modTargetFilter(victim, {}, user.id, card, true) and not table.contains(selfCards, card.name) and card.type ~= Card.TypeEquip then -- FIXME
+          if card.skill:modTargetFilter(victim, {}, user, card, true) and not table.contains(selfCards, card.name) and card.type ~= Card.TypeEquip then -- FIXME
             table.insert(cardNames, card.name)
           end
           if card.trueName == "slash" then

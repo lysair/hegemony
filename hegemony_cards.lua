@@ -112,9 +112,8 @@ local befriendAttackingSkill = fk.CreateActiveSkill{
   name = "befriend_attacking_skill",
   prompt = "#befriend_attacking_skill",
   target_num = 1,
-  mod_target_filter = function(self, to_select, selected, user)
+  mod_target_filter = function(self, to_select, selected, player)
     local target = Fk:currentRoom():getPlayerById(to_select)
-    local player = Fk:currentRoom():getPlayerById(user)
     return player ~= target and H.compareKingdomWith(target, player, true)
   end,
   target_filter = Util.TargetFilter,
@@ -150,9 +149,9 @@ local knownBothSkill = fk.CreateActiveSkill{
   prompt = "#known_both_skill",
   can_use = Util.CanUse,
   target_num = 1,
-  mod_target_filter = function(self, to_select, selected, user)
+  mod_target_filter = function(self, to_select, selected, player)
     local target = Fk:currentRoom():getPlayerById(to_select)
-    return Fk:currentRoom():getPlayerById(user) ~= target and (not target:isKongcheng() or target.general == "anjiang" or target.deputyGeneral == "anjiang")
+    return player ~= target and (not target:isKongcheng() or target.general == "anjiang" or target.deputyGeneral == "anjiang")
   end,
   target_filter = Util.TargetFilter,
   on_effect = function(self, room, effect)
@@ -217,15 +216,14 @@ Fk:loadTranslationTable{
 local awaitExhaustedSkill = fk.CreateActiveSkill{
   name = "await_exhausted_skill",
   prompt = "#await_exhausted_skill",
-  mod_target_filter = function(self, to_select, selected, user)
+  mod_target_filter = function(self, to_select, selected, player)
     local target = Fk:currentRoom():getPlayerById(to_select)
-    local player = Fk:currentRoom():getPlayerById(user)
     return H.compareKingdomWith(target, player, false)
   end,
   can_use = function(self, player, card)
     if player:prohibitUse(card) then return end
     for _, p in ipairs(Fk:currentRoom().alive_players) do
-      if not player:isProhibited(p, card) and self:modTargetFilter(p.id, {}, player.id, card, true) then
+      if not player:isProhibited(p, card) and self:modTargetFilter(p.id, {}, player, card, true) then
         return true
       end
     end

@@ -687,7 +687,7 @@ H.askForRevealGenerals = function(room, player, skill_name, main, deputy, all, c
 
   -- 能否变身君主
   local convert = false
-  if lord_convert and room:getTag("RoundCount") == 1 and player:getMark("hasShownMainGeneral") == 0 then
+  if lord_convert and room:getBanner("RoundCount") == 1 and player:getMark("hasShownMainGeneral") == 0 then
     local lord = H.lordGenerals[player:getMark("__heg_general")]
     if lord then
       if not table.contains(room.disabled_packs, Fk.generals[lord].package.name) and not table.contains(room.disabled_generals, lord) then

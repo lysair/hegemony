@@ -69,8 +69,8 @@ local drowningSkill = fk.CreateActiveSkill{
   prompt = "#sa__drowning_skill",
   can_use = Util.CanUse,
   target_num = 1,
-  mod_target_filter = function(self, to_select, selected, user, card, distance_limited)
-    return to_select ~= user and #Fk:currentRoom():getPlayerById(to_select):getCardIds(Player.Equip) > 0
+  mod_target_filter = function(self, to_select, selected, player, card, distance_limited)
+    return to_select ~= player.id and #Fk:currentRoom():getPlayerById(to_select):getCardIds(Player.Equip) > 0
   end,
   target_filter = Util.TargetFilter,
   on_effect = function(self, room, effect)
@@ -120,9 +120,9 @@ Fk:loadTranslationTable{
 local burningCampsSkill = fk.CreateActiveSkill{
   name = "burning_camps_skill",
   prompt = "#burning_camps_skill",
-  mod_target_filter = function(self, to_select, selected, user, card, distance_limited)
-    local prev = Fk:currentRoom():getPlayerById(user):getNextAlive()
-    return prev.id ~= user and (to_select == prev.id or H.inFormationRelation(prev, Fk:currentRoom():getPlayerById(to_select)))
+  mod_target_filter = function(self, to_select, selected, player, card, distance_limited)
+    local prev = player:getNextAlive()
+    return prev ~= player and (to_select == prev.id or H.inFormationRelation(prev, Fk:currentRoom():getPlayerById(to_select)))
   end,
   can_use = function(self, player, card)
     return not player:prohibitUse(card) and not player:isProhibited(player:getNextAlive(), card) and player:getNextAlive() ~= player
@@ -190,8 +190,8 @@ local lureTigerSkill = fk.CreateActiveSkill{
   can_use = Util.CanUse,
   min_target_num = 1,
   max_target_num = 2,
-  mod_target_filter = function(self, to_select, selected, user)
-    return user ~= to_select
+  mod_target_filter = function(self, to_select, selected, player)
+    return to_select ~= player.id
   end,
   target_filter = Util.TargetFilter,
   on_effect = function(self, room, effect)
@@ -255,7 +255,7 @@ local fightTogetherSkill = fk.CreateActiveSkill{
   name = "fight_together_skill",
   prompt = "#fight_together_skill",
   target_num = 1,
-  mod_target_filter = function(self, to_select, selected, user, card, distance_limited)
+  mod_target_filter = function(self, to_select, selected, player, card, distance_limited)
     if table.every(Fk:currentRoom().alive_players, function(p) return not H.isBigKingdomPlayer(p) end) then return false end
     if #selected == 0 then
       return true
@@ -263,8 +263,8 @@ local fightTogetherSkill = fk.CreateActiveSkill{
       return H.isBigKingdomPlayer(Fk:currentRoom():getPlayerById(selected[1])) == H.isBigKingdomPlayer(Fk:currentRoom():getPlayerById(to_select))
     end
   end,
-  target_filter = function(self, to_select, selected, _, card, extra_data)
-    return #selected == 0 and Util.TargetFilter(self, to_select, selected, _, card, extra_data)
+  target_filter = function(self, to_select, selected, _, card, extra_data, player)
+    return #selected == 0 and Util.TargetFilter(self, to_select, selected, _, card, extra_data, player)
   end,
   can_use = function(self, player, card)
     return not player:prohibitUse(card) and table.find(Fk:currentRoom().alive_players, function(p)
@@ -323,19 +323,18 @@ local allianceFeastSkill = fk.CreateActiveSkill{
   name = "alliance_feast_skill",
   prompt = "#alliance_feast_skill",
   target_num = 1,
-  mod_target_filter = function(self, to_select, selected, user, card, distance_limited)
-    if to_select == user then return true end
+  mod_target_filter = function(self, to_select, selected, player, card, distance_limited)
+    if to_select == player.id then return true end
     local to = Fk:currentRoom():getPlayerById(to_select)
     if to.kingdom == "unknown" then return false end
-    local from = Fk:currentRoom():getPlayerById(user)
     if #selected == 0 then
-      return H.compareKingdomWith(to, from, true)
+      return H.compareKingdomWith(to, player, true)
     end
     local target = Fk:currentRoom():getPlayerById(selected[1])
     return H.compareKingdomWith(to, target)
   end,
-  target_filter = function(self, to_select, selected, _, card, extra_data)
-    return #selected == 0 and to_select ~= Self.id and Util.TargetFilter(self, to_select, selected, _, card, extra_data)
+  target_filter = function(self, to_select, selected, _, card, extra_data, player)
+    return #selected == 0 and to_select ~= Self.id and Util.TargetFilter(self, to_select, selected, _, card, extra_data, player)
   end,
   can_use = function(self, player, card)
     return not (player:prohibitUse(card) or player:isProhibited(player, card)) and player.kingdom ~= "unknown"
@@ -412,8 +411,8 @@ Fk:loadTranslationTable{
 local threatenEmperorSkill = fk.CreateActiveSkill{
   name = "threaten_emperor_skill",
   prompt = "#threaten_emperor_skill",
-  mod_target_filter = function(self, to_select, selected, user, card, distance_limited)
-    return to_select == Self.id and H.isBigKingdomPlayer(Self)
+  mod_target_filter = function(self, to_select, selected, player, card, distance_limited)
+    return to_select == player.id and H.isBigKingdomPlayer(Self)
   end,
   can_use = function(self, player, card)
     return not player:isProhibited(player, card) and H.isBigKingdomPlayer(player)
@@ -576,12 +575,12 @@ Fk:addSkill(imperialOrderRemoved)
 local imperialOrderSkill = fk.CreateActiveSkill{
   name = "imperial_order_skill",
   prompt = "#imperial_order_skill",
-  mod_target_filter = function(self, to_select, selected, user, card, distance_limited)
+  mod_target_filter = function(self, to_select, selected, player, card, distance_limited)
     return Fk:currentRoom():getPlayerById(to_select).kingdom == "unknown"
   end,
   can_use = function(self, player, card)
     for _, p in ipairs(Fk:currentRoom().alive_players) do
-      if not player:isProhibited(p, card) and self:modTargetFilter(p.id, {}, player.id, card, true) then
+      if not player:isProhibited(p, card) and self:modTargetFilter(p.id, {}, player, card, true) then
         return true
       end
     end
@@ -701,7 +700,7 @@ local halberdTargets = fk.CreateActiveSkill{
       return not H.compareKingdomWith(target, room:getPlayerById(id))
     end)) then
       local card = Fk:cloneCard("slash")
-      return not Self:isProhibited(target, card) and card.skill:modTargetFilter(to_select, orig, Self.id, card, true)
+      return not Self:isProhibited(target, card) and card.skill:modTargetFilter(to_select, orig, Self, card, true)
     end
   end,
 }
