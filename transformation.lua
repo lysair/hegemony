@@ -46,46 +46,47 @@ local ld__qice = fk.CreateActiveSkill{
     return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and not player:isKongcheng()
   end,
   card_filter = Util.FalseFunc,
-  target_filter = function(self, to_select, selected, selected_cards)
+  target_filter = function(self, to_select, selected, selected_cards, _, _, player)
     if self.interaction.data == nil then return false end
     local to_use = Fk:cloneCard(self.interaction.data)
     to_use.skillName = self.name
-    to_use:addSubcards(Self:getCardIds(Player.Hand))
-    if not to_use.skill:targetFilter(to_select, selected, selected_cards, to_use) then return false end
+    to_use:addSubcards(player:getCardIds(Player.Hand))
+    if not to_use.skill:targetFilter(to_select, selected, selected_cards, to_use, Util.DummyTable, player) then return false end
     if (#selected == 0 or to_use.multiple_targets) and
-    Self:isProhibited(Fk:currentRoom():getPlayerById(to_select), to_use) then return false end
+    player:isProhibited(Fk:currentRoom():getPlayerById(to_select), to_use) then return false end
     if to_use.multiple_targets then
-      if #selected >= Self:getHandcardNum() then return false end
-      if to_use.skill:getMaxTargetNum(Self, to_use) == 1 then
+      if #selected >= player:getHandcardNum() then return false end
+      if to_use.skill:getMaxTargetNum(player, to_use) == 1 then
         local x = 0
         for _, p in ipairs(Fk:currentRoom().alive_players) do
-          if p.id == to_select or (not Self:isProhibited(p, to_use) and to_use.skill:modTargetFilter(p.id, {to_select}, Self, to_use, true)) then
+          if p.id == to_select or (not Self:isProhibited(p, to_use) and to_use.skill:modTargetFilter(p.id, {to_select}, player, to_use, true)) then
             x = x + 1
           end
         end
-        if x > Self:getHandcardNum() then return false end
+        if x > player:getHandcardNum() then return false end
       end
     end
     return true
   end,
-  feasible = function(self, selected, selected_cards)
+  feasible = function(self, selected, selected_cards, player)
     if self.interaction.data == nil then return false end
     local to_use = Fk:cloneCard(self.interaction.data)
     to_use.skillName = self.name
     to_use:addSubcards(Self:getCardIds(Player.Hand))
-    return to_use.skill:feasible(selected, selected_cards, Self, to_use)
+    return to_use.skill:feasible(selected, selected_cards, player, to_use)
   end,
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
+    local card = Fk:cloneCard(self.interaction.data)
+    card:addSubcards(player:getCardIds(Player.Hand))
+    card.skillName = self.name
     local use = {
       from = player.id,
       tos = table.map(effect.tos, function (id)
         return {id}
       end),
-      card = Fk:cloneCard(self.interaction.data),
+      card = card,
     }
-    use.card:addSubcards(player:getCardIds(Player.Hand))
-    use.card.skillName = self.name
     room:useCard(use)
     if not player.dead and player:getMark("@@ld__qice_transform") == 0 and room:askForChoice(player, {"transform_deputy", "Cancel"}, self.name) ~= "Cancel" then
       room:setPlayerMark(player, "@@ld__qice_transform", 1)
