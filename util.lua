@@ -749,7 +749,7 @@ Fk:loadTranslationTable{
 ---@param target ServerPlayer
 ---@param skill_name string
 ---@return boolean @ 是否为副将
-H.doHideGeneral = function(room, player, target, skill_name)
+function H.doHideGeneral(room, player, target, skill_name)
   if player.dead or target.dead then return false end
   local all_choices = {target.general, target.deputyGeneral}
   local disable_choices = {}

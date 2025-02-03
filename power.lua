@@ -1111,18 +1111,12 @@ local weidi = fk.CreateActiveSkill{
       end
     end
   end,
-}
-local weidiRecorder = fk.CreateTriggerSkill{
-  name = "#ld__weidi_recorder",
-  visible = false,
-  refresh_events = {fk.AfterCardsMove, fk.EventAcquireSkill},
-  can_refresh = function(self, event, target, player, data)
-    return event == fk.AfterCardsMove or (target == player and data == weidi)
-  end,
-  on_refresh = function(self, event, target, player, data)
+
+  on_acquire = function (self, player, is_start)
+    if is_start then return end
     local room = player.room
-    if event == fk.AfterCardsMove then
-      for _, move in ipairs(data) do
+    room.logic:getEventsOfScope(GameEvent.MoveCards, 1, function(e)
+      for _, move in ipairs(e.data) do
         if move.toArea == Card.PlayerHand and move.to then
           local target = room:getPlayerById(move.to)
           if target and target:getMark("_ld__weidi-turn") == 0 then
@@ -1134,22 +1128,29 @@ local weidiRecorder = fk.CreateTriggerSkill{
           end
         end
       end
-    elseif room:getBanner("RoundCount") then
-      room.logic:getEventsOfScope(GameEvent.MoveCards, 1, function(e)
-        for _, move in ipairs(e.data) do
-          if move.toArea == Card.PlayerHand and move.to then
-            local target = room:getPlayerById(move.to)
-            if target and target:getMark("_ld__weidi-turn") == 0 then
-              for _, info in ipairs(move.moveInfo) do
-                if info.fromArea == Card.DrawPile and target:getMark("_ld__weidi-turn") == 0 then
-                  room:setPlayerMark(target, "_ld__weidi-turn", 1)
-                end
-              end
+      return false
+    end, Player.HistoryTurn)
+  end,
+}
+local weidiRecorder = fk.CreateTriggerSkill{
+  name = "#ld__weidi_recorder",
+  refresh_events = {fk.AfterCardsMove},
+  can_refresh = function(self, event, target, player, data)
+    return player:hasSkill(weidi) and player.room.current == player
+  end,
+  on_refresh = function(self, event, target, player, data)
+    local room = player.room
+    for _, move in ipairs(data) do
+      if move.toArea == Card.PlayerHand and move.to then
+        local target = room:getPlayerById(move.to)
+        if target and target:getMark("_ld__weidi-turn") == 0 then
+          for _, info in ipairs(move.moveInfo) do
+            if info.fromArea == Card.DrawPile and target:getMark("_ld__weidi-turn") == 0 then
+              room:setPlayerMark(target, "_ld__weidi-turn", 1)
             end
           end
         end
-        return false
-      end, Player.HistoryTurn)
+      end
     end
   end,
 }

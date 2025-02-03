@@ -43,29 +43,28 @@ local quanjin = fk.CreateActiveSkill{
       player:drawCards(num, self.name)
     end
   end,
+
+  on_acquire = function (self, player, is_start)
+    if is_start then return end
+    local room = player.room
+    room.logic:getActualDamageEvents(998, function(e)
+      local damage = e.data[1]
+      local to = damage.to
+      if to and to:getMark("_quanjin-phase") == 0 then
+        room:setPlayerMark(to, "_quanjin-phase", 1)
+      end
+      return false
+    end, Player.HistoryPhase)
+  end,
 }
 local quanjinRecorder = fk.CreateTriggerSkill{
   name = "#quanjin_recorder",
-  visible = false,
-  refresh_events = {fk.Damaged, fk.EventAcquireSkill},
+  refresh_events = {fk.Damaged},
   can_refresh = function(self, event, target, player, data)
-    if not (player:hasSkill(quanjin) or player:isFakeSkill(quanjin)) or player.phase ~= Player.Play then return false end
-    return event == fk.Damaged or (target == player and data == quanjin)
+    return player:hasSkill(quanjin) and player.phase == Player.Play
   end,
   on_refresh = function(self, event, target, player, data)
-    local room = player.room
-    if event == fk.Damaged then
-      room:setPlayerMark(target, "_quanjin-phase", 1)
-    elseif room:getBanner("RoundCount") then
-      room.logic:getActualDamageEvents(998, function(e)
-        local damage = e.data[1]
-        local to = damage.to
-        if to and to:getMark("_quanjin-phase") == 0 then
-          room:setPlayerMark(to, "_quanjin-phase", 1)
-        end
-        return false
-      end, Player.HistoryPhase)
-    end
+    player.room:setPlayerMark(target, "_quanjin-phase", 1)
   end,
 }
 quanjin:addRelatedSkill(quanjinRecorder)

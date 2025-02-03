@@ -256,17 +256,7 @@ local yingyang = fk.CreateTriggerSkill{
     end
   end,
   on_use = function(self, event, target, player, data)
-    local card
-    if player == data.from then
-      card = data.fromCard
-    elseif data.results[player.id] then
-      card = data.results[player.id].toCard
-    end
-    if self.cost_data == "yingyang_plus3" then
-      card.number = math.min(card.number + 3, 13)
-    elseif self.cost_data == "yingyang_sub3" then
-      card.number = math.max(card.number - 3, 1)
-    end
+    player.room:changePindianNumber(data, player, self.cost_data == "yingyang_plus3" and 3 or -3, self.name)
   end,
 }
 sunce:addSkill(yingyang)

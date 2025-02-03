@@ -505,12 +505,14 @@ local hs__qiangxi = fk.CreateActiveSkill{
     else
       room:loseHp(player, 1, self.name)
     end
-    room:damage{
-      from = player,
-      to = target,
-      damage = 1,
-      skillName = self.name,
-    }
+    if target:isAlive() then
+      room:damage{
+        from = player,
+        to = target,
+        damage = 1,
+        skillName = self.name,
+      }
+    end
   end,
 }
 
