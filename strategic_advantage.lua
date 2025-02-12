@@ -791,12 +791,7 @@ Fk:loadTranslationTable{
   ["#HalberdNullified"] = "由于〖%arg〗的效果，%from 对所有剩余目标使用的 %arg2 无效",
 }
 
-local damage_nature_table = {
-  [fk.NormalDamage] = "normal_damage",
-  [fk.FireDamage] = "fire_damage",
-  [fk.ThunderDamage] = "thunder_damage",
-  [fk.IceDamage] = "ice_damage",
-}
+
 
 local breastplateSkill = fk.CreateTriggerSkill{
   name = "#sa__breastplate_skill",
@@ -806,7 +801,7 @@ local breastplateSkill = fk.CreateTriggerSkill{
     return target == player and player:hasSkill(self) and data.damage >= player.hp
   end,
   on_cost = function(self, event, target, player, data)
-    return player.room:askForSkillInvoke(player, self.name, data, "#sa__breastplate-ask:::" .. data.damage .. ":" .. damage_nature_table[data.damageType])
+    return player.room:askForSkillInvoke(player, self.name, data, "#sa__breastplate-ask:::" .. data.damage .. ":" .. Fk:getDamageNatureName(data.damageType))
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
@@ -816,7 +811,7 @@ local breastplateSkill = fk.CreateTriggerSkill{
       from = player.id,
       arg = self.attached_equip,
       arg2 = data.damage,
-      arg3 = damage_nature_table[data.damageType],
+      arg3 = Fk:getDamageNatureName(data.damageType),
     }
     room:moveCardTo(table.filter(player:getEquipments(Card.SubtypeArmor), function(id) return Fk:getCardById(id).name == "sa__breastplate" end),
       Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, self.name, nil, true, player.id)
@@ -835,7 +830,7 @@ H.addCardToAllianceCards(breastplate)
 Fk:loadTranslationTable{
   ["sa__breastplate"] = "护心镜",
   ["#sa__breastplate_skill"] = "护心镜",
-  [":sa__breastplate"] = "装备牌·防具<br/><b>防具技能</b>：当你伤害时，若此伤害大于或等于你当前的体力值，你可将装备区里的【护心镜】置入弃牌堆，然后防止此伤害。",
+  [":sa__breastplate"] = "装备牌·防具<br/><b>防具技能</b>：当你受到伤害时，若此伤害大于或等于你当前的体力值，你可将装备区里的【护心镜】置入弃牌堆，然后防止此伤害。",
   ["#sa__breastplate-ask"] = "护心镜：你可将装备区里的【护心镜】置入弃牌堆，防止 %arg 点 %arg2 伤害",
   ["#BreastplateSkill"] = "%from 发动了〖%arg〗，防止了 %arg2 点 %arg3 伤害",
 }
