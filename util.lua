@@ -20,7 +20,7 @@ end
 ---@param to Player
 ---@param diff boolean?
 ---@return boolean
-H.compareKingdomWith = function(from, to, diff)
+function H.compareKingdomWith(from, to, diff)
   if from == to then
     return not diff
   end
@@ -96,7 +96,7 @@ end
 ---@param kingdom? string @ 势力，与``player``参数至少要填写一个
 ---@param include_dead? boolean @ 包括死人
 ---@return integer
-H.getSameKingdomPlayersNum = function(room, player, kingdom, include_dead)
+function H.getSameKingdomPlayersNum(room, player, kingdom, include_dead)
   assert(player or kingdom, "must provide player or kingdom")
   if player then kingdom = H.getKingdom(player) end
   if kingdom == "unknown" then return 0 end
@@ -110,7 +110,7 @@ H.getSameKingdomPlayersNum = function(room, player, kingdom, include_dead)
 end
 
 --- 判断角色是否为大势力角色
----@param player ServerPlayer
+---@param player Player
 ---@return boolean
 H.isBigKingdomPlayer = function(player)
   if player.kingdom == "unknown" then return false end
@@ -537,80 +537,6 @@ Fk:loadTranslationTable{
   ["#command6-select"] = "军令：请选择要保留的一张手牌和一张装备",
 }
 
--- 国无懈
-
-local hegNullificationSkill = fk.CreateActiveSkill{
-  name = "heg__nullification_skill",
-  can_use = Util.FalseFunc,
-  on_use = function(self, room, use)
-    if use.responseToEvent and use.responseToEvent.to and #TargetGroup:getRealTargets(use.responseToEvent.tos) > 1 then 
-      local from = room:getPlayerById(use.from)
-      local to = room:getPlayerById(use.responseToEvent.to)
-      if to.kingdom ~= "unknown" then
-        local choices = {"hegN-single::" .. to.id, "hegN-all:::" .. to.kingdom}
-        local choice = room:askForChoice(from, choices, self.name, "#hegN-ask")
-        if choice:startsWith("hegN-all") then
-          room:sendLog{
-            type = "#HegNullificationAll",
-            from = from.id,
-            arg = to.kingdom,
-            card = Card:getIdList(use.card),
-            toast = true,
-          }
-          use.extra_data = use.extra_data or {}
-          use.extra_data.hegN_all = true
-        else
-          room:sendLog{
-            type = "#HegNullificationSingle",
-            from = from.id,
-            to = {to.id},
-            card = Card:getIdList(use.card),
-            toast = true,
-          }
-        end
-      else
-        room:delay(1200)
-      end
-    else
-      room:delay(1200)
-    end
-  end,
-  on_effect = function(self, room, effect)
-    if effect.responseToEvent then
-      effect.responseToEvent.isCancellOut = true
-      if (effect.extra_data or {}).hegN_all then
-        local to = room:getPlayerById(effect.responseToEvent.to)
-        effect.responseToEvent.disresponsiveList = effect.responseToEvent.disresponsiveList or {}
-        for _, p in ipairs(room.alive_players) do
-          if H.compareKingdomWith(p, to) then
-            table.insertIfNeed(effect.responseToEvent.nullifiedTargets, p.id)
-            table.insertIfNeed(effect.responseToEvent.disresponsiveList, p.id)
-          end
-        end
-      end
-    end
-  end
-}
-H.hegNullification = fk.CreateTrickCard{
-  name = "heg__nullification",
-  suit = Card.Spade,
-  number = 11,
-  skill = hegNullificationSkill,
-  is_passive = true,
-}
-
-Fk:loadTranslationTable{
-  ["heg__nullification"] = "无懈可击·国",
-  ["heg__nullification_skill"] = "无懈可击·国",
-  [":heg__nullification"] = "锦囊牌<br/><b>时机</b>：当锦囊牌对目标生效前<br/><b>目标</b>：此牌<br/><b>效果</b>：抵消此牌。你令对对应的角色为与其势力相同的角色的目标结算的此牌不是【无懈可击】的合法目标，当此牌对对应的角色为这些角色中的一名的目标生效前，抵消此牌。",
-  ["#hegN-ask"] = "无懈可击·国：请选择",
-  ["hegN-single"] = "对%dest使用",
-  ["hegN-all"] = "对%arg势力使用",
-  ["hegN_toast"] = " 【无懈可击·国】对 ",
-  ["#HegNullificationSingle"] = "%from 选择此 %card 对 %to 生效",
-  ["#HegNullificationAll"] = "%from 选择此 %card 对 %arg 势力生效",
-}
-
 -- 武将牌相关
 
 --- 判断有无主将/副将
@@ -696,8 +622,7 @@ H.askForRevealGenerals = function(room, player, skill_name, main, deputy, all, c
     end
   end
 
-  local choice = room:askForChoice(player, choices, skill_name, convert and "#HegPrepareConvertLord", false, all_choices)
-
+  local choice = room:askToChoice(player, {choices = choices, skill_name = skill_name, prompt = convert and "#HegPrepareConvertLord" or nil, all_choices = all_choices, cancelable = false})
   -- 先变身君主
   if convert and (choice:startsWith("revealMain") or choice == "revealAll") and room:askForChoice(player, {"ConvertToLord:::" .. H.lordGenerals[player:getMark("__heg_general")], "Cancel"}, skill_name, nil) ~= "Cancel" then
     for _, s in ipairs(Fk.generals[player:getMark("__heg_general")]:getSkillNameList()) do
@@ -1025,10 +950,19 @@ end
 H.allianceCards = {}
 
 --- 向合纵库中加载一张卡牌。
----@param card Card @ 要加载的卡牌
+---@param card table @ 要加载的卡牌
 H.addCardToAllianceCards = function(card)
-  assert(card.class:isSubclassOf(Card))
   table.insertIfNeed(H.allianceCards, card)
+end
+
+--- 向扩展包添加一张可合纵的牌。
+---@param extension Package
+---@param name string
+---@param suit integer
+---@param number integer
+H.addAllianceCardSpec = function (extension, name, suit, number)
+  extension:addCardSpec(name, suit, number)
+  H.addCardToAllianceCards{name, suit, number}
 end
 
 --- 可合纵
@@ -1099,6 +1033,9 @@ end
 
 ---@class BigKingdomSpec: StatusSkillSpec
 ---@field public fixed_func? fun(self: BigKingdomSkill, player: Player): boolean?
+
+---@class SkillSkeleton
+---@field public addEffect fun(self: SkillSkeleton, key: 'bigkingdom', data: BigKingdomSpec, attribute: nil)
 
 ---@param spec BigKingdomSpec
 ---@return BigKingdomSkill

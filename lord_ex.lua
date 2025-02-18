@@ -746,10 +746,10 @@ Fk:loadTranslationTable{
   ["cv:ld__wujing"] = "虞晓旭",
 
   ["ld__diaogui"] = "调归",
-  [":ld__diaogui"] = "出牌阶段限一次，你可将一张装备牌当【调虎离山】使用，然后与你处于同一队列的角色各摸一张牌。",
+  [":ld__diaogui"] = "出牌阶段限一次，你可将一张装备牌当【调虎离山】使用，然后与你处于同一<a href='heg_formation'>队列</a>的角色各摸一张牌。",
   ["ld__fengyang"] = "风扬",
   ["#ld__fengyang_trigger"] = "风扬",
-  [":ld__fengyang"] = "阵法技，与你处于同一队列的角色装备区内的牌被与你势力不同的角色弃置或获得时，取消之",
+  [":ld__fengyang"] = "阵法技，与你处于同一<a href='heg_formation'>队列</a>的角色装备区内的牌被与你势力不同的角色弃置或获得时，取消之",
 
   ["$ld__diaogui1"] = "闻伯符立业，今特来相助。",
   ["$ld__diaogui2"] = "臣虽驽钝，愿以此腔热血报国",

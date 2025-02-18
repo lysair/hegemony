@@ -370,17 +370,26 @@ function HegLogic:prepareDrawPile()
   GameLogic.prepareDrawPile(self)
 
   local room = self.room
-  for _, cid in ipairs(room.draw_pile) do
-    local card = Fk:getCardById(cid)
-    if table.contains(H.allianceCards, card) then
-      room:setCardMark(card, "@@alliance", 1)
+  local allianceCards = table.clone(H.allianceCards)
+  local card
+  local addAllianceMark = function(card)
+    for i = #allianceCards, 1, -1 do
+      local cc = allianceCards[i]
+      if card.name == cc[1] and card.suit == cc[2] and card.number == cc[3] then
+        room:setCardMark(card, "@@alliance", 1)
+        p(cc)
+        table.remove(allianceCards, i)
+        break
+      end
     end
   end
+  for _, cid in ipairs(room.draw_pile) do
+    card = Fk:getCardById(cid)
+    addAllianceMark(card)
+  end
   for _, cid in ipairs(room.void) do
-    local card = Fk:getCardById(cid)
-    if table.contains(H.allianceCards, card) then
-      room:setCardMark(card, "@@alliance", 1)
-    end
+    card = Fk:getCardById(cid)
+    addAllianceMark(card)
   end
 end
 
