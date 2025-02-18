@@ -3,34 +3,62 @@ local tribladeSkill = fk.CreateSkill{
   attached_equip = "triblade",
 }
 tribladeSkill:addEffect(fk.Damage, {
+  anim_type = "offensive",
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self) and data.card and data.card.trueName == "slash" and not data.to.dead and not data.chain and
+    return target == player and player:hasSkill(tribladeSkill.name) and data.card and data.card.trueName == "slash" and not data.to.dead and not data.chain and
       not player:isKongcheng() and table.find(player.room.alive_players, function(p) return data.to:distanceTo(p) == 1 and p ~= player end)
   end,
   on_cost = function(self, event, target, player, data)
     local room = player.room
-    local targets = table.map(table.filter(room.alive_players, function(p)
-      return data.to:distanceTo(p) == 1 and p ~= player end), Util.IdMapper)
+    local targets = table.filter(room.alive_players, function(p)
+      return data.to:distanceTo(p) == 1 and p ~= player end)
     if #targets == 0 then return false end
-    local to, card = room:askForChooseCardAndPlayers(player, targets, 1, 1, ".|.|.|hand", "#triblade-invoke::"..data.to.id, "triblade", true)
+    local to, card = room:askToChooseCardAndPlayers(player, {targets = targets, min_num = 1, max_num = 1, skill_name = "triblade",
+      pattern = ".|.|.|hand", prompt = "#triblade-invoke::"..data.to.id, cancelable = true}) -- discard!
     if #to > 0 then
-      event:setCostData(self, {tos = to, cards = {card} })
+      event:setCostData(self, { tos = to, cards = {card} })
       return true
     end
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
     local to = event:getCostData(self).tos[1]
-    room:notifySkillInvoked(player, "triblade", "offensive")
     room:throwCard(event:getCostData(self).cards, "triblade", player, player)
     room:damage{
       from = player,
-      to = room:getPlayerById(to),
+      to = to,
       damage = 1,
       skillName = "triblade",
     }
   end
 })
+
+tribladeSkill:addTest(function(room, me)
+  local card = room:printCard("triblade")
+  local comp2 = room.players[2]
+
+  FkTest.runInRoom(function()
+    room:obtainCard(me, 1)
+    room:useCard {
+      from = me,
+      tos = { me },
+      card = card,
+    }
+    --[[
+    FkTest.setNextReplies(me, {
+      json.encode {
+        card = { subcards = {"1"} }, targets = { tostring(room.players[3].id) }
+      },--,skill = "choose_players_skill"
+    })
+    --]]
+    FkTest.setNextReplies(comp2, { "__cancel" })
+    room:useCard {
+      from = me,
+      tos = { comp2 },
+      card = Fk:cloneCard("slash"),
+    }
+  end)
+end)
 
 Fk:loadTranslationTable{
   ["triblade"] = "三尖两刃刀",

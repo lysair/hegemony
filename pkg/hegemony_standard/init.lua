@@ -2,14 +2,17 @@ local extension = Package:new("hegemony_standard")
 extension.extensionName = "hegemony"
 extension.game_modes_whitelist = { 'nos_heg_mode', 'new_heg_mode' }
 
-local heg_mode = require "packages.hegemony.hegemony"
+local heg_mode = require "packages.hegemony.new_hegemony_mode"
 extension:addGameMode(heg_mode)
+local nos_heg = require "packages.hegemony.nos_hegemony_mode"
+extension:addGameMode(nos_heg)
 
-local nos_heg_mode = require "packages.hegemony.nos_hegemony"
-extension:addGameMode(nos_heg_mode)
+extension:loadSkillSkels(require("packages.hegemony.pkg.hegemony_standard.skills"))
+
+--local nos_heg_mode = require "packages.hegemony.nos_hegemony"
+--extension:addGameMode(nos_heg_mode)
 
 local H = require "packages/hegemony/util"
-local U = require "packages/utility/utility"
 
 Fk:loadTranslationTable{
   ["hegemony_standard"] = "国战标准版",
@@ -366,7 +369,7 @@ local duanliang = fk.CreateViewAsSkill{
     return c
   end,
   before_use = function(self, player, use)
-    local targets = TargetGroup:getRealTargets(use.tos)
+    local targets = use.tos
     if #targets == 0 then return end
     local room = player.room
     for _, p in ipairs(targets) do
@@ -450,11 +453,11 @@ local jushou = fk.CreateTriggerSkill{
     end
     if jushou_card then
       if jushou_card.type == Card.TypeEquip then
-        room:useCard({
-          from = player.id,
-          tos = {{player.id}},
+        room:useCard{
+          from = player,
+          tos = { player },
           card = jushou_card,
-        })
+        }
       else
         room:throwCard(jushou_card:getEffectiveId(), self.name, player, player)
       end
@@ -3321,7 +3324,6 @@ Fk:loadTranslationTable{
 local battleRoyalVS = fk.CreateViewAsSkill{
   name = "battle_royal&",
   pattern = "slash,jink",
-  expand_pile = "carriage&",
   interaction = function()
     local names = {}
     if Fk.currentResponsePattern == nil and Self:canUse(Fk:cloneCard("slash")) then

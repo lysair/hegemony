@@ -18,15 +18,15 @@ awaitExhaustedSkill:addEffect("active", {
     end
   end,
   on_use = function(self, room, use)
-    if not use.tos or #TargetGroup:getRealTargets(use.tos) == 0 then
+    if not use.tos or #use.tos == 0 then
       local player = use.from
       if player.kingdom == "unknown" then
         use.tos = { use.from }
       else
         use.tos = {}
         for _, p in ipairs(room:getAlivePlayers()) do
-          if not player:isProhibited(p, use.card) and H.compareKingdomWith(p, player) then --权宜
-            TargetGroup:pushTargets(use.tos, p.id)
+          if not player:isProhibited(p, use.card) and H.compareKingdomWith(p, player) then
+            use:addTarget(p)
           end
         end
       end
@@ -37,9 +37,27 @@ awaitExhaustedSkill:addEffect("active", {
     if target.dead then return end
     target:drawCards(2, "await_exhausted")
     if target.dead then return end
-      room:askForDiscard(target, 2, 2, true, awaitExhaustedSkill.name, false)
+    room:askToDiscard(target, {min_num = 2, max_num = 2, include_equip = true,
+      skill_name = "await_exhausted", cancelable = false})
   end,
 })
+
+awaitExhaustedSkill:addTest(function (room, me)
+  local card = Fk:cloneCard("await_exhausted")
+  FkTest.runInRoom(function()
+    local targets = table.filter(room.alive_players, function(p) return p.kingdom == me.kingdom end)
+    for i = 1, #targets do
+      room:obtainCard(targets[i], 2 * i - 1, true)
+      room:obtainCard(targets[i], 2 * i, true)
+    end
+    room:useCard{
+      from = me,
+      card = card,
+      tos = { },
+    }
+  end)
+  lu.assertEquals(me:getHandcardNum(), 2)
+end)
 
 Fk:loadTranslationTable{
   ["await_exhausted"] = "以逸待劳",

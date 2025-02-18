@@ -6,6 +6,7 @@ local jadeSealSkill = fk.CreateSkill{
 }
 jadeSealSkill:addEffect(fk.EventPhaseStart, {
   anim_type = "control",
+  frequency = Skill.Compulsory,
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(jadeSealSkill.name) and player.phase == Player.Play and H.isBigKingdomPlayer(player)
   end,
@@ -23,7 +24,7 @@ jadeSealSkill:addEffect(fk.EventPhaseStart, {
     local to = room:askToChoosePlayers(player, {targets = targets, min_num = 1, max_num = max_num,
       prompt = "#jade_seal-ask", skill_name = jadeSealSkill.name, cancelable = false})
     if #to > 0 then
-      event:setCostData(self, {tos = to})
+      event:setCostData(self, {tos = to} )
       return true
     end
   end,
@@ -33,6 +34,7 @@ jadeSealSkill:addEffect(fk.EventPhaseStart, {
 })
 jadeSealSkill:addEffect(fk.DrawNCards, {
   anim_type = "drawcard",
+  frequency = Skill.Compulsory,
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(jadeSealSkill.name) and H.isBigKingdomPlayer(player)
   end,

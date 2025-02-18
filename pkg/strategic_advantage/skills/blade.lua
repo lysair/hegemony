@@ -6,6 +6,7 @@ local bladeSkill = fk.CreateSkill{
 bladeSkill:addEffect(fk.CardUsing, {
   anim_type = "offensive",
   mute = true,
+  frequency = Skill.Compulsory, -- 呃呃
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(bladeSkill.name) and data.card.trueName == "slash"
   end,

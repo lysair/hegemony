@@ -19,6 +19,24 @@ sixSwordsSkill:addEffect("atkrange", {
   end,
 })
 
+sixSwordsSkill:addTest(function (room, me)
+  local tar = table.find(room:getOtherPlayers(me, false), function(p)
+    return H.compareKingdomWith(me, p)
+  end)
+  if tar then
+    local card = room:printCard("six_swords")
+    FkTest.runInRoom(function()
+      room:useCard {
+        from = me,
+        tos = { me },
+        card = card,
+      }
+    end)
+    lu.assertEquals(me:getAttackRange(), 2)
+    lu.assertEquals(tar:getAttackRange(), 2)
+  end
+end)
+
 Fk:loadTranslationTable{
   ["six_swords"] = "吴六剑",
   [":six_swords"] = "装备牌·武器<br/><b>攻击范围</b>：２ <br/><b>武器技能</b>：锁定技，与你势力相同的其他角色攻击范围+1。",

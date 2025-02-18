@@ -47,8 +47,10 @@ threatenEmperorSkill:addEffect(fk.EventPhaseEnd, {
 
 threatenEmperorSkill:addTest(function (room, me)
   local card = room:printCard("threaten_emperor")
+  local comp = table.find(room.alive_players, function(p) return H.isSmallKingdomPlayer(p) end)
+  if comp then lu.assertIsFalse(comp:canUse(card)) end
 
-  local comp = table.find(room.alive_players, function(p) return H.isBigKingdomPlayer(p) end)
+  comp = table.find(room.alive_players, function(p) return H.isBigKingdomPlayer(p) end)
   if comp then
     FkTest.runInRoom(function()
       room:obtainCard(comp, 1)

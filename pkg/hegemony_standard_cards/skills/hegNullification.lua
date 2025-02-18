@@ -7,12 +7,12 @@ local H = require "packages/hegemony/util"
 hegNullificationSkill:addEffect("active", {
   can_use = Util.FalseFunc,
   on_use = function(self, room, use)
-    if use.responseToEvent and use.responseToEvent.to and #TargetGroup:getRealTargets(use.responseToEvent.tos) > 1 then
+    if use.responseToEvent and use.responseToEvent.to and #use.responseToEvent.tos > 1 then
       local from = use.from
       local to = use.responseToEvent.to
       if to.kingdom ~= "unknown" then
         local choices = {"hegN-single::" .. to.id, "hegN-all:::" .. to.kingdom}
-        local choice = room:askForChoice(from, choices, hegNullificationSkill.name, "#hegN-ask")
+        local choice = room:askToChoice(from, {choices = choices, skill_name = "heg__nullification", prompt = "#hegN-ask"})
         if choice:startsWith("hegN-all") then
           room:sendLog{
             type = "#HegNullificationAll",
@@ -32,11 +32,7 @@ hegNullificationSkill:addEffect("active", {
             toast = true,
           }
         end
-      else
-        room:delay(1200)
       end
-    else
-      room:delay(1200)
     end
   end,
   on_effect = function(self, room, effect)
@@ -47,8 +43,8 @@ hegNullificationSkill:addEffect("active", {
         effect.responseToEvent.disresponsiveList = effect.responseToEvent.disresponsiveList or {}
         for _, p in ipairs(room.alive_players) do
           if H.compareKingdomWith(p, to) then
-            table.insertIfNeed(effect.responseToEvent.nullifiedTargets, p.id)
-            table.insertIfNeed(effect.responseToEvent.disresponsiveList, p.id)
+            table.insertIfNeed(effect.responseToEvent.nullifiedTargets, p)
+            table.insertIfNeed(effect.responseToEvent.disresponsiveList, p)
           end
         end
       end
@@ -63,7 +59,6 @@ Fk:loadTranslationTable{
   ["#hegN-ask"] = "无懈可击·国：请选择",
   ["hegN-single"] = "对%dest使用",
   ["hegN-all"] = "对%arg势力使用",
-  ["hegN_toast"] = " 【无懈可击·国】对 ",
   ["#HegNullificationSingle"] = "%from 选择此 %card 对 %to 生效",
   ["#HegNullificationAll"] = "%from 选择此 %card 对 %arg 势力生效",
 }

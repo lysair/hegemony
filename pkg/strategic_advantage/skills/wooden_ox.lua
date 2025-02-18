@@ -5,7 +5,7 @@ local wooden_ox_skill = fk.CreateSkill{
 wooden_ox_skill:addEffect("active", {
   prompt = "#wooden_ox-prompt",
   can_use = function(self, player, card)
-    return player:usedSkillTimes(wooden_ox_skill.name, Player.HistoryPhase) == 0 and #player:getPile("$role_carriage") < 5
+    return player:usedSkillTimes(wooden_ox_skill.name, Player.HistoryPhase) == 0 and #player:getPile("$sa_carriage") < 5
   end,
   card_num = 1,
   card_filter = function(self, to_select, selected)
@@ -14,7 +14,7 @@ wooden_ox_skill:addEffect("active", {
   target_num = 0,
   on_use = function(self, room, effect)
     local player = effect.from
-    player:addToPile("$role_carriage", effect.cards[1], false, wooden_ox_skill.name)
+    player:addToPile("$sa_carriage", effect.cards[1], false, wooden_ox_skill.name)
     if player.dead then return end
     local ox = table.find(player:getCardIds("e"), function (id) return Fk:getCardById(id).name == "wooden_ox" end)
     if ox then
@@ -34,7 +34,7 @@ wooden_ox_skill:addEffect(fk.AfterCardsMove, {
   mute = true,
   priority = 5,
   can_trigger = function(self, event, target, player, data)
-    if player:getPile("$role_carriage") == 0 then return false end
+    if player:getPile("$sa_carriage") == 0 then return false end
     for _, move in ipairs(data) do
       for _, info in ipairs(move.moveInfo) do
         if Fk:getCardById(info.cardId).name == "wooden_ox" then
@@ -57,10 +57,10 @@ wooden_ox_skill:addEffect(fk.AfterCardsMove, {
                 if last_move.moveReason == fk.ReasonExchange then
                   for _, last_info in ipairs(last_move.moveInfo) do
                     if Fk:getCardById(last_info.cardId).name == "wooden_ox" then
-                      if last_move.from == player.id and last_info.fromArea == Card.PlayerEquip then
+                      if last_move.from == player and last_info.fromArea == Card.PlayerEquip then
                         if move.toArea == Card.PlayerEquip then
-                          if move.to ~= player.id then
-                            event:setCostData(self, move.to)
+                          if move.to ~= player then
+                            event:setCostData(self, { tos = {move.to} })
                             return true
                           end
                         else
@@ -74,15 +74,15 @@ wooden_ox_skill:addEffect(fk.AfterCardsMove, {
               end
             end
           elseif move.moveReason == fk.ReasonExchange then
-            if move.from == player.id and info.fromArea == Card.PlayerEquip and move.toArea ~= Card.Processing then
+            if move.from == player and info.fromArea == Card.PlayerEquip and move.toArea ~= Card.Processing then
               --适用于被修改了移动区域的情况，如销毁，虽然说原则上移至处理区是不应销毁的
               self.cost_data = nil
               return true
             end
-          elseif move.from == player.id and info.fromArea == Card.PlayerEquip then
+          elseif move.from == player and info.fromArea == Card.PlayerEquip then
             if move.toArea == Card.PlayerEquip then
-              if move.to ~= player.id then
-                self.cost_data = move.to
+              if move.to ~= player then
+                event:setCostData(self, { tos = {move.to} })
                 return true
               end
             else
@@ -97,10 +97,10 @@ wooden_ox_skill:addEffect(fk.AfterCardsMove, {
   on_cost = Util.TrueFunc,
   on_use = function(self, event, _, player, data)
     local room = player.room
-    local cards = player:getPile("$role_carriage")
-    local to = self.cost_data
+    local cards = player:getPile("$sa_carriage")
+    local to = event:getCostData(self).tos[1] ---@class ServerPlayer
     if to then
-      room:getPlayerById(to):addToPile("$role_carriage", cards, false, "wooden_ox_skill", nil, {player.id, to})
+      to:addToPile("$sa_carriage", cards, false, "wooden_ox_skill", nil, {player.id, to.id})
     else
       room:moveCardTo(cards, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, "wooden_ox_skill", nil, true)
     end
@@ -111,7 +111,7 @@ wooden_ox_skill:addEffect("filter", {
 
   handly_cards = function (self, player)
     if player:hasSkill("wooden_ox_skill") then
-      return player:getPile("$role_carriage")
+      return player:getPile("$sa_carriage")
     end
   end,
 })
@@ -127,7 +127,7 @@ Fk:loadTranslationTable{
   ["wooden_ox_skill"] = "木牛",
   [":wooden_ox_skill"] = "出牌阶段限一次，你可将一张手牌置入仓廪（称为“辎”，“辎”数至多为5），然后你可将装备区里的【木牛流马】置入一名其他角色的装备区。你可如手牌般使用或打出“辎”。",
   ["#wooden_ox-move"] = "你可以将【木牛流马】移动至一名其他角色的装备区",
-  ["$carriage&"] = "辎",
+  ["$sa_carriage"] = "辎",
   ["#wooden_ox_trigger"] = "木牛流马",
   ["#wooden_ox-prompt"] = "你可以将一张手牌扣置于木牛流马下",
 }

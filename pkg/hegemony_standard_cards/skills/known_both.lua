@@ -18,35 +18,68 @@ knownBothSkill:addEffect("active", {
     if target.dead or player.dead then return end
     local all_choices = {"known_both_main", "known_both_deputy", "known_both_hand"}
     local choices = table.clone(all_choices)
+    if not target.deputyGeneral or target.deputyGeneral ~= "anjiang" then
+      table.remove(choices, 2)
+    end
     if target:isKongcheng() then
       table.remove(choices)
     end
     if target.general ~= "anjiang" then
       table.remove(choices, 1)
     end
-    if target.deputyGeneral ~= "anjiang" then
-      table.removeOne(choices, "known_both_deputy")
-    end
     if #choices == 0 then return end
-    local choice = room:askForChoice(player, choices, knownBothSkill.name, "#known_both-choice::"..target.id, false, all_choices)
+    local choice = room:askToChoice(player, {choices = choices, skill_name = "known_both", prompt = "#known_both-choice::"..target.id, cancelable = false, all_choices = all_choices})
     if choice == "known_both_hand" then
-      U.viewCards(player, target:getCardIds(Player.Hand), knownBothSkill.name, "#known_both-hand::"..target.id)
-      room:sendLog{
-        type = "#know_hand",
-        from = player.id,
-        toast = true,
-      }
+      U.viewCards(player, target:getCardIds(Player.Hand), "known_both", "#known_both-hand::"..target.id)
+      for _, p in ipairs(room:getOtherPlayers(player, false)) do
+        p:doNotify("GameLog", json.encode{
+          type = "#know_hand",
+          from = player.id,
+          to = {target.id},
+          toast = true,
+        })
+      end
     else
       local general = choice == "known_both_main" and {target:getMark("__heg_general"), target.deputyGeneral, tostring(target.seat)} or {target.general, target:getMark("__heg_deputy"), tostring(target.seat)}
       room:askForCustomDialog(player, knownBothSkill.name, "packages/hegemony/qml/KnownBothBox.qml", general)
-      room:sendLog{
-        type = "#know_general",
+      for _, p in ipairs(room:getOtherPlayers(player, false)) do
+        p:doNotify("GameLog", json.encode{
+          type = "#know_general",
+          from = player.id,
+          to = {target.id},
+          toast = true,
+        })
+      end
+      local log = {
+        type = "#WatchGeneral",
         from = player.id,
-        toast = true,
+        to = {target.id},
+        arg = choice == "known_both_main" and "mainGeneral" or "deputyGeneral",
+        arg2 = choice == "known_both_main" and target:getMark("__heg_general") or target:getMark("__heg_deputy"),
       }
+      player:doNotify("GameLog", json.encode(log))
     end
   end,
 })
+
+knownBothSkill:addTest(function (room, me)
+  local card = Fk:cloneCard("known_both")
+  local comp2 = room.players[2]
+  FkTest.setNextReplies(me, {"known_both_main", "1", "known_both_deputy", "1", "known_both_hand"})
+  FkTest.runInRoom(function()
+    room:setPlayerProperty(comp2, "deputyGeneral", "zhouyu")
+    comp2:hideGeneral(false)
+    comp2:hideGeneral(true)
+    room:obtainCard(comp2, 1)
+    for _ = 1, 3 do
+      room:useCard {
+        from = me,
+        tos = { comp2 },
+        card = card,
+      }
+    end
+  end)
+end)
 
 Fk:loadTranslationTable{
   ["known_both"] = "知己知彼",
@@ -59,8 +92,9 @@ Fk:loadTranslationTable{
   ["#KnownBothGeneral"] = "观看 %1 武将",
   ["#known_both-hand"] = "知己知彼：观看%dest的手牌",
   ["#known_both_skill"] = "选择一名其他角色，观看其一张暗置的武将牌或其手牌",
-  ["#know_hand"] = "%from 观看了手牌",
-  ["#know_general"] = "%from 观看了武将",
+  ["#know_hand"] = "%from 观看了 %to 的手牌",
+  ["#know_general"] = "%from 观看了 %to 的 %arg %arg2",
+  ["#WatchGeneral"] = "%from 观看了 %to 的 %arg %arg2",
 }
 
 return knownBothSkill

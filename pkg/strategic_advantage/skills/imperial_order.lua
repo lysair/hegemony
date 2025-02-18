@@ -126,20 +126,20 @@ imperialOrderSkill:addEffect(fk.BeforeCardsMove, {
 imperialOrderSkill:addTest(function(room, me)
   local comp2, comp3 = room.players[2], room.players[3]
   local card = room:printCard("imperial_order")
+  local axe = room:printCard("axe")
 
   -- test1：选择失去体力和弃装备
   FkTest.setNextReplies(comp2, { "IO_hplose" })
-  FkTest.setNextReplies(comp3, { "IO_discard" })
+  FkTest.setNextReplies(comp3, { "IO_discard", tostring(axe.id) })
 
   FkTest.runInRoom(function()
     room:setPlayerProperty(comp2, "deputyGeneral", "zhouyu")
     room:setPlayerProperty(comp3, "deputyGeneral", "huangyueying")
-    for _, p in ipairs{comp2, comp3} do
-      p:hideGeneral()
-      p:hideGeneral(true)
-      room:setPlayerProperty(p, "kingdom", "unknown")
+    for _, _p in ipairs{comp2, comp3} do
+      _p:hideGeneral()
+      _p:hideGeneral(true)
+      room:setPlayerProperty(_p, "kingdom", "unknown")
     end
-    local axe = room:printCard("halberd")
     room:obtainCard(comp3, axe)
     room:useCard {
       from = me,
@@ -149,10 +149,11 @@ imperialOrderSkill:addTest(function(room, me)
   end)
   lu.assertEquals(comp2.general, "anjiang")
   lu.assertEquals(comp2.hp, 3)
-  lu.assertEquals(comp3:getEquipments(Card.SubtypeWeapon), {})
+  lu.assertIsTrue(comp3:isNude())
 
   -- test2：选择亮将
-  -- FkTest.setNextReplies(comp3, {"revealDeputy:::huangyueying"}) -- 为什么不行？
+  FkTest.setNextReplies(comp2, {"IO_reveal"})
+  FkTest.setNextReplies(comp3, {"IO_reveal", "revealDeputy:::huangyueying"})
   FkTest.runInRoom(function()
     room:useCard {
       from = me,
@@ -180,11 +181,9 @@ imperialOrderSkill:addTest(function(room, me)
 
   -- test4：移出游戏后执行
   FkTest.runInRoom(function()
-    for _, p in ipairs{comp2, comp3} do
-      p:hideGeneral()
-      p:hideGeneral(true)
-      room:setPlayerProperty(p, "kingdom", "unknown")
-    end
+    comp2:hideGeneral(false)
+    comp2:hideGeneral(true)
+    room:setPlayerProperty(comp2, "kingdom", "unknown")
     room:obtainCard(me, card)
     room:throwCard(card, "", me, me)
     local data = { ---@type TurnDataSpec
@@ -196,8 +195,6 @@ imperialOrderSkill:addTest(function(room, me)
   end)
   lu.assertEquals(comp2.general, "sunquan")
   lu.assertEquals(comp2:getHandcardNum(), 3)
-  lu.assertEquals(comp3.general, "liubei")
-  lu.assertEquals(comp3:getHandcardNum(), 2)
 end)
 
 Fk:loadTranslationTable{

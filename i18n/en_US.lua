@@ -598,7 +598,6 @@ return {
   ["#hegN-ask"] = "Nullification Heg.: Please Choose",
   ["hegN-single"] = "Use to %dest",
   ["hegN-all"] = "Use to %arg",
-  ["hegN_toast"] = " Nullification Heg. to ",
   ["#HegNullificationSingle"] = "%from chose %card effect to %to ",
   ["#HegNullificationAll"] = "%from chose %card effect to %arg ",
 
@@ -706,7 +705,7 @@ return {
   [":new_heg_mode"] = heg_description,
   ["#ChooseHegInitialKingdom"] = "Heg. Rule: Choose your initial nationality",
   ["wild"] = "*Careerist*",
-  ["#heg_rule"] = "Heg. Rule",
+  ["heg_rule"] = "Heg. Rule",
   ["revealAll"] = "Reveal all characters",
   ["#EnterBattleRoyalMode"] = "<font color=\"red\"><b>Battle Royal Mode</b></font> begins, all <font color=\"#3598E8\"><b>Peach</b></font>es "..
   "can only be used/played as <font color=\"#3598E8\"><b>Slash</b></font> or <font color=\"#3598E8\"><b>Jink</b></font>, cannot be used to recover HPs",

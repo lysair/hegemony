@@ -62,10 +62,10 @@ halberdSkill:addEffect("active", {
 halberdSkill:addEffect(fk.CardEffectCancelledOut, {
   name = "#sa__halberd_delay",
   mute = true,
-  frequency = Skill.Compulsory,
   can_trigger = function(self, event, target, player, data)
     return target == player and data.card.trueName == "slash" and (player.room.logic:getCurrentEvent():findParent(GameEvent.UseCard).data.extra_data or {}).saHalberd
   end,
+  on_cost = Util.TrueFunc,
   on_use = function(self, event, target, player, data)
     local room = player.room
     local e = room.logic:getCurrentEvent():findParent(GameEvent.UseCard)

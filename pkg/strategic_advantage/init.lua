@@ -9,7 +9,7 @@ Fk:loadTranslationTable{
   ["strategic_advantage"] = "君临天下·势备篇",
 }
 
--- extension.game_modes_whitelist = { 'nos_heg_mode', 'new_heg_mode' }
+extension.game_modes_whitelist = { 'new_heg_mode', 'nos_heg_mode' }
 -- extension.game_modes_blacklist = {"aaa_role_mode", "m_1v1_mode", "m_1v2_mode", "m_2v2_mode", "zombie_mode", "chaos_mode"}
 
 extension:loadSkillSkels(require("packages.hegemony.pkg.strategic_advantage.skills"))
