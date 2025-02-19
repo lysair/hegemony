@@ -2,17 +2,17 @@ local halberdSkill = fk.CreateSkill{
   name = "#sa__halberd_skill",
   attached_equip = "sa__halberd",
 }
-local H = require "packages/hegemony/util"
+
 halberdSkill:addEffect(fk.AfterCardTargetDeclared, {
   anim_type = "offensive",
   mute = true,
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(halberdSkill.name) and data.card.trueName == "slash" and #player.room:getUseExtraTargets(data) > 0
+    return target == player and player:hasSkill(halberdSkill.name) and data.card.trueName == "slash" -- and #player.room:getUseExtraTargets(data) > 0
   end, -- 爆炸！
   on_cost = function(self, event, target, player, data)
     local room = player.room
-    room:setPlayerMark(player, "_sa__halberd", data.tos)
-    local _, ret = room:askToUseActiveSkill(player, {skill_name = "sa__halberd", cancelable = true, prompt = "#sa__halberd-ask", extra_data = data.tos})
+    room:setPlayerMark(player, "_sa__halberd", table.map(data.tos, Util.IdMapper))
+    local _, ret = room:askToUseActiveSkill(player, {skill_name = "sa__halberd_active", cancelable = true, prompt = "#sa__halberd-ask" })
     room:setPlayerMark(player, "_sa__halberd", 0)
     if ret then
       event:setCostData(self, {tos = ret.targets})
@@ -38,26 +38,6 @@ halberdSkill:addEffect(fk.AfterCardTargetDeclared, {
       data:addTarget(p)
     end
   end
-})
-halberdSkill:addEffect("active", {
-  name = "#sa__halberd_targets",
-  can_use = Util.FalseFunc,
-  min_target_num = 1,
-  card_num = 0,
-  card_filter = Util.FalseFunc,
-  target_filter = function(self, player, to_select, selected)
-    local orig = table.simpleClone(player:getMark("_sa__halberd"))
-    if table.contains(orig, to_select.id) or to_select == player then return false end
-    local room = Fk:currentRoom()
-    if to_select.kingdom == "unknown" or (table.every(orig, function(id)
-      return not H.compareKingdomWith(to_select, room:getPlayerById(id))
-    end) and table.every(selected, function(p)
-      return not H.compareKingdomWith(to_select, p)
-    end)) then
-      local card = Fk:cloneCard("slash")
-      return not player:isProhibited(to_select, card) and card.skill:modTargetFilter(player, to_select, table.map(orig, function(pid) return Fk:currentRoom():getPlayerById(pid) end), card, true)
-    end
-  end,
 })
 halberdSkill:addEffect(fk.CardEffectCancelledOut, {
   name = "#sa__halberd_delay",

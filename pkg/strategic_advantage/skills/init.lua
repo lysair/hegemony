@@ -10,6 +10,7 @@ return {
   require(prefix .. "imperial_order"),
   require(prefix .. "blade"),
   require(prefix .. "halberd"),
+  require(prefix .. "halberd_active"), -- 方天选人
   require(prefix .. "breastplate"),
   require(prefix .. "iron_armor"),
   require(prefix .. "jingfan"),

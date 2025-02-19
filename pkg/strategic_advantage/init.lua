@@ -177,7 +177,7 @@ local halberd = fk.CreateCard{
   equip_skill = "#sa__halberd_skill",
 }
 
-extension:addCardSpec("sa__blade", Card.Diamond, 12)
+extension:addCardSpec("sa__halberd", Card.Diamond, 12)
 
 local breastplate = fk.CreateCard{
   name = "sa__breastplate",

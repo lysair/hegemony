@@ -64,11 +64,12 @@ kongcheng:addTest(function (room, me)
     room:useVirtualCard("slash", nil, me, comp2)
     room:useVirtualCard("duel", nil, me, comp2)
   end)
-  -- lu.assertEquals(comp2.hp, 4)
+  lu.assertEquals(comp2.hp, 4)
   FkTest.runInRoom(function ()
     local card = Fk:getCardById(1)
     room:moveCardTo(card, Card.PlayerHand, comp2, fk.ReasonGive)
   end)
+  lu.assertIsTrue(comp2:isKongcheng())
 end)
 
 Fk:loadTranslationTable{
