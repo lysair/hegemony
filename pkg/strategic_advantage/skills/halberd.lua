@@ -7,13 +7,19 @@ halberdSkill:addEffect(fk.AfterCardTargetDeclared, {
   anim_type = "offensive",
   mute = true,
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(halberdSkill.name) and data.card.trueName == "slash" -- and #player.room:getUseExtraTargets(data) > 0
-  end, -- 爆炸！
+    return target == player and player:hasSkill(halberdSkill.name) and data.card.trueName == "slash" and #data:getExtraTargets() > 0
+  end,
   on_cost = function(self, event, target, player, data)
     local room = player.room
-    room:setPlayerMark(player, "_sa__halberd", table.map(data.tos, Util.IdMapper))
-    local _, ret = room:askToUseActiveSkill(player, {skill_name = "sa__halberd_active", cancelable = true, prompt = "#sa__halberd-ask" })
-    room:setPlayerMark(player, "_sa__halberd", 0)
+    local _, ret = room:askToUseActiveSkill(player, {
+      skill_name = "sa__halberd_active",
+      cancelable = true,
+      prompt = "#sa__halberd-ask",
+      extra_data = {
+        orig_tos = table.map(data.tos, Util.IdMapper),
+        targets = table.map(data:getExtraTargets(), Util.IdMapper)
+      }
+    })
     if ret then
       event:setCostData(self, {tos = ret.targets})
       return true
@@ -26,7 +32,6 @@ halberdSkill:addEffect(fk.AfterCardTargetDeclared, {
     local tos = event:getCostData(self).tos
     data.extra_data = data.extra_data or {}
     data.extra_data.saHalberd = true
-    data.card.skillName = "sa__halberd"
     room:sendLog{
       type = "#HalberdTargets",
       from = player.id,
