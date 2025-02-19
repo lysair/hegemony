@@ -6,7 +6,6 @@ local jadeSealSkill = fk.CreateSkill{
 }
 jadeSealSkill:addEffect(fk.EventPhaseStart, {
   anim_type = "control",
-  frequency = Skill.Compulsory,
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(jadeSealSkill.name) and player.phase == Player.Play and H.isBigKingdomPlayer(player)
   end,
@@ -34,7 +33,6 @@ jadeSealSkill:addEffect(fk.EventPhaseStart, {
 })
 jadeSealSkill:addEffect(fk.DrawNCards, {
   anim_type = "drawcard",
-  frequency = Skill.Compulsory,
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(jadeSealSkill.name) and H.isBigKingdomPlayer(player)
   end,

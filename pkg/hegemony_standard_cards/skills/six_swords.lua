@@ -6,7 +6,6 @@ local sixSwordsSkill = fk.CreateSkill{
 local H = require "packages/hegemony/util"
 
 sixSwordsSkill:addEffect("atkrange", {
-  frequency = Skill.Compulsory,
   correct_func = function (self, from, to)
     if from.kingdom ~= "unknown" then
       if table.find(Fk:currentRoom().alive_players, function(p)

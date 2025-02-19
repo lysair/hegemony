@@ -3,10 +3,10 @@ local ironArmorSkill = fk.CreateSkill{
   name = "#iron_armor_skill",
   attached_equip = "iron_armor",
   frequency = Skill.Compulsory,
+  -- tags = {Skill.Compulsory},
 }
 ironArmorSkill:addEffect(fk.TargetConfirming, {
   anim_type = "defensive",
-  frequency = Skill.Compulsory,
   can_trigger = function(self, event, target, player, data)
     if target ~= player or not player:hasSkill(ironArmorSkill.name) then return false end
     return table.contains({"fire__slash", "burning_camps", "fire_attack"}, data.card.name)
@@ -18,7 +18,6 @@ ironArmorSkill:addEffect(fk.TargetConfirming, {
 })
 ironArmorSkill:addEffect(fk.BeforeChainStateChange, {
   anim_type = "defensive",
-  frequency = Skill.Compulsory,
   can_trigger = function(self, event, target, player, data)
     if target ~= player or not player:hasSkill(ironArmorSkill.name) then return false end
     return H.isSmallKingdomPlayer(player) and not player.chained

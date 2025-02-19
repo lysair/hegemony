@@ -28,7 +28,7 @@ breastplateSkill:addEffect(fk.DamageInflicted, {
 breastplateSkill:addTest(function(room, me)
   local card = room:printCard("sa__breastplate")
   local comp2 = room.players[2]
-  FkTest.setNextReplies(me, { "__cancel" })
+  FkTest.setNextReplies(me, { "__cancel", "1" })
   FkTest.runInRoom(function()
     room:useCard {
       from = me,
