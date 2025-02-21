@@ -4,10 +4,10 @@ local allianceFeastSkill = fk.CreateSkill{
 
 local H = require "packages/hegemony/util"
 
-allianceFeastSkill:addEffect('active', {
+allianceFeastSkill:addEffect('cardskill', {
   prompt = "#alliance_feast_skill",
   target_num = 1,
-  mod_target_filter = function(self, player, to_select, selected, card, distance_limited)
+  mod_target_filter = function(self, player, to_select, selected, card, extra_data)
     if to_select == player then return true end
     if to_select.kingdom == "unknown" then return false end
     if #selected == 0 then
@@ -17,7 +17,7 @@ allianceFeastSkill:addEffect('active', {
     return H.compareKingdomWith(to_select, target)
   end,
   target_filter = function(self, player, to_select, selected, _, card, extra_data)
-    return #selected == 0 and to_select ~= player and Util.TargetFilter(self, to_select.id, selected, _, card, extra_data, player)
+    return #selected == 0 and to_select ~= player and Util.CardTargetFilter(self, player, to_select, selected, _, card, extra_data)
   end,
   can_use = function(self, player, card)
     return not (player:prohibitUse(card) or player:isProhibited(player, card)) and player.kingdom ~= "unknown"

@@ -24,7 +24,7 @@ end
 local imperialOrderSkill = fk.CreateSkill{
   name = "imperial_order_skill",
 }
-imperialOrderSkill:addEffect('active', {
+imperialOrderSkill:addEffect('cardskill', {
   prompt = "#imperial_order_skill",
   mod_target_filter = function(self, player, to_select, selected)
     return to_select.kingdom == "unknown"

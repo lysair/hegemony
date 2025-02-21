@@ -4,7 +4,7 @@ local hegNullificationSkill = fk.CreateSkill{
 
 local H = require "packages/hegemony/util"
 
-hegNullificationSkill:addEffect("active", {
+hegNullificationSkill:addEffect("cardskill", {
   can_use = Util.FalseFunc,
   on_use = function(self, room, use)
     if use.responseToEvent and use.responseToEvent.to and #use.responseToEvent.tos > 1 then

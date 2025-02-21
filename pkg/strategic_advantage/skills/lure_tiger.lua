@@ -2,7 +2,7 @@
 local lureTigerSkill = fk.CreateSkill{
   name = "lure_tiger_skill",
 }
-lureTigerSkill:addEffect("active", {
+lureTigerSkill:addEffect("cardskill", {
   prompt = "#lure_tiger_skill",
   can_use = Util.CanUse,
   min_target_num = 1,

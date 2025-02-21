@@ -4,7 +4,7 @@ local burningCampsSkill = fk.CreateSkill{
 
 local H = require "packages/hegemony/util"
 
-burningCampsSkill:addEffect("active", {
+burningCampsSkill:addEffect("cardskill", {
   prompt = "#burning_camps_skill",
   mod_target_filter = function(self, player, to_select, selected, card, distance_limited)
     local prev = player:getNextAlive()

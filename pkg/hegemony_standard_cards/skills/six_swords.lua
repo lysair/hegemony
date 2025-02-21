@@ -31,10 +31,6 @@ sixSwordsSkill:addTest(function (room, me)
       }
     end)
     lu.assertEquals(me:getAttackRange(), 2)
-    for _, _p in ipairs(room.players) do
-      p{_p.general, _p:getAttackRange()}
-    end
-    print(me:hasSkill(sixSwordsSkill.name))
     lu.assertEquals(tar:getAttackRange(), 2)
   end
 end)

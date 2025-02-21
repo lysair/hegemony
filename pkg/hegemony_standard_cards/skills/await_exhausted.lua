@@ -4,7 +4,7 @@ local awaitExhaustedSkill = fk.CreateSkill{
 
 local H = require "packages/hegemony/util"
 
-awaitExhaustedSkill:addEffect("active", {
+awaitExhaustedSkill:addEffect("cardskill", {
   prompt = "#await_exhausted_skill",
   mod_target_filter = function(self, player, to_select, selected)
     return H.compareKingdomWith(to_select, player, false)

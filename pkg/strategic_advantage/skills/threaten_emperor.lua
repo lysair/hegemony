@@ -4,7 +4,7 @@ local threatenEmperorSkill = fk.CreateSkill{
 
 local H = require "packages/hegemony/util"
 
-threatenEmperorSkill:addEffect("active", {
+threatenEmperorSkill:addEffect("cardskill", {
   prompt = "#threaten_emperor_skill",
   mod_target_filter = function(self, player, to_select, selected)
     return to_select == player.id and H.isBigKingdomPlayer(player)

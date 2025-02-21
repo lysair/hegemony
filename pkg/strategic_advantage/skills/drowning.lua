@@ -1,7 +1,7 @@
 local drowningSkill = fk.CreateSkill{
   name = "sa__drowning_skill",
 }
-drowningSkill:addEffect("active", {
+drowningSkill:addEffect("cardskill", {
   prompt = "#sa__drowning_skill",
   can_use = Util.CanUse,
   target_num = 1,

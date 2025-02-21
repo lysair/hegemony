@@ -4,7 +4,7 @@ local fightTogetherSkill = fk.CreateSkill{
 
 local H = require "packages/hegemony/util"
 
-fightTogetherSkill:addEffect("active", {
+fightTogetherSkill:addEffect("cardskill", {
   prompt = "#fight_together_skill",
   target_num = 1,
   mod_target_filter = function(self, player, to_select, selected, card, distance_limited)
@@ -16,7 +16,7 @@ fightTogetherSkill:addEffect("active", {
     end
   end,
   target_filter = function(self, player, to_select, selected, _, card, extra_data)
-    return #selected == 0 and Util.TargetFilter(self, to_select.id, selected, _, card, extra_data, player)
+    return #selected == 0 and Util.CardTargetFilter(self, player, to_select, selected, _, card, extra_data)
   end,
   can_use = function(self, player, card)
     return not player:prohibitUse(card) and table.find(Fk:currentRoom().alive_players, function(p)

@@ -4,7 +4,7 @@ local befriendAttackingSkill = fk.CreateSkill{
 
 local H = require "packages/hegemony/util"
 
-befriendAttackingSkill:addEffect("active", {
+befriendAttackingSkill:addEffect("cardskill", {
   prompt = "#befriend_attacking_skill",
   target_num = 1,
   mod_target_filter = function(self, player, to_select, selected)

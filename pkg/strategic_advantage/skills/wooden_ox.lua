@@ -4,7 +4,7 @@ local wooden_ox_skill = fk.CreateSkill{
 }
 wooden_ox_skill:addEffect("active", {
   prompt = "#wooden_ox-prompt",
-  can_use = function(self, player, card)
+  can_use = function(self, player)
     return player:usedSkillTimes(wooden_ox_skill.name, Player.HistoryPhase) == 0 and #player:getPile("$sa_carriage") < 5
   end,
   card_num = 1,

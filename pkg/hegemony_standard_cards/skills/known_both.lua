@@ -4,7 +4,7 @@ local knownBothSkill = fk.CreateSkill{
 
 local U = require "packages/utility/utility"
 
-knownBothSkill:addEffect("active", {
+knownBothSkill:addEffect("cardskill", {
   prompt = "#known_both_skill",
   can_use = Util.CanUse,
   target_num = 1,
