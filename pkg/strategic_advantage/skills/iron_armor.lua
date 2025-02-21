@@ -2,8 +2,7 @@ local H = require "packages/hegemony/util"
 local ironArmorSkill = fk.CreateSkill{
   name = "#iron_armor_skill",
   attached_equip = "iron_armor",
-  frequency = Skill.Compulsory,
-  -- tags = {Skill.Compulsory},
+  tags = {Skill.Compulsory},
 }
 ironArmorSkill:addEffect(fk.TargetConfirming, {
   anim_type = "defensive",

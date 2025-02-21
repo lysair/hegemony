@@ -837,7 +837,7 @@ H.transformGeneral = function(room, player, isMain, isHidden, num)
   local generals = room:findGenerals(function(g)
     return Fk.generals[g].kingdom == kingdom or Fk.generals[g].subkingdom== kingdom
   end, num)
-  local general = room:askForGeneral(player, generals, 1, true) ---@type string
+  local general = room:askToChooseGeneral(player, {generals = generals, n = 1, no_convert = true})
   table.removeOne(generals, general)
   table.insert(generals, orig)
   room:returnToGeneralPile(generals)
@@ -926,7 +926,8 @@ end
 ---@param number? integer @ 数量，默认为1
 H.addHegMark = function(room, player, markName, number)
   if not number then number = 1 end
-  if markName == "vanguard" then
+  -- TODO: 恢复！
+  --[[ if markName == "vanguard" then
     room:addPlayerMark(player, "@!vanguard", number)
     player:addFakeSkill("vanguard_skill&")
   elseif markName == "yinyangfish" then
@@ -942,7 +943,7 @@ H.addHegMark = function(room, player, markName, number)
     player:addFakeSkill("wild_draw&")
     player:addFakeSkill("wild_peach&")
     player:prelightSkill("wild_draw&", true)
-  end
+  end ]]
 end
 
 -- 合纵

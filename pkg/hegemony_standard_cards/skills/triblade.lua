@@ -13,10 +13,13 @@ tribladeSkill:addEffect(fk.Damage, {
     local targets = table.filter(room.alive_players, function(p)
       return data.to:distanceTo(p) == 1 and p ~= player end)
     if #targets == 0 then return false end
-    local to, card = room:askToChooseCardAndPlayers(player, {targets = targets, min_num = 1, max_num = 1, skill_name = "triblade",
-      pattern = ".|.|.|hand", prompt = "#triblade-invoke::"..data.to.id, cancelable = true}) -- discard!
+    local cards = table.filter(player:getCardIds(Player.Hand), function (id)
+      return not player:prohibitDiscard(id)
+    end)
+    local to, card = room:askToChooseCardsAndPlayers(player, {targets = targets, min_num = 1, max_num = 1, skill_name = "triblade",
+      pattern = tostring(Exppattern{ id = cards }), min_card_num = 1, max_card_num = 1, prompt = "#triblade-invoke::"..data.to.id, cancelable = true})
     if #to > 0 then
-      event:setCostData(self, { tos = to, cards = {card} })
+      event:setCostData(self, { tos = to, cards = card })
       return true
     end
   end,
@@ -35,29 +38,39 @@ tribladeSkill:addEffect(fk.Damage, {
 
 tribladeSkill:addTest(function(room, me)
   local card = room:printCard("triblade")
-  local comp2 = room.players[2]
+  local chitu = room:printCard("chitu")
+  local comp2, comp3 = room.players[2], room.players[3]
 
+  FkTest.setNextReplies(me, { json.encode {
+    card = { skill = "choose_players_skill", subcards = {1} },
+    targets = { comp3.id }
+  } })
+  FkTest.setNextReplies(comp2, { "__cancel" })
+  FkTest.setRoomBreakpoint(me, "AskForUseActiveSkill") -- 断点
   FkTest.runInRoom(function()
-    room:obtainCard(me, 1)
+    room:obtainCard(me, {1})
+    room:useCard {
+      from = me,
+      tos = { me },
+      card = chitu,
+    }
     room:useCard {
       from = me,
       tos = { me },
       card = card,
     }
-    --[[
-    FkTest.setNextReplies(me, {
-      json.encode {
-        card = { subcards = {"1"} }, targets = { tostring(room.players[3].id) }
-      },--,skill = "choose_players_skill"
-    })
-    --]]
-    FkTest.setNextReplies(comp2, { "__cancel" })
     room:useCard {
       from = me,
       tos = { comp2 },
       card = Fk:cloneCard("slash"),
     }
   end)
+  local handler = ClientInstance.current_request_handler --[[@as ReqActiveSkill]]
+  lu.assertIsTrue(handler:cardValidity(1)) -- 可以手牌
+  lu.assertEvalToFalse(handler:cardValidity(chitu.id)) -- 不能装备区的牌
+  FkTest.resumeRoom()
+  lu.assertEquals(comp3.hp, 3)
+  lu.assertIsTrue(me:isKongcheng())
 end)
 
 Fk:loadTranslationTable{

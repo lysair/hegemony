@@ -180,10 +180,6 @@ end
 
 function HegLogic:attachSkillToPlayers()
   local room = self.room
-  local players = room.players
-
-  room:handleAddLoseSkills(players[1], "#_heg_invalid", nil, false, true)
-
   for _, p in ipairs(room.alive_players) do
     -- UI
     p:setMark("@seat", "seat#" .. tostring(p.seat))
@@ -235,12 +231,6 @@ local heg_getLogic = function()
   end
   return h
 end
-
-local heg_invalid = fk.CreateInvaliditySkill{
-  name = "#_heg_invalid",
-  invalidity_func = function(self, player, skill)
-  end,
-}
 
 heg = fk.CreateGameMode{
   name = "nos_heg_mode",

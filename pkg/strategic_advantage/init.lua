@@ -88,35 +88,6 @@ local lureTiger = fk.CreateCard{
   multiple_targets = true,
 }
 
-local lureTigerProhibit = fk.CreateProhibitSkill{
-  name = "#lure_tiger_prohibit",
-  -- global = true,
-  prohibit_use = function(self, player, card)
-    return player:getMark("@@lure_tiger-turn") ~= 0 -- TODO: kill
-  end,
-  is_prohibited = function(self, from, to, card)
-    return to:getMark("@@lure_tiger-turn") ~= 0
-  end,
-}
-local lureTigerHp = fk.CreateTriggerSkill{
-  name = "#lure_tiger_hp",
-  -- global = true,
-  refresh_events = {fk.PreHpRecover, fk.PreHpLost, fk.DamageInflicted},
-  can_refresh = function(self, event, target, player, data)
-    return target == player and player:getMark("@@lure_tiger-turn") ~= 0
-  end,
-  on_refresh = function(self, event, target, player, data)
-    if event == fk.DamageInflicted then
-      data.damage = 0
-    else
-      data.num = 0
-    end
-    return true
-  end,
-}
-Fk:addSkill(lureTigerProhibit)
-Fk:addSkill(lureTigerHp)
-
 H.addAllianceCardSpec(extension, "lure_tiger", Card.Heart, 2)
 H.addAllianceCardSpec(extension, "lure_tiger", Card.Diamond, 10)
 

@@ -19,6 +19,49 @@ lureTigerSkill:addEffect("active", {
     room.logic:trigger("fk.RemoveStateChanged", target, nil) -- FIXME
   end,
 })
+lureTigerSkill:addEffect('prohibit', {
+  name = "#lure_tiger_prohibit",
+  global = true,
+  prohibit_use = function(self, player, card)
+    return player:getMark("@@lure_tiger-turn") ~= 0 -- TODO: kill
+  end,
+  is_prohibited = function(self, from, to, card)
+    return to:getMark("@@lure_tiger-turn") ~= 0
+  end,
+})
+lureTigerSkill:addEffect(fk.PreHpRecover, {
+  name = "#lure_tiger_hp",
+  global = true,
+  can_refresh = function(self, event, target, player, data)
+    return target == player and player:getMark("@@lure_tiger-turn") ~= 0
+  end,
+  on_refresh = function(self, event, target, player, data)
+    data.num = 0
+    return true
+  end,
+})
+lureTigerSkill:addEffect(fk.PreHpLost, {
+  name = "#lure_tiger_hp",
+  global = true,
+  can_refresh = function(self, event, target, player, data)
+    return target == player and player:getMark("@@lure_tiger-turn") ~= 0
+  end,
+  on_refresh = function(self, event, target, player, data)
+    data.num = 0
+    return true
+  end,
+})
+lureTigerSkill:addEffect(fk.DamageInflicted, {
+  name = "#lure_tiger_hp",
+  global = true,
+  can_refresh = function(self, event, target, player, data)
+    return target == player and player:getMark("@@lure_tiger-turn") ~= 0
+  end,
+  on_refresh = function(self, event, target, player, data)
+    data.damage = 0
+    return true
+  end,
+})
 
 lureTigerSkill:addTest(function(room, me)
   local card = room:printCard("lure_tiger")

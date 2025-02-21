@@ -26,7 +26,7 @@ Fk:loadTranslationTable(require 'packages/hegemony/i18n/en_US', 'en_US')
 return {
   hegemony_standard,
   formation,
-  momentum,
+  -- momentum,
   --[[
   transformation,
   power,

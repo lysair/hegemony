@@ -5,130 +5,24 @@ extension.game_modes_whitelist = { 'nos_heg_mode', 'new_heg_mode' }
 local H = require "packages/hegemony/util"
 local U = require "packages/utility/utility"
 
+extension:loadSkillSkels(require("packages.hegemony.pkg.formation.skills"))
+
 Fk:loadTranslationTable{
   ["formation"] = "君临天下·阵",
   ["ld"] = "君临",
 }
 
-local dengai = General(extension, "ld__dengai", "wei", 4)
+local dengai = General:new(extension, "ld__dengai", "wei", 4)
 dengai.mainMaxHpAdjustedValue = -1
-local tuntian = fk.CreateTriggerSkill{
-  name = "ld__tuntian",
-  anim_type = "special",
-  derived_piles = "ld__dengai_field",
-  events = {fk.AfterCardsMove},
-  can_trigger = function(self, event, target, player, data)
-    if not (player:hasSkill(self) and player.phase == Player.NotActive) then return end
-    for _, move in ipairs(data) do
-      if move.from == player.id then
-        for _, info in ipairs(move.moveInfo) do
-          if info.fromArea == Card.PlayerHand or info.fromArea == Card.PlayerEquip then
-            return true
-          end
-        end
-      end
-    end
-  end,
-  on_use = function(self, event, target, player, data)
-    local room = player.room
-    local judge = {
-      who = player,
-      reason = self.name,
-      pattern = ".|.|spade,club,diamond",
-    }
-    room:judge(judge)
-    if judge.card.suit ~= Card.Heart and room:getCardArea(judge.card.id) == Card.DiscardPile and not player.dead and
-      room:askForSkillInvoke(player, self.name, nil, "ld__tuntian_field:::" .. judge.card:toLogString()) then
-      player:addToPile("ld__dengai_field", judge.card, true, self.name)
-    end
-  end,
-}
-local tuntian_distance = fk.CreateDistanceSkill{
-  name = "#ld__tuntian_distance",
-  correct_func = function(self, from, to)
-    if from:hasSkill(self) then
-      return -#from:getPile("ld__dengai_field")
-    end
-  end,
-}
-tuntian:addRelatedSkill(tuntian_distance)
-
-local jixi = fk.CreateViewAsSkill{
-  name = "ld__jixi",
-  anim_type = "control",
-  pattern = "snatch",
-  relate_to_place = "m",
-  expand_pile = "ld__dengai_field",
-  enabled_at_play = function(self, player)
-    return #player:getPile("ld__dengai_field") > 0
-  end,
-  enabled_at_response = function(self, player)
-    return #player:getPile("ld__dengai_field") > 0
-  end,
-  card_filter = function(self, to_select, selected)
-    return #selected == 0 and Self:getPileNameOfId(to_select) == "ld__dengai_field"
-  end,
-  view_as = function(self, cards)
-    if #cards ~= 1 then
-      return nil
-    end
-    local c = Fk:cloneCard("snatch")
-    c.skillName = self.name
-    c:addSubcard(cards[1])
-    return c
-  end,
-}
-
-local ziliang = fk.CreateTriggerSkill{
-  name = "ziliang",
-  anim_type = "support",
-  relate_to_place = "d",
-  events = {fk.Damaged},
-  can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self) and H.compareKingdomWith(player, target) and not target.dead and #player:getPile("ld__dengai_field") > 0
-  end,
-  on_cost = function(self, event, target, player, data)
-    local card = player.room:askForCard(player, 1, 1, false, self.name, true, ".|.|.|ld__dengai_field", "#ziliang-card::" .. target.id, "ld__dengai_field")
-    if #card > 0 then
-      self.cost_data = card
-      return true
-    end
-  end,
-  on_use = function(self, event, target, player, data)
-    player.room:moveCardTo(self.cost_data, Card.PlayerHand, target, fk.ReasonGive, self.name, "ld__dengai_field", true, player.id)
-  end,
-}
-
-dengai:addSkill(tuntian)
-dengai:addSkill(jixi)
-dengai:addSkill(ziliang)
-
+dengai:addSkills{"ld__tuntian", "ld__jixi", "ziliang"}
 Fk:loadTranslationTable{
   ["ld__dengai"] = "邓艾",
   ["#ld__dengai"] = "矫然的壮士",
   ["designer:ld__dengai"] = "KayaK（淬毒）",
   ["illustrator:ld__dengai"] = "Amo",
-
-  ["ld__tuntian"] = "屯田",
-  [":ld__tuntian"] = "当你于回合外失去牌后，你可判定：若结果不为<font color='red'>♥</font>，你可将弃牌堆里的此判定牌置于武将牌上（称为“田”）。你至其他角色的距离-X（X为“田”数）。",
-  ["ld__jixi"] = "急袭",
-  [":ld__jixi"] = "主将技，此武将牌上的单独阴阳鱼个数-1。你可将一张“田”当【顺手牵羊】使用。",
-  ["ziliang"] = "资粮",
-  [":ziliang"] = "副将技，当与你势力相同的角色受到伤害后，你可将一张“田”交给其。",
-
-  ["ld__dengai_field"] = "田",
-  ["ld__tuntian_field"] = "屯田：将%arg置于武将牌上（称为“田”）",
-  ["#ziliang-card"] = "资粮：你可将一张“田”交给 %dest",
-
-  ["$ld__tuntian1"] = "留得良田在，何愁不破敌？",
-  ["$ld__tuntian2"] = "击鼓于此，以致四方。",
-  ["$ziliang1"] = "兵，断不可无粮啊。",
-  ["$ziliang2"] = "吃饱了，才有力气为国效力。",
-  ["$ld__jixi1"] = "谁占到先机，谁就胜了。",
-  ["$ld__jixi2"] = "哪里走！！",
   ["~ld__dengai"] = "君不知臣，臣不知君。罢了……罢了！",
 }
-
+--[[
 local caohong = General(extension, "ld__caohong", "wei", 4)
 
 local heyi = H.CreateArraySummonSkill{
@@ -931,8 +825,8 @@ Fk:loadTranslationTable{
   ["#dragon_phoenix-dying"] = "飞龙夺凤：你可获得 %dest 一张手牌",
   ["#dragon_phoenix-invoke"] = "受到“飞龙夺凤”影响，你需弃置一张牌",
 }
-
+--]]
 return {
   extension,
-  extension_card,
+  -- extension_card,
 }

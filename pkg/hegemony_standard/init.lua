@@ -188,7 +188,7 @@ Fk:loadTranslationTable{
 }
 
 local zhaoyun = General(extension, "hs__zhaoyun", "shu", 4)
-
+--[[
 local longdan = fk.CreateViewAsSkill{
   name = "hs__longdan",
   pattern = "slash,jink",
@@ -2678,5 +2678,5 @@ Fk:loadTranslationTable{
   ["_heg__BattleRoyalMode_ignore"] = "无视鏖战",
 
 }
-
+--]]
 return extension

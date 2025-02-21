@@ -8,11 +8,10 @@ local H = require "packages/hegemony/util"
 sixSwordsSkill:addEffect("atkrange", {
   correct_func = function (self, from, to)
     if from.kingdom ~= "unknown" then
-      if table.find(Fk:currentRoom().alive_players, function(p)
+      local num = table.filter(Fk:currentRoom().alive_players, function(p)
         return from ~= p and H.compareKingdomWith(from, p) and
-          table.find(p:getEquipments(Card.SubtypeWeapon), function(c) return Fk:getCardById(c).name == "six_swords" end) end) then
-        return 1
-      end
+          table.find(p:getEquipments(Card.SubtypeWeapon), function(c) return Fk:getCardById(c).name == "six_swords" end) end)
+      return #num
     end
     return 0
   end,
@@ -32,6 +31,10 @@ sixSwordsSkill:addTest(function (room, me)
       }
     end)
     lu.assertEquals(me:getAttackRange(), 2)
+    for _, _p in ipairs(room.players) do
+      p{_p.general, _p:getAttackRange()}
+    end
+    print(me:hasSkill(sixSwordsSkill.name))
     lu.assertEquals(tar:getAttackRange(), 2)
   end
 end)

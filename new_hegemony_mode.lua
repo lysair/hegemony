@@ -393,7 +393,7 @@ function HegLogic:prepareDrawPile()
 end
 
 local function addHegSkill(player, skill, room)
-  if skill.frequency == Skill.Compulsory then
+  if skill:hasTag(Skill.Compulsory) then
     player:addFakeSkill("reveal_skill&")
   end
   player:addFakeSkill(skill)
@@ -408,10 +408,6 @@ end
 
 function HegLogic:attachSkillToPlayers()
   local room = self.room
-  local players = room.players
-
-  room:handleAddLoseSkills(players[1], "#_heg_invalid", nil, false, true)
-
   for _, p in ipairs(room.alive_players) do
     -- UI
     p:setMark("@seat", "seat#" .. tostring(p.seat))
@@ -420,7 +416,7 @@ function HegLogic:attachSkillToPlayers()
     local general = Fk.generals[p:getMark("__heg_general")]
     local skills = table.connect(general.skills, table.map(general.other_skills, Util.Name2SkillMapper))
     for _, s in ipairs(skills) do
-      if s.relate_to_place ~= "d" then
+      if not s:hasTag(Skill.DeputyPlace) then
         addHegSkill(p, s, room)
       end
     end
@@ -429,7 +425,7 @@ function HegLogic:attachSkillToPlayers()
     if deputy then
       skills = table.connect(deputy.skills, table.map(deputy.other_skills, Util.Name2SkillMapper))
       for _, s in ipairs(skills) do
-        if s.relate_to_place ~= "m" then
+        if not s:hasTag(Skill.MainPlace) then
           addHegSkill(p, s, room)
         end
       end
@@ -463,12 +459,6 @@ local heg_getLogic = function()
   end
   return h
 end
-
-local heg_invalid = fk.CreateInvaliditySkill{
-  name = "#_heg_invalid",
-  invalidity_func = function(self, player, skill)
-  end,
-}
 
 heg = fk.CreateGameMode{
   name = "new_heg_mode",

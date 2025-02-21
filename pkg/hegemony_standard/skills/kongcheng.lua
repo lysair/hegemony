@@ -10,8 +10,7 @@ kongcheng:addEffect(fk.TargetConfirming, {
     return target == player and player:hasSkill(kongcheng.name) and player:isKongcheng() and (data.card.trueName == "slash" or data.card.name == "duel")
   end,
   on_use = function(self, event, target, player, data)
-    AimData:cancelTarget(player)
-    -- return true
+    data:cancelTarget(player)
   end
 })
 
