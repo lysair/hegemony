@@ -93,11 +93,7 @@ shensu:addTest(function (room, me)
     targets = { comp3.id }
   } })
   FkTest.runInRoom(function ()
-    local data = { ---@type TurnDataSpec
-      who = me,
-      reason = "game_rule",
-    }
-    GameEvent.Turn:create(TurnData:new(data)):exec()
+    GameEvent.Turn:create(TurnData:new(me, "game_rule")):exec()
   end)
   local handler = ClientInstance.current_request_handler --[[@as ReqActiveSkill]]
   lu.assertIsTrue(handler:targetValidity(comp3.id))

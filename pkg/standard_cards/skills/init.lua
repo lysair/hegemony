@@ -1,4 +1,4 @@
-local prefix = "packages.hegemony.pkg.hegemony_standard_cards.skills."
+local prefix = "packages.hegemony.pkg.standard_cards.skills."
 
 return {
   require(prefix .. "befriend_attacking"),

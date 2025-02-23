@@ -186,12 +186,7 @@ imperialOrderSkill:addTest(function(room, me)
     room:setPlayerProperty(comp2, "kingdom", "unknown")
     room:obtainCard(me, card)
     room:throwCard(card, "", me, me)
-    local data = { ---@type TurnDataSpec
-      who = me,
-      reason = "game_rule",
-      phase_table = { Player.Finish }
-    }
-    GameEvent.Turn:create(TurnData:new(data)):exec()
+    GameEvent.Turn:create(TurnData:new(me, "game_rule", { Player.Finish })):exec()
   end)
   lu.assertEquals(comp2.general, "sunquan")
   lu.assertEquals(comp2:getHandcardNum(), 3)

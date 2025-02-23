@@ -1,7 +1,7 @@
 local bladeSkill = fk.CreateSkill{
   name = "#sa__blade_skill",
   attached_equip = "sa__blade",
-  frequency = Skill.Compulsory,
+  tags = { Skill.Compulsory },
 }
 bladeSkill:addEffect(fk.CardUsing, {
   anim_type = "offensive",

@@ -32,39 +32,43 @@ luoyi:addTest(function(room, me)
     room:handleAddLoseSkills(me, luoyi.name)
   end)
   local slash = Fk:getCardById(1)
+  local duel = room:printCard("duel")
   FkTest.setNextReplies(me, { "1", json.encode {
-    card = { skill = "discard_skill", subcards = { 2 } },
+    card = { skill = "discard_skill", subcards = { 36 } },
     targets = {}
   } , json.encode {
     card = 1,
     targets = { comp2.id }
+  } , json.encode {
+    card = duel.id,
+    targets = { comp2.id }
   } })
-  FkTest.setNextReplies(comp2, { "__cancel" })
+  FkTest.setNextReplies(comp2, { "__cancel", "__cancel" })
 
-  local origin_hp = comp2.hp
   FkTest.runInRoom(function()
-    room:obtainCard(me, 2)
+    room:obtainCard(me, 36)
     room:obtainCard(me, 1)
-    local data = { ---@type TurnDataSpec
-      who = me,
-      reason = "game_rule",
+    room:obtainCard(me, duel)
+    room:changeMaxHp(comp2, 4)
+    room:recover{
+      who = comp2,
+      num = 4,
     }
-    GameEvent.Turn:create(TurnData:new(data)):exec()
+    GameEvent.Turn:create(TurnData:new(me, "game_rule")):exec()
   end)
-  -- p(me:getCardIds("h"))
   lu.assertEquals(#me:getCardIds("h"), 2)
-  lu.assertEquals(comp2.hp, origin_hp - 2)
+  lu.assertEquals(comp2.hp, 4)
 
   -- 测持续时间
-  origin_hp = comp2.hp
+  FkTest.setNextReplies(me, { "__cancel", json.encode {
+    card = 1,
+    targets = { comp2.id }
+  } })
   FkTest.runInRoom(function()
-    room:useCard{
-      from = me,
-      tos = { comp2 },
-      card = slash,
-    }
+    room:obtainCard(me, 1)
+    GameEvent.Turn:create(TurnData:new(me, "game_rule")):exec()
   end)
-  lu.assertEquals(comp2.hp, origin_hp - 1)
+  lu.assertEquals(comp2.hp, 3)
 end)
 
 Fk:loadTranslationTable{

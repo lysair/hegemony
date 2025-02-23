@@ -87,12 +87,7 @@ lureTigerSkill:addTest(function(room, me)
 
   -- 回合后
   FkTest.runInRoom(function()
-    local data = { ---@type TurnDataSpec
-      who = me,
-      reason = "game_rule",
-      phase_table = { Player.Finish }
-    }
-    GameEvent.Turn:create(TurnData:new(data)):exec()
+    GameEvent.Turn:create(TurnData:new(me, "game_rule", { Player.Finish })):exec()
   end)
   lu.assertIs(me:getNextAlive(), comp2)
   lu.assertEquals(me:distanceTo(comp3), 2)

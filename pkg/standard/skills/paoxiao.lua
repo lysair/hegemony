@@ -14,13 +14,11 @@ paoxiao:addEffect('targetmod', {
 paoxiao:addEffect(fk.CardUsing, {
   name = "#hs__paoxiaoTrigger",
   anim_type = "offensive",
-  visible = false,
-  frequency = Skill.Compulsory,
   can_trigger = function(self, event, target, player, data)
     if target ~= player or not player:hasSkill(paoxiao.name) or data.card.trueName ~= "slash" then return false end
     local events = player.room.logic:getEventsOfScope(GameEvent.UseCard, 2, function(e)
-      local use = e.data[1]
-      return use.from == player.id and use.card.trueName == "slash"
+      local use = e.data
+      return use.from == player and use.card.trueName == "slash"
     end, Player.HistoryTurn)
     return #events == 2 and events[2].id == player.room.logic:getCurrentEvent().id
   end,
@@ -30,7 +28,8 @@ paoxiao:addEffect(fk.CardUsing, {
 })
 paoxiao:addEffect(fk.CardUsing, {
   can_refresh = function(self, event, target, player, data)
-    return player == target and player:hasSkill(paoxiao.name) and data.card.trueName == "slash" and player:usedCardTimes("slash") > 1
+    return player == target and player:hasSkill(paoxiao.name) and data.card.trueName == "slash"
+      and not data.extraUse and player:usedCardTimes("slash", Player.HistoryPhase) > 1
   end,
   on_refresh = function(self, event, target, player, data)
     local room = player.room
@@ -49,24 +48,7 @@ paoxiao:addEffect(fk.TargetSpecified, {
       and H.getHegLord(room, player) and H.getHegLord(room, player):hasSkill("shouyue") and data.to:isAlive()
   end,
   on_refresh = function (self, event, target, player, data)
-    player.room:addPlayerMark(data.to, fk.MarkArmorNullified)
-    data.extra_data = data.extra_data or {}
-    data.extra_data.hsPaoxiaoNullifiled = data.extra_data.hsPaoxiaoNullifiled or {}
-    data.extra_data.hsPaoxiaoNullifiled[tostring(data.to.id)] = (data.extra_data.hsPaoxiaoNullifiled[tostring(data.to.id)] or 0) + 1
-  end,
-})
-paoxiao:addEffect(fk.CardUseFinished, {
-  can_refresh = function (self, event, target, player, data)
-    return player == target and (data.extra_data or {}).hsPaoxiaoNullifiled
-  end,
-  on_refresh = function (self, event, target, player, data)
-    for key, num in pairs(data.extra_data.hsPaoxiaoNullifiled) do
-      local p = player.room:getPlayerById(tonumber(key))
-      if p:getMark(fk.MarkArmorNullified) > 0 then
-        player.room:removePlayerMark(p, fk.MarkArmorNullified, num)
-      end
-    end
-    data.hsPaoxiaoNullifiled = nil
+    data.to:addQinggangTag(data)
   end,
 })
 

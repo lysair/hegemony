@@ -7,10 +7,7 @@ extension:addGameMode(heg_mode)
 local nos_heg = require "packages.hegemony.nos_hegemony_mode"
 extension:addGameMode(nos_heg)
 
-extension:loadSkillSkels(require("packages.hegemony.pkg.hegemony_standard.skills"))
-
---local nos_heg_mode = require "packages.hegemony.nos_hegemony"
---extension:addGameMode(nos_heg_mode)
+extension:loadSkillSkels(require("packages.hegemony.pkg.standard.skills"))
 
 local H = require "packages/hegemony/util"
 
@@ -188,134 +185,16 @@ Fk:loadTranslationTable{
 }
 
 local zhaoyun = General(extension, "hs__zhaoyun", "shu", 4)
---[[
-local longdan = fk.CreateViewAsSkill{
-  name = "hs__longdan",
-  pattern = "slash,jink",
-  card_filter = function(self, to_select, selected)
-    if #selected == 1 then return false end
-    local _c = Fk:getCardById(to_select)
-    local c
-    if _c.trueName == "slash" then
-      c = Fk:cloneCard("jink")
-    elseif _c.name == "jink" then
-      c = Fk:cloneCard("slash")
-    else
-      return false
-    end
-    return (Fk.currentResponsePattern == nil and Self:canUse(c)) or (Fk.currentResponsePattern and Exppattern:Parse(Fk.currentResponsePattern):match(c))
-  end,
-  view_as = function(self, cards)
-    if #cards ~= 1 then
-      return nil
-    end
-    local _c = Fk:getCardById(cards[1])
-    local c
-    if _c.trueName == "slash" then
-      c = Fk:cloneCard("jink")
-    elseif _c.name == "jink" then
-      c = Fk:cloneCard("slash")
-    end
-    c.skillName = self.name
-    c:addSubcard(cards[1])
-    return c
-  end,
-}
-local longdan_after = fk.CreateTriggerSkill{
-  name = "#longdan_after",
-  anim_type = "offensive",
-  visible = false,
-  events = {fk.CardEffectCancelledOut, fk.CardUsing, fk.CardResponding},
-  can_trigger = function(self, event, target, player, data)
-    if event == fk.CardEffectCancelledOut then
-      if data.card.trueName ~= "slash" then return false end
-      if target == player then -- 龙胆杀
-        return table.contains(data.card.skillNames, "hs__longdan")
-      elseif data.to == player.id then -- 龙胆闪
-        for _, card in ipairs(data.cardsResponded) do
-          if card.name == "jink" and table.contains(card.skillNames, "hs__longdan") then
-            return true
-          end
-        end
-      end
-    else
-      local room = player.room
-      return player == target and H.getHegLord(room, player) and table.contains(data.card.skillNames, "hs__longdan") and H.getHegLord(room, player):hasSkill("shouyue")
-    end
-  end,
-  on_cost = function(self, event, target, player, data)
-    local room = player.room
-    if event == fk.CardEffectCancelledOut then
-      if target == player then
-        local targets = table.map(room:getOtherPlayers(room:getPlayerById(data.to)), Util.IdMapper)
-        if #targets == 0 then return false end
-        local target = room:askForChoosePlayers(player, targets, 1, 1, "#longdan_slash-ask::" .. data.to, self.name, true)
-        if #target > 0 then
-          self.cost_data = target[1]
-          return true
-        end
-        return false
-      else
-        local targets = table.map(table.filter(room:getOtherPlayers(target), function(p) return
-          p ~= player and p:isWounded()
-        end), Util.IdMapper)
-        if #targets == 0 then return false end
-        local target = room:askForChoosePlayers(player, targets, 1, 1, "#longdan_jink-ask::" .. target.id , self.name, true)
-        if #target > 0 then
-          self.cost_data = target[1]
-          return true
-        end
-      end
-    else
-      return true
-    end
-  end,
-  on_use = function(self, event, target, player, data)
-    local room = player.room
-    local to = room:getPlayerById(self.cost_data)
-    if event == fk.CardEffectCancelledOut then
-      if target == player then
-        room:damage{
-          from = player,
-          to = to,
-          damage = 1,
-          skillName = self.name,
-        }
-      else
-        room:recover({
-          who = to,
-          num = 1,
-          recoverBy = player,
-          skillName = self.name,
-        })
-      end
-    else
-      player:drawCards(1, self.name)
-    end
-  end,
-}
-
-longdan:addRelatedSkill(longdan_after)
-zhaoyun:addSkill(longdan)
+zhaoyun:addSkill("hs__longdan")
 zhaoyun:addCompanions("hs__liushan")
 
 Fk:loadTranslationTable{
   ["hs__zhaoyun"] = "赵云",
   ["#hs__zhaoyun"] = "虎威将军",
   ["illustrator:hs__zhaoyun"] = "DH",
-
-  ["hs__longdan"] = "龙胆",
-  [":hs__longdan"] = "①你可将【闪】当【杀】使用或打出，当此【杀】被一名角色使用的【闪】抵消后，你可对另一名角色造成1点伤害。②你可将【杀】当【闪】使用或打出，当一名角色使用的【杀】被此【闪】抵消后，你可令另一名其他角色回复1点体力。",
-
-  ["#longdan_after"] = "龙胆",
-  ["#longdan_slash-ask"] = "龙胆：你可对 %dest 以外的一名角色造成1点伤害",
-  ["#longdan_jink-ask"] = "龙胆：你可令 %dest 以外的一名其他角色回复1点体力",
-
-  ["$hs__longdan1"] = "能进能退，乃真正法器！",
-  ["$hs__longdan2"] = "吾乃常山赵子龙也！",
   ["~hs__zhaoyun"] = "这，就是失败的滋味吗？",
 }
-
+--[[
 local machao = General(extension, "hs__machao", "shu", 4)
 local tieqi = fk.CreateTriggerSkill{
   name = "hs__tieqi",
@@ -637,58 +516,19 @@ Fk:loadTranslationTable{
   ["$hs__shushen2"] = "妾身无恙，相公请安心征战。",
   ["~hs__ganfuren"] = "请替我照顾好阿斗……",
 }
-
-local sunquan = General(extension, "hs__sunquan", "wu", 4)
-
-local zhiheng = fk.CreateActiveSkill{
-  name = "hs__zhiheng",
-  anim_type = "drawcard",
-  can_use = function(self, player)
-    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
-  end,
-  target_num = 0,
-  min_card_num = 1,
-  max_card_num = function()
-    return table.find(Self:getEquipments(Card.SubtypeTreasure), function(cid)
-      return Fk:getCardById(cid).name == "luminous_pearl"
-    end) and 998 or Self.maxHp
-  end,
-  card_filter = function(self, to_select, selected)
-    if #selected >= Self.maxHp then
-      return table.find(Self:getEquipments(Card.SubtypeTreasure), function(cid)
-        return Fk:getCardById(cid).name == "luminous_pearl" and not table.contains(selected, cid) and to_select ~= cid
-      end)
-    end
-    return #selected < Self.maxHp and not Self:prohibitDiscard(Fk:getCardById(to_select))
-  end,
-  on_use = function(self, room, effect)
-    local from = room:getPlayerById(effect.from)
-    room:throwCard(effect.cards, self.name, from, from)
-    if not from.dead then
-      from:drawCards(#effect.cards, self.name)
-    end
-  end
-}
-
-sunquan:addSkill(zhiheng)
+--]]
+local sunquan = General:new(extension, "hs__sunquan", "wu", 4)
+sunquan:addSkill("hs__zhiheng")
 sunquan:addCompanions("hs__zhoutai")
 
 Fk:loadTranslationTable{
   ["hs__sunquan"] = "孙权",
   ["#hs__sunquan"] = "年轻的贤君",
   ["illustrator:hs__sunquan"] = "KayaK",
-
-  ["hs__zhiheng"] = "制衡",
-  [":hs__zhiheng"] = "出牌阶段限一次，你可弃置至多X张牌（X为你的体力上限），然后你摸等量的牌。",
-
-  ["$hs__zhiheng1"] = "容我三思。",
-  ["$hs__zhiheng2"] = "且慢。",
   ["~hs__sunquan"] = "父亲，大哥，仲谋愧矣……",
 }
 
-local ganning = General(extension, "hs__ganning", "wu", 4)
-
-ganning:addSkill("qixi")
+General:new(extension, "hs__ganning", "wu", 4):addSkill("qixi")
 
 Fk:loadTranslationTable{
   ["hs__ganning"] = "甘宁",
@@ -696,7 +536,7 @@ Fk:loadTranslationTable{
   ["illustrator:hs__ganning"] = "KayaK",
   ["~hs__ganning"] = "二十年后，又是一条好汉！",
 }
-
+--[[
 local lvmeng = General(extension, "hs__lvmeng", "wu", 4)
 
 local keji = fk.CreateTriggerSkill{

@@ -1,6 +1,6 @@
 local prefix = "packages.hegemony.pkg."
 
-local hegemony_standard = require(prefix .. "hegemony_standard")
+local hegemony_standard = require(prefix .. "standard")
 local formation = require(prefix .. "formation")[1]
 local momentum = require(prefix .. "momentum")[1]
 --[[
@@ -12,7 +12,7 @@ local offline = require "packages/hegemony/offline_heg"
 local ex = require "packages/hegemony/lord_ex"
 --]]
 
-local hegemony_cards = require(prefix .. "hegemony_standard_cards")
+local hegemony_cards = require(prefix .. "standard_cards")
 local strategic_advantage = require(prefix .. "strategic_advantage")
 --[[
 local formation_cards = require "packages/hegemony/formation"[2]

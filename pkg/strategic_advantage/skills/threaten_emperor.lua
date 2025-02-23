@@ -64,12 +64,7 @@ threatenEmperorSkill:addTest(function (room, me)
       "", "1",
     })
     FkTest.runInRoom(function()
-      local data = { ---@type TurnDataSpec
-        who = comp,
-        reason = "game_rule",
-        phase_table = { Player.Play, Player.Discard },
-      }
-      GameEvent.Turn:create(TurnData:new(data)):exec()
+      GameEvent.Turn:create(TurnData:new(me, "game_rule", { Player.Play, Player.Discard })):exec()
     end)
   end
 end)

@@ -69,12 +69,7 @@ jushou:addTest(function (room, me)
       card = halberd,
     }
     room:handleAddLoseSkills(me, jushou.name)
-    local data = { ---@type TurnDataSpec
-      who = me,
-      reason = "game_rule",
-      phase_table = { Player.Finish }
-    }
-    GameEvent.Turn:create(TurnData:new(data)):exec()
+    GameEvent.Turn:create(TurnData:new(me, "game_rule", { Player.Finish })):exec()
   end)
   local handler = ClientInstance.current_request_handler --[[@as ReqActiveSkill]]
   lu.assertIsFalse(handler:cardValidity(halberd.id)) -- 不能选装备区
@@ -97,12 +92,7 @@ jushou:addTest(function (room, me)
   } })
   FkTest.runInRoom(function ()
     if not me.faceup then me:turnOver() end
-    local data = { ---@type TurnDataSpec
-      who = me,
-      reason = "game_rule",
-      phase_table = { Player.Finish }
-    }
-    GameEvent.Turn:create(TurnData:new(data)):exec()
+    GameEvent.Turn:create(TurnData:new(me, "game_rule", { Player.Finish })):exec()
   end)
   lu.assertEquals(me:getHandcardNum(), 2 * num - 2)
   lu.assertEquals(#me:getCardIds(Player.Equip), 2)
