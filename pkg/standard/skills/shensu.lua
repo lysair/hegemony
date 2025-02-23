@@ -6,7 +6,7 @@ shensu:addEffect(fk.EventPhaseChanging, {
   can_trigger = function(self, event, target, player, data)
     if target == player and player:hasSkill(self) and not data.skipped then
       if data.phase == Player.Judge then
-        if player.skipped_phases[Player.Draw] then return end
+        if player:canSkip(Player.Draw) then return end
       elseif data.phase == Player.Play then
         if player:isNude() then return end
       elseif data.phase == Player.Discard then

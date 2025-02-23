@@ -143,6 +143,7 @@ Fk:loadTranslationTable{
   ["#hs__yuejin"] = "奋强突固",
   ["illustrator:hs__yuejin"] = "巴萨小马",
   ["desinger:hs__yuejin"] = "淬毒",
+  ["~hs__yuejin"] = "箭疮发作，吾命休矣。",
 }
 
 local liubei = General:new(extension, "hs__liubei", "shu", 4)
@@ -184,7 +185,7 @@ Fk:loadTranslationTable{
   ["~hs__zhugeliang"] = "将星陨落，天命难违。",
 }
 
-local zhaoyun = General(extension, "hs__zhaoyun", "shu", 4)
+local zhaoyun = General:new(extension, "hs__zhaoyun", "shu", 4)
 zhaoyun:addSkill("hs__longdan")
 zhaoyun:addCompanions("hs__liushan")
 
@@ -194,110 +195,18 @@ Fk:loadTranslationTable{
   ["illustrator:hs__zhaoyun"] = "DH",
   ["~hs__zhaoyun"] = "这，就是失败的滋味吗？",
 }
---[[
-local machao = General(extension, "hs__machao", "shu", 4)
-local tieqi = fk.CreateTriggerSkill{
-  name = "hs__tieqi",
-  anim_type = "offensive",
-  events = {fk.TargetSpecified},
-  can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self) and data.card.trueName == "slash"
-  end,
-  on_use = function(self, event, target, player, data)
-    local room = player.room
-    local to = room:getPlayerById(data.to)
-    local judge = {
-      who = player,
-      reason = self.name,
-      pattern = ".|.|spade,club,heart,diamond",
-    }
-    if player.dead then return end
-    local choices = {}
-    if to.general ~= "anjiang" then
-      table.insert(choices, to.general)
-    end
-    if to.deputyGeneral ~= "anjiang" then
-      table.insert(choices, to.deputyGeneral)
-    end
-    local all_choices = {to.general, to.deputyGeneral}
-    local disable_choices = table.filter(all_choices, function(g) return not table.contains(choices, g) end)
-    if #choices > 0 then
-      local choice
-      if H.getHegLord(room, player) and #choices > 1 and H.getHegLord(room, player):hasSkill("shouyue") then
-        choice = choices
-      else
-        local result = room:askForCustomDialog(player, self.name,
-        "packages/utility/qml/ChooseGeneralsAndChoiceBox.qml", {
-          all_choices,
-          {"OK"},
-          "#hs__tieqi-ask::" .. to.id,
-          {},
-          1,
-          1,
-          disable_choices
-        })
-        if result ~= "" then
-          local reply = json.decode(result)
-          choice = reply.cards
-        else
-          choice = table.random(choices, 1)
-        end
-      end
-      local record = to:getTableMark("@hs__tieqi-turn")
-      for _, c in ipairs(choice) do
-        table.insertIfNeed(record, c)
-        room:setPlayerMark(to, "@hs__tieqi-turn", record)
-        local mark = to:getTableMark("_hs__tieqi-turn")
-        for _, skill_name in ipairs(Fk.generals[c]:getSkillNameList()) do
-          if Fk.skills[skill_name].frequency ~= Skill.Compulsory then
-            table.insertIfNeed(mark, skill_name)
-          end
-        end
-        room:setPlayerMark(to, "_hs__tieqi-turn", mark)
-      end
-    end
-    room:judge(judge)
-    if judge.card.suit ~= nil then
-      local suits = {}
-      table.insert(suits, judge.card:getSuitString())
-      if #room:askForDiscard(to, 1, 1, true, self.name, true, ".|.|" .. table.concat(suits, ","), "#hs__tieqi-discard:::" .. judge.card:getSuitString()) == 0 then
-        data.disresponsive = true
-      end
-    end
-  end,
-}
-local tieqiInvalidity = fk.CreateInvaliditySkill {
-  name = "#hs__tieqi_invalidity",
-  invalidity_func = function(self, from, skill)
-    if from:getMark("_hs__tieqi-turn") ~= 0 then
-      return table.contains(from:getMark("_hs__tieqi-turn"), skill.name) and
-      (skill.frequency ~= Skill.Compulsory and skill.frequency ~= Skill.Wake) and not skill.name:endsWith("&")
-    end
-  end
-}
-tieqi:addRelatedSkill(tieqiInvalidity)
-machao:addSkill("mashu")
-machao:addSkill(tieqi)
+
+General:new(extension, "hs__machao", "shu", 4):addSkills{"mashu", "hs__tieqi"}
 Fk:loadTranslationTable{
   ["hs__machao"] = "马超",
   ["#hs__machao"] = "一骑当千",
   ["illustrator:hs__machao"] = "KayaK&木美人&张帅",
-
-  ["hs__tieqi"] = "铁骑",
-  [":hs__tieqi"] = "当你使用【杀】指定目标后，你可判定，令其本回合一张明置的武将牌非锁定技失效，其需弃置一张与判定结果花色相同的牌，否则其不能使用【闪】抵消此【杀】。",
-  ["@hs__tieqi-turn"] = "铁骑",
-  ["#hs__tieqi-ask"] = "铁骑：令 %dest 一张武将牌上的非锁定技此回合失效",
-  ["#hs__tieqi-discard"] = "铁骑：你需弃置一张%arg牌，否则不能使用【闪】抵消此【杀】。",
-  ["$hs__tieqi1"] = "目标敌阵，全军突击！",
-  ["$hs__tieqi2"] = "敌人阵型已乱，随我杀！",
   ["~hs__machao"] = "请将我，葬在西凉……",
 }
 
-local huangyueying = General(extension, "hs__huangyueying", "shu", 3, 3, General.Female)
-huangyueying:addSkill("jizhi")
-huangyueying:addSkill("qicai")
+local huangyueying = General:new(extension, "hs__huangyueying", "shu", 3, 3, General.Female)
+huangyueying:addSkills{"jizhi","qicai"}
 huangyueying:addCompanions("hs__wolong")
-
 Fk:loadTranslationTable{
   ["hs__huangyueying"] = "黄月英",
   ["#hs__huangyueying"] = "归隐的杰女",
@@ -305,118 +214,27 @@ Fk:loadTranslationTable{
   ["~hs__huangyueying"] = "亮……",
 }
 
-local huangzhong = General(extension, "hs__huangzhong", "shu", 4)
-local liegong = fk.CreateTriggerSkill{
-  name = "hs__liegong",
-  anim_type = "offensive",
-  events = {fk.TargetSpecified},
-  can_trigger = function(self, event, target, player, data)
-    if not (target == player and player:hasSkill(self)) then return end
-    local room = player.room
-    local to = room:getPlayerById(data.to)
-    local num = #to:getCardIds(Player.Hand)
-    local filter = num <= player:getAttackRange() or num >= player.hp
-    return data.card.trueName == "slash" and filter and player.phase == Player.Play
-  end,
-  on_use = function(self, event, target, player, data)
-    data.disresponsiveList = data.disresponsiveList or {}
-    table.insert(data.disresponsiveList, data.to)
-  end,
-}
-local liegongAR = fk.CreateAttackRangeSkill{
-  name = "#hs__liegongAR",
-  correct_func = function(self, from, to)
-    if from:hasSkill("hs__liegong") then
-      for _, p in ipairs(Fk:currentRoom().alive_players) do
-        if string.find(p.general, "lord") and p:hasSkill("shouyue") and p.kingdom == from.kingdom then
-          return 1
-        end
-      end
-    end
-    return 0
-  end,
-}
-liegong:addRelatedSkill(liegongAR)
-huangzhong:addSkill(liegong)
+local huangzhong = General:new(extension, "hs__huangzhong", "shu", 4)
+huangzhong:addSkill("hs__liegong")
 huangzhong:addCompanions("hs__weiyan")
 Fk:loadTranslationTable{
   ["hs__huangzhong"] = "黄忠",
   ["#hs__huangzhong"] = "老当益壮",
   -- ["illustrator:hs__huangzhong"] = "凡果",
-
-  ["hs__liegong"] = "烈弓",
-  [":hs__liegong"] = "当你于出牌阶段内使用【杀】指定目标后，若其手牌数不小于你的体力值或不大于你的攻击范围，你可令其不能使用【闪】响应此【杀】。",
-  ["$hs__liegong1"] = "百步穿杨！",
-  ["$hs__liegong2"] = "中！",
   ["~hs__huangzhong"] = "不得不服老了……",
 }
 
-local weiyan = General(extension, "hs__weiyan", "shu", 4)
-local kuanggu = fk.CreateTriggerSkill{
-  name = "hs__kuanggu",
-  anim_type = "drawcard",
-  events = {fk.Damage},
-  can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self) and target == player and (data.extra_data or {}).kuanggucheck
-  end,
-  on_trigger = function(self, event, target, player, data)
-    self.cancel_cost = false
-    for i = 1, data.damage do
-      self:doCost(event, target, player, data)
-      if self.cost_data == "Cancel" then break end
-    end
-  end,
-  on_cost = function(self, event, target, player, data)
-    local room = player.room
-    local choices = {"draw1", "Cancel"}
-    if player:isWounded() then
-      table.insert(choices, 2, "recover")
-    end
-    self.cost_data = room:askForChoice(player, choices, self.name)
-    return self.cost_data ~= "Cancel"
-  end,
-  on_use = function(self, event, target, player, data)
-    local room = player.room
-    if self.cost_data == "recover" then
-      room:recover({
-        who = player,
-        num = 1,
-        recoverBy = player,
-        skillName = self.name
-      })
-    elseif self.cost_data == "draw1" then
-      player:drawCards(1, self.name)
-    end
-  end,
-
-  refresh_events = {fk.BeforeHpChanged},
-  can_refresh = function(self, event, target, player, data)
-    return data.damageEvent and player == data.damageEvent.from and player:compareDistance(target, 2, "<")
-  end,
-  on_refresh = function(self, event, target, player, data)
-    data.damageEvent.extra_data = data.damageEvent.extra_data or {}
-    data.damageEvent.extra_data.kuanggucheck = true
-  end,
-}
-
-weiyan:addSkill(kuanggu)
+General:new(extension, "hs__weiyan", "shu", 4):addSkill("hs__kuanggu")
 
 Fk:loadTranslationTable{
   ["hs__weiyan"] = "魏延",
   ["#hs__weiyan"] = "嗜血的独狼",
   ["illustrator:hs__weiyan"] = "瞌瞌一休",
-
-  ["hs__kuanggu"] = "狂骨",
-  [":hs__kuanggu"] = "当你对距离1以内的角色造成1点伤害后，你可摸一张牌或回复1点体力。",
-
-  ["$hs__kuanggu1"] = "哈哈哈哈哈哈，赢你还不容易？",
-  ["$hs__kuanggu2"] = "哼！也不看看我是何人！",
   ["~hs__weiyan"] = "奸贼……害我……",
 }
 
-local pangtong = General(extension, "hs__pangtong", "shu",3)
-pangtong:addSkill("lianhuan")
-pangtong:addSkill("niepan")
+local pangtong = General:new(extension, "hs__pangtong", "shu",3)
+pangtong:addSkills{"lianhuan", "niepan"}
 pangtong:addCompanions("hs__wolong")
 Fk:loadTranslationTable{
   ['hs__pangtong'] = '庞统',
@@ -424,10 +242,7 @@ Fk:loadTranslationTable{
   ["illustrator:hs__pangtong"] = "KayaK",
 }
 
-local wolong = General(extension, "hs__wolong", "shu", 3)
-wolong:addSkill("bazhen")
-wolong:addSkill("huoji")
-wolong:addSkill("kanpo")
+General:new(extension, "hs__wolong", "shu", 3):addSkills{"bazhen", "huoji", "kanpo"}
 Fk:loadTranslationTable{
   ['hs__wolong'] = '卧龙诸葛亮',
   ["#hs__wolong"] = "卧龙",
@@ -435,9 +250,7 @@ Fk:loadTranslationTable{
   ["~hs__wolong"] = "我的计谋竟被……",
 }
 
-local liushan = General(extension, "hs__liushan", "shu", 3)
-liushan:addSkill("xiangle")
-liushan:addSkill("fangquan")
+General:new(extension, "hs__liushan", "shu", 3):addSkills{"xiangle", "fangquan"}
 Fk:loadTranslationTable{
   ['hs__liushan'] = '刘禅',
   ["#hs__liushan"] = "无为的真命主",
@@ -445,19 +258,16 @@ Fk:loadTranslationTable{
   ["~hs__liushan"] = "别打脸，我投降还不行吗？",
 }
 
-local menghuo = General(extension, "hs__menghuo", "shu", 4)
+local menghuo = General:new(extension, "hs__menghuo", "shu", 4)
 menghuo:addCompanions("hs__zhurong")
-menghuo:addSkill("huoshou")
-menghuo:addSkill("zaiqi")
+menghuo:addSkills{"huoshou", "zaiqi"}
 Fk:loadTranslationTable{
   ['hs__menghuo'] = '孟获',
   ["#hs__menghuo"] = "南蛮王",
   ["illustrator:hs__menghuo"] = "废柴男",
 }
 
-local zhurong = General(extension, "hs__zhurong", "shu", 4, 4, General.Female)
-zhurong:addSkill("juxiang")
-zhurong:addSkill("lieren")
+General:new(extension, "hs__zhurong", "shu", 4, 4, General.Female):addSkills{"juxiang", "lieren"}
 Fk:loadTranslationTable{
   ['hs__zhurong'] = '祝融',
   ["#hs__zhurong"] = "野性的女王",
@@ -465,58 +275,15 @@ Fk:loadTranslationTable{
   ["~hs__zhurong"] = "大王，我，先走一步了。",
 }
 
-local ganfuren = General(extension, "hs__ganfuren", "shu", 3, 3, General.Female)
-local shushen = fk.CreateTriggerSkill{
-  name = "hs__shushen",
-  anim_type = "support",
-  events = {fk.HpRecover},
-  on_trigger = function(self, event, target, player, data)
-    self.cancel_cost = false
-    for i = 1, data.num do
-      if self.cancel_cost then break end
-      self:doCost(event, target, player, data)
-    end
-  end,
-  on_cost = function(self, event, target, player, data)
-    local room = player.room
-    local to = room:askForChoosePlayers(player, table.map(room:getOtherPlayers(player, false),
-    Util.IdMapper), 1, 1, "#hs__shushen-choose", self.name, true)
-    if #to > 0 then
-      self.cost_data = to[1]
-      return true
-    end
-    self.cancel_cost = true
-  end,
-  on_use = function(self, event, target, player, data)
-    local room = player.room
-    local to = room:getPlayerById(self.cost_data)
-    if not to:isKongcheng() then
-      to:drawCards(1, self.name)
-    else
-      to:drawCards(2, self.name)
-    end
-  end,
-}
-
-ganfuren:addSkill(shushen)
-ganfuren:addSkill("shenzhi")
-
+General(extension, "hs__ganfuren", "shu", 3, 3, General.Female):addSkills{"shushen", "shenzhi"}
 Fk:loadTranslationTable{
   ['hs__ganfuren'] = '甘夫人',
   ["#hs__ganfuren"] = "昭烈皇后",
   ["illustrator:hs__ganfuren"] = "琛·美弟奇",
   ["designer:hs__ganfuren"] = "淬毒",
-
-  ["hs__shushen"] = "淑慎",
-  [":hs__shushen"] = "当你回复1点体力后，你可令一名其他角色摸一张牌，若其没有手牌，则改为摸两张牌。",
-
-  ["#hs__shushen-choose"] = "淑慎：你可令一名其他角色摸一张牌",
-
-  ["$hs__shushen1"] = "船到桥头自然直。",
-  ["$hs__shushen2"] = "妾身无恙，相公请安心征战。",
   ["~hs__ganfuren"] = "请替我照顾好阿斗……",
 }
---]]
+
 local sunquan = General:new(extension, "hs__sunquan", "wu", 4)
 sunquan:addSkill("hs__zhiheng")
 sunquan:addCompanions("hs__zhoutai")
@@ -1023,16 +790,15 @@ Fk:loadTranslationTable{
   ["$hs__tianxiang2"] = "替我挡着~",
   ["~hs__xiaoqiao"] = "公瑾…我先走一步……",
 }
-
-local taishici = General(extension, "hs__taishici", "wu", 4)
-taishici:addSkill("tianyi")
+--]]
+General:new(extension, "hs__taishici", "wu", 4):addSkill("tianyi")
 Fk:loadTranslationTable{
   ['hs__taishici'] = '太史慈',
   ["#hs__taishici"] = "笃烈之士",
   ["illustrator:hs__taishici"] = "Tuu.",
   ["~hs__taishici"] = "大丈夫，当带三尺之剑，立不世之功！",
 }
-
+--[[
 local zhoutai = General(extension, "hs__zhoutai", "wu", 4)
 local buqu = fk.CreateTriggerSkill{
   name = "hs__buqu",
@@ -1106,10 +872,8 @@ Fk:loadTranslationTable{
   ["$hs__fenji2"] = "两肋插刀，愿赴此躯！",
   ["~hs__zhoutai"] = "敌众我寡，无力回天……",
 }
-
-local lusu = General(extension, "hs__lusu", "wu", 3)
-lusu:addSkill("haoshi")
-lusu:addSkill("dimeng")
+--]]
+General:new(extension, "hs__lusu", "wu", 3):addSkills{"haoshi", "dimeng"}
 Fk:loadTranslationTable{
   ['hs__lusu'] = '鲁肃',
   ["#hs__lusu"] = "独断的外交家",
@@ -1117,9 +881,7 @@ Fk:loadTranslationTable{
   ["~hs__lusu"] = "此联盟已破，吴蜀休矣。",
 }
 
-local erzhang = General(extension, "hs__zhangzhaozhanghong", "wu", 3)
-erzhang:addSkill("zhijian")
-erzhang:addSkill("guzheng")
+General:new(extension, "hs__zhangzhaozhanghong", "wu", 3):addSkills{"zhijian", "guzheng"}
 Fk:loadTranslationTable{
   ['hs__zhangzhaozhanghong'] = '张昭张纮',
   ["#hs__zhangzhaozhanghong"] = "经天纬地",
@@ -1127,9 +889,7 @@ Fk:loadTranslationTable{
   ["~hs__zhangzhaozhanghong"] = "竭力尽智，死而无憾。",
 }
 
-local dingfeng = General(extension, "hs__dingfeng", "wu", 4)
-dingfeng:addSkill("duanbing")
-dingfeng:addSkill("fenxun")
+General:new(extension, "hs__dingfeng", "wu", 4):addSkills{"duanbing", "fenxun"}
 Fk:loadTranslationTable{
   ["hs__dingfeng"] = "丁奉",
   ["#hs__dingfeng"] = "清侧重臣",
@@ -1141,7 +901,7 @@ Fk:loadTranslationTable{
   ["$fenxun2"] = "给我拉过来！",
   ["~hs__dingfeng"] = "这风，太冷了……",
 }
-
+--[[
 local huatuo = General(extension, "hs__huatuo", "qun", 3)
 
 local chuli = fk.CreateActiveSkill{
@@ -1201,9 +961,8 @@ Fk:loadTranslationTable{
   ["$hs__chuli2"] = "病入膏肓，需下猛药。",
   ["~hs__huatuo"] = "生老病死，命不可违。",
 }
-
-local lvbu = General(extension, "hs__lvbu", "qun", 5)
-
+--]]
+local lvbu = General:new(extension, "hs__lvbu", "qun", 5)
 lvbu:addSkill("wushuang")
 lvbu:addCompanions("hs__diaochan")
 
@@ -1213,7 +972,7 @@ Fk:loadTranslationTable{
   ["illustrator:hs__lvbu"] = "凡果",
   ["~hs__lvbu"] = "不可能！",
 }
-
+--[[
 local diaochan = General(extension, "hs__diaochan", "qun", 3, 3, General.Female)
 
 local lijian = fk.CreateActiveSkill{
@@ -1334,9 +1093,8 @@ Fk:loadTranslationTable{
   ["$hs__luanji2"] = "全都去死吧！",
   ["~hs__yuanshao"] = "老天不助我袁家啊！",
 }
-
-local sx = General(extension, 'hs__yanliangwenchou', 'qun', 4)
-sx:addSkill('shuangxiong')
+--]]
+General:new(extension, 'hs__yanliangwenchou', 'qun', 4):addSkill('shuangxiong')
 Fk:loadTranslationTable{
   ['hs__yanliangwenchou'] = '颜良文丑',
   ["#hs__yanliangwenchou"] = "虎狼兄弟",
@@ -1344,7 +1102,7 @@ Fk:loadTranslationTable{
 
   ["~hs__yanliangwenchou"] = "这红脸长须大将是……",
 }
-
+--[[
 local jiaxu = General(extension, 'hs__jiaxu', 'qun', 3)
 jiaxu:addSkill('wansha')
 jiaxu:addSkill('luanwu')
@@ -1485,17 +1243,15 @@ Fk:loadTranslationTable{
   ["$jianchu2"] = "我要杀你们个片甲不留！",
   ["~hs__pangde"] = "四面都是水……我命休矣。",
 }
-
-local zhangjiao = General(extension, "hs__zhangjiao", 'qun', 3)
-zhangjiao:addSkill("leiji")
-zhangjiao:addSkill("guidao")
+--]]
+General:new(extension, "hs__zhangjiao", 'qun', 3):addSkills{"leiji", "guidao"}
 Fk:loadTranslationTable{
   ['hs__zhangjiao'] = '张角',
   ["#hs__zhangjiao"] = "天公将军",
   ["illustrator:hs__zhangjiao"] = "LiuHeng",
   ["~hs__zhangjiao"] = "黄天…也死了……",
 }
-
+--[[
 local caiwenji = General(extension, "hs__caiwenji", "qun", 3, 3, General.Female)
 local duanchang = fk.CreateTriggerSkill{
   name = "hs__duanchang",
@@ -2123,400 +1879,6 @@ Fk:loadTranslationTable{
   ["$qingcheng1"] = "我和你们真是投缘啊。",
   ["$qingcheng2"] = "哼，眼睛都直了呀。",
   ["~hs__zoushi"] = "年老色衰了吗？",
-}
-
--- 军令四
-local command4_prohibit = fk.CreateProhibitSkill{
-  name = "#command4_prohibit",
-  -- global = true,
-  prohibit_use = function(self, player, card)
-    if player:getMark("@@command4_effect-turn") > 0 then
-      local subcards = card:isVirtual() and card.subcards or {card.id}
-      return #subcards > 0 and table.every(subcards, function(id) return table.contains(player:getCardIds(Player.Hand), id) end)
-    end
-  end,
-  prohibit_response = function(self, player, card)
-    if player:getMark("@@command4_effect-turn") > 0 then
-      local subcards = card:isVirtual() and card.subcards or {card.id}
-      return #subcards > 0 and table.every(subcards, function(id) return table.contains(player:getCardIds(Player.Hand), id) end)
-    end
-  end,
-}
-Fk:addSkill(command4_prohibit)
-
--- 军令五 你不准回血！
-local command5_cannotrecover = fk.CreateTriggerSkill{
-  name = "#command5_cannotrecover",
-  -- global = true,
-  refresh_events = {fk.PreHpRecover},
-  can_refresh = function(self, event, target, player, data)
-    return target == player and player:getMark("@@command5_effect-turn") > 0
-  end,
-  on_refresh = function(self, event, target, player, data)
-    data.num = 0
-    return true
-  end,
-}
-Fk:addSkill(command5_cannotrecover)
-
--- 军令六
-local command6_select = fk.CreateActiveSkill{
-  name = "#command6_select",
-  can_use = Util.FalseFunc,
-  target_num = 0,
-  card_num = function()
-    local x = 0
-    if #Self.player_cards[Player.Hand] > 0 then x = x + 1 end
-    if #Self.player_cards[Player.Equip] > 0 then x = x + 1 end
-    return x
-  end,
-  card_filter = function(self, to_select, selected)
-    if #selected == 1 then
-      return (Fk:currentRoom():getCardArea(to_select) == Card.PlayerEquip) ~=
-      (Fk:currentRoom():getCardArea(selected[1]) == Card.PlayerEquip)
-    end
-    return #selected == 0
-  end,
-}
-Fk:addSkill(command6_select)
-Fk:loadTranslationTable{
-  ["#command6_select"] = "军令",
-}
-
-local vanguradSkill = fk.CreateActiveSkill{
-  name = "vanguard_skill&",
-  prompt = "#vanguard_skill&",
-  anim_type = "drawcard",
-  can_use = function(self, player)
-    return player:getMark("@!vanguard") > 0
-  end,
-  card_filter = Util.FalseFunc,
-  target_num = function()
-    return table.find(Fk:currentRoom().alive_players, function(p) return (p.general == "anjiang" or p.deputyGeneral == "anjiang") and p ~= Self end) and 1 or 0
-  end,
-  target_filter = function(self, to_select, selected, selected_cards)
-    if to_select ~= Self.id and #selected == 0 and table.find(Fk:currentRoom().alive_players, function(p) return (p.general == "anjiang" or p.deputyGeneral == "anjiang") and p ~= Self end) then
-      local target = Fk:currentRoom():getPlayerById(to_select)
-      return target.general == "anjiang" or target.deputyGeneral == "anjiang"
-    end
-  end,
-  on_use = function(self, room, effect)
-    local player = room:getPlayerById(effect.from)
-    room:removePlayerMark(player, "@!vanguard")
-    if player:getMark("@!vanguard") == 0 then
-      player:loseFakeSkill("vanguard_skill&")
-      -- room:handleAddLoseSkills(player, "-vanguard_skill&", nil, false, true)
-    end
-    local num = 4 - player:getHandcardNum()
-    if num > 0 then
-      player:drawCards(num, self.name)
-    end
-    if #effect.tos == 0 then return false end
-    local target = room:getPlayerById(effect.tos[1])
-    local choices = {"known_both_main", "known_both_deputy"}
-    if target.general ~= "anjiang" then
-      table.remove(choices, 1)
-    end
-    if target.deputyGeneral ~= "anjiang" then
-      table.remove(choices)
-    end
-    if #choices == 0 then return end
-    local choice = room:askForChoice(player, choices, self.name, "#known_both-choice::"..target.id, false)
-    local general = choice == "known_both_main" and {target:getMark("__heg_general"), target.deputyGeneral, target.seat} or {target.general, target:getMark("__heg_deputy"), target.seat}
-    room:askForCustomDialog(player, self.name, "packages/hegemony/qml/KnownBothBox.qml", general)
-  end,
-}
-Fk:addSkill(vanguradSkill)
-Fk:loadTranslationTable{
-  ["vanguard_skill&"] = "先驱",
-  ["#vanguard_skill&"] = "你可弃一枚“先驱”，将手牌摸至4张，观看一名其他角色的一张暗置武将牌",
-  [":vanguard_skill&"] = "出牌阶段，你可弃一枚“先驱”，将手牌摸至4张，观看一名其他角色的一张暗置武将牌。",
-  ["vanguard"] = "先驱",
-}
-
-local removeYinyangfish = function(room, player)
-  room:removePlayerMark(player, "@!yinyangfish")
-  if player:getMark("@!yinyangfish") == 0 then
-    player:loseFakeSkill("yinyangfish_skill&")
-    -- room:handleAddLoseSkills(player, "-yinyangfish_skill&", nil, false, true)
-  end
-end
-local yinyangfishSkill = fk.CreateActiveSkill{
-  name = "yinyangfish_skill&",
-  prompt = "#yinyangfish_skill&",
-  anim_type = "drawcard",
-  can_use = function(self, player)
-    return player:getMark("@!yinyangfish") > 0
-  end,
-  card_filter = Util.FalseFunc,
-  target_num = 0,
-  on_use = function(self, room, effect)
-    local player = room:getPlayerById(effect.from)
-    removeYinyangfish(room, player)
-    player:drawCards(1, self.name)
-  end,
-}
-local yinyangfishMax = fk.CreateTriggerSkill{
-  name = "#yinyangfish_max&",
-  priority = 0.1,
-  anim_type = "defensive",
-  events = {fk.EventPhaseStart},
-  can_trigger = function(self, event, target, player, data)
-    return target == player and player.phase == Player.Discard and player:hasSkill(self) and player:getMark("@!yinyangfish") > 0 and player:getHandcardNum() > player:getMaxCards()
-  end,
-  on_cost = function(self, event, target, player, data)
-    return player.room:askForSkillInvoke(player, self.name, nil, "#yinyangfish_max-ask")
-  end,
-  on_use = function(self, event, target, player, data)
-    local room = player.room
-    removeYinyangfish(room, player)
-    room:addPlayerMark(target, MarkEnum.AddMaxCardsInTurn, 2)
-    room:broadcastProperty(player, "MaxCards")
-  end,
-}
-yinyangfishSkill:addRelatedSkill(yinyangfishMax)
-Fk:addSkill(yinyangfishSkill)
-Fk:loadTranslationTable{
-  ["yinyangfish_skill&"] = "阴阳鱼",
-  ["#yinyangfish_skill&"] = "你可弃一枚“阴阳鱼”，摸一张牌",
-  ["#yinyangfish_max&"] = "阴阳鱼",
-  ["#yinyangfish_max-ask"] = "你可弃一枚“阴阳鱼”，此回合手牌上限+2",
-  [":yinyangfish_skill&"] = "出牌阶段，你可弃一枚“阴阳鱼”，摸一张牌；弃牌阶段开始时，你可弃一枚“阴阳鱼”，此回合手牌上限+2。",
-  ["yinyangfish"] = "阴阳鱼",
-}
-
-local removeCompanion = function(room, player)
-  room:removePlayerMark(player, "@!companion")
-  if player:getMark("@!companion") == 0 then
-    player:loseFakeSkill("companion_skill&")
-    player:loseFakeSkill("companion_peach&")
-    -- room:handleAddLoseSkills(player, "-companion_skill&|-companion_peach&", nil, false, true)
-  end
-end
-local companionSkill = fk.CreateActiveSkill{
-  name = "companion_skill&",
-  prompt = "#companion_skill&",
-  anim_type = "drawcard",
-  can_use = function(self, player)
-    return player:getMark("@!companion") > 0
-  end,
-  card_filter = Util.FalseFunc,
-  target_num = 0,
-  on_use = function(self, room, effect)
-    local player = room:getPlayerById(effect.from)
-    removeCompanion(room, player)
-    player:drawCards(2, self.name)
-  end,
-}
-local companionPeach = fk.CreateViewAsSkill{
-  name = "companion_peach&",
-  anim_type = "support",
-  prompt = "#companion_peach&",
-  pattern = "peach",
-  card_filter = Util.FalseFunc,
-  view_as = function(self, cards)
-    local c = Fk:cloneCard("peach")
-    c.skillName = self.name
-    return c
-  end,
-  before_use = function(self, player)
-    local room = player.room
-    removeCompanion(room, player)
-  end,
-  enabled_at_play = function(self, player)
-    return player:getMark("@!companion") > 0
-  end,
-  enabled_at_response = function(self, player)
-    return player:getMark("@!companion") > 0
-  end,
-}
-Fk:addSkill(companionSkill)
-Fk:addSkill(companionPeach)
-Fk:loadTranslationTable{
-  ["companion_skill&"] = "珠联[摸]",
-  ["#companion_skill&"] = "你可弃一枚“珠联璧合”，摸两张牌",
-  [":companion_skill&"] = "出牌阶段，你可弃一枚“珠联璧合”，摸两张牌。",
-  ["companion_peach&"] = "珠联[桃]",
-  [":companion_peach&"] = "你可弃一枚“珠联璧合”，视为使用【桃】。",
-  ["#companion_peach&"] = "你可弃一枚“珠联璧合”，视为使用【桃】",
-  ["companion"] = "珠联璧合",
-}
-
--- 野心家标记
-local removeWild = function(room, player)
-  room:removePlayerMark(player, "@!wild")
-  if player:getMark("@!wild") == 0 then
-    player:loseFakeSkill("wild_draw&")
-    player:loseFakeSkill("wild_peach&")
-  end
-end
-local wildDraw = fk.CreateActiveSkill{
-  name = "wild_draw&",
-  prompt = "#wild_draw&",
-  anim_type = "drawcard",
-  can_use = function(self, player)
-    return player:getMark("@!wild") > 0
-  end,
-  interaction = UI.ComboBox { choices = {"wild_vanguard", "wild_companion", "wild_yinyangfish"} },
-  card_filter = Util.FalseFunc,
-  target_num = function(self)
-    return self.interaction.data == "wild_vanguard" and table.find(Fk:currentRoom().alive_players, function(p) return (p.general == "anjiang" or p.deputyGeneral == "anjiang") and p ~= Self end) and 1 or 0 
-  end,
-  target_filter = function(self, to_select, selected, selected_cards)
-    if self.interaction.data == "wild_vanguard" and to_select ~= Self.id and #selected == 0 and table.find(Fk:currentRoom().alive_players, function(p) return (p.general == "anjiang" or p.deputyGeneral == "anjiang") and p ~= Self end) then
-      local target = Fk:currentRoom():getPlayerById(to_select)
-      return target.general == "anjiang" or target.deputyGeneral == "anjiang"
-    end
-  end,
-  on_use = function(self, room, effect)
-    local player = room:getPlayerById(effect.from)
-    removeWild(room, player)
-    local pattern = self.interaction.data
-    if pattern == "wild_companion" then
-      player:drawCards(2, self.name)
-    elseif pattern == "wild_yinyangfish" then
-      player:drawCards(1, self.name)
-    elseif pattern == "wild_vanguard" then
-      local num = 4 - player:getHandcardNum()
-      if num > 0 then
-        player:drawCards(num, self.name)
-      end
-      if #effect.tos == 0 then return false end
-      local target = room:getPlayerById(effect.tos[1])
-      local choices = {"known_both_main", "known_both_deputy"}
-      if target.general ~= "anjiang" then
-        table.remove(choices, 1)
-      end
-      if target.deputyGeneral ~= "anjiang" then
-        table.remove(choices)
-      end
-      if #choices == 0 then return end
-      local choice = room:askForChoice(player, choices, self.name, "#known_both-choice::"..target.id, false)
-      local general = choice == "known_both_main" and {target:getMark("__heg_general"), target.deputyGeneral, target.seat} or {target.general, target:getMark("__heg_deputy"), target.seat}
-      room:askForCustomDialog(player, self.name, "packages/hegemony/qml/KnownBothBox.qml", general)
-    end
-  end,
-}
-local wildPeach = fk.CreateViewAsSkill{
-  name = "wild_peach&",
-  anim_type = "support",
-  prompt = "#wild_peach&",
-  pattern = "peach",
-  card_filter = Util.FalseFunc,
-  view_as = function(self, cards)
-    local c = Fk:cloneCard("peach")
-    c.skillName = self.name
-    return c
-  end,
-  before_use = function(self, player)
-    local room = player.room
-    removeWild(room, player)
-  end,
-  enabled_at_play = function(self, player)
-    return player:getMark("@!wild") > 0
-  end,
-  enabled_at_response = function(self, player)
-    return player:getMark("@!wild") > 0
-  end,
-}
-local wildMax = fk.CreateTriggerSkill{
-  name = "#wild_max&",
-  priority = 0.09,
-  anim_type = "defensive",
-  events = {fk.EventPhaseStart},
-  can_trigger = function(self, event, target, player, data)
-    return target == player and player.phase == Player.Discard and player:hasSkill(self) and player:getMark("@!wild") > 0 and player:getHandcardNum() > player:getMaxCards()
-  end,
-  on_cost = function(self, event, target, player, data)
-    return player.room:askForSkillInvoke(player, self.name, nil, "#wild_max-ask")
-  end,
-  on_use = function(self, event, target, player, data)
-    local room = player.room
-    removeWild(room, player)
-    room:addPlayerMark(target, MarkEnum.AddMaxCardsInTurn, 2)
-  end,
-}
-wildDraw:addRelatedSkill(wildMax)
-Fk:addSkill(wildDraw)
-Fk:addSkill(wildPeach)
-
-Fk:loadTranslationTable{
-  ["wild_draw&"] = "野心[牌]",
-  [":wild_draw&"] = "你可弃一枚“野心家”，执行“先驱”、“阴阳鱼”或“珠联璧合”的效果。",
-  ["#wild_draw&"] = "你可将“野心家”当一种标记弃置并执行其效果（点击左侧选项框展开）",
-  ["wild_vanguard"] = "将手牌摸至4张，观看一张暗置武将牌",
-  ["wild_yinyangfish"] = "摸一张牌",
-  ["wild_companion"] = "摸两张牌",
-
-  ["wild_peach&"] = "野心[桃]",
-  [":wild_peach&"] = "你可弃一枚“野心家”，视为使用【桃】。",
-  ["#wild_peach&"] = "你可弃一枚“野心家”，视为使用【桃】",
-
-  ["#wild_max&"] = "野心家[手牌上限]",
-  ["#wild_max-ask"] = "你可弃一枚“野心家”，此回合手牌上限+2",
-}
-
-local battleRoyalVS = fk.CreateViewAsSkill{
-  name = "battle_royal&",
-  pattern = "slash,jink",
-  interaction = function()
-    local names = {}
-    if Fk.currentResponsePattern == nil and Self:canUse(Fk:cloneCard("slash")) then
-      table.insertIfNeed(names, "slash")
-    else
-      for _, name in ipairs({"slash", "jink"}) do
-        if Fk.currentResponsePattern and Exppattern:Parse(Fk.currentResponsePattern):match(Fk:cloneCard(name)) then
-          table.insertIfNeed(names, name)
-        end
-      end
-    end
-    if #names == 0 then return end
-    return UI.ComboBox {choices = names}
-  end,
-  card_filter = function(self, to_select, selected)
-    return #selected == 0 and Fk:getCardById(to_select).trueName == "peach"
-  end,
-  view_as = function(self, cards)
-    if #cards ~= 1 or self.interaction.data == nil then return end
-    local card = Fk:cloneCard(self.interaction.data)
-    card.skillName = self.name
-    card:addSubcard(cards[1])
-    return card
-  end,
-  enabled_at_play = function(self, player)
-    if player:getMark("_heg__BattleRoyalMode_ignore") ~= 0 then return false end
-    return table.find(player:getHandlyIds(true), function (id)
-      return Fk:getCardById(id).trueName == "peach"
-    end)
-  end,
-  enabled_at_response = function(self, player)
-    if player:getMark("_heg__BattleRoyalMode_ignore") ~= 0 then return false end
-    return table.find(player:getHandlyIds(true), function (id)
-      return Fk:getCardById(id).trueName == "peach"
-    end)
-  end,
-}
-local battleRoyalProhibit = fk.CreateProhibitSkill{
-  name = "#battle_royal_prohibit&",
-  prohibit_use = function(self, player, card)
-    if not card or card.trueName ~= "peach" or #card.skillNames > 0 or player:getMark("_heg__BattleRoyalMode_ignore") ~= 0 then return false end
-    local subcards = Card:getIdList(card)
-    return #subcards > 0 and table.every(subcards, function(id)
-      return table.contains(player:getHandlyIds(true), id)
-    end)
-  end
-}
-battleRoyalVS:addRelatedSkill(battleRoyalProhibit)
-Fk:addSkill(battleRoyalVS)
--- Fk:addSkill(battleRoyalProhibit)
-
-Fk:loadTranslationTable{
-  ["battle_royal&"] = "鏖战",
-  [":battle_royal&"] = "非转化的【桃】只能当【杀】或【闪】使用或打出。",
-  ["#battle_royal_prohibit&"] = "鏖战",
-
-  ["_heg__BattleRoyalMode_ignore"] = "无视鏖战",
-
 }
 --]]
 return extension

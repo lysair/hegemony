@@ -40,6 +40,7 @@ longdan:addEffect('viewas', {
   end,
 })
 longdan:addEffect(fk.CardEffectCancelledOut, {
+  is_delay_effect = true,
   anim_type = "offensive",
   can_trigger = function(self, event, target, player, data)
     if data.card.trueName ~= "slash" then return false end
@@ -98,6 +99,7 @@ longdan:addEffect(fk.CardEffectCancelledOut, {
 ---@type TrigSkelSpec<UseCardFunc|RespondCardFunc>
 local longdan_draw_spec = {
   anim_type = "drawcard",
+  is_delay_effect = true,
   can_trigger = function (self, event, target, player, data)
     local room = player.room
       return player == target and H.getHegLord(room, player) and

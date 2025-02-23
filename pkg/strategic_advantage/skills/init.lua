@@ -16,5 +16,6 @@ return {
   require(prefix .. "jingfan"),
   require(prefix .. "wooden_ox"),
   require(prefix .. "jade_seal"),
+
   require(prefix .. "alliance"),
 }

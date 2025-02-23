@@ -256,7 +256,7 @@ hegRule:addEffect(fk.EventPhaseStart, {
     return target == player and data.phase == Player.Play
   end,
   on_trigger = function(self, event, target, player, data)
-    player:loseFakeSkill("alliance&")
+    player:addFakeSkill("alliance&")
   end
 })
 hegRule:addEffect(fk.EventPhaseEnd, {

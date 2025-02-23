@@ -1,4 +1,3 @@
-
 ---@param object Card|Player
 ---@param markName string
 ---@param suffixes string[]

@@ -393,9 +393,6 @@ function HegLogic:prepareDrawPile()
 end
 
 local function addHegSkill(player, skill, room)
-  if skill:hasTag(Skill.Compulsory) then
-    player:addFakeSkill("reveal_skill&")
-  end
   player:addFakeSkill(skill)
   local toget = {table.unpack(skill.related_skills)}
   table.insert(toget, skill)
@@ -415,9 +412,13 @@ function HegLogic:attachSkillToPlayers()
 
     local general = Fk.generals[p:getMark("__heg_general")]
     local skills = table.connect(general.skills, table.map(general.other_skills, Util.Name2SkillMapper))
+    local hasRevealSkill = false
     for _, s in ipairs(skills) do
       if not s:hasTag(Skill.DeputyPlace) then
         addHegSkill(p, s, room)
+        if not hasRevealSkill and s:hasTag(Skill.Compulsory) then
+          hasRevealSkill = true
+        end
       end
     end
 
@@ -427,8 +428,15 @@ function HegLogic:attachSkillToPlayers()
       for _, s in ipairs(skills) do
         if not s:hasTag(Skill.MainPlace) then
           addHegSkill(p, s, room)
+          if not hasRevealSkill and s:hasTag(Skill.Compulsory) then
+            hasRevealSkill = true
+          end
         end
       end
+    end
+
+    if hasRevealSkill then
+      p:addFakeSkill("reveal_skill&")
     end
   end
 

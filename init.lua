@@ -1,4 +1,7 @@
+
+
 local prefix = "packages.hegemony.pkg."
+local gamemodes = require(prefix .. "gamemodes")
 
 local hegemony_standard = require(prefix .. "standard")
 local formation = require(prefix .. "formation")[1]
@@ -24,6 +27,8 @@ Fk:loadTranslationTable{ ["hegemony"] = "国战" }
 Fk:loadTranslationTable(require 'packages/hegemony/i18n/en_US', 'en_US')
 
 return {
+  gamemodes,
+
   hegemony_standard,
   formation,
   -- momentum,

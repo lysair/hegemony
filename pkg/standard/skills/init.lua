@@ -20,6 +20,13 @@ return {
   require(prefix .. "guanxing"),
   require(prefix .. "kongcheng"),
   require(prefix .. "longdan"),
-
+  require(prefix .. "tieqi"),
+  require(prefix .. "liegong"),
+  require(prefix .. "kuanggu"),
+  require(prefix .. "shushen"),
+  require(prefix .. "shenzhi"),
   require(prefix .. "zhiheng"),
+
+  require(prefix .. "duanbing"),
+  require(prefix .. "fenxun"),
 }
