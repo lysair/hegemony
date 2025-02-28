@@ -8,7 +8,7 @@ local H = require "packages/hegemony/util"
 shoucheng:addEffect(fk.AfterCardsMove, {
   anim_type = "support",
   can_trigger = function(self, event, target, player, data)
-    if not player:hasSkill(self) then return end
+    if not player:hasSkill(shoucheng.name) then return end
     for _, move in ipairs(data) do
       if move.from then
         if move.from:isKongcheng() and H.compareKingdomWith(move.from, player) and player.room.current ~= move.from then
@@ -37,19 +37,19 @@ shoucheng:addEffect(fk.AfterCardsMove, {
     end
     room:sortByAction(targets)
     for _, _p in ipairs(targets) do
-      if not player:hasSkill(self) then break end
+      if not player:hasSkill(shoucheng.name) then break end
       if _p:isAlive() then
         self:doCost(event, _p, player, nil)
       end
     end
   end,
   on_cost = function(self, event, target, player, data)
-    return player.room:askForSkillInvoke(player, self.name, nil, "#shoucheng-draw::" .. target.id)
+    return player.room:askForSkillInvoke(player, shoucheng.name, nil, "#shoucheng-draw::" .. target.id)
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
     room:doIndicate(player.id, {target.id})
-    target:drawCards(1, self.name)
+    target:drawCards(1, shoucheng.name)
   end,
 })
 
