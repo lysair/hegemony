@@ -20,7 +20,6 @@ threatenEmperorSkill:addEffect("cardskill", {
   on_effect = function(self, room, effect)
     local target = effect.to
     room:setPlayerMark(target, "_TEeffect-turn", 1)
-    room:handleAddLoseSkills(target, "#threaten_emperor_extra", nil, false, true) -- global ...
     target:endPlayPhase()
   end,
 })
@@ -47,7 +46,7 @@ threatenEmperorSkill:addEffect(fk.EventPhaseEnd, {
 
 threatenEmperorSkill:addTest(function (room, me)
   local card = room:printCard("threaten_emperor")
-  local comp = table.find(room.alive_players, function(p) return H.isSmallKingdomPlayer(p) end)
+  local comp = table.find(room.alive_players, function(p) return not H.isBigKingdomPlayer(p) end)
   if comp then lu.assertIsFalse(comp:canUse(card)) end
 
   comp = table.find(room.alive_players, function(p) return H.isBigKingdomPlayer(p) end)
@@ -64,7 +63,7 @@ threatenEmperorSkill:addTest(function (room, me)
       "", "1",
     })
     FkTest.runInRoom(function()
-      GameEvent.Turn:create(TurnData:new(me, "game_rule", { Player.Play, Player.Discard })):exec()
+      comp:gainAnExtraTurn()
     end)
   end
 end)

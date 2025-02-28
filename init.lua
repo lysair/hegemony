@@ -14,6 +14,7 @@ local overseas = require "packages/hegemony/overseas_heg"
 local offline = require "packages/hegemony/offline_heg"
 local ex = require "packages/hegemony/lord_ex"
 --]]
+local ziqidonglai = require(prefix .. "zqdl")
 
 local hegemony_cards = require(prefix .. "standard_cards")
 local strategic_advantage = require(prefix .. "strategic_advantage")
@@ -40,6 +41,7 @@ return {
   offline,
   ex,
   --]]
+  ziqidonglai,
 
   hegemony_cards,
   strategic_advantage,
