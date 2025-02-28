@@ -4,5 +4,6 @@ return {
   require(prefix .. "tuntian"),
   require(prefix .. "jixi"),
   require(prefix .. "ziliang"),
-  
+  require(prefix .. "shengxi"),
+  require(prefix .. "shoucheng"),
 }

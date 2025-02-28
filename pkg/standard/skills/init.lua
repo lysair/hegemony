@@ -1,8 +1,6 @@
 local prefix = "packages.hegemony.pkg.standard.skills."
 
 return {
-  require(prefix .. "hegemony_rule"),
-
   require(prefix .. "ganglie"),
   require(prefix .. "luoyi"),
   require(prefix .. "yiji"),
