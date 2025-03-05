@@ -2,7 +2,7 @@ local extension = Package:new("ziqidonglai")
 extension.extensionName = "hegemony"
 extension.game_modes_whitelist = { 'nos_heg_mode', 'new_heg_mode' }
 
-extension:loadSkillSkels(require("packages.hegemony.pkg.zqdl.skills"))
+extension:loadSkillSkelsByPath("./packages/hegemony/pkg/zqdl/skills")
 
 Fk:loadTranslationTable{
   ["ziqidonglai"] = "紫气东来",

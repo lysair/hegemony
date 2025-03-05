@@ -5,7 +5,7 @@ extension.game_modes_whitelist = { 'nos_heg_mode', 'new_heg_mode' }
 local H = require "packages/hegemony/util"
 local U = require "packages/utility/utility"
 
-extension:loadSkillSkels(require("packages.hegemony.pkg.formation.skills"))
+extension:loadSkillSkelsByPath("./packages/hegemony/pkg/formation/skills")
 
 Fk:loadTranslationTable{
   ["formation"] = "君临天下·阵",

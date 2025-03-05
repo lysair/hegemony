@@ -39,9 +39,9 @@ shensu:addEffect(fk.EventPhaseChanging, {
         return Fk:getCardById(id).type == Card.TypeEquip and not player:prohibitDiscard(id)
       end)
       local tos, id = room:askToChooseCardsAndPlayers(player, {targets = targets,
-        min_num = 1, max_num = max_num, pattern = tostring(Exppattern{ id = cards }),
+        min_num = 1, max_num = max_num, pattern = ".|.|.|.|.|equip",
         prompt = "#hs__shensu2-choose", skill_name = self.name, cancelable = true,
-        max_card_num = 1, min_card_num = 1})
+        max_card_num = 1, min_card_num = 1, will_throw = true})
       if #tos > 0 and id then
         event:setCostData(self, { tos = tos, cards = id })
         return true

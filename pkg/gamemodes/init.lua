@@ -332,5 +332,5 @@ Fk:loadTranslationTable{
 }
 --]]
 local extension = Package:new("heg_mode", Package.SpecialPack)
-extension:loadSkillSkels(require("packages.hegemony.pkg.gamemodes.skills"))
+extension:loadSkillSkelsByPath("./packages/hegemony/pkg/gamemodes/skills")
 return extension
