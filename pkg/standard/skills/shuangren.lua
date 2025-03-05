@@ -55,7 +55,7 @@ shuangren:addEffect("prohibit", {
   name = "#shuangren_prohibit",
   is_prohibited = function(self, from, to, card)
     if from:hasSkill(shuangren.name) then
-      return from:getMark("@@shuangren-turn") > 0 and from ~= to -- FIXME: 南蛮、五谷等
+      return from:getMark("@@shuangren-turn") > 0 and from ~= to
     end
   end,
 })
