@@ -9,7 +9,7 @@ Fk:loadTranslationTable{
   ["zq"] = "紫气",
 }
 
-General:new(extension, "zq__shibao", "jin", 4):addSkill("zhuosheng")
+General:new(extension, "zq__shibao", "jin", 4):addSkill("zq__zhuosheng")
 
 Fk:loadTranslationTable{
   ["zq__shibao"] = "石苞",
