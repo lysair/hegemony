@@ -29,11 +29,9 @@ chengliu:addEffect("active", {
     }
     if player:isAlive() and target:isAlive() and
       room:askToChoice(player, { choices = { "zq__chengliu_swap::" .. target.id, "Cancel" }, skill_name = chengliu.name }) ~= "Cancel" then
-        local cards1 = player:getCardIds(Player.Equip)
-        local cards2 = target:getCardIds(Player.Equip)
-        U.swapCards(room, player, player, target, cards1, cards2, chengliu.name, Card.PlayerEquip)
+        room:swapAllCards(player, {player, target}, chengliu.name, "e")
         if player:isAlive() and table.find(Fk:currentRoom().alive_players, function(p)
-          return #p:getCardIds(Player.Equip) < #player:getCardIds(Player.Equip)
+          return #p:getCardIds("e") < #player:getCardIds("e")
         end) then
           room:askToUseActiveSkill(player, { skill_name = chengliu.name, cancelable = true, prompt = "#zq__chengliu_repeat" })
         end
