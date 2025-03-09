@@ -12,6 +12,23 @@ shengxi:addEffect(fk.EventPhaseStart, {
   end,
 })
 
+shengxi:addTest(function (room, me)
+  FkTest.setNextReplies(me, {"1", json.encode {
+    card = 1,
+    targets = { room.players[2].id }
+  }, "__cancel", "1", "1"})
+  FkTest.runInRoom(function ()
+    room:handleAddLoseSkills(me, shengxi.name)
+    GameEvent.Turn:create(TurnData:new(me, "game_rule", {Player.Finish})):exec()
+  end)
+  lu.assertEquals(me:getHandcardNum(), 2)
+  FkTest.runInRoom(function ()
+    room:obtainCard(me, 1)
+    GameEvent.Turn:create(TurnData:new(me, "game_rule", {Player.Play, Player.Finish})):exec()
+  end)
+  lu.assertEquals(me:getHandcardNum(), 2)
+end)
+
 Fk:loadTranslationTable{
   ["shengxi"] = "生息",
   [":shengxi"] = "结束阶段，若你于此回合内未造成过伤害，你可摸两张牌。",

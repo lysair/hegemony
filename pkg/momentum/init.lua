@@ -7,9 +7,8 @@ Fk:loadTranslationTable{
   ["momentum"] = "君临天下·势",
 }
 
-local lidian = General(extension, "ld__lidian", "wei", 3)
-lidian:addSkill("xunxun")
-lidian:addSkill("wangxi")
+local lidian = General:new(extension, "ld__lidian", "wei", 3)
+lidian:addSkills{"xunxun", "wangxi"}
 lidian:addCompanions("hs__yuejin")
 Fk:loadTranslationTable{
   ["ld__lidian"] = "李典",

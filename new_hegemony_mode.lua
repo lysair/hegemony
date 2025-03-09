@@ -556,12 +556,14 @@ heg = fk.CreateGameMode{
 
     for i = #draw, 1, -1 do
       local card = Fk:getCardById(draw[i])
-      if H.convertCards[card.name] and table.find(H.convertCards[card.name], function(c)
-        return table.contains(draw, c.id)
-      end) then
-        local id = draw[i]
-        table.remove(draw, i)
-        table.insert(void, id)
+      if H.convertCards[card.name] then
+        local name = H.convertCards[card.name]
+        if table.find(draw, function(c)
+          return Fk:getCardById(c).name == name
+        end) then
+          local id = table.remove(draw, i)
+          table.insert(void, id)
+        end
       end
     end
 

@@ -22,107 +22,10 @@ Fk:loadTranslationTable{
   ["illustrator:ld__dengai"] = "Amo",
   ["~ld__dengai"] = "君不知臣，臣不知君。罢了……罢了！",
 }
---[[
-local caohong = General(extension, "ld__caohong", "wei", 4)
 
-local heyi = H.CreateArraySummonSkill{
-  name = "heyi",
-  array_type = "formation",
-}
-local heyiTrig = fk.CreateTriggerSkill{ -- FIXME
-  name = '#heyi_trigger',
-  visible = false,
-  frequency = Skill.Compulsory,
-  refresh_events = {fk.TurnStart, fk.GeneralRevealed, fk.EventAcquireSkill, "fk.RemoveStateChanged", fk.EventLoseSkill, fk.GeneralHidden, fk.Deathed},
-  can_refresh = function(self, event, target, player, data)
-    if event == fk.EventLoseSkill then return data == heyi
-    elseif event == fk.GeneralHidden then return player == target
-    else return player:hasShownSkill(self.name, true, true) end
-  end,
-  on_refresh = function(self, event, target, player, data)
-    local room = player.room
-    for _, p in ipairs(room.alive_players) do
-      local ret = #room.alive_players > 3 and player:hasSkill(self) and H.inFormationRelation(p, player)
-      room:handleAddLoseSkills(p, ret and 'ld__feiying' or "-ld__feiying", nil, false, true)
-    end
-  end,
-}
-heyi:addRelatedSkill(heyiTrig)
-local feiying = fk.CreateDistanceSkill{
-  name = "ld__feiying",
-  correct_func = function(self, from, to)
-    if to:hasSkill(self) then
-      return 1
-    end
-    return 0
-  end,
-}
-
-local huyuan_active = fk.CreateActiveSkill{
-  name = "#huyuan_active",
-  mute = true,
-  card_num = 1,
-  target_num = 1,
-  interaction = function()
-    return UI.ComboBox {choices = {"ld__huyuan_give", "ld__huyuan_equip"}}
-  end,
-  card_filter = function(self, to_select, selected, targets)
-    if #selected == 0 then
-      if self.interaction.data == "ld__huyuan_give" then
-        return Fk:currentRoom():getCardArea(to_select) == Card.PlayerHand
-      elseif self.interaction.data == "ld__huyuan_equip" then
-        return Fk:getCardById(to_select).type == Card.TypeEquip
-      end
-    end
-  end,
-  target_filter = function(self, to_select, selected, selected_cards)
-    if #selected == 0 and #selected_cards == 1 then
-      if self.interaction.data == "ld__huyuan_give" then
-        return to_select ~= Self.id
-      elseif self.interaction.data == "ld__huyuan_equip" then
-        return Fk:currentRoom():getPlayerById(to_select):hasEmptyEquipSlot(Fk:getCardById(selected_cards[1]).sub_type)
-      end
-    end
-  end,
-}
-local huyuan = fk.CreateTriggerSkill{
-  name = 'ld__huyuan',
-  anim_type = "defensive",
-  events = {fk.EventPhaseStart},
-  can_trigger = function (self, event, target, player, data)
-    return player:hasSkill(self) and player.phase == Player.Finish and not player:isNude()
-  end,
-  on_cost = function (self, event, target, player, data)
-    local success, dat = player.room:askForUseActiveSkill(player, "#huyuan_active", "#ld__huyuan-choose", true)
-    if success then
-      self.cost_data = dat
-      return true
-    end
-  end,
-  on_use = function (self, event, target, player, data)
-    local room = player.room
-    local dat = self.cost_data
-    local choice = dat.interaction
-    if choice == "ld__huyuan_give" then
-      room:obtainCard(dat.targets[1], dat.cards, false, fk.ReasonGive, player.id)
-    elseif choice == "ld__huyuan_equip" then
-      room:moveCardTo(dat.cards, Card.PlayerEquip, room:getPlayerById(dat.targets[1]), fk.ReasonPut, self.name, nil, true, player.id)
-      if not player.dead then
-        local targets = table.map(table.filter(room.alive_players, function(p)
-          return #p:getCardIds("ej") > 0 end), Util.IdMapper)
-        local to2 = room:askForChoosePlayers(player, targets, 1, 1, "#ld__huyuan_discard-choose", self.name, true, true)
-        if #to2 > 0 then
-        local cid = room:askForCardChosen(player, room:getPlayerById(to2[1]), "ej", self.name)
-        room:throwCard({cid}, self.name, room:getPlayerById(to2[1]), player)
-        end
-      end
-    end
-  end,
-}
-huyuan:addRelatedSkill(huyuan_active)
-caohong:addSkill(heyi)
-caohong:addSkill(huyuan)
-Fk:addSkill(feiying)
+local caohong = General:new(extension, "ld__caohong", "wei", 4)
+caohong:addSkills{"ld__huyuan"} --TODO: "heyi", 
+caohong:addRelatedSkill("feiying")
 caohong:addCompanions("hs__caoren")
 Fk:loadTranslationTable{
   ["ld__caohong"] = "曹洪",
@@ -130,28 +33,9 @@ Fk:loadTranslationTable{
   ["designer:ld__caohong"] = "韩旭（淬毒）",
   ["illustrator:ld__caohong"] = "YellowKiss",
   ["cv:ld__caohong"] = "绯川陵彦",
-
-  ["heyi"] = "鹤翼",
-  [":heyi"] = "阵法技，与你处于同一<a href='heg_formation'>队列</a>的角色拥有〖飞影〗。",
-  ["ld__huyuan"] = "护援",
-  [":ld__huyuan"] = "结束阶段，你可选择：1.将一张手牌交给一名角色；2.将一张装备牌置入一名角色的装备区，然后你可以弃置场上的一张牌。",
-
-  ["#huyuan_active"] = "护援",
-  ["ld__huyuan_give"] = "给出手牌",
-  ["ld__huyuan_equip"] = "置入装备",
-
-  ["#ld__huyuan-choose"] = "发动 护援，选择一张牌和一名角色",
-  ["#ld__huyuan_discard-choose"] = "护援：选择一名角色，弃置其场上的一张牌",
-
-  ["ld__feiying"] = "飞影",
-  [":ld__feiying"] = "锁定技，其他角色计算与你的距离+1。",
-
-  ["$ld__huyuan1"] = "舍命献马，护我曹公！",
-  ["$ld__huyuan2"] = "拼将性命，定保曹公周全。",
-  ["~ld__caohong"] = "曹公，可安好...",
-
+  ["~ld__caohong"] = "曹公，可安好…",
 }
-
+--[[
 local jiangwei = General(extension, "ld__jiangwei", "shu", 4)
 jiangwei:addCompanions("hs__zhugeliang")
 jiangwei.deputyMaxHpAdjustedValue = -1
@@ -270,30 +154,9 @@ Fk:loadTranslationTable{
   ["illustrator:ld__jiangwanfeiyi"] = "cometrue",
   ["~ld__jiangwanfeiyi"] = "墨守成规，终为其害啊……",
 }
---[[
-local xusheng = General(extension, "ld__xusheng", "wu", 4)
 
-local yicheng = fk.CreateTriggerSkill{
-  name = "yicheng",
-  anim_type = "defensive",
-  events = {fk.TargetConfirmed, fk.TargetSpecified},
-  can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self) and H.compareKingdomWith(target, player) and data.card.trueName == "slash" and (event == fk.TargetConfirmed or (event == fk.TargetSpecified and data.firstTarget))
-  end,
-  on_cost = function(self, event, target, player, data)
-    return player.room:askForSkillInvoke(player, self.name, nil, "#yicheng-ask::" .. target.id)
-  end,
-  on_use = function(self, event, target, player, data)
-    local room = player.room
-    room:doIndicate(player.id, {target.id})
-    target:drawCards(1, self.name)
-    if not target.dead then
-      room:askForDiscard(target, 1, 1, true, self.name, false)
-    end
-  end
-}
-
-xusheng:addSkill(yicheng)
+local xusheng = General:new(extension, "ld__xusheng", "wu", 4)
+xusheng:addSkill("yicheng")
 xusheng:addCompanions("hs__dingfeng")
 
 Fk:loadTranslationTable{
@@ -301,16 +164,9 @@ Fk:loadTranslationTable{
   ["#ld__xusheng"] = "江东的铁壁",
   ["designer:ld__xusheng"] = "淬毒",
   ["illustrator:ld__xusheng"] = "天信",
-  ["yicheng"] = "疑城",
-  [":yicheng"] = "当与你势力相同的角色使用【杀】指定目标后或成为【杀】的目标后，你可令其摸一张牌，然后其弃置一张牌。",
-
-  ["#yicheng-ask"] = "疑城：你可令 %dest 摸一张牌，然后其弃置一张牌",
-
-  ["$yicheng1"] = "不怕死，就尽管放马过来！",
-  ["$yicheng2"] = "待末将布下疑城，以退曹贼。",
   ["~ld__xusheng"] = "可怜一身胆略，尽随一抔黄土……",
 }
-
+--[[
 local jiangqin = General(extension, "ld__jiangqin", "wu", 4)
 
 local niaoxiang = H.CreateArraySummonSkill{
@@ -397,7 +253,7 @@ Fk:loadTranslationTable{
   ["$ld__shangyi2"] = "敌情已了然于胸，即刻出发！",
   ["$ld__niaoxiang1"] = "此战，必是有死无生！",
   ["$ld__niaoxiang2"] = "抢占先机，占尽优势！",
-  ["~ld__jiangqin"] = "竟破我阵法...",
+  ["~ld__jiangqin"] = "竟破我阵法…",
 }
 
 local yuji = General(extension, "ld__yuji", "qun", 3)
@@ -688,68 +544,5 @@ Fk:loadTranslationTable{
   ["$ex__rende_ld__lordliubei2"] = "君才十倍于丕，必能安国成事。",
   ["~ld__lordliubei"] = "若嗣子可辅，辅之。如其不才，君可自取……",
 }
-
-local extension_card = Package("formation_cards", Package.CardPack)
-extension_card.extensionName = "hegemony"
-extension_card.game_modes_whitelist = { 'nos_heg_mode', 'new_heg_mode' }
-
-Fk:loadTranslationTable{
-  ["formation_cards"] = "君临天下·阵卡牌",
-}
-
-local dragonPhoenixSkill = fk.CreateTriggerSkill{
-  name = "#dragon_phoenix_skill",
-  attached_equip = "dragon_phoenix",
-  events = {fk.TargetSpecified, fk.EnterDying},
-  can_trigger = function(self, event, target, player, data)
-    if not player:hasSkill(self) then return end
-    if event == fk.TargetSpecified then
-      if target == player and data.card and data.card.trueName == "slash" then
-        return not player.room:getPlayerById(data.to):isNude()
-      end
-    else
-      return data.damage and data.damage.from == player and not target:isKongcheng() and player.room.logic:damageByCardEffect() and data.damage.card.trueName == "slash"
-    end
-  end,
-  on_cost = function(self, event, target, player, data)
-    local prompt = event == fk.TargetSpecified and "#dragon_phoenix-slash::" .. data.to or "#dragon_phoenix-dying::" .. target.id
-    return player.room:askForSkillInvoke(player, self.name, data, prompt)
-  end,
-  on_use = function(self, event, target, player, data)
-    local room = player.room
-    room:notifySkillInvoked(player, "dragon_phoenix", "control")
-    -- room:setEmotion(player, "./packages/hegemony/image/anim/dragon_phoenix")
-    if event == fk.TargetSpecified then
-      local to = player.room:getPlayerById(data.to)
-      room:askForDiscard(to, 1, 1, true, self.name, false, ".", "#dragon_phoenix-invoke")
-    else
-      local card = room:askForCardChosen(player, target, "h", self.name)
-      room:obtainCard(player, card, false, fk.ReasonPrey)
-    end
-  end,
-}
-Fk:addSkill(dragonPhoenixSkill)
-
-local dragonPhoenix = fk.CreateWeapon{
-  name = "dragon_phoenix",
-  suit = Card.Spade,
-  number = 2,
-  attack_range = 2,
-  equip_skill = dragonPhoenixSkill,
-}
-H.addCardToConvertCards(dragonPhoenix, "double_swords")
-extension_card:addCard(dragonPhoenix)
-
-Fk:loadTranslationTable{
-  ["dragon_phoenix"] = "飞龙夺凤",
-  [":dragon_phoenix"] = "装备牌·武器<br/><b>攻击范围</b>：２ <br/><b>武器技能</b>：①当你使用【杀】指定目标后，你可令目标弃置一张牌。②当一名角色因执行你使用的【杀】的效果而受到你造成的伤害而进入濒死状态后，你可获得其一张手牌。",
-  ["#dragon_phoenix_skill"] = "飞龙夺凤",
-  ["#dragon_phoenix-slash"] = "飞龙夺凤：你可令 %dest 弃置一张牌",
-  ["#dragon_phoenix-dying"] = "飞龙夺凤：你可获得 %dest 一张手牌",
-  ["#dragon_phoenix-invoke"] = "受到“飞龙夺凤”影响，你需弃置一张牌",
-}
 --]]
-return {
-  extension,
-  -- extension_card,
-}
+return extension

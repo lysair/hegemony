@@ -44,6 +44,9 @@ Fk:loadTranslationTable{
   ["duanbing"] = "短兵",
   [":duanbing"] = "当你使用【杀】选择目标后，你可令一名距离为1的角色也成为此【杀】的目标。",
   ["#duanbing-choose"] = "短兵：你可以额外选择一名距离为1的其他角色为目标",
+
+  ["$duanbing1"] = "众将官，短刀出鞘。",
+  ["$duanbing2"] = "短兵轻甲也可取汝性命！",
 }
 
 return duanbing

@@ -36,7 +36,7 @@ lirang:addEffect(fk.AfterCardsMove, {
     }
     room:notifyMoveCards({player}, {fakeMove})
     local ret = room:askToYiji(player, {targets = room:getOtherPlayers(player), cards = ids, skill_name = lirang.name,
-      min_num = 0, max_num = #ids, prompt = "#lirang-give", skip = true}) -- FIXEME: expand_pile
+      min_num = 0, max_num = #ids, prompt = "#lirang-give", skip = true}) -- FIXME: expand_pile
     fakeMove = {
       from = player,
       toArea = Card.DiscardPile,

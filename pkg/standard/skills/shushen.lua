@@ -3,11 +3,8 @@ local shushen = fk.CreateSkill{
 }
 shushen:addEffect(fk.HpRecover, {
   anim_type = "support",
-  on_trigger = function(self, event, target, player, data)
-    for _ = 1, data.num do
-      if event:isCancelCost(self) or not player:hasSkill(shushen.name) then break end
-      self:doCost(event, target, player, data)
-    end
+  trigger_times = function (self, event, target, player, data)
+    return data.num
   end,
   on_cost = function(self, event, target, player, data)
     local room = player.room

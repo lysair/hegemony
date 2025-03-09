@@ -1010,14 +1010,14 @@ end
 
 -- 卡牌替换
 
-H.convertCards = {}
+--- 卡牌替换库，键为旧牌牌名，值为新牌牌名
+H.convertCards = {} ---@type table<string, string>
 
----@param card Card @ 要替换的卡牌
----@param convert string @ 要被替换的卡牌名
-H.addCardToConvertCards = function(card, convert)
-  assert(card.class:isSubclassOf(Card))
-  H.convertCards[convert] = H.convertCards[convert] or {}
-  table.insert(H.convertCards[convert], card)
+--- 向卡牌替换库中添加牌名映射。（君主替换）（修改：只能替换为一种）
+---@param newName string @ 要替换的卡牌的卡牌名（如飞龙夺凤）
+---@param oldName string @ 要被替换的卡牌名（如雌雄双股剑）
+function H.addCardToConvertCards(newName, oldName)
+  H.convertCards[oldName] = newName
 end
 
 -- 大势力

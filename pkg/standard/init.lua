@@ -413,11 +413,6 @@ Fk:loadTranslationTable{
   ["hs__dingfeng"] = "丁奉",
   ["#hs__dingfeng"] = "清侧重臣",
   ["illustrator:hs__dingfeng"] = "魔鬼鱼",
-
-  ["$duanbing1"] = "众将官，短刀出鞘。",
-  ["$duanbing2"] = "短兵轻甲也可取汝性命！",
-  ["$fenxun1"] = "取封侯爵赏，正在今日！",
-  ["$fenxun2"] = "给我拉过来！",
   ["~hs__dingfeng"] = "这风，太冷了……",
 }
 

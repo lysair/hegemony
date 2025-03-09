@@ -963,7 +963,7 @@ Fk:loadTranslationTable{
   ["$ld__keshou2"] = "宽济百姓，则得战前养备之机。",
   ["$ld__zhuwei1"] = "背水一战，只为破敌。",
   ["$ld__zhuwei2"] = "全线并进，连战克晋。",
-  ["~ld__lukang"] = "吾既亡矣，又能存几时...",
+  ["~ld__lukang"] = "吾既亡矣，又能存几时…",
 }
 
 local wuguotai = General(extension, "ld__wuguotai", "wu", 3, 3, General.Female)

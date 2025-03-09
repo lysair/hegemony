@@ -4,7 +4,7 @@ local prefix = "packages.hegemony.pkg."
 local gamemodes = require(prefix .. "gamemodes")
 
 local hegemony_standard = require(prefix .. "standard")
-local formation = require(prefix .. "formation")[1]
+local formation = require(prefix .. "formation")
 local momentum = require(prefix .. "momentum")[1]
 --[[
 local transformation = require "packages/hegemony/transformation"[1]
@@ -12,8 +12,8 @@ local power = require "packages/hegemony/power"[1]
 local tenyear = require "packages/hegemony/tenyear_heg"
 local overseas = require "packages/hegemony/overseas_heg"
 local offline = require "packages/hegemony/offline_heg"
-local ex = require "packages/hegemony/lord_ex"
 --]]
+local ex = require(prefix .. "lord_ex")
 local ziqidonglai = require(prefix .. "zqdl")
 
 local hegemony_cards = require(prefix .. "standard_cards")
@@ -24,6 +24,8 @@ local momentum_cards = require "packages/hegemony/momentum"[2]
 local transformation_cards = require "packages/hegemony/transformation"[2]
 local power_cards = require "packages/hegemony/power"[2]
 --]]
+local lord_cards = require(prefix .. "lord_cards")
+
 Fk:loadTranslationTable{ ["hegemony"] = "国战" }
 Fk:loadTranslationTable(require 'packages/hegemony/i18n/en_US', 'en_US')
 
@@ -39,16 +41,11 @@ return {
   tenyear,
   overseas,
   offline,
-  ex,
   --]]
+  ex,
   ziqidonglai,
 
   hegemony_cards,
   strategic_advantage,
-  --[[
-  formation_cards,
-  momentum_cards,
-  transformation_cards,
-  power_cards,
-  -- ]]
+  lord_cards,
 }

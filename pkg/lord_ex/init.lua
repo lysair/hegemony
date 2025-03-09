@@ -3,123 +3,13 @@ local U = require "packages/utility/utility"
 local extension = Package:new("lord_ex")
 extension.extensionName = "hegemony"
 extension.game_modes_whitelist = { 'nos_heg_mode', 'new_heg_mode' }
+extension:loadSkillSkelsByPath("./packages/hegemony/pkg/lord_ex/skills")
 
 Fk:loadTranslationTable{
   ["lord_ex"] = "君临天下·EX/不臣篇",
 }
 
-local dongzhao = General(extension, "ld__dongzhao", "wei", 3)
-
-local quanjin = fk.CreateActiveSkill{
-  name = "quanjin",
-  prompt = "#quanjin-active",
-  anim_type = "control",
-  can_use = function(self, player)
-    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
-  end,
-  card_num = 1,
-  card_filter = function(self, to_select, selected)
-    return #selected < 1 and Fk:currentRoom():getCardArea(to_select) == Player.Hand
-  end,
-  target_num = 1,
-  target_filter = function(self, to_select, selected, selected_cards)
-    return #selected == 0 and to_select ~= Self.id and Fk:currentRoom():getPlayerById(to_select):getMark("_quanjin-phase") > 0 -- and #selected_cards == 1
-  end,
-  on_use = function(self, room, effect)
-    local player = room:getPlayerById(effect.from)
-    local target = room:getPlayerById(effect.tos[1])
-    room:moveCardTo(effect.cards, Card.PlayerHand, target, fk.ReasonGive, self.name, nil, false, player.id)
-    if H.askCommandTo(player, target, self.name) then
-      player:drawCards(1, self.name)
-    else
-      local num = player:getHandcardNum()
-      for hc, p in ipairs(room.alive_players) do
-        hc = p:getHandcardNum()
-        if hc > num then
-          num = hc
-        end
-      end
-      num = math.min(num - player:getHandcardNum(), 5)
-      player:drawCards(num, self.name)
-    end
-  end,
-
-  on_acquire = function (self, player, is_start)
-    if is_start then return end
-    local room = player.room
-    room.logic:getActualDamageEvents(998, function(e)
-      local damage = e.data[1]
-      local to = damage.to
-      if to and to:getMark("_quanjin-phase") == 0 then
-        room:setPlayerMark(to, "_quanjin-phase", 1)
-      end
-      return false
-    end, Player.HistoryPhase)
-  end,
-}
-local quanjinRecorder = fk.CreateTriggerSkill{
-  name = "#quanjin_recorder",
-  refresh_events = {fk.Damaged},
-  can_refresh = function(self, event, target, player, data)
-    return player:hasSkill(quanjin) and player.phase == Player.Play
-  end,
-  on_refresh = function(self, event, target, player, data)
-    player.room:setPlayerMark(target, "_quanjin-phase", 1)
-  end,
-}
-quanjin:addRelatedSkill(quanjinRecorder)
-
-local zaoyun = fk.CreateActiveSkill{
-  name = "zaoyun",
-  anim_type = "offensive",
-  prompt = "#zaoyun",
-  can_use = function(self, player)
-    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and player.kingdom ~= "unknown"
-  end,
-  min_card_num = 1,
-  card_filter = function(self, to_select, selected)
-    return Fk:currentRoom():getCardArea(to_select) == Player.Hand and not Self:prohibitDiscard(Fk:getCardById(to_select))
-  end,
-  target_num = 1,
-  target_filter = function(self, to_select, selected, selected_cards)
-    local target = Fk:currentRoom():getPlayerById(to_select)
-    return #selected == 0 and H.compareKingdomWith(target, Self, true)
-      and Self:distanceTo(target) - 1 == #selected_cards and #selected_cards > 0
-  end,
-  target_tip = function (self, to_select, selected, selected_cards, card, selectable, extra_data)
-    local target = Fk:currentRoom():getPlayerById(to_select)
-    if not H.compareKingdomWith(target, Self, true) then return end
-    local n = Self:distanceTo(target) - 1
-    if n < 1 then
-      return -- { {content = "zaoyun_unable", type = "warning"} }
-    elseif n == #selected_cards or #selected_cards == 0 then
-      return { {content = "zaoyun_num:::" .. n, type = "normal"} }
-    else
-      return { {content = "zaoyun_num:::" .. n, type = "warning"} }
-    end
-  end,
-  on_use = function(self, room, effect)
-    local player = room:getPlayerById(effect.from)
-    local target = room:getPlayerById(effect.tos[1])
-    room:throwCard(effect.cards, self.name, player, player)
-    if not player.dead and not target.dead then
-      room:setPlayerMark(player, "_zaoyun_distance-turn", target.id)
-      room:damage{ from = player, to = target, damage = 1, skillName = self.name }
-    end
-  end,
-}
-local zaoyun_distance = fk.CreateDistanceSkill{
-  name = "#zaoyun_distance",
-  fixed_func = function(self, from, to)
-    if from:getMark("_zaoyun_distance-turn") == to.id then
-      return 1
-    end
-  end,
-}
-zaoyun:addRelatedSkill(zaoyun_distance)
-
-dongzhao:addSkill(quanjin)
-dongzhao:addSkill(zaoyun)
+General:new(extension, "ld__dongzhao", "wei", 3):addSkills{"quanjin", "zaoyun"}
 
 Fk:loadTranslationTable{
   ["ld__dongzhao"] = "董昭",
@@ -127,24 +17,9 @@ Fk:loadTranslationTable{
   ["illustrator:ld__dongzhao"] = "小牛",
   ["designer:ld__dongzhao"] = "逍遥鱼叔",
   ["cv:ld__dongzhao"] = "宋国庆",
-
-  ["quanjin"] = "劝进",
-  [":quanjin"] = "出牌阶段限一次，你可将一张手牌交给一名此阶段受到过伤害的角色，对其发起“军令”。若其执行，你摸一张牌；若其不执行，你将手牌摸至与手牌最多的角色相同（最多摸五张）。",
-  ["zaoyun"] = "凿运",
-  [":zaoyun"] = "出牌阶段限一次，你可选择一名与你势力不同且你至其距离大于1的角色并弃置X张手牌（X为你至其的距离-1），令你至其的距离此回合视为1，然后你对其造成1点伤害。",
-
-  ["#quanjin-active"] = "发动 劝进，选择一张手牌交给一名此阶段内受到过伤害的角色并对其发起军令",
-  ["#zaoyun-discard"] = "凿运：弃置 %arg 张手牌（你至%src的距离-1）",
-  ["#zaoyun"] = "凿运：选择任意张手牌弃置，再选择一名与你势力不同且你至其距离为弃置手牌数+1的角色",
-  ["zaoyun_num"] = "弃置%arg张牌",
-
-  ["$quanjin1"] = "今称魏公，则可以藩卫之名，征吴伐蜀也。",
-  ["$quanjin2"] = "明公受封，正合天心人意！",
-  ["$zaoyun1"] = "开渠输粮，振军之心，破敌之胆！",
-  ["$zaoyun2"] = "兵精粮足，胜局已定！",
   ["~ld__dongzhao"] = "一生无愧，又何惧身后之议……",
 }
-
+--[[
 local zhuling = General(extension, "ld__zhuling", "wei", 4)
 local juejue = fk.CreateTriggerSkill{
   name = "ld__juejue",
@@ -333,7 +208,7 @@ Fk:loadTranslationTable{
   ["~ld__zhuling"] = "母亲，弟弟，我来了……",
 }
 
---[[
+-- 牢
 local xushu = General(extension, "ld__xushu", "shu", 4)
 xushu.deputyMaxHpAdjustedValue = -1
 local qiance = fk.CreateTriggerSkill{
@@ -396,7 +271,6 @@ Fk:loadTranslationTable{
   ["$ld__jujian2"] = "愿与将军共图王之霸业。",
   ["~ld__xushu"] = "大义无言，虽死无怨。",
 }
-]]--
 
 local xushu = General(extension, "ld__xushu", "shu", 4)
 xushu.deputyMaxHpAdjustedValue = -1
@@ -986,7 +860,7 @@ Fk:loadTranslationTable{
   ["$ld__zhidao2"] = "本王要的，没有得不到的！",
   ["$ld__jilix1"] = "处处受制于人，难施拳脚。",
   ["$ld__jilix2"] = "寄居人下，终是气短！",
-  ["~ld__yanbaihu"] = "江东，有我..一半...",
+  ["~ld__yanbaihu"] = "江东，有我…一半…",
 }
 
 local huangzu = General(extension, "ld__huangzu", "qun", 4)
@@ -1148,7 +1022,7 @@ Fk:loadTranslationTable{
   ["$ld__liangfan1"] = "今举兵投魏，必可封王拜相，一展宏图。",
   ["$ld__liangfan2"] = "今举义军事若成，吾为复汉元勋也。",
 
-  ["~ld__mengda"] = "吾一生寡信，今报应果然来矣...",
+  ["~ld__mengda"] = "吾一生寡信，今报应果然来矣…",
 }
 
 local zhanglu = General(extension, "ld__zhanglu", "qun", 3)
@@ -1679,7 +1553,7 @@ Fk:loadTranslationTable{
   ["$ld__xingzhao2"] = "拿些上好的木料来。",
 --   ["$ld__xunxun1"] = "让我先探他一探。",
 --   ["$ld__xunxun2"] = "船，也不是一天就能造出来的。",
-  ["~ld__tangzi"] = "偷工减料，要不得啊...",
+  ["~ld__tangzi"] = "偷工减料，要不得啊…",
 }
 
 local xiahouba = General(extension, "ld__xiahouba", "shu", 4)
@@ -2627,7 +2501,7 @@ local xiongnve = fk.CreateTriggerSkill{
     room:setPlayerMark(player, "@&massacre", generals)
     if event == fk.EventPhaseStart then
       room:setPlayerMark(player, "@xiongnve_choice-phase", "xiongnve_effect" .. string.sub(self.cost_data[2], 16, 16))
-      local general = Fk.generals[self.cost_data[1][1]]
+      local general = Fk.generals[self.cost_data[1][1]
       local kingdoms = {general.kingdom}
       if general.subkingdom then
         table.insert(kingdoms, general.subkingdom)
@@ -2846,7 +2720,7 @@ Fk:loadTranslationTable{
   ["$ld__zisui2"] = "凡从我大燕者，授印封爵，全族俱荣！",
   ["~ld__gongsunyuan"] = "流星骤损，三军皆溃，看来大势去矣……",
 }
-
+--]]
 
 return extension
 

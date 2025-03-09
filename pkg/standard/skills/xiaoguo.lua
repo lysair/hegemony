@@ -5,10 +5,20 @@ local xiaoguo = fk.CreateSkill{
 xiaoguo:addEffect(fk.EventPhaseStart, {
   anim_type = "offensive",
   can_trigger = function(self, event, target, player, data)
-    return target ~= player and player:hasSkill(self) and target.phase == Player.Finish and not player:isKongcheng()
+    return target ~= player and player:hasSkill(self) and target.phase == Player.Finish
+      and not player:isKongcheng()
   end,
   on_cost = function(self, event, target, player, data)
-    local card = player.room:askForDiscard(player, 1, 1, true, xiaoguo.name, true, ".|.|.|.|.|basic", "#xiaoguo-invoke::"..target.id, true)
+    local card = player.room:askToDiscard(player, {
+      min_num = 1,
+      max_num = 1,
+      include_equip = false,
+      skill_name = xiaoguo.name,
+      cancelable = true,
+      pattern = ".|.|.|.|.|basic",
+      prompt = "#xiaoguo-invoke::" .. target.id,
+      skip = true
+    })
     if #card > 0 then
       event:setCostData(self, {cards = card})
       return true
@@ -16,16 +26,27 @@ xiaoguo:addEffect(fk.EventPhaseStart, {
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
+    room:doIndicate(player, { target })
     room:throwCard(event:getCostData(self).cards, xiaoguo.name, player, player)
-    if #room:askForDiscard(target, 1, 1, true, xiaoguo.name, true, ".|.|.|.|.|equip", "#xiaoguo-discard:"..player.id) == 0 then
-      room:damage{
+    if #room:askToDiscard(target, {
+      min_num = 1,
+      max_num = 1,
+      include_equip = true,
+      skill_name = xiaoguo.name,
+      cancelable = true,
+      pattern = ".|.|.|.|.|equip",
+      prompt = "#xiaoguo-discard:" .. player.id,
+    }) > 0 then
+      if not player.dead then
+        player:drawCards(1, xiaoguo.name)
+      end
+    else
+      room:damage {
         from = player,
         to = target,
         damage = 1,
         skillName = xiaoguo.name,
       }
-    elseif not player.dead then
-      player:drawCards(1, xiaoguo.name)
     end
   end,
 })
