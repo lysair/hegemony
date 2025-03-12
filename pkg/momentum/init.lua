@@ -3,6 +3,8 @@ local extension = Package:new("momentum")
 extension.extensionName = "hegemony"
 extension.game_modes_whitelist = { 'nos_heg_mode', 'new_heg_mode' }
 
+extension:loadSkillSkelsByPath("./packages/hegemony/pkg/momentum/skills")
+
 Fk:loadTranslationTable{
   ["momentum"] = "君临天下·势",
 }
@@ -17,95 +19,18 @@ Fk:loadTranslationTable{
   ["illustrator:ld__lidian"] = "张帅",
   ["~ld__lidian"] = "报国杀敌，虽死犹荣……",
 }
---[[
+
 local zangba = General(extension, "ld__zangba", "wei", 4)
-local hengjiang = fk.CreateTriggerSkill{
-  name = "hengjiang",
-  anim_type = "masochism",
-  events = { fk.Damaged },
-  can_trigger = function(self, _, target, player, _)
-    if target ~= player or not player:hasSkill(self) then return false end
-    local current = player.room.current
-    return current ~= nil and not current.dead
-  end,
-  on_use = function(_, _, _, player, data)
-    local room = player.room
-    local target = room.current
-    if target ~= nil and not target.dead then
-      room:doIndicate(player.id, {target.id})
-      room:addPlayerMark(target, "@hengjiang-turn", math.max(1, #target:getCardIds("e")))
-      room:addPlayerMark(target, MarkEnum.MinusMaxCardsInTurn, math.max(1, #target:getCardIds("e")))
-    end
-  end
-}
-local hengjiangdelay = fk.CreateTriggerSkill{
-  name = "#hengjiang_delay",
-  anim_type = "drawcard",
-  events = { fk.TurnEnd },
-  --FIXME:如何体现这个技能是延迟效果？
-  can_trigger = function(_, _, target, player, _)
-    if player.dead or player:usedSkillTimes(hengjiang.name) == 0 then return false end
-    local room = player.room
-    local discard_ids = {}
-    room.logic:getEventsOfScope(GameEvent.Phase, 1, function (e)
-      if e.data[2] == Player.Discard then
-        table.insert(discard_ids, {e.id, e.end_id})
-      end
-      return false
-    end, Player.HistoryTurn)
-    if #discard_ids > 0 then
-      if #room.logic:getEventsOfScope(GameEvent.MoveCards, 1, function (e)
-        local in_discard = false
-        for _, ids in ipairs(discard_ids) do
-          if #ids == 2 and e.id > ids[1] and e.id < ids[2] then
-            in_discard = true
-            break
-          end
-        end
-        if in_discard then
-          for _, move in ipairs(e.data) do
-            if move.from == target.id and move.moveReason == fk.ReasonDiscard then
-              for _, info in ipairs(move.moveInfo) do
-                if info.fromArea == Card.PlayerHand or info.fromArea == Card.PlayerEquip then
-                  return true
-                end
-              end
-            end
-          end
-        end
-        return false
-      end, Player.HistoryTurn) > 0 then
-        return false
-      end
-    end
-    return true
-  end,
-  on_cost = Util.TrueFunc,
-  on_use = function(_, _, _, player, _)
-    if player:getHandcardNum() < player.maxHp then
-      player:drawCards(player.maxHp - player:getHandcardNum() , hengjiang.name)
-    end
-  end,
-}
-hengjiang:addRelatedSkill(hengjiangdelay)
-zangba:addSkill(hengjiang)
+zangba:addSkill("hengjiang")
 zangba:addCompanions("hs__zhangliao")
 Fk:loadTranslationTable{
   ['ld__zangba'] = '臧霸',
   ["#ld__zangba"] = "节度青徐",
   ["illustrator:ld__zangba"] = "HOOO",
   ["cv:ld__zangba"] = "墨禅",
-  ['hengjiang'] = '横江',
-  [':hengjiang'] = '当你受到伤害后，你可以令当前回合角色本回合手牌上限-X（X为其装备区内牌数且至少为1）。' ..
-    '然后若其本回合弃牌阶段内没有弃牌，你将手牌摸至体力上限。',
-  ['@hengjiang-turn'] = '横江',
-  ['#hengjiang_delay'] = '横江',
-
-  ['$hengjiang1'] = '霸必奋勇杀敌，一雪夷陵之耻！',
-  ['$hengjiang2'] = '江横索寒，阻敌绝境之中！',
   ['~ld__zangba'] = '断刃沉江，负主重托……',
 }
-
+--[[
 local madai = General(extension, "ld__madai", "shu", 4)
 local madai_mashu = fk.CreateDistanceSkill{
   name = "heg_madai__mashu",
@@ -814,66 +739,11 @@ Fk:loadTranslationTable{
   ["~ld__lordzhangjiao"] = "天，真要灭我……",
 }
 
-local extension_card = Package("momentum_cards", Package.CardPack)
-extension_card.extensionName = "hegemony"
-extension_card.game_modes_whitelist = { 'nos_heg_mode', 'new_heg_mode' }
-
-local peaceSpellSkill = fk.CreateTriggerSkill{
-  name = "#peace_spell_skill",
-  attached_equip = "peace_spell",
-  frequency = Skill.Compulsory,
-  events = {fk.DamageInflicted},
-  can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self) and data.damageType ~= fk.NormalDamage
-  end,
-  on_use = function(self, event, target, player, data)
-    player.room:notifySkillInvoked(player, "peace_spell", "defensive")
-    return true
-  end,
-}
-local peace_spell_maxcards = fk.CreateMaxCardsSkill{
-  name = "#peace_spell_maxcards",
-  correct_func = function(self, player)
-    if player:hasSkill("#peace_spell_skill") then
-      if player.kingdom == "unknown" then
-        return 1
-      else
-        local num = H.getSameKingdomPlayersNum(Fk:currentRoom(), player)
-        return (num or 0) + #player:getPile("heavenly_army")
-      end
-    end
-  end,
-}
-peaceSpellSkill:addRelatedSkill(peace_spell_maxcards)
-Fk:addSkill(peaceSpellSkill)
-local peace_spell = fk.CreateArmor{
-  name = "peace_spell",
-  suit = Card.Heart,
-  number = 3,
-  equip_skill = peaceSpellSkill,
-  on_uninstall = function(self, room, player)
-    Armor.onUninstall(self, room, player)
-    if not player.dead and self.equip_skill:isEffectable(player) then
-      room:notifySkillInvoked(player, "peace_spell", "drawcard")
-      player:drawCards(2, self.name)
-      if player.hp > 1 then
-        room:loseHp(player, 1, self.name)
-      end
-    end
-  end,
-}
-H.addCardToConvertCards(peace_spell, "jingfan")
-extension_card:addCard(peace_spell)
-
 Fk:loadTranslationTable{
   ["momentum_cards"] = "君临天下·势卡牌",
 }
-Fk:loadTranslationTable{
-  ["peace_spell"] = "太平要术",
-  [":peace_spell"] = "装备牌·防具<br /><b>防具技能</b>：锁定技，①当你受到属性伤害时，你防止此伤害。②你的手牌上限+X（X为与你势力相同的角色数）。③当你失去装备区里的【太平要术】后，你摸两张牌，然后若你的体力值大于1，你失去1点体力。",
-}
+
 --]]
-return {
-  extension,
+return extension
   --extension_card,
-}
+

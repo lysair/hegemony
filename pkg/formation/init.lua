@@ -166,9 +166,9 @@ Fk:loadTranslationTable{
   ["illustrator:ld__xusheng"] = "天信",
   ["~ld__xusheng"] = "可怜一身胆略，尽随一抔黄土……",
 }
---[[
-local jiangqin = General(extension, "ld__jiangqin", "wu", 4)
 
+local jiangqin = General:new(extension, "ld__jiangqin", "wu", 4)
+--[[
 local niaoxiang = H.CreateArraySummonSkill{
   name = "niaoxiang",
   array_type = "siege",
@@ -187,51 +187,9 @@ local niaoxiangTrigger = fk.CreateTriggerSkill{
     data.fixedResponseTimes["jink"] = 2
   end
 }
-
-local shangyi = fk.CreateActiveSkill{
-  name = 'ld__shangyi',
-  anim_type = "control",
-  card_num = 0,
-  target_num = 1,
-  prompt = "ld__shangyi",
-  can_use = function(self, player)
-    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and not player:isKongcheng()
-  end,
-  target_filter = function(self, to_select, selected, selected_cards)
-    return #selected == 0 and to_select ~= Self.id 
-  end,
-  on_use = function(self, room, effect)
-    local player = room:getPlayerById(effect.from)
-    local target = room:getPlayerById(effect.tos[1])
-    if player.dead or target.dead or player:isKongcheng() then return end
-    U.viewCards(target, player:getCardIds("h"), self.name)
-    local choices = {}
-    if H.getGeneralsRevealedNum(target) ~= 2 then
-      table.insert(choices, "ld__shangyi_hidden")
-    end
-    if not target:isKongcheng() then
-      table.insert(choices, "ld__shangyi_card")
-    end
-    if #choices == 0 then return end
-    local choice = room:askForChoice(player, choices, self.name)
-    if choice == "ld__shangyi_hidden" then
-      local general = {target:getMark("__heg_general"), target:getMark("__heg_deputy"), target.seat}
-      room:askForCustomDialog(player, self.name, "packages/hegemony/qml/KnownBothBox.qml", general)
-    elseif choice == "ld__shangyi_card" then
-      if table.find(target:getCardIds("h"), function(id) return Fk:getCardById(id).color == Card.Black end) then
-        local card, _ = U.askforChooseCardsAndChoice(player, table.filter(target:getCardIds("h"), function(id) return Fk:getCardById(id).color == Card.Black end), 
-        {"OK"}, self.name, "", nil, 1, 1, target:getCardIds("h"))
-        room:throwCard(card, self.name, target, player)
-      else
-        U.viewCards(player, target:getCardIds("h"), self.name)
-      end
-    end
-  end,
-}
-
 niaoxiang:addRelatedSkill(niaoxiangTrigger)
-jiangqin:addSkill(niaoxiang)
-jiangqin:addSkill(shangyi)
+--]]
+jiangqin:addSkills{"shangyi"} -- {"niaoxiang", "shangyi"}
 jiangqin:addCompanions("hs__zhoutai")
 Fk:loadTranslationTable{
   ["ld__jiangqin"] = "蒋钦",
@@ -242,144 +200,23 @@ Fk:loadTranslationTable{
 
   ["niaoxiang"] = "鸟翔",
   [":niaoxiang"] = "阵法技，若你是围攻角色，此围攻关系中的围攻角色使用【杀】指定被围攻角色为目标后，你令被围攻角色响应此【杀】的方式改为依次使用两张【闪】。",
-  ["ld__shangyi"] = "尚义",
-  [":ld__shangyi"] = "出牌阶段限一次，你可令一名其他角色观看你所有手牌，然后你选择一项：1.观看其所有手牌并弃置其中一张黑色牌；2.观看其所有暗置的武将牌",
-
-  ["ld__shangyi_hidden"] = "观看暗置的武将牌",
-  ["ld__shangyi_card"] = "观看所有手牌",
   ["#niaoxiang_trigger"] = "鸟翔",
 
-  ["$ld__shangyi1"] = "大丈夫为人坦荡，看下手牌算什么。",
-  ["$ld__shangyi2"] = "敌情已了然于胸，即刻出发！",
-  ["$ld__niaoxiang1"] = "此战，必是有死无生！",
-  ["$ld__niaoxiang2"] = "抢占先机，占尽优势！",
+  ["$niaoxiang1"] = "此战，必是有死无生！",
+  ["$niaoxiang2"] = "抢占先机，占尽优势！",
   ["~ld__jiangqin"] = "竟破我阵法…",
 }
 
-local yuji = General(extension, "ld__yuji", "qun", 3)
-local qianhuan = fk.CreateTriggerSkill{
-  name = "qianhuan",
-  events = {fk.Damaged, fk.TargetConfirming, fk.BeforeCardsMove},
-  anim_type = "defensive",
-  derived_piles = "yuji_sorcery",
-  mute = true,
-  can_trigger = function(self, event, target, player, data)
-    if not player:hasSkill(self) then return false end
-    if event == fk.Damaged then
-      return not target.dead and H.compareKingdomWith(target, player) and not player:isNude() and #player:getPile("yuji_sorcery") < 4
-    elseif event == fk.TargetConfirming then
-      return H.compareKingdomWith(target, player) and #player:getPile("yuji_sorcery") > 0 and
-      (data.card.type == Card.TypeBasic or data.card:isCommonTrick()) and #AimGroup:getAllTargets(data.tos) == 1
-    elseif event == fk.BeforeCardsMove then
-      for _, move in ipairs(data) do
-        if move.to ~= nil and move.toArea == Card.PlayerJudge then
-          local friend = player.room:getPlayerById(move.to)
-          return H.compareKingdomWith(friend, player) and #move.moveInfo > 0 and #player:getPile("yuji_sorcery") > 0
-        end
-      end
-    end
-  end,
-  on_cost = function(self, event, target, player, data)
-    local card = {}
-    local room = player.room
-    if event == fk.Damaged then
-      local suits = {}
-      for _, id in ipairs(player:getPile("yuji_sorcery")) do
-        table.insert(suits, Fk:getCardById(id):getSuitString())
-      end
-      suits = table.concat(suits, ",")
-      card = room:askForCard(player, 1, 1, true, self.name, true, ".|.|^(" .. suits .. ")", "#qianhuan-dmg", "yuji_sorcery")
-    elseif event == fk.TargetConfirming then
-      card = room:askForCard(player, 1, 1, false, self.name, true, ".|.|.|yuji_sorcery", "#qianhuan-def::" .. target.id .. ":" .. data.card:toLogString(), "yuji_sorcery")
-    elseif event == fk.BeforeCardsMove then
-      local delayed_trick = nil
-      local friend = nil
-      for _, move in ipairs(data) do
-        if move.to ~= nil and move.toArea == Card.PlayerJudge then
-          friend = move.to
-          for _, info in ipairs(move.moveInfo) do
-            local id = info.cardId
-            local source = player
-            if info.fromArea == Card.PlayerJudge then
-              source = room:getPlayerById(move.from) or player
-            end
-            delayed_trick = source:getVirualEquip(id)
-            if delayed_trick == nil then delayed_trick = Fk:getCardById(id) end
-            break
-          end
-          if delayed_trick then break end
-        end
-      end
-      if delayed_trick then
-        card = player.room:askForCard(player, 1, 1, false, self.name, true, ".|.|.|yuji_sorcery",
-        "#qianhuan-def::" .. friend .. ":" .. delayed_trick:toLogString(), "yuji_sorcery")
-      end
-    end
-    if #card > 0 then
-      self.cost_data = card
-      return true
-    end
-  end,
-  on_use = function(self, event, target, player, data)
-    local room = player.room
-    player:broadcastSkillInvoke("qianhuan")
-    if event == fk.Damaged then
-      room:notifySkillInvoked(player, "qianhuan", "masochism")
-      player:addToPile("yuji_sorcery", self.cost_data, true, self.name)
-    elseif event == fk.TargetConfirming then
-      room:notifySkillInvoked(player, "qianhuan", "defensive")
-      room:moveCardTo(self.cost_data, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, self.name, "yuji_sorcery")
-      AimGroup:cancelTarget(data, target.id)
-      return true
-    elseif event == fk.BeforeCardsMove then
-      room:moveCardTo(self.cost_data, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, self.name, "yuji_sorcery")
-      local mirror_moves = {}
-      local ids = {}
-      for _, move in ipairs(data) do
-        if move.toArea == Card.PlayerJudge then
-          local move_info = {}
-          local mirror_info = {}
-          for _, info in ipairs(move.moveInfo) do
-            local id = info.cardId
-            table.insert(mirror_info, info)
-            table.insert(ids, id)
-          end
-          if #mirror_info > 0 then
-            move.moveInfo = move_info
-            local mirror_move = table.clone(move)
-            mirror_move.to = nil
-            mirror_move.toArea = Card.DiscardPile
-            mirror_move.moveInfo = mirror_info
-            table.insert(mirror_moves, mirror_move)
-          end
-        end
-      end
-      table.insertTable(data, mirror_moves)
-    end
-  end,
-}
-yuji:addSkill(qianhuan)
+General:new(extension, "ld__yuji", "qun", 3):addSkill("qianhuan")
 Fk:loadTranslationTable{
   ["ld__yuji"] = "于吉",
   ["#ld__yuji"] = "魂绕左右",
   ["designer:ld__yuji"] = "淬毒",
   ["illustrator:ld__yuji"] = "G.G.G.",
-
-  ["qianhuan"] = "千幻",
-  [":qianhuan"] = "①当与你势力相同的角色受到伤害后，你可将一张与你武将牌上花色均不同的牌置于你的武将牌上（称为“幻”）。②当与你势力相同的角色成为基本牌或锦囊牌的唯一目标时，你可将一张“幻”置入弃牌堆，取消此目标。",
-
-  ["#qianhuan-dmg"] = "千幻：你可一张与“幻”花色均不同的牌置于你的武将牌上（称为“幻”）",
-  ["#qianhuan-def"] = "千幻：你可一张“幻”置入弃牌堆，取消%arg的目标 %dest",
-  ["yuji_sorcery"] = "幻",
-
-  ["$qianhuan1"] = "幻化于阴阳，藏匿于乾坤。",
-  ["$qianhuan2"] = "幻变迷踪，虽飞鸟亦难觅踪迹。",
   ["~ld__yuji"] = "幻化之物，终是算不得真呐。",
 }
 
-local hetaihou = General(extension, "ld__hetaihou", "qun", 3, 3, General.Female)
-hetaihou:addSkill("zhendu")
-hetaihou:addSkill("qiluan")
+General:new(extension, "ld__hetaihou", "qun", 3, 3, General.Female):addSkills{"zhendu", "qiluan"}
 Fk:loadTranslationTable{
   ["ld__hetaihou"] = "何太后",
   ["#ld__hetaihou"] = "弄权之蛇蝎",
@@ -388,7 +225,7 @@ Fk:loadTranslationTable{
   ["designer:ld__hetaihou"] = "淬毒",
   ["~ld__hetaihou"] = "你们男人造的孽，非要说什么红颜祸水……",
 }
-
+--[[
 local lordliubei = General(extension, "ld__lordliubei", "shu", 4)
 lordliubei.hidden = true
 H.lordGenerals["hs__liubei"] = "ld__lordliubei"

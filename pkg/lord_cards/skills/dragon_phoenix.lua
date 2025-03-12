@@ -1,6 +1,3 @@
-
-
-
 local dragonPhoenixSkill = fk.CreateSkill{
   name = "#dragon_phoenix_skill",
   attached_equip = "dragon_phoenix",

@@ -21,8 +21,18 @@ H.addCardToConvertCards("dragon_phoenix", "double_swords")
 
 extension:addCardSpec("dragon_phoenix", Card.Spade, 2)
 
+local peaceSpell = fk.CreateCard{
+  name = "peace_spell",
+  type = Card.TypeEquip,
+  sub_type = Card.SubtypeWeapon,
+  equip_skill = "#peace_spell_skill",
+}
+H.addCardToConvertCards("peace_spell", "jingfan")
+
+extension:addCardSpec("peace_spell", Card.Heart, 3)
+
 extension:loadCardSkels{
-  dragonPhoenix
+  dragonPhoenix, peaceSpell
 }
 
 return extension

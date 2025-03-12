@@ -75,6 +75,41 @@ weimu:addEffect(fk.BeforeCardsMove, {
   end
 })
 
+weimu:addTest(function (room, me)
+  local comp2 = room.players[2]
+  FkTest.runInRoom(function () room:handleAddLoseSkills(comp2, weimu.name) end)
+  local card = room:printCard("duel", Card.Black, 3)
+  FkTest.runInRoom(function ()
+    room:useCard{
+      from = me,
+      tos = { comp2 },
+      card = card,
+    }
+  end)
+  lu.assertEquals(comp2.hp, 4)
+
+  card = room:printCard("indulgence", Card.Black, 3)
+  FkTest.runInRoom(function ()
+    room:useCard{
+      from = me,
+      tos = { comp2 },
+      card = card,
+    }
+  end)
+  lu.assertEquals(#comp2:getCardIds("e"), 0)
+
+  card = room:printCard("lightning", Card.Black, 3)
+  FkTest.runInRoom(function ()
+    room:useCard{
+      from = me,
+      tos = { me },
+      card = card,
+    }
+    me:gainAnExtraTurn()
+    comp2:gainAnExtraTurn()
+  end)
+end)
+
 Fk:loadTranslationTable{
   ['hs__weimu'] = '帷幕',
   [':hs__weimu'] = '锁定技，当你成为黑色锦囊牌的目标时，取消之。',

@@ -84,6 +84,24 @@ qianxun:addEffect(fk.BeforeCardsMove, {
   end
 })
 
+qianxun:addTest(function (room, me)
+  local comp2 = room.players[2]
+  FkTest.runInRoom(function () room:handleAddLoseSkills(comp2, qianxun.name) end)
+  local card = room:printCard("indulgence")
+  FkTest.runInRoom(function ()
+    room:obtainCard(comp2, 1)
+    room:useVirtualCard("snatch", nil, me, comp2)
+    room:obtainCard(me, card)
+    room:useCard{
+      from = me,
+      tos = { comp2 },
+      card = card,
+    }
+  end)
+  lu.assertIsFalse(comp2:isKongcheng())
+  lu.assertEquals(#comp2:getCardIds("e"), 0)
+end)
+
 Fk:loadTranslationTable{
   ["hs__qianxun"] = "谦逊",
   [":hs__qianxun"] = "锁定技，当你成为【顺手牵羊】或【乐不思蜀】的目标时，你取消此目标。",

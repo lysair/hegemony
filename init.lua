@@ -5,10 +5,10 @@ local gamemodes = require(prefix .. "gamemodes")
 
 local hegemony_standard = require(prefix .. "standard")
 local formation = require(prefix .. "formation")
-local momentum = require(prefix .. "momentum")[1]
+local momentum = require(prefix .. "momentum")
 --[[
-local transformation = require "packages/hegemony/transformation"[1]
-local power = require "packages/hegemony/power"[1]
+local transformation = require "packages/hegemony/transformation"
+local power = require "packages/hegemony/power"
 local tenyear = require "packages/hegemony/tenyear_heg"
 local overseas = require "packages/hegemony/overseas_heg"
 local offline = require "packages/hegemony/offline_heg"
@@ -34,7 +34,7 @@ return {
 
   hegemony_standard,
   formation,
-  -- momentum,
+  momentum,
   --[[
   transformation,
   power,
