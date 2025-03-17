@@ -1,9 +1,16 @@
 
+local H = require "packages/hegemony/util"
+
 local longdan = fk.CreateSkill{
   name = "hs__longdan",
+  dynamic_desc = function(self, player)
+    if H.getHegLord(Fk:currentRoom(), player) and H.getHegLord(Fk:currentRoom(), player):hasSkill("shouyue") then
+      return "hs__longdan_shouyue"
+    else
+      return "hs__longdan"
+    end
+  end,
 }
-
-local H = require "packages/hegemony/util"
 
 longdan:addEffect('viewas', {
   pattern = "slash,jink",
@@ -108,13 +115,6 @@ local longdan_draw_spec = {
   on_cost = Util.TrueFunc,
   on_use = function (self, event, target, player, data)
     player:drawCards(1, longdan.name)
-  end,
-  dynamic_desc = function(self, player)
-    if H.getHegLord(Fk:currentRoom(), player) and H.getHegLord(Fk:currentRoom(), player):hasSkill("shouyue") then
-      return "hs__longdan_shouyue"
-    else
-      return "hs__longdan"
-    end
   end,
 }
 longdan:addEffect(fk.CardUsing, longdan_draw_spec)
