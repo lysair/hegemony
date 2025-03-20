@@ -1,5 +1,5 @@
 local yinghun = fk.CreateSkill{
-  name = "hs__yinghun",
+  name = "heg_sunce__yinghun",
 }
 local U = require "packages/utility/utility"
 yinghun:addEffect(fk.EventPhaseStart, {
@@ -62,15 +62,11 @@ yinghun:addEffect(fk.EventPhaseStart, {
 })
 
 Fk:loadTranslationTable{
-  ["hs__yinghun"] = "英魂",
-  [":hs__yinghun"] = "准备阶段，你可选择一名其他角色并选择一项：1.令其摸X张牌，然后弃置一张牌；2.令其摸一张牌，然后弃置X张牌（X为你已损失的体力值）。",
+  ["heg_sunce__yinghun"] = "英魂",
+  [":heg_sunce__yinghun"] = "准备阶段，你可选择一名其他角色并选择一项：1.令其摸X张牌，然后弃置一张牌；2.令其摸一张牌，然后弃置X张牌（X为你已损失的体力值）。",
 
-  ["#hs__yinghun-choose"] = "英魂：你可以令一名其他角色：摸%arg张牌然后弃置一张牌，或摸一张牌然后弃置%arg张牌",
-  ["#hs__yinghun-draw"] = "摸%arg张牌，弃置一张牌",
-  ["#hs__yinghun-discard"] = "摸一张牌，弃置%arg张牌",
-
-  ["$hs__yinghun1"] = "以吾魂魄，保佑吾儿之基业。",
-  ["$hs__yinghun2"] = "不诛此贼三族，则吾死不瞑目！",
+  ["$heg_sunce__yinghun1"] = "父亲，助我背水一战。",
+  ["$heg_sunce__yinghun2"] = "孙氏英烈，魂佑江东！",
 }
 
 return yinghun

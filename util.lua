@@ -735,11 +735,39 @@ H.hideBySkillName = function(player, skill, allowBothHidden)
   end
 end
 
+--- GeneralRemoveData 描述和移除武将牌有关的数据
+---@class GeneralRemoveDataSpec
+---@field public who ServerPlayer @ 被移除武将的角色
+---@field public isDeputy? boolean @ 是否是副将
+---@field public origName string @ 被移除武将的名称
+
+---@class H.GeneralRemoveData: GeneralRemoveDataSpec, TriggerData
+H.GeneralRemoveData = TriggerData:subclass("GeneralRemoveData")
+
+--- 移除武将牌事件
+---@class H.GeneralRemoveEvent: TriggerEvent
+---@field public data H.GeneralRemoveData
+H.GeneralRemoveEvent = TriggerEvent:subclass("GeneralRemoveEvent")
+
+--- 移除武将牌时
+---@class H.GeneralRemoving: H.GeneralRemoveEvent
+H.GeneralRemoving = H.GeneralRemoveEvent:subclass("H.GeneralRemoving")
+--- 移除武将牌后
+---@class H.GeneralRemoved: H.GeneralRemoveEvent
+H.GeneralRemoved = H.GeneralRemoveEvent:subclass("H.GeneralRemoved")
+
+---@alias GeneralRemoveTrigFunc fun(self: TriggerSkill, event: H.GeneralRemoveEvent,
+---  target: ServerPlayer, player: ServerPlayer, data: H.GeneralRemoveData):any
+
+---@class SkillSkeleton
+---@field public addEffect fun(self: SkillSkeleton, key: H.GeneralRemoveEvent,
+---  data: TrigSkelSpec<GeneralRemoveTrigFunc>, attr: TrigSkelAttribute?): SkillSkeleton
+
 -- 移除武将牌
 ---@param room Room
 ---@param player ServerPlayer
 ---@param isDeputy? boolean @ 是否为副将，默认主将
-H.removeGeneral = function(room, player, isDeputy)
+H.removeGeneral = function(room, player, isDeputy) --- TODO: 改造为GameEvent
   player:setMark("CompanionEffect", 0)
   player:setMark("HalfMaxHpLeft", 0)
   player:doNotify("SetPlayerMark", json.encode{ player.id, "CompanionEffect", 0})
@@ -748,17 +776,22 @@ H.removeGeneral = function(room, player, isDeputy)
   --if player.kingdom == "unknown" then player:revealGeneral(isDeputy, true) end 
   player:revealGeneral(isDeputy, true) -- 先摆
 
-  if room.logic:trigger("fk.GeneralRemoving", player, isDeputy) then return false end
-
   local orig = isDeputy and (player.deputyGeneral or "") or player.general
-
   if orig:startsWith("blank_") then return false end
+  local data = {
+    who = player,
+    isDeputy = isDeputy,
+    origName = orig,
+  }
+  if room.logic:trigger(H.GeneralRemoving, player, data) then return false end
 
-  orig = Fk.generals[orig]
+  orig = isDeputy and (player.deputyGeneral or "") or player.general
+  if orig:startsWith("blank_") then return false end
+  local orig_general = Fk.generals[orig]
 
-  local orig_skills = orig and orig:getSkillNameList() or {}
+  local orig_skills = orig_general and orig_general:getSkillNameList() or {}
 
-  local new_general = orig.gender == General.Male and "blank_shibing" or "blank_nvshibing"
+  local new_general = orig_general.gender == General.Male and "blank_shibing" or "blank_nvshibing"
 
   orig_skills = table.map(orig_skills, function(e)
     return "-" .. e
@@ -779,15 +812,17 @@ H.removeGeneral = function(room, player, isDeputy)
     type = "#GeneralRemoved",
     from = player.id,
     arg = isDeputy and "deputyGeneral" or "mainGeneral",
-    arg2 = orig.name,
+    arg2 = orig,
   }
-  room:returnToGeneralPile({orig.name})
-  room.logic:trigger("fk.GeneralRemoved", player, orig.name)
+  room:returnToGeneralPile({orig})
+
+  room.logic:trigger(H.GeneralRemoved, player, data)
 end
 Fk:loadTranslationTable{
   ["#GeneralRemoved"] = "%from 移除了 %arg %arg2",
 }
 
+-- TODO: 暗置逻辑重构
 local function addHegSkill(player, skill, room)
   if skill.frequency == Skill.Compulsory then
     player:addFakeSkill("reveal_skill&")

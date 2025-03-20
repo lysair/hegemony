@@ -20,7 +20,7 @@ Fk:loadTranslationTable{
   ["~ld__lidian"] = "报国杀敌，虽死犹荣……",
 }
 
-local zangba = General(extension, "ld__zangba", "wei", 4)
+local zangba = General:new(extension, "ld__zangba", "wei", 4)
 zangba:addSkill("hengjiang")
 zangba:addCompanions("hs__zhangliao")
 Fk:loadTranslationTable{
@@ -30,259 +30,48 @@ Fk:loadTranslationTable{
   ["cv:ld__zangba"] = "墨禅",
   ['~ld__zangba'] = '断刃沉江，负主重托……',
 }
---[[
-local madai = General(extension, "ld__madai", "shu", 4)
-local madai_mashu = fk.CreateDistanceSkill{
-  name = "heg_madai__mashu",
-  frequency = Skill.Compulsory,
-  correct_func = function(self, from, to)
-    if from:hasSkill(self) then
-      return -1
-    end
-  end,
-}
-madai:addSkill(madai_mashu)
-madai:addSkill("re__qianxi")
+
+local madai = General:new(extension, "ld__madai", "shu", 4)
+madai:addSkills{"heg_madai__mashu", "re__qianxi"}
 madai:addCompanions("hs__machao")
 Fk:loadTranslationTable{
   ["ld__madai"] = "马岱",
   ["#ld__madai"] = "临危受命",
   ["designer:ld__madai"] = "凌天翼（韩旭）",
   ["illustrator:ld__madai"] = "Thinking",
-  ["heg_madai__mashu"] = "马术",
-  [":heg_madai__mashu"] = "锁定技，你与其他角色的距离-1。",
-  ["$re__qianxi1"] = "暗影深处，袭敌斩首！",
-  ["$re__qianxi2"] = "擒贼先擒王，打蛇打七寸！",
   ["~ld__madai"] = "我怎么会死在这里……",
 }
 
-local mifuren = General(extension, "ld__mifuren", "shu", 3, 3, General.Female)
-local guixiu = fk.CreateTriggerSkill{
-  name = "guixiu",
-  anim_type = "drawcard",
-  events = {fk.GeneralRevealed, "fk.GeneralRemoved"},
-  can_trigger = function(self, event, target, player, data)
-    if target ~= player then return false end
-    if event == "fk.GeneralRemoved" then
-      return player:isWounded() and table.contains(Fk.generals[data]:getSkillNameList(), self.name)
-    else
-      if player:hasSkill(self) then
-        for _, v in pairs(data) do
-          if table.contains(Fk.generals[v]:getSkillNameList(), self.name) then return true end
-        end
-      end
-    end
-  end,
-  on_cost = function(self, event, target, player, data)
-    return player.room:askForSkillInvoke(player, self.name, nil, "#guixiu-" .. (event == fk.GeneralRevealed and "draw" or "recover"))
-  end,
-  on_use = function(self, event, target, player, data)
-    if event == fk.GeneralRevealed then
-      player:drawCards(2, self.name)
-    else
-      player.room:recover{
-        who = player,
-        num = 1,
-        skillName = self.name,
-      }
-    end
-  end
-}
-local cunsi = fk.CreateActiveSkill{
-  name = "cunsi",
-  anim_type = "big",
-  target_num = 1,
-  target_filter = function(self, to_select, selected)
-    return #selected == 0
-  end,
-  on_use = function(self, room, effect)
-    local player = room:getPlayerById(effect.from)
-    local isDeputy = H.inGeneralSkills(player, self.name)
-    if isDeputy then
-      H.removeGeneral(room, player, isDeputy == "d")
-    end
-    local target = room:getPlayerById(effect.tos[1])
-    room:handleAddLoseSkills(target, "yongjue", nil)
-    if target ~= player and not target.dead then
-      target:drawCards(2, self.name)
-    end
-  end,
-}
-local yongjue = fk.CreateTriggerSkill{
-  name = "yongjue",
-  anim_type = "support",
-  events = {fk.CardUseFinished},
-  can_trigger = function(self, event, target, player, data)
-    if player:hasSkill(self) and H.compareKingdomWith(target, player) and not target.dead and data.card.trueName == "slash" and target.phase == Player.Play then
-      local events = target.room.logic:getEventsOfScope(GameEvent.UseCard, 1, function(e)
-        local use = e.data[1]
-        return use.from == target.id
-      end, Player.HistoryPhase)
-      if #events == 1 and events[1].id == target.room.logic:getCurrentEvent().id then
-        local cards = Card:getIdList(data.card)
-        return #cards > 0 and table.every(cards, function(id) return target.room:getCardArea(id) == Card.Processing end)
-      end
-    end
-  end,
-  on_cost = function(self, event, target, player, data)
-    return target.room:askForSkillInvoke(target, self.name, nil, "#yongjue-invoke:::" .. data.card:toLogString())
-  end,
-  on_use = function(self, event, target, player, data)
-    local room = target.room
-    -- room:doIndicate(player.id, {target.id})
-    room:obtainCard(target, data.card, true, fk.ReasonJustMove)
-  end,
-}
-mifuren:addSkill(guixiu)
-mifuren:addSkill(cunsi)
-mifuren:addRelatedSkill(yongjue)
+local mifuren = General:new(extension, "ld__mifuren", "shu", 3, 3, General.Female)
+mifuren:addSkills{"guixiu", "cunsi", "yongjue"}
 Fk:loadTranslationTable{
   ['ld__mifuren'] = '糜夫人',
   ["#ld__mifuren"] = "乱世沉香",
   ["designer:ld__mifuren"] = "淬毒",
   ["illustrator:ld__mifuren"] = "木美人",
-
-  ["guixiu"] = "闺秀",
-  [":guixiu"] = "当你：1.明置此武将牌后，你可摸两张牌：2.移除此武将牌后，你回复1点体力。",
-  ["cunsi"] = "存嗣",
-  [":cunsi"] = "出牌阶段，你可移除此武将牌并选择一名角色，其获得〖勇决〗。若其不为你，其摸两张牌。", -- canShowInPlay 若此武将牌处于明置状态
-  ["yongjue"] = "勇决",
-  [":yongjue"] = "当与你势力相同的角色于其出牌阶段内使用【杀】结算后，若此【杀】为其于此阶段内使用的第一张牌，其可获得此【杀】对应的所有实体牌。",
-
-  ["#guixiu-draw"] = "是否发动“闺秀”，摸两张牌",
-  ["#guixiu-recover"] = "是否发动“闺秀”，回复1点体力",
-  ["#yongjue-invoke"] = "勇决：你可以获得此%arg",
-
-  ["$guixiu1"] = "闺中女子，亦可秀气英拔。",
-  ["$guixiu2"] = "闺楼独看花月，倚窗顾影自怜。",
-  ["$cunsi1"] = "存汉室之嗣，留汉室之本。",
-  ["$cunsi2"] = "一切，便托付将军了……",
-  ["$yongjue1"] = "能救一个是一个！",
-  ["$yongjue2"] = "扶幼主，成霸业！",
   ["~ld__mifuren"] = "阿斗被救，妾身再无牵挂…",
 }
 
-local sunce = General(extension, "ld__sunce", "wu", 4)
+local sunce = General:new(extension, "ld__sunce", "wu", 4)
 sunce.deputyMaxHpAdjustedValue = -1
 sunce:addCompanions { "hs__zhouyu", "hs__taishici", "hs__daqiao" }
-sunce:addSkill("jiang")
-local yingyang = fk.CreateTriggerSkill{
-  name = "yingyang",
-  events = {fk.PindianCardsDisplayed},
-  can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self) and (player == data.from or data.results[player.id])
-  end,
-  on_cost = function(self, event, target, player, data)
-    local choice = player.room:askForChoice(player, { 'yingyang_plus3', 'yingyang_sub3', 'Cancel' }, self.name)
-    if choice ~= "Cancel" then
-      self.cost_data = choice
-      return true
-    end
-  end,
-  on_use = function(self, event, target, player, data)
-    player.room:changePindianNumber(data, player, self.cost_data == "yingyang_plus3" and 3 or -3, self.name)
-  end,
-}
-sunce:addSkill(yingyang)
-local hunshang = fk.CreateTriggerSkill{
-  name = 'hunshang',
-  relate_to_place = 'd',
-  events = {fk.EventPhaseStart},
-  frequency = Skill.Compulsory,
-  can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self) and
-      player.phase == Player.Start and player.hp == 1
-  end,
-  on_use = function(self, event, target, player, data)
-    local room = player.room
-    room:handleAddLoseSkills(player, 'heg_sunce__yingzi|heg_sunce__yinghun')
-    room.logic:getCurrentEvent():findParent(GameEvent.Turn):addCleaner(function()
-      room:handleAddLoseSkills(player, '-heg_sunce__yingzi|-heg_sunce__yinghun', nil, true, false)
-    end)
-  end,
-}
-sunce:addSkill(hunshang)
-
-local yingzi = fk.CreateTriggerSkill{
-  name = "heg_sunce__yingzi",
-  anim_type = "drawcard",
-  frequency = Skill.Compulsory,
-  events = {fk.DrawNCards},
-  on_use = function(self, event, target, player, data)
-    data.n = data.n + 1
-  end,
-}
-local yingzi_maxcards = fk.CreateMaxCardsSkill{
-  name = "#heg_sunce__yingzi_maxcards",
-  fixed_func = function(self, player)
-    if player:hasSkill(self) then
-      return player.maxHp
-    end
-  end
-}
-yingzi:addRelatedSkill(yingzi_maxcards)
-sunce:addRelatedSkill(yingzi)
-local yinghun = fk.CreateTriggerSkill{
-  name = "heg_sunce__yinghun",
-  anim_type = "drawcard",
-  mute = true,
-  events = {fk.EventPhaseStart},
-  can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self) and player.phase == Player.Start and player:isWounded()
-  end,
-  on_cost = function(self, event, target, player, data)
-    local to = player.room:askForChoosePlayers(player, table.map(player.room:getOtherPlayers(player, false), Util.IdMapper), 1, 1, "#yinghun-choose:::"..player:getLostHp()..":"..player:getLostHp(), self.name, true)
-    if #to > 0 then
-      self.cost_data = to[1]
-      return true
-    end
-  end,
-  on_use = function(self, event, target, player, data)
-    local room = player.room
-    local to = room:getPlayerById(self.cost_data)
-    local n = player:getLostHp()
-    local choice = room:askForChoice(player, {"#yinghun-draw:::" .. n,  "#yinghun-discard:::" .. n}, self.name)
-    if choice:startsWith("#yinghun-draw") then
-      player:broadcastSkillInvoke(self.name, 1)
-      room:notifySkillInvoked(player, self.name, "support")
-      to:drawCards(n, self.name)
-      room:askForDiscard(to, 1, 1, true, self.name, false)
-    else
-      player:broadcastSkillInvoke(self.name, 2)
-      room:notifySkillInvoked(player, self.name, "control")
-      to:drawCards(1, self.name)
-      room:askForDiscard(to, n, n, true, self.name, false)
-    end
-  end,
-}
-sunce:addRelatedSkill(yinghun)
+sunce:addSkills{"jiang", "yingyang", "hunshang"}
+sunce:addRelatedSkills{"heg_sunce__yingzi", "heg_sunce__yinghun"}
 Fk:loadTranslationTable{
   ['ld__sunce'] = '孙策',
   ["#ld__sunce"] = "江东的小霸王",
   ["designer:ld__sunce"] = "KayaK（韩旭）",
   ["illustrator:ld__sunce"] = "木美人",
 
-  ['yingyang'] = '鹰扬',
-  [':yingyang'] = '当你的拼点牌亮出后，你可令其点数+3或-3。',
-  ['hunshang'] = '魂殇',
-  [':hunshang'] = '副将技，锁定技，此武将牌减少半个阴阳鱼；准备阶段，若你的体力值为1，你拥有技能“英姿”和“英魂”至本回合结束。',
   ['heg_sunce__yingzi'] = '英姿',
   [":heg_sunce__yingzi"] = "锁定技，摸牌阶段，你多摸一张牌；你的手牌上限等于你的体力上限。",
-  ["heg_sunce__yinghun"] = "英魂",
-  [":heg_sunce__yinghun"] = "准备阶段，你可选择一名其他角色并选择一项：1.令其摸X张牌，然后弃置一张牌；2.令其摸一张牌，然后弃置X张牌（X为你已损失的体力值）。",
 
-  ["yingyang_plus3"] = "令你的拼点牌点数+3",
-  ["yingyang_sub3"] = "令你的拼点牌点数-3",
 
-  ["$yingyang1"] = "此战，我必取胜！",
-  ["$yingyang2"] = "相斗之趣，吾常胜之。",
   ["$heg_sunce__yingzi1"] = "公瑾，助我决一死战。",
   ["$heg_sunce__yingzi2"] = "尔等看好了！",
-  ["$heg_sunce__yinghun1"] = "父亲，助我背水一战。",
-  ["$heg_sunce__yinghun2"] = "孙氏英烈，魂佑江东！",
   ["~ld__sunce"] = "内事不决问张昭，外事不决问周瑜……",
 }
-
+--[[
 local chengdong = General(extension, "ld__chenwudongxi", "wu", 4)
 local duanxie = fk.CreateActiveSkill{
   name = 'ld__duanxie',
