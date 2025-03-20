@@ -6,7 +6,7 @@ xiaoguo:addEffect(fk.EventPhaseStart, {
   anim_type = "offensive",
   can_trigger = function(self, event, target, player, data)
     return target ~= player and player:hasSkill(self) and target.phase == Player.Finish
-      and not player:isKongcheng()
+      and not player:isKongcheng() and not target.dead
   end,
   on_cost = function(self, event, target, player, data)
     local card = player.room:askToDiscard(player, {
@@ -20,14 +20,14 @@ xiaoguo:addEffect(fk.EventPhaseStart, {
       skip = true
     })
     if #card > 0 then
-      event:setCostData(self, {cards = card})
+      event:setCostData(self, {tos = {target}, cards = card})
       return true
     end
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    room:doIndicate(player, { target })
     room:throwCard(event:getCostData(self).cards, xiaoguo.name, player, player)
+    if target.dead then return end
     if #room:askToDiscard(target, {
       min_num = 1,
       max_num = 1,

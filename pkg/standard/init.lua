@@ -134,7 +134,7 @@ Fk:loadTranslationTable{
   ["~hs__caopi"] = "子建，子建……",
 }
 
-General:new(extension, "hs__yuejin", "wei", 4):addSkill("hs__xiaoguo")
+General:new(extension, "hs__yuejin", "wei", 4):addSkill("xiaoguo")
 
 Fk:loadTranslationTable{
   ["hs__yuejin"] = "乐进",
@@ -343,7 +343,7 @@ Fk:loadTranslationTable{
   ["~hs__daqiao"] = "伯符，我去了……",
 }
 
-General:new(extension, "hs__luxun", "wu", 3):addSkills{"qianhs__qianxunxun", "duoshi"}
+General:new(extension, "hs__luxun", "wu", 3):addSkills{"hs__qianxun", "duoshi"}
 Fk:loadTranslationTable{
   ["hs__luxun"] = "陆逊",
   ["#hs__luxun"] = "擎天之柱",

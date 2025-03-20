@@ -29,7 +29,7 @@ wusheng:addEffect("targetmod", {
 
 Fk:loadTranslationTable{
   ["hs__wusheng"] = "武圣", -- 动态描述
-  [":hs__wusheng"] = "你可将一张红色牌当【杀】使用或打出。你使用的方块【杀】无距离限制。",
+  [":hs__wusheng"] = "你可将一张红色牌当【杀】使用或打出。你使用的<font color='red'>♦</font>【杀】无距离限制。",
   ["$hs__wusheng1"] = "关羽在此，尔等受死！",
   ["$hs__wusheng2"] = "看尔乃插标卖首！",
 }
