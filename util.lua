@@ -116,7 +116,7 @@ H.isBigKingdomPlayer = function(player)
   if player.kingdom == "unknown" then return false end
   local room = Fk:currentRoom()
 
-  local status_skills = room.status_skills[H.BigKingdomSkill] or Util.DummyTable
+  local status_skills = room.status_skills[H.BigKingdomSkill] or Util.DummyTable ---@type H.BigKingdomSkill[]
   for _, skill in ipairs(status_skills) do
     for _, p in ipairs(room.alive_players) do
       if skill:getFixed(p) then
@@ -1058,9 +1058,10 @@ end
 -- 大势力
 
 --- 视为大势力技
----@class BigKingdomSkill : StatusSkill
-H.BigKingdomSkill = StatusSkill:subclass("BigKingdomSkill")
+---@class H.BigKingdomSkill : StatusSkill
+H.BigKingdomSkill = StatusSkill:subclass("H.BigKingdomSkill")
 
+--- 视为大势力
 ---@param player Player
 ---@return boolean?
 function H.BigKingdomSkill:getFixed(player)
@@ -1068,18 +1069,20 @@ function H.BigKingdomSkill:getFixed(player)
 end
 
 ---@class BigKingdomSpec: StatusSkillSpec
----@field public fixed_func? fun(self: BigKingdomSkill, player: Player): boolean?
+---@field public fixed_func? fun(self: H.BigKingdomSkill, player: Player): boolean?
 
 ---@class SkillSkeleton
 ---@field public addEffect fun(self: SkillSkeleton, key: 'bigkingdom', data: BigKingdomSpec, attribute: nil)
 
+---@param key 'bigkingdom'
 ---@param spec BigKingdomSpec
----@return BigKingdomSkill
-H.CreateBigKingdomSkill = function(spec)
-  assert(type(spec.name) == "string")
+---@return H.BigKingdomSkill
+function H:CreateBigKingdomSkill(_skill, idx, key, attr, spec)
   assert(type(spec.fixed_func) == "function")
+  local new_name = string.format("#%s_%d_bigkingdom", _skill.name, idx)
+  Fk:loadTranslationTable({ [new_name] = Fk:translate(_skill.name) }, Config.language)
 
-  local skill = H.BigKingdomSkill:new(spec.name)
+  local skill = H.BigKingdomSkill:new(new_name, #_skill.tags > 0 and _skill.tags[1] or Skill.Compulsory)
   fk.readStatusSpecToSkill(skill, spec)
 
   if spec.fixed_func then
@@ -1088,5 +1091,8 @@ H.CreateBigKingdomSkill = function(spec)
 
   return skill
 end
+
+Fk:addSkillType("bigkingdom", H.CreateBigKingdomSkill)
+
 
 return H

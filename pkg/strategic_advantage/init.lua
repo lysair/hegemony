@@ -191,30 +191,11 @@ local woodenOx = fk.CreateCard{
 
 extension:addCardSpec("wooden_ox", Card.Diamond, 5)
 
-
-local jadeSealBig = H.CreateBigKingdomSkill{ -- TODO: 恢复
-  name = "#jade_seal_big",
-  attached_equip = "jade_seal",
-  fixed_func = function(self, player)
-    return player:hasSkill(self) and player.kingdom ~= "unknown"
-  end
-}
-Fk:addSkill(jadeSealBig)
-
 local jadeSeal = fk.CreateCard{
   name = "jade_seal",
   type = Card.TypeEquip,
   sub_type = Card.SubtypeTreasure,
   equip_skill = "#jade_seal_skill",
-
-  on_install = function(self, room, player)
-    Treasure.onInstall(self, room, player)
-    -- room:handleAddLoseSkills(player, "#jade_seal_big", nil, false, true)
-  end,
-  on_uninstall = function(self, room, player)
-    Treasure.onUninstall(self, room, player)
-    -- room:handleAddLoseSkills(player, "-#jade_seal_big", nil, false, true)
-  end,
 }
 
 extension:loadCardSkels{

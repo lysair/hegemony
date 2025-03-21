@@ -7,7 +7,7 @@ local H = require "packages/hegemony/util"
 threatenEmperorSkill:addEffect("cardskill", {
   prompt = "#threaten_emperor_skill",
   mod_target_filter = function(self, player, to_select, selected)
-    return to_select == player.id and H.isBigKingdomPlayer(player)
+    return to_select == player and H.isBigKingdomPlayer(player)
   end,
   can_use = function(self, player, card)
     return not player:isProhibited(player, card) and H.isBigKingdomPlayer(player)

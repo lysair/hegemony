@@ -71,74 +71,18 @@ Fk:loadTranslationTable{
   ["$heg_sunce__yingzi2"] = "尔等看好了！",
   ["~ld__sunce"] = "内事不决问张昭，外事不决问周瑜……",
 }
---[[
-local chengdong = General(extension, "ld__chenwudongxi", "wu", 4)
-local duanxie = fk.CreateActiveSkill{
-  name = 'ld__duanxie',
-  anim_type = 'offensive',
-  can_use = function(self, player)
-    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
-  end,
-  card_filter = function() return false end,
-  target_filter = function(self, to_select, selected)
-    return to_select ~= Self.id and
-      not Fk:currentRoom():getPlayerById(to_select).chained
-  end,
-  max_target_num = function (self)
-    return math.max(1, Self.maxHp - Self.hp)
-  end,
-  min_target_num = 1,
-  on_use = function(self, room, effect)
-    local player = room:getPlayerById(effect.from)
-    for _, pid in ipairs(effect.tos) do
-      local target = room:getPlayerById(pid)
-      if not target.chained then
-        target:setChainState(true)
-      end
-    end
-    if not player.chained then
-      player:setChainState(true)
-    end
-  end,
-}
-local fenming = fk.CreateTriggerSkill{
-  name = 'ld__fenming',
-  anim_type = 'control',
-  events = { fk.EventPhaseStart },
-  can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self) and
-      player.phase == Player.Finish and player.chained
-  end,
-  on_use = function(self, event, target, player, data)
-    local room = player.room
-    for _, p in ipairs(room:getAlivePlayers()) do
-      if p.chained and not p:isNude() then
-        local c = room:askForCardChosen(player, p, "he", self.name)
-        room:throwCard(c, self.name, p, player)
-      end
-    end
-  end,
-}
-chengdong:addSkill(duanxie)
-chengdong:addSkill(fenming)
+
+local chengdong = General:new(extension, "ld__chenwudongxi", "wu", 4)
+
+chengdong:addSkills{"duanxie", "fenming"}
 Fk:loadTranslationTable{
   ['ld__chenwudongxi'] = '陈武董袭',
   ["#ld__chenwudongxi"] = "壮怀激烈",
   ["designer:ld__chenwudongxi"] = "淬毒",
   ["illustrator:ld__chenwudongxi"] = "地狱许",
-
-  ['ld__duanxie'] = '断绁',
-  [':ld__duanxie'] = '出牌阶段限一次，你可以令至多X名其他角色横置，然后你横置（X为你已损失的体力值且至少为1）。',
-  ['ld__fenming'] = '奋命',
-  [':ld__fenming'] = '结束阶段，若你处于横置状态，你可弃置所有处于横置状态角色的各一张牌。',
-
-  ["$ld__duanxie1"] = "区区绳索就想挡住吾等去路？！",
-  ["$ld__duanxie2"] = "以身索敌，何惧同伤！",
-  ["$ld__fenming1"] = "东吴男儿，岂是贪生怕死之辈？",
-  ["$ld__fenming2"] = "不惜性命，也要保主公周全！",
   ["~ld__chenwudongxi"] = "杀身卫主，死而无憾！",
 }
-
+--[[
 local dongzhuo = General(extension, "ld__dongzhuo", "qun", 4)
 local hengzheng = fk.CreateTriggerSkill{
   name = 'hengzheng',

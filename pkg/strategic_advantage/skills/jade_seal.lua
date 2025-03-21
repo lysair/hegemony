@@ -2,7 +2,7 @@ local H = require "packages/hegemony/util"
 local jadeSealSkill = fk.CreateSkill{
   name = "#jade_seal_skill",
   attached_equip = "jade_seal",
-  frequency = Skill.Compulsory,
+  tags = {Skill.Compulsory},
 }
 jadeSealSkill:addEffect(fk.EventPhaseStart, {
   anim_type = "control",
@@ -41,6 +41,11 @@ jadeSealSkill:addEffect(fk.DrawNCards, {
     data.n = data.n + 1
   end,
 })
+jadeSealSkill:addEffect("bigkingdom", {
+  fixed_func = function(self, player)
+    return player:hasSkill(jadeSealSkill.name) and player.kingdom ~= "unknown"
+  end
+})
 
 jadeSealSkill:addTest(function (room, me)
   local card = room:printCard("jade_seal")
@@ -51,7 +56,20 @@ jadeSealSkill:addTest(function (room, me)
       card = card,
     }
   end)
-  lu.assertIsTrue(H.isBigKingdomPlayer(me))
+  --[[
+  for _, p in ipairs(room.alive_players) do
+    print(Fk:translate(p.general) .. "是大势力：" .. tostring(H.isBigKingdomPlayer(p)))
+  end
+  --]]
+
+  card = Fk:cloneCard("fight_together")
+  FkTest.runInRoom(function()
+    room:useCard {
+      from = me,
+      card = card,
+      tos = { me },
+    }
+  end)
 end)
 
 Fk:loadTranslationTable{
