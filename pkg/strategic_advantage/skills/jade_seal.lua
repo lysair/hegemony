@@ -49,27 +49,43 @@ jadeSealSkill:addEffect("bigkingdom", {
 
 jadeSealSkill:addTest(function (room, me)
   local card = room:printCard("jade_seal")
+  local comp5 = room.players[5]
+  local isBigKingdom1, isBigKingdom2, isBigKingdom3 = false, false, false
   FkTest.runInRoom(function()
-    room:useCard {
-      from = me,
-      tos = { me },
-      card = card,
-    }
+    room:changeHero(room.players[2], "xuchu")
+    room:changeHero(room.players[3], "zhangliao")
+    room:changeHero(room.players[4], "guojia")
+    room:changeHero(comp5, "liubei")
+    room:changeHero(room.players[6], "guanyu")
+    room:changeHero(room.players[7], "zhangfei")
+    room:changeHero(room.players[8], "zhugeliang")
+    isBigKingdom1 = H.isBigKingdomPlayer(me)
+    isBigKingdom2 = H.isBigKingdomPlayer(comp5)
   end)
-  --[[
-  for _, p in ipairs(room.alive_players) do
-    print(Fk:translate(p.general) .. "是大势力：" .. tostring(H.isBigKingdomPlayer(p)))
-  end
-  --]]
+  lu.assertIsTrue(isBigKingdom1)
+  lu.assertIsTrue(isBigKingdom2)
 
-  card = Fk:cloneCard("fight_together")
   FkTest.runInRoom(function()
     room:useCard {
       from = me,
-      card = card,
       tos = { me },
+      card = card,
     }
+    isBigKingdom1 = H.isBigKingdomPlayer(me)
+    isBigKingdom2 = H.isBigKingdomPlayer(comp5)
   end)
+  lu.assertIsTrue(isBigKingdom1)
+  lu.assertIsFalse(isBigKingdom2) -- 唯一
+
+  FkTest.runInRoom(function()
+    room:changeHero(room.players[2], "zhaoyun")
+    isBigKingdom1 = H.isBigKingdomPlayer(me)
+    isBigKingdom2 = H.isBigKingdomPlayer(comp5)
+    isBigKingdom3 = H.isBigKingdomPlayer(room.players[3])
+  end)
+  lu.assertIsTrue(isBigKingdom1)
+  lu.assertIsTrue(isBigKingdom3) -- 同势力其他角色
+  lu.assertIsFalse(isBigKingdom2) -- 即使数量更多
 end)
 
 Fk:loadTranslationTable{

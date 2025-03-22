@@ -456,7 +456,7 @@ local qingyin = fk.CreateActiveSkill{
     local player = room:getPlayerById(effect.from)
     local isDeputy = H.inGeneralSkills(player, self.name)
     if isDeputy then
-      H.removeGeneral(room, player, isDeputy == "d")
+      H.removeGeneral(player, isDeputy == "d")
     end
     local targets = table.map(table.filter(room.alive_players, function(p) return H.compareKingdomWith(p, player) end), Util.IdMapper)
     room:sortPlayersByAction(targets)
@@ -829,7 +829,7 @@ local jilix = fk.CreateTriggerSkill{
     else
       local isDeputy = H.inGeneralSkills(player, self.name)
       if isDeputy then
-        H.removeGeneral(room, player, isDeputy == "d")
+        H.removeGeneral(player, isDeputy == "d")
       end
       return true
     end

@@ -58,8 +58,6 @@ dragonPhoenixSkill:addTest(function (room, me)
 end)
 
 Fk:loadTranslationTable{
-  ["dragon_phoenix"] = "飞龙夺凤",
-  [":dragon_phoenix"] = "装备牌·武器<br/><b>攻击范围</b>：２ <br/><b>武器技能</b>：①当你使用【杀】指定目标后，你可令目标弃置一张牌。②当一名角色因执行你使用的【杀】的效果而受到你造成的伤害而进入濒死状态后，你可获得其一张手牌。",
   ["#dragon_phoenix_skill"] = "飞龙夺凤",
   ["#dragon_phoenix-slash"] = "飞龙夺凤：你可令 %dest 弃置一张牌",
   ["#dragon_phoenix-dying"] = "飞龙夺凤：你可获得 %dest 一张手牌",

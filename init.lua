@@ -1,5 +1,3 @@
-
-
 local prefix = "packages.hegemony.pkg."
 local gamemodes = require(prefix .. "gamemodes")
 

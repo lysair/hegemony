@@ -1,11 +1,18 @@
 local H = {}
 
+---@return boolean
+local function exec(tp, ...)
+  local event = tp:create(...)
+  local _, ret = event:exec()
+  return ret
+end
+
 -- 势力相关
 
 --- 获取势力（野心家为role）
 ---@param player Player
 ---@return string
-H.getKingdom = function(player)
+function H.getKingdom(player)
   local ret = player.kingdom
   if ret == "wild" then
     ret = player.role -- 野心家改为role（即建国势力，新月杀为了胜率统计野心家自动建国）
@@ -40,7 +47,7 @@ end
 ---@param to Player @ 另一角色
 ---@param diff boolean? @ 是否为不同势力
 ---@return boolean?
-H.compareExpectedKingdomWith = function(from, to, diff)
+function H.compareExpectedKingdomWith(from, to, diff)
   local room = Fk:currentRoom()
   if from == to then
     return not diff
@@ -79,7 +86,7 @@ end
 ---@param room AbstractRoom @ 房间
 ---@param include_dead? boolean @ 包括死人
 ---@return table<string, number> @ 势力与角色数映射表
-H.getKingdomPlayersNum = function(room, include_dead)
+function H.getKingdomPlayersNum(room, include_dead)
   local kingdomMapper = {}
   for _, p in ipairs(include_dead and room.players or room.alive_players) do
     local kingdom = H.getKingdom(p)
@@ -112,7 +119,7 @@ end
 --- 判断角色是否为大势力角色
 ---@param player Player
 ---@return boolean
-H.isBigKingdomPlayer = function(player)
+function H.isBigKingdomPlayer(player)
   if player.kingdom == "unknown" then return false end
   local room = Fk:currentRoom()
 
@@ -137,9 +144,20 @@ end
 --- 判断角色是否为小势力角色
 ---@param player ServerPlayer
 ---@return boolean?
-H.isSmallKingdomPlayer = function(player)
+function H.isSmallKingdomPlayer(player)
   if H.isBigKingdomPlayer(player) then return false end
-  return table.find(Fk:currentRoom().alive_players, function(p) return H.isBigKingdomPlayer(p) end)
+  return not not table.find(Fk:currentRoom().alive_players, function(p) return H.isBigKingdomPlayer(p) end)
+end
+
+--- 野心家势力
+H.wildKingdoms = {"heg_qin", "heg_qi", "heg_chu", "heg_yan", "heg_zhao", "heg_hanr", "heg_jin", "heg_han", "heg_xia", "heg_shang", "heg_zhou", "heg_liang"}
+
+--- 野心家武将钦点势力（钟会–汉，司马昭–晋，公孙渊–燕，孙綝–楚）
+H.kingdomMapper = { ["ld__zhonghui"] = "heg_han", ["ld__simazhao"] = "heg_jin", ["ld__gongsunyuan"] = "heg_yan", ["ld__sunchen"] = "heg_chu" }
+
+--- 添加野心家武将钦点势力
+function H.addWildKingdomMap(general, kingdom)
+  H.kingdomMapper[general] = kingdom
 end
 
 -- 阵型
@@ -147,7 +165,7 @@ end
 --- 获取与角色成队列的其余角色
 ---@param player Player
 ---@return ServerPlayer[]? @ 队列中的角色
-H.getFormationRelation = function(player)
+function H.getFormationRelation(player)
   if player:isRemoved() then return {} end
   local players = {}
   local p = player
@@ -176,8 +194,8 @@ end
 --- 确认与某角色是否处于队列中
 ---@param player Player @ 角色1
 ---@param target Player @ 角色2，若为 player 即 player 是否处于某一队列
----@return boolean?
-H.inFormationRelation = function(player, target)
+---@return boolean
+function H.inFormationRelation(player, target)
   if target == player then
     return #H.getFormationRelation(player) > 0
   else
@@ -190,7 +208,7 @@ end
 ---@param target ServerPlayer @ 围攻角色2，可填 player
 ---@param victim ServerPlayer @ 被围攻角色
 ---@return boolean?
-H.inSiegeRelation = function(player, target, victim)
+function H.inSiegeRelation(player, target, victim)
   if H.compareKingdomWith(player, victim) or not H.compareKingdomWith(player, target) or victim.kingdom == "unknown" then return false end
   if player == target then
     return (player:getNextAlive() == victim and player:getNextAlive(false, 2) ~= player and H.compareKingdomWith(player:getNextAlive(false, 2), player))
@@ -202,65 +220,21 @@ H.inSiegeRelation = function(player, target, victim)
 end
 
 --- 阵法召唤技
----@class ArraySummonSkill : ActiveSkill
-H.ArraySummonSkill = ActiveSkill:subclass("ArraySummonSkill")
+---@class H.ArraySummonSkill : ActiveSkill
+H.ArraySummonSkill = ActiveSkill:subclass("H.ArraySummonSkill")
 
-local function readActiveSpecToSkill(skill, spec)
-  fk.readUsableSpecToSkill(skill, spec)
+--- 阵法类型
+H.ArraySummonSkill.arrayType = ""
 
-  if spec.can_use then
-    skill.canUse = function(curSkill, player, card)
-      return spec.can_use(curSkill, player, card) and curSkill:isEffectable(player)
-    end
-  end
-  if spec.card_filter then skill.cardFilter = spec.card_filter end
-  if spec.target_filter then skill.targetFilter = spec.target_filter end
-  if spec.mod_target_filter then skill.modTargetFilter = spec.mod_target_filter end
-  if spec.feasible then
-    -- print(spec.name .. ": feasible is deprecated. Use target_num and card_num instead.")
-    skill.feasible = spec.feasible
-  end
-  if spec.on_use then skill.onUse = spec.on_use end
-  if spec.about_to_effect then skill.aboutToEffect = spec.about_to_effect end
-  if spec.on_effect then skill.onEffect = spec.on_effect end
-  if spec.on_nullified then skill.onNullified = spec.on_nullified end
-  if spec.prompt then skill.prompt = spec.prompt end
-
-  if spec.interaction then
-    skill.interaction = setmetatable({}, {
-      __call = function(self)
-        if type(spec.interaction) == "function" then
-          return spec.interaction(self)
-        else
-          return spec.interaction
-        end
-      end,
-    })
-  end
-end
-
----@class ArraySummonSpec: ActiveSkillSpec
----@field public array_type string
-
---- 阵法召唤技
----@param spec ArraySummonSpec
----@return ArraySummonSkill
-H.CreateArraySummonSkill = function(spec)
-  assert(type(spec.name) == "string")
-  assert(type(spec.array_type) == "string")
-
-  local skill = H.ArraySummonSkill:new(spec.name)
-  readActiveSpecToSkill(skill, spec)
-
-  skill.arrayType = spec.array_type -- 围攻 siege，队列 formation
-
-  skill.canUse = function(curSkill, player, card)
-    local room = Fk:currentRoom()
-    local ret = curSkill:isEffectable(player) and player:usedSkillTimes(curSkill.name, Player.HistoryPhase) == 0 and player.kingdom ~= "wild"
-      and H.inGeneralSkills(player, curSkill.name) and table.find(room.alive_players, function(p) return p.kingdom == "unknown" end)
+---@param player Player
+---@return boolean?
+function H.ArraySummonSkill:canUse(player, card)
+  local room = Fk:currentRoom()
+    local ret = self:isEffectable(player) and player:usedEffectTimes(self.name, Player.HistoryPhase) == 0 and player.kingdom ~= "wild"
+      and H.inGeneralSkills(player, self:getSkeleton().name) and table.find(room.alive_players, function(p) return p.kingdom == "unknown" end)
       and H.getKingdomPlayersNum(room, true)[H.getKingdom(player)] < #room.players // 2
     if not ret then return false end
-    local pattern = curSkill.arrayType
+    local pattern = self.arrayType
     if pattern == "formation" then -- 队列
       local p = player
       while true do
@@ -284,51 +258,77 @@ H.CreateArraySummonSkill = function(spec)
       if H.compareKingdomWith(player:getLastAlive(), player, true) and player:getLastAlive(false, 2).kingdom == "unknown" then return true end
     end
     return false
-  end
+end
 
-  skill.onUse = function(curSkill, room, effect)
-    local player = room:getPlayerById(effect.from)
-    local pattern = curSkill.arrayType
-    local kingdom = H.getKingdom(player)
-    local function ArraySummonAskForReveal(_kingdom, to, skill_name)
-      local main, deputy = false, false
-      if H.compareExpectedKingdomWith(to, player) then
-        local general = Fk.generals[to:getMark("__heg_general")]
-        main = general.kingdom == _kingdom or general.subkingdom == _kingdom
-        general = Fk.generals[to:getMark("__heg_deputy")]
-        deputy = general.kingdom == _kingdom or general.subkingdom == _kingdom
-      end
-      return H.askForRevealGenerals(room, to, skill_name, main, deputy)
+---@param room Room
+---@param effect SkillUseData
+---@return boolean?
+function H.ArraySummonSkill:onUse(room, effect)
+  local player = effect.from
+  local pattern = self.arrayType
+  local kingdom = H.getKingdom(player)
+  local function ArraySummonAskForReveal(_kingdom, to, skill_name)
+    local main, deputy = false, false
+    if H.compareExpectedKingdomWith(to, player) then
+      local general = Fk.generals[to:getMark("__heg_general")]
+      main = general.kingdom == _kingdom or general.subkingdom == _kingdom
+      general = Fk.generals[to:getMark("__heg_deputy")]
+      deputy = general.kingdom == _kingdom or general.subkingdom == _kingdom
     end
-    if pattern == "formation" then
-      for i = 1, 2 do
-        local p = player
-        while true do
-          if H.getKingdomPlayersNum(room, true)[kingdom] >= #room.players // 2 then break end
-          p = i == 1 and p:getNextAlive() or p:getLastAlive()
-          if p == player then break end
-          if not H.compareKingdomWith(p, player) then
-            if p.kingdom == "unknown" then
-              if not ArraySummonAskForReveal(kingdom, p, curSkill.name) then break end
-            else break end
-          end
+    return H.askForRevealGenerals(room, to, skill_name, main, deputy)
+  end
+  if pattern == "formation" then
+    for i = 1, 2 do
+      local p = player
+      while true do
+        if H.getKingdomPlayersNum(room, true)[kingdom] >= #room.players // 2 then break end
+        p = i == 1 and p:getNextAlive() or p:getLastAlive()
+        if p == player then break end
+        if not H.compareKingdomWith(p, player) then
+          if p.kingdom == "unknown" then
+            if not ArraySummonAskForReveal(kingdom, p, self:getSkeleton().name) then break end
+          else break end
         end
       end
-    elseif pattern == "siege" then -- 围攻
-      local p
-      if H.compareKingdomWith(player:getNextAlive(), player, true) then
-        p = player:getNextAlive(false, 2)
-      elseif H.compareKingdomWith(player:getLastAlive(), player, true) and H.getKingdomPlayersNum(room, true)[kingdom] < #room.players // 2 then
-        p = player:getLastAlive(false, 2)
-      end
-      if p.kingdom == "unknown" then
-        ArraySummonAskForReveal(kingdom, p, curSkill.name)
-      end
+    end
+  elseif pattern == "siege" then -- 围攻
+    local p
+    if H.compareKingdomWith(player:getNextAlive(), player, true) then
+      p = player:getNextAlive(false, 2)
+    elseif H.compareKingdomWith(player:getLastAlive(), player, true) and H.getKingdomPlayersNum(room, true)[kingdom] < #room.players // 2 then
+      p = player:getLastAlive(false, 2)
+    end
+    if p.kingdom == "unknown" then
+      ArraySummonAskForReveal(kingdom, p, self:getSkeleton().name)
     end
   end
+end
+
+---@class ArraySummonSpec: ActiveSkillSpec
+---@field public array_type string @ 阵型类型
+
+---@class SkillSkeleton
+---@field public addEffect fun(self: SkillSkeleton, key: "arraysummon", data: BigKingdomSpec, attribute: nil)
+
+--- 阵法召唤技
+---@param key 'arraysummon'
+---@param spec ArraySummonSpec
+---@return H.ArraySummonSkill
+function H:CreateArraySummonSkill(_skill, idx, key, attr, spec)
+  assert(type(spec.array_type) == "string")
+  local new_name = string.format("#%s_%d_arraysummon", _skill.name, idx)
+  Fk:loadTranslationTable({ [new_name] = Fk:translate(_skill.name) }, Config.language)
+
+  local skill = H.ArraySummonSkill:new(new_name, #_skill.tags > 0 and _skill.tags[1] or Skill.NotFrequent)
+  fk.readUsableSpecToSkill(skill, spec)
+  -- fk.readInteractionToSkill(skill, spec)
+
+  skill.arrayType = spec.array_type -- 围攻 siege，队列 formation
 
   return skill
 end
+
+Fk:addSkillType("arraysummon", H.CreateArraySummonSkill)
 
 -- 军令
 
@@ -338,7 +338,7 @@ end
 ---@param skill_name string @ 技能名
 ---@param forced? boolean @ 是否强制执行
 ---@return boolean @ 是否执行
-H.askCommandTo = function(from, to, skill_name, forced)
+function H.askCommandTo(from, to, skill_name, forced)
   if from.dead or to.dead then return false end
   local room = from.room
   room:sendLog{
@@ -370,7 +370,7 @@ end
 ---@param skill_name? string @ 技能名
 ---@param num? integer @ 抽取数量
 ---@return integer @ 选择的军令序号
-H.startCommand = function(from, skill_name, num)
+function H.startCommand(from, skill_name, num)
   local allcommands = {"command1", "command2", "command3", "command4", "command5", "command6"}
   num = num or 2
   local commands = table.random(allcommands, num) ---@type string[]
@@ -403,7 +403,7 @@ end
 ---@param from ServerPlayer @ 军令发起者
 ---@param forced? boolean @ 是否强制执行
 ---@return boolean @ 是否执行
-H.doCommand = function(to, skill_name, index, from, forced)
+function H.doCommand(to, skill_name, index, from, forced)
   if to.dead or from.dead then return false end
   local room = to.room
 
@@ -436,9 +436,9 @@ H.doCommand = function(to, skill_name, index, from, forced)
     to = to,
     command = index,
   }
-  if choice == "Cancel" then 
+  if choice == "Cancel" then
     room.logic:trigger("fk.AfterCommandUse", to, commandData)
-    return false 
+    return false
   end
   if room.logic:trigger("fk.ChooseDoCommand", to, commandData) then
     room.logic:trigger("fk.AfterCommandUse", to, commandData)
@@ -543,7 +543,7 @@ Fk:loadTranslationTable{
 ---@param player Player
 ---@param isDeputy boolean?
 ---@return boolean?
-H.hasGeneral = function(player, isDeputy)
+function H.hasGeneral(player, isDeputy)
   local orig = isDeputy and (player.deputyGeneral or "") or player.general
   return orig ~= "" and not orig:startsWith("blank_")
 end
@@ -552,7 +552,7 @@ end
 ---@param player Player
 ---@param isDeputy boolean?
 ---@return string
-H.getActualGeneral = function(player, isDeputy)
+function H.getActualGeneral(player, isDeputy)
   if isDeputy then
     return player.deputyGeneral == "anjiang" and player:getMark("__heg_deputy") or player.deputyGeneral or ""
   else
@@ -563,7 +563,7 @@ end
 --- 获取明置的武将牌数
 ---@param player Player
 ---@return integer
-H.getGeneralsRevealedNum = function(player)
+function H.getGeneralsRevealedNum(player)
   local num = 0
   if player.general ~= "anjiang" then num = num + 1 end
   if player.deputyGeneral and player.deputyGeneral ~= "anjiang" then num = num + 1 end
@@ -576,10 +576,10 @@ H.lordGenerals = {}
 --- 获取所属势力的君主，可能为nil
 ---@param room AbstractRoom
 ---@param player Player
----@return ServerPlayer? @ 君主
-H.getHegLord = function(room, player)
+---@return Player? @ 君主
+function H.getHegLord(room, player)
   local kingdom = player.kingdom
-  return table.find(room.alive_players, function(p) return p.kingdom == kingdom and string.find(p.general, "lord") end)
+  return table.find(room.alive_players, function(p) return p.kingdom == kingdom and not not string.find(p.general, "lord") end)
 end
 
 --- 询问亮将
@@ -592,7 +592,7 @@ end
 ---@param cancelable? boolean
 ---@param lord_convert? boolean
 ---@return boolean
-H.askForRevealGenerals = function(room, player, skill_name, main, deputy, all, cancelable, lord_convert)
+function H.askForRevealGenerals(room, player, skill_name, main, deputy, all, cancelable, lord_convert)
   if H.getGeneralsRevealedNum(player) == 2 then return false end
   main = (main == nil) and true or main
   deputy = (deputy == nil) and true or deputy
@@ -727,7 +727,7 @@ Fk:loadTranslationTable{
 ---@param skill string | Skill
 ---@param allowBothHidden? boolean?
 ---@return string? @ 暗置的是主将还是副将，或没有暗置
-H.hideBySkillName = function(player, skill, allowBothHidden)
+function H.hideBySkillName(player, skill, allowBothHidden)
   local isDeputy = H.inGeneralSkills(player, skill)
   if isDeputy and (allowBothHidden or H.getGeneralsRevealedNum(player) == 2) then
     player:hideGeneral(isDeputy == "d")
@@ -739,7 +739,7 @@ end
 ---@class GeneralRemoveDataSpec
 ---@field public who ServerPlayer @ 被移除武将的角色
 ---@field public isDeputy? boolean @ 是否是副将
----@field public origName string @ 被移除武将的名称
+---@field public origName? string @ 被移除武将的名称
 
 ---@class H.GeneralRemoveData: GeneralRemoveDataSpec, TriggerData
 H.GeneralRemoveData = TriggerData:subclass("GeneralRemoveData")
@@ -763,11 +763,12 @@ H.GeneralRemoved = H.GeneralRemoveEvent:subclass("H.GeneralRemoved")
 ---@field public addEffect fun(self: SkillSkeleton, key: H.GeneralRemoveEvent,
 ---  data: TrigSkelSpec<GeneralRemoveTrigFunc>, attr: TrigSkelAttribute?): SkillSkeleton
 
--- 移除武将牌
----@param room Room
----@param player ServerPlayer
----@param isDeputy? boolean @ 是否为副将，默认主将
-H.removeGeneral = function(room, player, isDeputy) --- TODO: 改造为GameEvent
+H.RemoveGeneral = "GameEvent.RemoveGeneral"
+
+Fk:addGameEvent(H.RemoveGeneral, nil, function(self)
+  local rgdata = self.data ---@class GeneralRemoveDataSpec
+  local room = self.room ---@class Room
+  local player, isDeputy = rgdata.who, rgdata.isDeputy
   player:setMark("CompanionEffect", 0)
   player:setMark("HalfMaxHpLeft", 0)
   player:doNotify("SetPlayerMark", json.encode{ player.id, "CompanionEffect", 0})
@@ -817,9 +818,24 @@ H.removeGeneral = function(room, player, isDeputy) --- TODO: 改造为GameEvent
   room:returnToGeneralPile({orig})
 
   room.logic:trigger(H.GeneralRemoved, player, data)
+end)
+
+--- 移除武将牌
+--- FIXME
+---@param player ServerPlayer
+---@param isDeputy? boolean @ 是否为副将，默认主将
+function H.removeGeneral(player, isDeputy)
+  local data = H.GeneralRemoveData:new{
+    who = player,
+    isDeputy = isDeputy or false
+  }
+  return exec(GameEvent[H.RemoveGeneral], data)
 end
+
 Fk:loadTranslationTable{
   ["#GeneralRemoved"] = "%from 移除了 %arg %arg2",
+  ["removeMain"] = "移除主将 %arg",
+  ["removeDeputy"] = "移除副将 %arg",
 }
 
 -- TODO: 暗置逻辑重构
@@ -843,7 +859,7 @@ end
 ---@param isMain boolean? @ 是否为主将，默认副将
 ---@param isHidden boolean? @ 是否暗置变更
 ---@param num? integer @ 选将数量，默认为3
-H.transformGeneral = function(room, player, isMain, isHidden, num)
+function H.transformGeneral(room, player, isMain, isHidden, num)
   local data = {
     isMain = isMain,
     isHidden = isHidden,
@@ -925,20 +941,11 @@ end
 
 -- 技能相关
 
---- 技能是否亮出
---- deprecated，已写入本体
----@param player Player
----@param skill string | Skill
----@return boolean?
-H.hasShownSkill = function(player, skill, ignoreNullified, ignoreAlive)
-  return player:hasShownSkill(skill, ignoreNullified, ignoreAlive)
-end
-
 --- 技能是否为主将/副将武将牌上的技能，返回“m”“d”或nil
----@param player ServerPlayer
+---@param player Player
 ---@param skill string | Skill @ 技能，建议技能名
 ---@return string?
-H.inGeneralSkills = function(player, skill)
+function H.inGeneralSkills(player, skill)
   assert(type(skill) == "string" or skill:isInstanceOf(Skill))
   if type(skill) ~= "string" then skill = skill.name end
   if table.contains(Fk.generals[player.general]:getSkillNameList(), skill) then
@@ -959,10 +966,9 @@ end
 ---@param player ServerPlayer @ 角色
 ---@param markName string|HegMarkType @ 标记种类
 ---@param number? integer @ 数量，默认为1
-H.addHegMark = function(room, player, markName, number)
-  if not number then number = 1 end
-  -- TODO: 恢复！
-  --[[ if markName == "vanguard" then
+function H.addHegMark(room, player, markName, number)
+  number = number or 1
+  if markName == "vanguard" then
     room:addPlayerMark(player, "@!vanguard", number)
     player:addFakeSkill("vanguard_skill&")
   elseif markName == "yinyangfish" then
@@ -971,14 +977,46 @@ H.addHegMark = function(room, player, markName, number)
     player:prelightSkill("yinyangfish_skill&", true)
   elseif markName == "companion" then
     room:addPlayerMark(player, "@!companion", number)
-    player:addFakeSkill("companion_skill&")
+    player:addFakeSkill("companion_draw&")
     player:addFakeSkill("companion_peach&")
   elseif markName == "wild" then
     room:addPlayerMark(player, "@!wild", number)
     player:addFakeSkill("wild_draw&")
     player:addFakeSkill("wild_peach&")
     player:prelightSkill("wild_draw&", true)
-  end ]]
+  end
+end
+
+--- 移除国战标记
+---@param room Room @ 房间
+---@param player ServerPlayer @ 角色
+---@param markName string|HegMarkType @ 标记种类
+---@param number? integer @ 数量，默认为1
+function H.removeHegMark(room, player, markName, number)
+  number = number or 1
+  if markName == "vanguard" then
+    room:removePlayerMark(player, "@!vanguard", number)
+    if player:getMark("@!vanguard") == 0 then
+      player:loseFakeSkill("vanguard_skill&")
+    end
+  elseif markName == "yinyangfish" then
+    room:removePlayerMark(player, "@!yinyangfish", number)
+    if player:getMark("@!yinyangfish") == 0 then
+      player:loseFakeSkill("yinyangfish_skill&")
+    end
+  elseif markName == "companion" then
+    room:removePlayerMark(player, "@!companion", number)
+    if player:getMark("@!companion") == 0 then
+      player:loseFakeSkill("companion_draw&")
+      player:loseFakeSkill("companion_peach&")
+    end
+  elseif markName == "wild" then
+    room:removePlayerMark(player, "@!wild", number)
+    if player:getMark("@!wild") == 0 then
+      player:loseFakeSkill("wild_draw&")
+      player:loseFakeSkill("wild_peach&")
+    end
+  end
 end
 
 -- 合纵
@@ -987,7 +1025,7 @@ H.allianceCards = {}
 
 --- 向合纵库中加载一张卡牌。
 ---@param card table @ 要加载的卡牌
-H.addCardToAllianceCards = function(card)
+function H.addCardToAllianceCards(card)
   table.insertIfNeed(H.allianceCards, card)
 end
 
@@ -996,7 +1034,7 @@ end
 ---@param name string
 ---@param suit integer
 ---@param number integer
-H.addAllianceCardSpec = function (extension, name, suit, number)
+function H.addAllianceCardSpec(extension, name, suit, number)
   extension:addCardSpec(name, suit, number)
   H.addCardToAllianceCards{name, suit, number}
 end
@@ -1005,7 +1043,7 @@ end
 ---@param from Player
 ---@param to Player
 ---@return boolean
-H.canAlliance = function(from, to)
+function H.canAlliance(from, to)
   if to == from then return false end
   if H.compareKingdomWith(from, to, true) or to.kingdom == "unknown" then return true end
   local status_skills = Fk:currentRoom().status_skills[H.AllianceSkill] or Util.DummyTable
@@ -1072,7 +1110,7 @@ end
 ---@field public fixed_func? fun(self: H.BigKingdomSkill, player: Player): boolean?
 
 ---@class SkillSkeleton
----@field public addEffect fun(self: SkillSkeleton, key: 'bigkingdom', data: BigKingdomSpec, attribute: nil)
+---@field public addEffect fun(self: SkillSkeleton, key: "bigkingdom", data: BigKingdomSpec, attribute: nil)
 
 ---@param key 'bigkingdom'
 ---@param spec BigKingdomSpec

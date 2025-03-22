@@ -62,19 +62,10 @@ Fk:loadTranslationTable{
   ["#ld__sunce"] = "江东的小霸王",
   ["designer:ld__sunce"] = "KayaK（韩旭）",
   ["illustrator:ld__sunce"] = "木美人",
-
-  ['heg_sunce__yingzi'] = '英姿',
-  [":heg_sunce__yingzi"] = "锁定技，摸牌阶段，你多摸一张牌；你的手牌上限等于你的体力上限。",
-
-
-  ["$heg_sunce__yingzi1"] = "公瑾，助我决一死战。",
-  ["$heg_sunce__yingzi2"] = "尔等看好了！",
   ["~ld__sunce"] = "内事不决问张昭，外事不决问周瑜……",
 }
 
-local chengdong = General:new(extension, "ld__chenwudongxi", "wu", 4)
-
-chengdong:addSkills{"duanxie", "fenming"}
+General:new(extension, "ld__chenwudongxi", "wu", 4):addSkills{"duanxie", "fenming"}
 Fk:loadTranslationTable{
   ['ld__chenwudongxi'] = '陈武董袭',
   ["#ld__chenwudongxi"] = "壮怀激烈",
@@ -82,152 +73,28 @@ Fk:loadTranslationTable{
   ["illustrator:ld__chenwudongxi"] = "地狱许",
   ["~ld__chenwudongxi"] = "杀身卫主，死而无憾！",
 }
---[[
-local dongzhuo = General(extension, "ld__dongzhuo", "qun", 4)
-local hengzheng = fk.CreateTriggerSkill{
-  name = 'hengzheng',
-  anim_type = "big", -- 神杀特色
-  events = {fk.EventPhaseStart},
-  can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self) and player.phase == Player.Draw and
-      (player.hp == 1 or player:isKongcheng()) and
-      table.find(player.room:getOtherPlayers(player, false), function(p) return not p:isAllNude() end)
-  end,
-  on_use = function(self, event, target, player, data)
-    local room = player.room
-    for _, p in ipairs(room:getOtherPlayers(player, true)) do
-      if not p:isAllNude() then
-        local id = room:askForCardChosen(player, p, "hej", self.name)
-        room:obtainCard(player, id, false)
-      end
-    end
-    return true
-  end,
-}
-dongzhuo:addSkill(hengzheng)
-local baoling = fk.CreateTriggerSkill{
-  name = "baoling",
-  relate_to_place = 'm',
-  anim_type = "big",
-  events = {fk.EventPhaseEnd},
-  frequency = Skill.Compulsory,
-  can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self) and player.phase == Player.Play and
-      player.general ~= "anjiang" and H.hasGeneral(player, true)
-  end,
-  on_use = function(self, event, target, player, data)
-    local room = player.room
-    H.removeGeneral(room, player, true)
-    room:changeMaxHp(player, 3)
-    room:recover {
-      who = player,
-      num = 3,
-      skillName = self.name
-    }
-    room:handleAddLoseSkills(player, "benghuai")
-  end,
-}
-dongzhuo:addSkill(baoling)
+
+local dongzhuo = General:new(extension, "ld__dongzhuo", "qun", 4)
+dongzhuo:addSkills{"hengzheng", "baoling"}
 dongzhuo:addRelatedSkill("benghuai")
 Fk:loadTranslationTable{
   ['ld__dongzhuo'] = '董卓',
   ["#ld__dongzhuo"] = "魔王",
   ["designer:ld__dongzhuo"] = "KayaK（韩旭）",
   ["illustrator:ld__dongzhuo"] = "巴萨小马",
-
-  ['hengzheng'] = '横征',
-  [':hengzheng'] = '摸牌阶段，若你体力值为1或者没有手牌，你可改为获得所有其他角色区域内各一张牌。',
-  ['baoling'] = '暴凌',
-  [':baoling'] = '主将技，锁定技，出牌阶段结束时，若此武将处于明置状态且你有副将，则你移除副将，加3点体力上限并回复3点体力，然后获得〖崩坏〗。',
-
-  ['$hengzheng1'] = '老夫进京平乱，岂能空手而归？',
-  ['$hengzheng2'] = '谁的？都是我的！',
-  ['$baoling1'] = '大丈夫，岂能妇人之仁？',
-  ['$baoling2'] = '待吾大开杀戒，哈哈哈哈！',
   ['~ld__dongzhuo'] = '为何人人……皆与我为敌？',
 }
 
-local zhangren = General(extension, "ld__zhangren", "qun", 4)
-
-local chuanxin = fk.CreateTriggerSkill{
-  name = "chuanxin",
-  anim_type = "offensive",
-  events = {fk.DamageCaused},
-  can_trigger = function(self, event, target, player, data)
-    return target == player and target:hasSkill(self) and player.phase == Player.Play and data.card and table.contains({"slash", "duel"}, data.card.trueName) and not data.chain
-      and H.compareExpectedKingdomWith(player, data.to, true) and H.hasGeneral(data.to, true)
-  end,
-  on_cost = function(self, event, target, player, data)
-    return player.room:askForSkillInvoke(player, self.name, data, "#chuanxin-ask::" .. data.to.id)
-  end,
-  on_use = function(self, event, target, player, data)
-    local room = player.room
-    local target = data.to
-    local all_choices = {"chuanxin_discard", "removeDeputy"}
-    local choices = table.clone(all_choices)
-    if #data.to:getCardIds(Player.Equip) == 0 then table.remove(choices, 1) end
-    local choice = room:askForChoice(target, choices, self.name, nil, false, all_choices)
-    if choice == "removeDeputy" then
-      H.removeGeneral(room, target, true)
-    else
-      target:throwAllCards("e")
-      if not target.dead then
-        room:loseHp(target, 1, self.name)
-      end
-    end
-    return true
-  end,
-}
-
-local fengshi = H.CreateArraySummonSkill{
-  name = "fengshi",
-  array_type = "siege",
-}
-local fengshiTrigger = fk.CreateTriggerSkill{
-  name = "#fengshi_trigger",
-  events = {fk.TargetSpecified},
-  frequency = Skill.Compulsory,
-  mute = true,
-  can_trigger = function(self, event, target, player, data)
-    return player:hasShownSkill(fengshi) and data.card.trueName == "slash" and H.inSiegeRelation(target, player, player.room:getPlayerById(data.to))
-      and #player.room.alive_players > 3 and #player.room:getPlayerById(data.to):getCardIds(Player.Equip) > 0
-  end,
-  on_use = function(self, event, target, player, data)
-    local room = player.room
-    room:notifySkillInvoked(player, "fengshi", "control")
-    player:broadcastSkillInvoke("fengshi")
-    room:askForDiscard(room:getPlayerById(data.to), 1, 1, true, self.name, false, ".|.|.|equip", "#fengshi-discard")
-  end
-}
-fengshi:addRelatedSkill(fengshiTrigger)
-
-zhangren:addSkill(chuanxin)
-zhangren:addSkill(fengshi)
+General:new(extension, "ld__zhangren", "qun", 4):addSkills{"chuanxin", "fengshi"}
 
 Fk:loadTranslationTable{
   ['ld__zhangren'] = '张任',
   ["#ld__zhangren"] = "索命神射",
   ["designer:ld__zhangren"] = "淬毒",
   ["illustrator:ld__zhangren"] = "DH",
-
-  ['chuanxin'] = '穿心',
-  [':chuanxin'] = '当你于出牌阶段内使用【杀】或【决斗】对目标角色造成伤害时，若其与你势力不同或你明置此武将牌后与其势力不同，且其有副将，你可防止此伤害，令其选择一项：1. 弃置装备区里的所有牌，失去1点体力；2. 移除副将。',
-  ['fengshi'] = '锋矢',
-  [':fengshi'] = '阵法技，若你是围攻角色，此围攻关系中的围攻角色使用【杀】指定被围攻角色为目标后，你令被围攻角色角色弃置其装备区里的一张牌。',
-
-  ["chuanxin_discard"] = "弃置装备区里的所有牌，失去1点体力",
-  ["removeDeputy"] = "移除副将",
-  ["#chuanxin-ask"] = "你可防止此伤害，对 %dest 发动“穿心”",
-  ["#fengshi_trigger"] = "锋矢",
-  ["#fengshi-discard"] = "锋矢：弃置装备区里的一张牌",
-
-  ['$chuanxin1'] = '一箭穿心，哪里可逃？',
-  ['$chuanxin2'] = '穿心之痛，细细品吧，哈哈哈哈！',
-  ['$fengshi1'] = '大军压境，还不卸甲受降！',
-  ['$fengshi2'] = '放下兵器，饶你不死！',
   ['~ld__zhangren'] = '本将军败于诸葛，无憾……',
 }
-
+--[[
 local lordzhangjiao = General(extension, "ld__lordzhangjiao", "qun", 4)
 lordzhangjiao.hidden = true
 H.lordGenerals["hs__zhangjiao"] = "ld__lordzhangjiao"

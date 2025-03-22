@@ -782,9 +782,9 @@ return {
   [":yinyangfish_skill&"] = "出牌阶段，你可弃一枚“阴阳鱼”，摸一张牌；弃牌阶段开始时，你可弃一枚“阴阳鱼”，此回合手牌上限+2。",
   ["yinyangfish"] = "阴阳鱼",
 
-  ["companion_skill&"] = "珠联[摸]",
-  ["#companion_skill&"] = "你可弃一枚“珠联璧合”，摸两张牌",
-  [":companion_skill&"] = "出牌阶段，你可弃一枚“珠联璧合”，摸两张牌。",
+  ["companion_draw&"] = "珠联[摸]",
+  ["#companion_draw&"] = "你可弃一枚“珠联璧合”，摸两张牌",
+  [":companion_draw&"] = "出牌阶段，你可弃一枚“珠联璧合”，摸两张牌。",
   ["companion_peach&"] = "珠联[桃]",
   [":companion_peach&"] = "你可弃一枚“珠联璧合”，视为使用【桃】。",
   ["#companion_peach&"] = "你可弃一枚“珠联璧合”，视为使用【桃】",
@@ -792,7 +792,7 @@ return {
 
   ["wild_draw&"] = "野心[牌]",
   [":wild_draw&"] = "你可弃一枚“野心家”，执行“先驱”、“阴阳鱼”或“珠联璧合”的效果。",
-  ["#wild_draw&"] = "你可将“野心家”当一种标记弃置并执行其效果（点击左侧选项框展开）",
+  ["#wild_draw&"] = "你可将“野心家”当一种标记弃置并执行其效果",
   ["wild_vanguard"] = "将手牌摸至4张，观看一张暗置武将牌",
   ["wild_yinyangfish"] = "摸一张牌",
   ["wild_companion"] = "摸两张牌",

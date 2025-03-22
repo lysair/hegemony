@@ -4,10 +4,6 @@ local hegRule = fk.CreateSkill{
 
 local H = require "packages/hegemony/util"
 
--- TODO: 可拓展
-local wildKingdoms = {"heg_qin", "heg_qi", "heg_chu", "heg_yan", "heg_zhao", "heg_hanr", "heg_jin", "heg_han", "heg_xia", "heg_shang", "heg_zhou", "heg_liang"} -- hanr 韩
-local kingdomMapper = { ["ld__zhonghui"] = "heg_han", ["ld__simazhao"] = "heg_jin", ["ld__gongsunyuan"] = "heg_yan", ["ld__sunchen"] = "heg_chu" }
-
 --- 野心家选择国家
 ---@param room Room
 ---@param player ServerPlayer
@@ -17,14 +13,14 @@ local function wildChooseKingdom(room, player, generalName)
   table.insertTable(allKingdoms, {"unknown", "hidden"})
 
   local choice
-  local all_choices = table.clone(wildKingdoms)
+  local all_choices = table.clone(H.wildKingdoms)
   local choices = table.clone(all_choices)
   for _, p in ipairs(room.players) do
     table.removeOne(choices, p.role)
   end
-  if player.general == generalName and kingdomMapper[generalName] and kingdomMapper[generalName] ~= player.role then -- 野心家钦定
-    if table.contains(choices, kingdomMapper[generalName]) then
-      choice = kingdomMapper[generalName]
+  if player.general == generalName and H.kingdomMapper[generalName] and H.kingdomMapper[generalName] ~= player.role then -- 野心家钦定
+    if table.contains(choices, H.kingdomMapper[generalName]) then
+      choice = H.kingdomMapper[generalName]
     else
       choice = room:askToChoice(player, {choices = choices, skill_name = "heg_rule", prompt = "#wild-choose", cancelable = false, all_choices = all_choices})
     end
@@ -51,7 +47,7 @@ end
 ---@param isActive boolean
 ---@return boolean
 local function AskForBuildCountry(room, player, generalName, isActive)
-  if not (player.general == generalName and kingdomMapper[generalName]) then return false end
+  if not (player.general == generalName and H.kingdomMapper[generalName]) then return false end
   local choices = {"heg_rule_join_country:"..player.id.."::"..player.role, "Cancel"}
   for _, p in ipairs(room:getAlivePlayers()) do
     if p:getMark("__heg_join_wild") == 0 and p.kingdom ~= "wild" and not string.find(p.general, "lord")

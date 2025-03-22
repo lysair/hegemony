@@ -2,11 +2,6 @@ local extension = Package:new("hegemony_standard")
 extension.extensionName = "hegemony"
 extension.game_modes_whitelist = { 'nos_heg_mode', 'new_heg_mode' }
 
-local heg_mode = require "packages.hegemony.new_hegemony_mode"
-extension:addGameMode(heg_mode)
-local nos_heg = require "packages.hegemony.nos_hegemony_mode"
-extension:addGameMode(nos_heg)
-
 extension:loadSkillSkelsByPath("./packages/hegemony/pkg/standard/skills")
 
 Fk:loadTranslationTable{

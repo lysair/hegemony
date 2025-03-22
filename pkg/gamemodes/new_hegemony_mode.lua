@@ -592,7 +592,7 @@ Fk:loadTranslationTable{
   ["heg_yan"] = "燕",
   ["heg_zhao"] = "赵",
   ["heg_hanr"] = "韩",
-  ["heg_jin"] = "晋",
+  ["heg_jin"] = "晋", -- 和真的晋是两个势力
   ["heg_han"] = "汉",
   ["heg_xia"] = "夏",
   ["heg_shang"] = "商",

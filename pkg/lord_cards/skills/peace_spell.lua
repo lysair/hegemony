@@ -45,9 +45,4 @@ peaceSpellSkill:addEffect(fk.AfterCardsMove, {
   end,
 })
 
-Fk:loadTranslationTable{
-  ["peace_spell"] = "太平要术",
-  [":peace_spell"] = "装备牌·防具<br /><b>防具技能</b>：锁定技，①当你受到属性伤害时，你防止此伤害。②你的手牌上限+X（X为与你势力相同的角色数）。③当你失去装备区里的【太平要术】后，你摸两张牌，然后若你的体力值大于1，你失去1点体力。",
-}
-
 return peaceSpellSkill

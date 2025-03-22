@@ -49,7 +49,7 @@ guixiu:addTest(function (room, me)
     me:hideGeneral()
     room:loseHp(me, 1)
     me:revealGeneral()
-    H.removeGeneral(room, me, false)
+    H.removeGeneral(me, false)
   end)
 end)
 

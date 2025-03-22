@@ -31,8 +31,40 @@ H.addCardToConvertCards("peace_spell", "jingfan")
 
 extension:addCardSpec("peace_spell", Card.Heart, 3)
 
+local liulongcanjia = fk.CreateCard{
+  name = "liulongcanjia",
+  type = Card.TypeEquip,
+  sub_type = Card.SubtypeDefensiveRide,
+  equip_skill = "#liulongcanjia_skill",
+
+  on_install = function(self, room, player)
+    local cards = player:getEquipments(Card.SubtypeOffensiveRide)
+    if #cards > 0 then room:moveCardTo(cards, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, self.name, nil, true, player.id) end
+    DefensiveRide.onInstall(self, room, player)
+    room:setPlayerMark(player, "@@liulongcanjia", 1) -- 绷
+  end,
+  on_uninstall = function(self, room, player)
+    DefensiveRide.onUninstall(self, room, player)
+    room:setPlayerMark(player, "@@liulongcanjia", 0)
+  end,
+}
+H.addCardToConvertCards("liulongcanjia", "zhuahuangfeidian")
+
+extension:addCardSpec("liulongcanjia", Card.Heart, 13)
+
 extension:loadCardSkels{
-  dragonPhoenix, peaceSpell
+  dragonPhoenix, peaceSpell, liulongcanjia
+}
+
+Fk:loadTranslationTable{
+  ["dragon_phoenix"] = "飞龙夺凤",
+  [":dragon_phoenix"] = "装备牌·武器<br/><b>攻击范围</b>：２ <br/><b>武器技能</b>：①当你使用【杀】指定目标后，你可令目标弃置一张牌。②当一名角色因执行你使用的【杀】的效果而受到你造成的伤害而进入濒死状态后，你可获得其一张手牌。",
+
+  ["peace_spell"] = "太平要术",
+  [":peace_spell"] = "装备牌·防具<br /><b>防具技能</b>：锁定技，①当你受到属性伤害时，你防止此伤害。②你的手牌上限+X（X为与你势力相同的角色数）。③当你失去装备区里的【太平要术】后，你摸两张牌，然后若你的体力值大于1，你失去1点体力。",
+
+  ["liulongcanjia"] = "六龙骖驾",
+  [":liulongcanjia"] = "装备牌·坐骑<br /><b>坐骑技能</b>：锁定技，其他角色与你的距离+1，你与其他角色的距离-1；当【六龙骖驾】移至你的装备区后，你将你的装备区里所有其他坐骑牌置入弃牌堆；你不能使用坐骑牌。",
 }
 
 return extension

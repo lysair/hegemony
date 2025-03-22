@@ -18,7 +18,7 @@ cunsi:addEffect("active", {
     local player = effect.from
     local isDeputy = H.inGeneralSkills(player, cunsi.name)
     if isDeputy then
-      H.removeGeneral(room, player, isDeputy == "d")
+      H.removeGeneral(player, isDeputy == "d")
     end
     local target = effect.tos[1]
     room:handleAddLoseSkills(target, "yongjue", nil)

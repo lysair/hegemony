@@ -24,7 +24,7 @@ Fk:loadTranslationTable{
 }
 
 local caohong = General:new(extension, "ld__caohong", "wei", 4)
-caohong:addSkills{"ld__huyuan"} --TODO: "heyi", 
+caohong:addSkills{"ld__huyuan", "heyi"}
 caohong:addRelatedSkill("feiying")
 caohong:addCompanions("hs__caoren")
 Fk:loadTranslationTable{
