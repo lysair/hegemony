@@ -3,7 +3,6 @@ local yiji = fk.CreateSkill{
 }
 yiji:addEffect(fk.Damaged, {
   anim_type = "masochism",
-  events = {},
   on_use = function(self, event, target, player, data)
     local room = player.room
     local ids = room:getNCards(2)

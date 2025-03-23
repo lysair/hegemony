@@ -21,7 +21,7 @@ shangyi:addEffect("active", {
     if player.dead or target.dead or player:isKongcheng() then return end
     U.viewCards(target, player:getCardIds("h"), shangyi.name)
     local choices = {}
-    if H.getGeneralsRevealedNum(target) ~= 2 then
+    if not H.allGeneralsRevealed(target) then
       table.insert(choices, "shangyi_hidden")
     end
     if not target:isKongcheng() then

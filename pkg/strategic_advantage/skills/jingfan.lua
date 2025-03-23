@@ -1,7 +1,7 @@
 local jingfanSkill = fk.CreateSkill {
   name = "#jingfan_skill",
   attached_equip = "jingfan",
-  frequency = Skill.Compulsory,
+  tags = {Skill.Compulsory},
 }
 jingfanSkill:addEffect("distance", {
   correct_func = function(self, from, to)

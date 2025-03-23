@@ -164,7 +164,7 @@ end
 
 --- 获取与角色成队列的其余角色
 ---@param player Player
----@return ServerPlayer[]? @ 队列中的角色
+---@return ServerPlayer[] @ 队列中的角色
 function H.getFormationRelation(player)
   if player:isRemoved() then return {} end
   local players = {}
@@ -325,6 +325,9 @@ function H:CreateArraySummonSkill(_skill, idx, key, attr, spec)
 
   skill.arrayType = spec.array_type -- 围攻 siege，队列 formation
 
+  if spec.can_use then skill.canUse = spec.can_use end -- 可扩展
+  if spec.on_use then skill.onUse = spec.on_use end
+
   return skill
 end
 
@@ -371,12 +374,12 @@ end
 ---@param num? integer @ 抽取数量
 ---@return integer @ 选择的军令序号
 function H.startCommand(from, skill_name, num)
-  local allcommands = {"command1", "command2", "command3", "command4", "command5", "command6"}
+  local allCommands = {"command1", "command2", "command3", "command4", "command5", "command6"}
   num = num or 2
-  local commands = table.random(allcommands, num) ---@type string[]
+  local commands = table.random(allCommands, num) ---@type string[]
 
   local room = from.room
-  local choice = room:askForChoice(from, commands, "start_command", nil, true)
+  local choice = room:askToChoice(from, { choices = commands, skill_name = "start_command", detailed = true})
 
   room:sendLog{
     type = "#CommandChoice",
@@ -393,7 +396,7 @@ function H.startCommand(from, skill_name, num)
   room:doBroadcastNotify("ServerMessage", ret)
   --]]
 
-  return table.indexOf(allcommands, choice)
+  return table.indexOf(allCommands, choice)
 end
 
 --- 询问军令执行者是否执行军令（执行效果也在这里）
@@ -407,14 +410,10 @@ function H.doCommand(to, skill_name, index, from, forced)
   if to.dead or from.dead then return false end
   local room = to.room
 
-  local allcommands = {"command1", "command2", "command3", "command4", "command5", "command6"}
+  local allCommands = {"command1", "command2", "command3", "command4", "command5", "command6"}
+  local choices = forced and {allCommands[index]} or {allCommands[index], "Cancel"}
 
-  local choice
-  if not forced then
-    choice = room:askForChoice(to, {allcommands[index], "Cancel"}, "do_command", nil, true)
-  else
-    choice = room:askForChoice(to, {allcommands[index]}, "do_command", nil, true, {allcommands[index], "Cancel"})
-  end
+  local choice = room:askToChoice(to, { choices = choices, skill_name = "do_command", detailed = true, all_choices = {allCommands[index], "Cancel"} })
 
   local result = choice == "Cancel" and "#commandselect_no" or "#commandselect_yes"
   room:sendLog{
@@ -445,16 +444,22 @@ function H.doCommand(to, skill_name, index, from, forced)
     return true
   end
   if index == 1 then
-    local dest = room:askForChoosePlayers(from, table.map(room.alive_players, Util.IdMapper), 1, 1, "#command1-damage::" .. to.id, skill_name)[1]
+    local dest = room:askToChoosePlayers(from, {
+      targets = room.alive_players,
+      min_num = 1,
+      max_num = 1,
+      prompt = "#command1-damage::" .. to.id,
+      skill_name = skill_name}
+    )[1]
     room:sendLog{
       type = "#Command1Damage",
       from = from.id,
-      to = {dest},
+      to = {dest.id},
     }
-    room:doIndicate(from.id, {dest})
+    room:doIndicate(from.id, dest.id)
     room:damage{
       from = to,
-      to = room:getPlayerById(dest),
+      to = dest,
       damage = 1,
       skillName = "command",
     }
@@ -473,11 +478,11 @@ function H.doCommand(to, skill_name, index, from, forced)
   elseif index == 4 then
     room:setPlayerMark(to, "@@command4_effect-turn", 1)
     room:addPlayerMark(to, MarkEnum.UncompulsoryInvalidity .. "-turn")
-    room:handleAddLoseSkills(to, "#command4_prohibit", nil, false, true) --为了不全局，流汗了
+    room:handleAddLoseSkills(to, "#command4_prohibit", nil, false, true) -- 为了不全局，流汗了
   elseif index == 5 then
     to:turnOver()
     room:setPlayerMark(to, "@@command5_effect-turn", 1)
-    room:handleAddLoseSkills(to, "#command5_cannotrecover", nil, false, true) --为了不全局，流汗了
+    room:handleAddLoseSkills(to, "#command5_cannotrecover", nil, false, true) -- 为了不全局，流汗了
   elseif index == 6 then
     if to:getHandcardNum() < 2 and #to:getCardIds(Player.Equip) < 2 then return true end
     local to_remain = {}
@@ -570,6 +575,15 @@ function H.getGeneralsRevealedNum(player)
   return num
 end
 
+--- 是否明置所有武将牌
+---@param player Player
+---@return boolean
+function H.allGeneralsRevealed(player)
+  local num = H.getGeneralsRevealedNum(player)
+  if player.deputyGeneral and player.deputyGeneral ~= "" then return num == 2
+  else return num == 1 end
+end
+
 -- 君主将。为了方便……
 H.lordGenerals = {}
 
@@ -593,7 +607,7 @@ end
 ---@param lord_convert? boolean
 ---@return boolean
 function H.askForRevealGenerals(room, player, skill_name, main, deputy, all, cancelable, lord_convert)
-  if H.getGeneralsRevealedNum(player) == 2 then return false end
+  if H.allGeneralsRevealed(player) then return false end
   main = (main == nil) and true or main
   deputy = (deputy == nil) and true or deputy
   all = (all == nil) and true or all
@@ -729,7 +743,7 @@ Fk:loadTranslationTable{
 ---@return string? @ 暗置的是主将还是副将，或没有暗置
 function H.hideBySkillName(player, skill, allowBothHidden)
   local isDeputy = H.inGeneralSkills(player, skill)
-  if isDeputy and (allowBothHidden or H.getGeneralsRevealedNum(player) == 2) then
+  if isDeputy and (allowBothHidden or H.allGeneralsRevealed(player)) then
     player:hideGeneral(isDeputy == "d")
     return isDeputy
   end
@@ -763,6 +777,7 @@ H.GeneralRemoved = H.GeneralRemoveEvent:subclass("H.GeneralRemoved")
 ---@field public addEffect fun(self: SkillSkeleton, key: H.GeneralRemoveEvent,
 ---  data: TrigSkelSpec<GeneralRemoveTrigFunc>, attr: TrigSkelAttribute?): SkillSkeleton
 
+--- 移除武将牌GameEvent
 H.RemoveGeneral = "GameEvent.RemoveGeneral"
 
 Fk:addGameEvent(H.RemoveGeneral, nil, function(self)
@@ -1132,5 +1147,28 @@ end
 
 Fk:addSkillType("bigkingdom", H.CreateBigKingdomSkill)
 
+-- 调虎离山
+--- RemovePlayerData 描述和调离有关的数据
+---@class RemovePlayerDataSpec
+---@field public who ServerPlayer @ 被调离的角色
+
+---@class H.RemovePlayerData: RemovePlayerDataSpec, TriggerData
+H.RemovePlayerData = TriggerData:subclass("RemovePlayerData")
+
+--- 调离事件
+---@class H.RemovePlayerEvent: TriggerEvent
+---@field public data H.RemovePlayerData
+H.RemovePlayerEvent = TriggerEvent:subclass("RemovePlayerEvent")
+
+--- 被调离改变后
+---@class H.PlayerRemoved: H.RemovePlayerEvent
+H.PlayerRemoved = H.RemovePlayerEvent:subclass("H.PlayerRemoved")
+
+---@alias PlayerRemoveTrigFunc fun(self: TriggerSkill, event: H.RemovePlayerEvent,
+---  target: ServerPlayer, player: ServerPlayer, data: H.RemovePlayerData):any
+
+---@class SkillSkeleton
+---@field public addEffect fun(self: SkillSkeleton, key: H.RemovePlayerEvent,
+---  data: TrigSkelSpec<PlayerRemoveTrigFunc>, attr: TrigSkelAttribute?): SkillSkeleton
 
 return H

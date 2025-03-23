@@ -4,12 +4,12 @@ local gamemodes = require(prefix .. "gamemodes")
 local hegemony_standard = require(prefix .. "standard")
 local formation = require(prefix .. "formation")
 local momentum = require(prefix .. "momentum")
+local transformation = require(prefix .. "transformation")
+local power = require(prefix .. "power")
+local tenyear = require(prefix .. "tenyear_heg")
 --[[
-local transformation = require "packages/hegemony/transformation"
-local power = require "packages/hegemony/power"
-local tenyear = require "packages/hegemony/tenyear_heg"
-local overseas = require "packages/hegemony/overseas_heg"
-local offline = require "packages/hegemony/offline_heg"
+local overseas = require(prefix .. "overseas_heg")
+local offline = require(prefix .. "offline_heg")
 --]]
 local ex = require(prefix .. "lord_ex")
 local ziqidonglai = require(prefix .. "zqdl")
@@ -33,10 +33,10 @@ return {
   hegemony_standard,
   formation,
   momentum,
-  --[[
   transformation,
   power,
   tenyear,
+  --[[
   overseas,
   offline,
   --]]

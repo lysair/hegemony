@@ -1,9 +1,8 @@
 local hunshang = fk.CreateSkill{
   name = "hunshang",
-  tags = {Skill.DeputyPlace},
+  tags = {Skill.DeputyPlace, Skill.Compulsory},
 }
 hunshang:addEffect(fk.EventPhaseStart, {
-  frequency = Skill.Compulsory,
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(hunshang.name) and
       player.phase == Player.Start and player.hp == 1

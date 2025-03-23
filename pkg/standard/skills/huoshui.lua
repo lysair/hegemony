@@ -80,7 +80,7 @@ huoshui:addEffect(fk.CardUsing, {
   end,
   on_use = function (self, event, target, player, data)
     local targets = table.filter(player.room.alive_players, function(p) return
-      not H.compareKingdomWith(p, player) and H.getGeneralsRevealedNum(p) < 2
+      not H.compareKingdomWith(p, player) and not H.allGeneralsRevealed(p)
     end)
     if #targets > 0 then
       data.disresponsiveList = data.disresponsiveList or {}

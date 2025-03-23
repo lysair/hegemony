@@ -920,7 +920,7 @@ local xishe_delay = fk.CreateTriggerSkill{
       table.insertTableIfNeed(data.disresponsiveList, targets)
     else
       local room = player.room
-      if room:askForChoice(player, {"transform_deputy", "Cancel"}, self.name) ~= "Cancel" then
+      if room:askForChoice(player, {"transformDeputy", "Cancel"}, self.name) ~= "Cancel" then
         room:notifySkillInvoked(player, xishe.name, "special")
         player:broadcastSkillInvoke(xishe.name)
         room:setPlayerMark(player, "@@ld__xishe_change_before", 1)
@@ -2068,8 +2068,8 @@ local jinxian = fk.CreateTriggerSkill{
     for _, id in ipairs(targets) do
       local p = room:getPlayerById(id)
       if not p.dead then
-        if H.getGeneralsRevealedNum(p) == 2 then
-            H.doHideGeneral(room, p, p, self.name)
+        if H.allGeneralsRevealed(p) then
+          H.doHideGeneral(room, p, p, self.name)
         else
           room:askForDiscard(p, 2, 2, true, self.name, false)
         end
@@ -2097,7 +2097,7 @@ Fk:loadTranslationTable{
   ["#ld__tongling_nocard-use"] = "通令：你可对 %dest 使用一张牌，若此牌造成伤害，你与 %src 各摸两张牌",
 
   ["ld__jinxian"] = "近陷",
-  [":ld__jinxian"] = "当你明置此武将牌后，你令所有你计算距离不大于1的角色执行：若其武将牌均明置，暗置一张武将牌；若其武将牌仅明置一张或均暗置，其弃置两张牌。",
+  [":ld__jinxian"] = "当你明置此武将牌后，你令所有你计算距离不大于1的角色执行：若其武将牌均明置，暗置一张武将牌；否则其弃置两张牌。",
 
   ["$ld__tongling1"] = "孝直溢美之言，特以此小利报之，还望笑纳。",
   ["$ld__tongling2"] = "孟起，莫非甘心为他人座下之客。",

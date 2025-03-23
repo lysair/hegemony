@@ -95,26 +95,10 @@ Fk:loadTranslationTable{
   ['~ld__zhangren'] = '本将军败于诸葛，无憾……',
 }
 --[[
-local lordzhangjiao = General(extension, "ld__lordzhangjiao", "qun", 4)
+local lordzhangjiao = General:new(extension, "ld__lordzhangjiao", "qun", 4)
 lordzhangjiao.hidden = true
 H.lordGenerals["hs__zhangjiao"] = "ld__lordzhangjiao"
-
-local wuxin = fk.CreateTriggerSkill{
-  name = "wuxin",
-  anim_type = "control",
-  events = {fk.EventPhaseStart},
-  can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self) and player.phase == Player.Draw
-  end,
-  on_use = function(self, event, target, player, data)
-    local room = player.room
-    local num = H.getSameKingdomPlayersNum(room, nil, "qun")
-    if player:hasSkill("hongfa") then
-      num = num + #player:getPile("heavenly_army")
-    end
-    room:askForGuanxing(player, room:getNCards(num), nil, {0, 0}, self.name)
-  end,
-}
+lordzhangjiao:addSkills{"wuxin", "hongfa", "wendao"}
 
 local hongfa = fk.CreateTriggerSkill{
   name = "hongfa",

@@ -1,7 +1,7 @@
-
 local lureTigerSkill = fk.CreateSkill{
   name = "lure_tiger_skill",
 }
+local H = require "packages/hegemony/util"
 lureTigerSkill:addEffect("cardskill", {
   prompt = "#lure_tiger_skill",
   can_use = Util.CanUse,
@@ -15,7 +15,7 @@ lureTigerSkill:addEffect("cardskill", {
     local target = effect.to
     room:setPlayerMark(target, "@@lure_tiger-turn", 1)
     room:setPlayerMark(target, MarkEnum.PlayerRemoved .. "-turn", 1)
-    room.logic:trigger("fk.RemoveStateChanged", target, nil) -- FIXME
+    room.logic:trigger(H.PlayerRemoved, target, {who = target}) -- FIXME
   end,
 })
 ---@param object Card|Player

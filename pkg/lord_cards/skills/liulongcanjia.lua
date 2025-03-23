@@ -1,6 +1,6 @@
 
 local liulongcanjiaSkill = fk.CreateSkill{
-  name = "#liulongcanjiaSkill",
+  name = "#liulongcanjia_skill",
   attached_equip = "liulongcanjia",
 }
 liulongcanjiaSkill:addEffect("distance", {

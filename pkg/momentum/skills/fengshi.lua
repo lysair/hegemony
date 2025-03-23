@@ -1,7 +1,7 @@
 local fengshi = fk.CreateSkill{
   name = "fengshi",
 }
-local H = require "hegemony/hegemony/util"
+local H = require "packages/hegemony/util"
 fengshi:addEffect("arraysummon", {
   array_type = "siege",
 })
