@@ -758,7 +758,7 @@ end
 ---@class H.GeneralRemoveData: GeneralRemoveDataSpec, TriggerData
 H.GeneralRemoveData = TriggerData:subclass("GeneralRemoveData")
 
---- 移除武将牌事件
+--- 移除武将牌TriggerEvent
 ---@class H.GeneralRemoveEvent: TriggerEvent
 ---@field public data H.GeneralRemoveData
 H.GeneralRemoveEvent = TriggerEvent:subclass("GeneralRemoveEvent")

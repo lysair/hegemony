@@ -1,9 +1,10 @@
-local guowu = fk.CreateTriggerSkill{
+local guowu = fk.CreateSkill{
   name = "ty_heg__guowu",
+}
+guowu:addEffect(fk.EventPhaseStart, {
   anim_type = "offensive",
-  events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self) and player.phase == Player.Play and not player:isKongcheng()
+    return target == player and player:hasSkill(guowu.name) and player.phase == Player.Play and not player:isKongcheng()
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
@@ -22,45 +23,61 @@ local guowu = fk.CreateTriggerSkill{
         toArea = Card.PlayerHand,
         moveReason = fk.ReasonJustMove,
         proposer = player.id,
-        skillName = self.name,
+        skillName = guowu.name,
       })
     end
     if #types > 1 then
-      room:addPlayerMark(player, "guowu2-phase", 1)
-    end
-    if #types > 2 then
-      room:addPlayerMark(player, "guowu3-phase", 1)
+      room:setPlayerMark(player, "ty_heg__guowu-phase", #types)
     end
   end,
-}
+})
 
-
-local guowu_delay = fk.CreateTriggerSkill{
-  name = "#ty_heg__guowu_delay",
+guowu:addEffect(fk.CardUsing, {
   anim_type = "offensive",
-  frequency = Skill.Compulsory,
-  events = {fk.CardUsing},
-  mute = true,
+  is_delay_effect = true,
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:getMark("guowu3-phase") > 0 and not player.dead and
-      (data.card.trueName == "slash") and #player.room:getUseExtraTargets(data) > 0
+    return target == player and player:getMark("ty_heg__guowu-phase") > 0
+      and not player.dead and
+      (data.card.trueName == "slash") and #data:getExtraTargets() > 0
+      and player:usedEffectTimes(guowu.name, Player.HistoryPhase) < 1
+  end,
+  on_cost = function (self, event, target, player, data)
+    local targets = data:getExtraTargets()
+    local tos = player.room:askToChoosePlayers(player, {
+      targets = targets,
+      min_num = 1,
+      max_num = 2,
+      prompt = "#guowu-choose:::"..data.card:toLogString(),
+      skill_name = guowu.name,
+      cancelable = true
+    })
+    if #tos > 0 then
+      event:setCostData(self, {tos = tos})
+      return true
+    end
   end,
   on_use = function(self, event, target, player, data)
-    local room = player.room
-    local targets = room:getUseExtraTargets(data)
-    if #targets == 0 then return false end
-    local tos = room:askForChoosePlayers(player, targets, 1, 2, "#guowu-choose:::"..data.card:toLogString(), guowu.name, true)
-    if #tos > 0 then
-      table.forEach(tos, function (id)
-        table.insert(data.tos, {id})
-      end)
-      room:removePlayerMark(player, "guowu3-phase", 1)
-    end
+    local to = event:getCostData(self).tos[1]
+    data:addTarget(to)
   end,
-}
-local guowu_targetmod = fk.CreateTargetModSkill{
-  name = "#ty_heg__guowu_targetmod",
-  bypass_distances =  function(self, player)
-    return player:getMark("guowu2-phase") > 0
+})
+
+guowu:addEffect("targetmod", {
+  bypass_distances =  function(self, player, skill, card)
+    return card and player:getMark("ty_heg__guowu-phase") > 0
   end,
+})
+
+Fk:loadTranslationTable{
+  ["ty_heg__guowu"] = "帼武",
+  ["#ty_heg__guowu_delay"] = "帼武",
+  [":ty_heg__guowu"] = "出牌阶段开始时，你可展示所有手牌，若包含的类别数：不小于1，你从弃牌堆中获得一张【杀】；不小于2，你本阶段使用牌无距离限制；"..
+    "不小于3，你本阶段使用【杀】可以多指定两个目标（限一次）。",
+
+  ["#ty_heg__guowu-choose"] = "帼武：你可以为%arg增加至多两个目标",
+
+  ["$ty_heg__guowu1"] = "方天映黛眉，赤兔牵红妆。",
+  ["$ty_heg__guowu2"] = "武姬青丝利，巾帼女儿红。",
 }
+
+return guowu

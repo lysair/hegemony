@@ -77,39 +77,16 @@ Fk:loadTranslationTable{
   ["#ty_heg__miheng"] = "狂傲奇人",
   ["designer:ty_heg__miheng"] = "韩旭",
   ["illustrator:ty_heg__miheng"] = "MuMu",
-
-  ["~ty_heg__miheng"] = "恶口……终至杀身……",
+  ["~ty_heg__miheng"] = "恶口……终致杀身……",
 }
 
-General:new(extension, "ty_heg__xunchen", "qun", 3):addSkills{"ty_heg__anyong", "ty_heg__fenglve"}
+General:new(extension, "ty_heg__xunchen", "qun", 3):addSkills{"ty_heg__fenglve", "ty_heg__anyong"}
 
 Fk:loadTranslationTable{
   ["ty_heg__xunchen"] = "荀谌",
   ["#ty_heg__xunchen"] = "三公谋主",
   ["designer:ty_heg__xunchen"] = "韩旭",
   ["illustrator:ty_heg__xunchen"] = "凝聚永恒",
-  ["ty_heg__fenglve"] = "锋略",
-  [":ty_heg__fenglve"] = "出牌阶段限一次，你可和一名其他角色拼点，若你赢，该角色交给你其区域内的两张牌；若其赢，你交给其一张牌。"..
-  "<br><font color=\"blue\">◆纵横：交换〖锋略〗描述中的“一张牌”和“两张牌”。<font><br><font color=\"grey\">\"<b>纵横</b>\"："..
-  "当拥有“纵横”效果技能发动结算完成后，可以令技能目标角色获得对应修订描述后的技能，直到其下回合结束。",
-
-  ["#ty_heg__fenglve-active"] = "发动“锋略”，与一名角色拼点",
-  ["#ty_heg__fenglve-give"] = "锋略：选择 %arg 张牌交给 %dest",
-  ["ty_heg__fenglve_mn_ask"] = "令%dest获得〖锋略（纵横）〗直到其下回合结束",
-  ["@@ty_heg__fenglve_manoeuvre"] = "锋略 纵横",
-
-  ["ty_heg__fenglve_manoeuvre"] = "锋略⇋",
-  [":ty_heg__fenglve_manoeuvre"] = "出牌阶段限一次，你可以和一名其他角色拼点，若你赢，该角色交给你其区域内的一张牌；若其赢，你交给其两张牌。",
-
-  ["ty_heg__anyong"] = "暗涌",
-  ["#ty_heg__anyong-invoke"] = "暗涌：是否令 %src 对 %dest 造成的 %arg 点伤害翻倍！",
-  [":ty_heg__anyong"] = "每回合限一次，当与你势力相同的一名角色对另一名其他角色造成伤害时，你可令此伤害翻倍，然后若受到伤害的角色："..
-  "武将牌均明置，你失去1点体力并失去此技能；只明置了一张武将牌，你弃置两张手牌。",
-
-  ["$ty_heg__fenglve1"] = "冀州宝地，本当贤者居之。",
-  ["$ty_heg__fenglve2"] = "当今敢称贤者，唯袁氏本初一人。",
-  ["$ty_heg__anyong1"] = "冀州暗潮汹涌，群仕居危思变。",
-  ["$ty_heg__anyong2"] = "殿上太守且相看，殿下几人还拥韩。",
   ["~ty_heg__xunchen"] = "为臣当不贰，贰臣不当为。",
 }
 
@@ -119,18 +96,6 @@ Fk:loadTranslationTable{
   ["#ty_heg__jianggan"] = "锋谪悬信",
   ["designer:ty_heg__jianggan"] = "韩旭",
   ["illustrator:ty_heg__jianggan"] = "biou09",
-  ["ty_heg__weicheng"] = "伪诚",
-  [":ty_heg__weicheng"] = "你交给其他角色手牌，或你的手牌被其他角色获得后，若你的手牌数小于体力值，你可以摸一张牌。",
-  ["ty_heg__daoshu"] = "盗书",
-  [":ty_heg__daoshu"] = "出牌阶段限一次，你可以选择一名其他角色并选择一种花色，然后获得其一张手牌。若此牌与你选择的花色："..
-  "相同，你对其造成1点伤害且此技能视为未发动过；不同，你交给其一张其他花色的手牌（若没有需展示所有手牌）。",
-  ["#ty_heg__DaoshuLog"] = "%from 对 %to 发动了 “%arg2”，选择了 %arg",
-  ["#ty_heg__daoshu-give"] = "盗书：交给 %dest 一张非%arg手牌",
-
-  ["$ty_heg__weicheng1"] = "略施谋略，敌军便信以为真。",
-  ["$ty_heg__weicheng2"] = "吾只观雅规，而非说客。",
-  ["$ty_heg__daoshu1"] = "得此文书，丞相定可高枕无忧。",
-  ["$ty_heg__daoshu2"] = "让我看看，这是什么机密。",
   ["~ty_heg__jianggan"] = "丞相，再给我一次机会啊！",
 }
 
@@ -143,25 +108,6 @@ Fk:loadTranslationTable{
   ["#ty_heg__zhouyi"] = "靛情雨黛",
   ["designer:ty_heg__zhouyi"] = "韩旭",
   ["illustrator:ty_heg__zhouyi"] = "Tb罗根",
-
-  ["ty_heg__zhukou"] = "逐寇",
-  [":ty_heg__zhukou"] = "当你于每回合的出牌阶段首次造成伤害后，你可摸X张牌（X为本回合你已使用的牌数且至多为5）。",
-  ["ty_heg__duannian"] = "断念",
-  [":ty_heg__duannian"] = "出牌阶段结束时，你可弃置所有手牌，然后将手牌摸至体力上限。",
-  ["ty_heg__lianyou"] = "莲佑",
-  [":ty_heg__lianyou"] = "当你死亡时，你可令一名其他角色获得“兴火”。",
-  ["#ty_heg__lianyou-choose"] = "莲佑：选择一名角色，其获得“兴火”。",
-  ["ty_heg__xinghuo"] = "兴火",
-  [":ty_heg__xinghuo"] = "锁定技，当你造成火属性伤害时，你令此伤害+1。",
-
-  ["#ty_heg__zhukou"] = "逐寇：你可摸 %arg 张牌",
-
-  ["$ty_heg__zhukou1"] = "草莽贼寇，不过如此。",
-  ["$ty_heg__zhukou2"] = "轻装上阵，利剑出鞘。",
-  ["$ty_heg__duannian1"] = "断思量，莫思量。",
-  ["$ty_heg__duannian2"] = "一别两宽，不负相思。",
-  ["$ty_heg__xinghuo1"] = "莲花佑兴，业火可兴。",
-  ["$ty_heg__xinghuo2"] = "昔日莲花开，今日红火燃。",
   ["~ty_heg__zhouyi"] = "江水寒，萧瑟起……",
 }
 
@@ -176,35 +122,12 @@ Fk:loadTranslationTable{
   ["designer:ty_heg__lvlingqi"] = "xat1k",
   ["illustrator:ty_heg__lvlingqi"] = "君桓文化",
 
-  ["ty_heg__guowu"] = "帼武",
-  ["#ty_heg__guowu_delay"] = "帼武",
-  [":ty_heg__guowu"] = "出牌阶段开始时，你可展示所有手牌，若包含的类别数：不小于1，你从弃牌堆中获得一张【杀】；不小于2，你本阶段使用牌无距离限制；"..
-  "不小于3，你本阶段使用【杀】可以多指定两个目标（限一次）。",
-  ["ty_heg__zhuangrong"] = "妆戎",
-  [":ty_heg__zhuangrong"] = "出牌阶段限一次，你可以弃置一张锦囊牌，然后获得“无双”至此阶段结束。",
-  ["ty_heg__shenwei"] = "神威",
-  [":ty_heg__shenwei"] = "主将技，此武将牌上单独的阴阳鱼个数-1。①摸牌阶段，若你的体力值为全场最高，你多摸两张牌。②你的手牌上限+2。",
-  ["ty_heg__zhuanrong_hs_wushuang"] = "无双",
-  ["@@ty_heg__zhuanrong_hs_wushuang"] = "无双",
-  [":ty_heg__zhuanrong_hs_wushuang"] = "锁定技，当你使用【杀】指定一个目标后，该角色需依次使用两张【闪】才能抵消此【杀】；当你使用【决斗】指定一个目标后，或成为一名角色使用【决斗】的目标后，该角色每次响应此【决斗】需依次打出两张【杀】。",
-  ["#ty_heg__guowu-choose"] = "帼武：你可以为%arg增加至多两个目标",
-
-  ["$ty_heg__guowu1"] = "方天映黛眉，赤兔牵红妆。",
-  ["$ty_heg__guowu2"] = "武姬青丝利，巾帼女儿红。",
-  ["$ty_heg__shenwei1"] = "锋镝鸣手中，锐戟映秋霜。",
-  ["$ty_heg__shenwei2"] = "红妆非我愿，学武觅封侯。",
-  ["$ty_heg__zhuangrong1"] = "继父神威，无坚不摧！",
-  ["$ty_heg__zhuangrong2"] = "我乃温侯吕奉先之女！",
-  ["$ty_heg__wushuang1"] = "猛将策良骥，长戟破敌营。",
-  ["$ty_heg__wushuang2"] = "杀气腾剑戟，严风卷戎装。",
+  ["$ty_heg__zhuanrong_hs_wushuang1"] = "猛将策良骥，长戟破敌营。",
+  ["$ty_heg__zhuanrong_hs_wushuang2"] = "杀气腾剑戟，严风卷戎装。",
   ["~ty_heg__lvlingqi"] = "父亲，女儿好累……",
 }
 --[[
 local nanhualaoxian = General:new(extension, "ty_heg__nanhualaoxian", "qun", 4)
-
-
-
-
 
 local ty_heg__leiji = fk.CreateTriggerSkill{
   name = "ty_heg__leiji",
@@ -434,25 +357,6 @@ Fk:loadTranslationTable{
   ["designer:ty_heg__nanhualaoxian"] = "韩旭",
   ["illustrator:ty_heg__nanhualaoxian"] = "君桓文化",
 
-  ["ty_heg__gongxiu"] = "共修",
-  [":ty_heg__gongxiu"] = "摸牌阶段，你可少摸一张牌，然后选择一项：1.令至多X名角色各摸一张牌；"..
-  "2.令至多X名角色各弃置一张牌。（X为你的体力上限，不能连续选择同一项）",
-  ["ty_heg__jinghe"] = "经合",
-  [":ty_heg__jinghe"] = "出牌阶段限一次，你可展示至多X张牌名各不同的手牌并选择等量有明置武将牌的角色，从“写满技能的天书”随机展示X个技能，这些角色依次选择并"..
-  "获得其中一个技能，直到你下回合开始 （X为你的体力上限）。",
-
-  ["#ty_heg__gongxiu-choice"] = "共修：选择令角色摸牌或弃牌",
-  ["#ty_heg__gongxiu_0-ask"] = "是否发动 共修，令至多%arg名角色各摸一张牌或各弃置一张牌",
-  ["#ty_heg__gongxiu_1-ask"] = "是否发动 共修，令至多%arg名角色各弃置一张牌",
-  ["#ty_heg__gongxiu_2-ask"] = "是否发动 共修，令至多%arg名角色各摸一张牌",
-  ["ty_heg__gongxiu_draw"] = "令至多%arg名角色各摸一张牌",
-  ["ty_heg__gongxiu_discard"] = "令至多%arg名角色各弃置一张牌",
-
-  ["#ty_heg__gongxiu_draw-choose"] = "共修：选择至多%arg名角色各摸一张牌",
-  ["#ty_heg__gongxiu_discard-choose"] = "共修：选择至多%arg名角色各弃置一张牌",
-
-  ["#ty_heg__jinghe"] = "经合：展示至多四张牌名各不同的手牌，令等量的角色获得技能",
-  ["#ty_heg__jinghe-choice"] = "经合：选择你要获得的技能",
   ["ty_heg__leiji"] = "雷击",
   [":ty_heg__leiji"] = "当你使用或打出【闪】时，你可以令一名其他角色进行一次判定，若结果为：♠，你对其造成2点雷电伤害。",
   ["#ty_heg__leiji-choose"] = "雷击：令一名角色进行判定，若为♠，你对其造成2点雷电伤害。",
@@ -476,10 +380,6 @@ Fk:loadTranslationTable{
   [":ty_heg__yanzhengn"] = "准备阶段，若你的手牌数大于1，你可以选择一张手牌并弃置其余的牌，然后对至多等于弃置牌数的角色各造成1点伤害。",
   ["#ty_heg__yanzhengn-invoke"] = "言政：你可以选择保留一张手牌，弃置其余的手牌，对至多%arg名角色各造成1点伤害",
 
-  ["$ty_heg__gongxiu1"] = "福祸与共，业山可移。",
-  ["$ty_heg__gongxiu2"] = "修行退智，遂之道也。",
-  ["$ty_heg__jinghe1"] = "大哉乾元，万物资始。",
-  ["$ty_heg__jinghe2"] = "无极之外，复无无极。",
   ["~ty_heg__nanhualaoxian"] = "道亦有穷时……",
 }
 --]]

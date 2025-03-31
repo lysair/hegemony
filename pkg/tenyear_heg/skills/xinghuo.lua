@@ -1,13 +1,23 @@
-local xinghuo = fk.CreateTriggerSkill{
+local xinghuo = fk.CreateSkill{
   name = "ty_heg__xinghuo",
-  frequency = Skill.Compulsory,
-  anim_type = "offensive",
-  events = {fk.DamageCaused},
-  can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self) and data.damageType == fk.FireDamage and data.from == player
-  end,
-  on_cost = Util.TrueFunc,
-  on_use = function(self, event, target, player, data)
-    data.damage = data.damage + 1
-  end,
+  tags = {Skill.Compulsory},
 }
+xinghuo:addEffect(fk.DamageCaused, {
+  anim_type = "offensive",
+  can_trigger = function(self, event, target, player, data)
+    return player:hasSkill(xinghuo.name) and data.damageType == fk.FireDamage and data.from == player
+  end,
+  on_use = function(self, event, target, player, data)
+    data:changeDamage(1)
+  end,
+})
+
+Fk:loadTranslationTable{
+  ["ty_heg__xinghuo"] = "兴火",
+  [":ty_heg__xinghuo"] = "锁定技，当你造成火属性伤害时，你令此伤害+1。",
+
+  ["$ty_heg__xinghuo1"] = "莲花佑兴，业火可兴。",
+  ["$ty_heg__xinghuo2"] = "昔日莲花开，今日红火燃。",
+}
+
+return xinghuo

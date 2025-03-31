@@ -1,12 +1,13 @@
-local gongxiu = fk.CreateTriggerSkill{
+local gongxiu = fk.CreateSkill{
   name = "ty_heg__gongxiu",
+}
+gongxiu:addEffect(fk.DrawNCards, {
   anim_type = "offensive",
-  events = {fk.DrawNCards},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self) and data.n > 0
+    return target == player and player:hasSkill(gongxiu.name) and data.n > 0
   end,
   on_cost = function(self, event, target, player, data)
-    return player.room:askForSkillInvoke(player, self.name, data, "#ty_heg__gongxiu_" .. player:getMark("ty_heg__gongxiu") .. "-ask:::" .. player.maxHp)
+    return player.room:askForSkillInvoke(player, gongxiu.name, data, "#ty_heg__gongxiu_" .. player:getMark("ty_heg__gongxiu") .. "-ask:::" .. player.maxHp)
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
@@ -17,31 +18,56 @@ local gongxiu = fk.CreateTriggerSkill{
     end
     if player:getMark("ty_heg__gongxiu") ~= 2 then
       table.insert(choices, "ty_heg__gongxiu_discard:::" .. player.maxHp)
-    end 
-    local choice = room:askForChoice(player, choices, self.name, "#ty_heg__gongxiu-choice")
-    local targets, tos
+    end
+    local choice = room:askForChoice(player, choices, gongxiu.name, "#ty_heg__gongxiu-choice")
+    local tos
     if choice:startsWith("ty_heg__gongxiu_draw") then
       room:setPlayerMark(player, "ty_heg__gongxiu", 1)
-      targets = table.map(room.alive_players, Util.IdMapper)
-      tos = room:askForChoosePlayers(player, targets, 1, player.maxHp, "#ty_heg__gongxiu_draw-choose:::" .. player.maxHp, self.name, false)
-      room:sortPlayersByAction(tos)
-      for _, id in ipairs(tos) do
-        local p = room:getPlayerById(id)
+      tos = room:askToChoosePlayers(player,{
+        targets = room.alive_players, min_num = 1, max_num = player.maxHp,
+        propmt = "#ty_heg__gongxiu_draw-choose:::" .. player.maxHp,
+        skill_name = gongxiu.name, cancelable = false
+      })
+      room:sortByAction(tos)
+      for _, p in ipairs(tos) do
         if not p.dead then
-          p:drawCards(1, self.name)
+          p:drawCards(1, gongxiu.name)
         end
       end
     else
       room:setPlayerMark(player, "ty_heg__gongxiu", 2)
-      targets = table.map(table.filter(room.alive_players,  function(p) return not p:isNude() end), Util.IdMapper)
-      tos = room:askForChoosePlayers(player, targets, 1, player.maxHp, "#ty_heg__gongxiu_discard-choose:::" .. player.maxHp, self.name, false)
-      room:sortPlayersByAction(tos)
-      for _, id in ipairs(tos) do
-        local p = room:getPlayerById(id)
+      tos = room:askToChoosePlayers(player,{
+        targets = room.alive_players, min_num = 1, max_num = player.maxHp,
+        propmt = "#ty_heg__gongxiu_discard-choose:::" .. player.maxHp,
+        skill_name = gongxiu.name, cancelable = false
+      })
+      room:sortByAction(tos)
+      for _, p in ipairs(tos) do
         if not p.dead and not p:isNude() then
-          room:askForDiscard(p, 1, 1, true, self.name, false)
+          room:askForDiscard(p, 1, 1, true, gongxiu.name, false)
         end
       end
     end
   end,
+})
+
+Fk:loadTranslationTable{
+  ["ty_heg__gongxiu"] = "共修",
+  [":ty_heg__gongxiu"] = "摸牌阶段，你可少摸一张牌，然后选择一项：1.令至多X名角色各摸一张牌；"..
+    "2.令至多X名角色各弃置一张牌。（X为你的体力上限，不能连续选择同一项）",
+
+  ["#ty_heg__gongxiu-choice"] = "共修：选择令角色摸牌或弃牌",
+  ["#ty_heg__gongxiu_0-ask"] = "是否发动 共修，令至多%arg名角色各摸一张牌或各弃置一张牌",
+  ["#ty_heg__gongxiu_1-ask"] = "是否发动 共修，令至多%arg名角色各弃置一张牌",
+  ["#ty_heg__gongxiu_2-ask"] = "是否发动 共修，令至多%arg名角色各摸一张牌",
+  ["ty_heg__gongxiu_draw"] = "令至多%arg名角色各摸一张牌",
+  ["ty_heg__gongxiu_discard"] = "令至多%arg名角色各弃置一张牌",
+
+  ["#ty_heg__gongxiu_draw-choose"] = "共修：选择至多%arg名角色各摸一张牌",
+  ["#ty_heg__gongxiu_discard-choose"] = "共修：选择至多%arg名角色各弃置一张牌",
+
+  ["$ty_heg__gongxiu1"] = "福祸与共，业山可移。",
+  ["$ty_heg__gongxiu2"] = "修行退智，遂之道也。",
 }
+
+return gongxiu
