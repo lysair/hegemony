@@ -378,13 +378,7 @@ local lianzi = fk.CreateActiveSkill{
     end
     if show_num == 0 then return end
     local cards = room:getNCards(show_num)
-    room:moveCards{
-      ids = cards,
-      toArea = Card.Processing,
-      moveReason = fk.ReasonJustMove,
-      skillName = self.name,
-      proposer = player.id
-    }
+    room:turnOverCardsFromDrawPile(player, cards, lianzi.name)
     local to_get = table.filter(cards, function (id)
       return Fk:getCardById(id, true).type == cardType
     end)

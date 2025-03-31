@@ -1,5 +1,3 @@
-local H = require "packages/hegemony/util"
-local U = require "packages/utility/utility"
 local extension = Package:new("lord_ex")
 extension.extensionName = "hegemony"
 extension.game_modes_whitelist = { 'nos_heg_mode', 'new_heg_mode' }
