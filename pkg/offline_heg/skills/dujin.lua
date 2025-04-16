@@ -13,7 +13,7 @@ dujin:addEffect(fk.DrawNCards, {
 })
 dujin:addEffect(fk.GeneralRevealed, {
   can_trigger = function (self, event, target, player, data)
-    if target == player and player:hasSkill(dujin.name) and player:usedSkillTimes(dujin.name, Player.HistoryGame) == 0 then
+    if target == player and player:hasSkill(dujin.name) and player:usedSkillTimes(dujin.name, Player.HistoryGame) == 0 then -- FIXME
       for _, v in pairs(data) do
         if table.contains(Fk.generals[v]:getSkillNameList(), dujin.name) then return true end
       end

@@ -5,7 +5,7 @@ local weimu = fk.CreateSkill{
 weimu:addEffect(fk.TargetConfirming, {
   anim_type = "defensive",
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.skeleton.name) and data.card.color == Card.Black and data.card:isCommonTrick()
+    return target == player and player:hasSkill(self.skeleton.name) and data.card.color == Card.Black and data.card.type == Card.TypeTrick
   end,
   on_use = function(self, event, target, player, data)
     data:cancelTarget(player)
@@ -19,7 +19,7 @@ weimu:addEffect(fk.BeforeCardsMove, {
     local source = player
     local c
     for _, move in ipairs(data) do
-      if move.to == player.id and move.toArea == Card.PlayerJudge then
+      if move.to == player and move.toArea == Card.PlayerJudge then
         for _, info in ipairs(move.moveInfo) do
           id = info.cardId
           if info.fromArea == Card.PlayerJudge then
@@ -39,16 +39,17 @@ weimu:addEffect(fk.BeforeCardsMove, {
   end,
   on_use = function (self, event, target, player, data)
     local source = player
-    local mirror_moves = {}
+    local mirror_moves = {} ---@type MoveCardsData[]
     local ids = {}
     for _, move in ipairs(data) do
-      if move.to == player.id and move.toArea == Card.PlayerJudge then
+      if move.to == player and move.toArea == Card.PlayerJudge then
         local move_info = {}
-        local mirror_info = {}
+        local mirror_info = {} ---@type MoveInfo[]
         for _, info in ipairs(move.moveInfo) do
           local id = info.cardId
           if info.fromArea == Card.PlayerJudge then
             source = move.from or player
+            --print(source.general)
           else
             source = player
           end
@@ -63,15 +64,25 @@ weimu:addEffect(fk.BeforeCardsMove, {
         end
         if #mirror_info > 0 then
           move.moveInfo = move_info
-          local mirror_move = table.clone(move)
+          local mirror_move = table.simpleClone(move)
+          --print((move.from or {}).general, Fk:getCardById(mirror_info[1].cardId).name, (mirror_move.to or {}).general, mirror_info[1].fromArea)
           mirror_move.to = nil
           mirror_move.toArea = Card.DiscardPile
           mirror_move.moveInfo = mirror_info
+          mirror_move.moveReason = fk.ReasonJustMove
+          mirror_move.skillName = self.skeleton.name
           table.insert(mirror_moves, mirror_move)
         end
       end
     end
-    table.insertTable(data, mirror_moves)
+    if #ids > 0 then
+      local room = player.room
+      table.insertTable(data, mirror_moves)
+      --[[ room:sendLog{
+        type = "#destructDerivedCards", -- 假的
+        card = ids,
+      } ]]
+    end
   end
 })
 
@@ -89,15 +100,17 @@ weimu:addTest(function (room, me)
   lu.assertEquals(comp2.hp, 4)
 
   card = room:printCard("indulgence", Card.Black, 3)
+  local place
   FkTest.runInRoom(function ()
     room:useCard{
       from = me,
       tos = { comp2 },
       card = card,
     }
+    place = room:getCardArea(card)
   end)
-  lu.assertEquals(#comp2:getCardIds("e"), 0)
-
+  lu.assertEquals(#comp2:getCardIds("e"), 0) -- player_cards
+  lu.assertEquals(place, Card.DiscardPile) -- card_place
   card = room:printCard("lightning", Card.Black, 3)
   FkTest.runInRoom(function ()
     room:useCard{
@@ -107,12 +120,14 @@ weimu:addTest(function (room, me)
     }
     me:gainAnExtraTurn()
     comp2:gainAnExtraTurn()
+    place = room:getCardArea(card)
   end)
+  lu.assertEquals(place, Card.DiscardPile)
 end)
 
 Fk:loadTranslationTable{
-  ['hs__weimu'] = '帷幕',
-  [':hs__weimu'] = '锁定技，当你成为黑色锦囊牌的目标时，取消之。',
+  ["hs__weimu"] = "帷幕",
+  [":hs__weimu"] = "锁定技，当你成为黑色锦囊牌的目标时，取消之。",
 
   ["$hs__weimu1"] = "此计伤不到我。",
   ["$hs__weimu2"] = "你奈我何！",

@@ -778,7 +778,7 @@ H.GeneralRemoved = H.GeneralRemoveEvent:subclass("H.GeneralRemoved")
 ---  data: TrigSkelSpec<GeneralRemoveTrigFunc>, attr: TrigSkelAttribute?): SkillSkeleton
 
 --- 移除武将牌GameEvent
-H.RemoveGeneral = "GameEvent.RemoveGeneral"
+H.RemoveGeneral = "RemoveGeneral"
 
 Fk:addGameEvent(H.RemoveGeneral, nil, function(self)
   local rgdata = self.data ---@class GeneralRemoveDataSpec
@@ -903,7 +903,7 @@ function H.transformGeneral(room, player, isMain, isHidden, num)
   local generals = room:findGenerals(function(g)
     return Fk.generals[g].kingdom == kingdom or Fk.generals[g].subkingdom== kingdom
   end, num)
-  local general = room:askToChooseGeneral(player, {generals = generals, n = 1, no_convert = true})
+  local general = room:askToChooseGeneral(player, {generals = generals, n = 1, no_convert = true}) ---@type string
   table.removeOne(generals, general)
   table.insert(generals, orig)
   room:returnToGeneralPile(generals)

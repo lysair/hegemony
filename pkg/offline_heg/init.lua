@@ -2,6 +2,8 @@ local extension = Package:new("offline_heg")
 extension.extensionName = "hegemony"
 extension.game_modes_whitelist = { 'nos_heg_mode', 'new_heg_mode' }
 
+extension:loadSkillSkelsByPath("./packages/hegemony/pkg/offline_heg/skills")
+
 Fk:loadTranslationTable{
   ["offline_heg"] = "国战-线下卡专属",
   ["of_heg"] = "线下",

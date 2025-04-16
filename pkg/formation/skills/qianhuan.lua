@@ -30,7 +30,7 @@ qianhuan:addEffect(fk.TargetConfirming, {
   anim_type = "defensive",
   can_trigger = function (self, event, target, player, data)
     return player:hasSkill(qianhuan.name) and H.compareKingdomWith(target, player) and #player:getPile("yuji_sorcery") > 0 and
-      (data.card.type == Card.TypeBasic or data.card:isCommonTrick()) and data:isOnlyTarget(target)
+      (data.card.type == Card.TypeBasic or data.card.type == Card.TypeTrick) and data:isOnlyTarget(target)
   end,
   on_cost = function (self, event, target, player, data)
     local card = player.room:askForCard(player, 1, 1, false, qianhuan.name, true, ".|.|.|yuji_sorcery", "#qianhuan-def::" .. target.id .. ":" .. data.card:toLogString(), "yuji_sorcery")
@@ -45,7 +45,7 @@ qianhuan:addEffect(fk.TargetConfirming, {
     data:cancelTarget(target)
   end
 })
-qianhuan:addEffect(fk.BeforeCardsMove, {
+--[[ qianhuan:addEffect(fk.BeforeCardsMove, {
   anim_type = "defensive",
   can_trigger = function(self, event, target, player, data)
     if not player:hasSkill(qianhuan.name) then return false end
@@ -79,7 +79,7 @@ qianhuan:addEffect(fk.BeforeCardsMove, {
     end
     if delayed_trick then
       card = room:askForCard(player, 1, 1, false, self.name, true, ".|.|.|yuji_sorcery",
-      "#qianhuan-def::" .. friend .. ":" .. delayed_trick:toLogString(), "yuji_sorcery")
+      "#qianhuan-def::" .. friend.id .. ":" .. delayed_trick:toLogString(), "yuji_sorcery")
     end
     if #card > 0 then
       event:setCostData(self, {cards = card})
@@ -101,7 +101,7 @@ qianhuan:addEffect(fk.BeforeCardsMove, {
         end
         if #mirror_info > 0 then
           move.moveInfo = move_info
-          local mirror_move = table.clone(move)
+          local mirror_move = table.simpleClone(move)
           mirror_move.to = nil
           mirror_move.toArea = Card.DiscardPile
           mirror_move.moveInfo = mirror_info
@@ -111,7 +111,7 @@ qianhuan:addEffect(fk.BeforeCardsMove, {
     end
     table.insertTable(data, mirror_moves)
   end,
-})
+}) ]]
 qianhuan:addTest(function (room, me)
   local comp2 = room.players[2] ---@type ServerPlayer, ServerPlayer
   FkTest.runInRoom(function() room:handleAddLoseSkills(me, qianhuan.name) end)

@@ -7,7 +7,7 @@ qianxun:addEffect(fk.TargetConfirming, {
   anim_type = "defensive",
   mute = true,
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(qianxun.name) and data.card.trueName == "snatch"
+    return target == player and player:hasSkill(qianxun.name) and (data.card.trueName == "snatch") -- or data.card.trueName == "indulgence")
   end,
   on_use = function(self, event, target, player, data)
     player.room:notifySkillInvoked(player, qianxun.name)
@@ -51,7 +51,7 @@ qianxun:addEffect(fk.BeforeCardsMove, {
     local mirror_moves = {}
     local ids = {}
     for _, move in ipairs(data) do
-      if move.to == player.id and move.toArea == Card.PlayerJudge then
+      if move.to == player and move.toArea == Card.PlayerJudge then
         local move_info = {}
         local mirror_info = {}
         for _, info in ipairs(move.moveInfo) do
