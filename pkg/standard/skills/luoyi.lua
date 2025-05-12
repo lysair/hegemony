@@ -6,23 +6,34 @@ luoyi:addEffect(fk.EventPhaseEnd, {
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(self) and player.phase == Player.Draw
   end,
-  on_use = function(self, event, target, player, data)
-    player.room:askToDiscard(player,{min_num = 1, max_num = 1, cancelable = false, skill_name = "hs__luoyi",
-      prompt = "hs__luoyi-ask"})
+  on_cost = function(self, event, target, player, data)
+    local room = player.room
+    local card = room:askToDiscard(player,{
+      min_num = 1,
+      max_num = 1,
+      cancelable = true,
+      skill_name = luoyi.name,
+      prompt = "hs__luoyi-ask",
+      skip = true,
+    })
+    if #card > 0 then
+      event:setCostData(self, {cards = card})
+      return true
+    end
+  end,
+  on_use = function (self, event, target, player, data)
+    player.room:throwCard(event:getCostData(self).cards, luoyi.name, player, player)
   end,
 })
 luoyi:addEffect(fk.DamageCaused, {
-  mute = true,
+  anim_type = "offensive",
+  is_delay_effect = true,
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:usedSkillTimes("hs__luoyi", Player.HistoryTurn) > 0 and
+    return target == player and player:usedSkillTimes(luoyi.name, Player.HistoryTurn) > 0 and
       not data.chain and data.card and (data.card.trueName == "slash" or data.card.name == "duel")
   end,
-  on_cost = Util.TrueFunc,
   on_use = function(self, event, target, player, data)
-    -- local room = player.room
-    -- player:broadcastSkillInvoke("hs__luoyi")
-    -- room:notifySkillInvoked(player, "hs__luoyi")
-    data.damage = data.damage + 1
+    data:changeDamage(1)
   end,
 })
 

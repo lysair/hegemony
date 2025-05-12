@@ -129,7 +129,10 @@ hegRule:addEffect(fk.TurnStart, {
   priority = 0,
   can_trigger = can_trigger,
   on_trigger = function(self, event, target, player, data)
-    H.askForRevealGenerals(player.room, player, self.name, true, true, true, true, true) -- lord
+    H.askToRevealGenerals(player, {
+      skill_name = hegRule.name,
+      lord_convert = true,
+    })
   end
 })
 hegRule:addEffect(fk.GameOverJudge, {

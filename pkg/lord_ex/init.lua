@@ -568,7 +568,7 @@ local diaogui = fk.CreateViewAsSkill{
   card_filter = function(self, to_select, selected)
     return #selected == 0 and Fk:getCardById(to_select).type == Card.TypeEquip
   end,
-  view_as = function(self, cards)
+  view_as = function(self, player, cards)
     if #cards ~= 1 then
       return nil
     end
@@ -646,7 +646,7 @@ local aocai = fk.CreateViewAsSkill{
     local names = U.getViewAsCardNames(Self, "ld__aocai", U.getAllCardNames("b", true))
     return UI.ComboBox {choices = { table.concat(names, ",") }}
   end,
-  view_as = function(self, cards)
+  view_as = function(self, player, cards)
     if self.interaction.data == nil or self.interaction.data == "" then return end
     local names = string.split(self.interaction.data, ",")
     if #names > 0 then

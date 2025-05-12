@@ -10,7 +10,7 @@ Fk:loadTranslationTable{
 }
 
 local lidian = General:new(extension, "ld__lidian", "wei", 3)
-lidian:addSkills{"xunxun", "wangxi"}
+lidian:addSkills{"hs__xunxun", "hs__wangxi"}
 lidian:addCompanions("hs__yuejin")
 Fk:loadTranslationTable{
   ["ld__lidian"] = "李典",
@@ -166,7 +166,7 @@ local heavenly_army_skill = fk.CreateViewAsSkill{
     if #cards == 0 then return end
     return UI.ComboBox {choices = cards} -- FIXME: expand_pile
   end,
-  view_as = function(self, cards)
+  view_as = function(self, player, cards)
     if self.interaction.data == nil then return end
     local card = Fk:cloneCard("slash")
     card.skillName = self.name

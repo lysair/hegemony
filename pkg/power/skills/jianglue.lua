@@ -1,6 +1,6 @@
 local jianglue = fk.CreateSkill{
   name = "jianglue",
-  frequency = Skill.Limited,
+  tags = {Skill.Limited},
 }
 local H = require "packages/hegemony/util"
 jianglue:addEffect("active", {
@@ -23,7 +23,14 @@ jianglue:addEffect("active", {
           general = Fk.generals[p:getMark("__heg_deputy")]
           deputy = general.kingdom == kingdom or general.subkingdom == kingdom
         end
-        H.askForRevealGenerals(room, p, jianglue.name, main, deputy)
+        local flag = main and "m" or ""
+        if deputy then
+          flag = flag.. "d"
+        end
+        H.askToRevealGenerals(player, {
+          skill_name = jianglue.name,
+          flag = flag,
+        })
       end
     end
     local targets = table.filter(room.alive_players, function(p) return H.compareKingdomWith(p, player) and p ~= player end)

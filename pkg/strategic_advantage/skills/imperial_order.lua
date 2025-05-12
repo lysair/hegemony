@@ -3,7 +3,9 @@ local function doImperialOrder(room, target)
   local all_choices = {"IO_reveal", "IO_discard", "IO_hplose"}
   local choices = table.clone(all_choices)
   if target.hp < 1 then table.remove(choices) end
-  if table.every(target:getCardIds{Player.Equip, Player.Hand}, function(id) return Fk:getCardById(id).type ~= Card.TypeEquip or target:prohibitDiscard(Fk:getCardById(id)) end) then
+  if table.every(target:getCardIds("he"), function(id)
+    return Fk:getCardById(id).type ~= Card.TypeEquip or target:prohibitDiscard(Fk:getCardById(id))
+  end) then
     table.remove(choices, 2) -- 没有装备牌不能选择弃牌
   end
   if (target.general ~= "anjiang" or target:prohibitReveal()) and (target.deputyGeneral ~= "anjiang" or target:prohibitReveal(true)) then
@@ -12,7 +14,10 @@ local function doImperialOrder(room, target)
   if #choices == 0 then return false end
   local choice = room:askForChoice(target, choices, "imperial_order_skill", nil, false, all_choices)
   if choice == "IO_reveal" then
-    H.askForRevealGenerals(room, target, "imperial_order_skill", true, true, false, false)
+    H.askToRevealGenerals(target, {
+      skill_name = "imperial_order_skill",
+      cancelable = false,
+    })
     target:drawCards(1, "imperial_order_skill")
   elseif choice == "IO_discard" then
     room:askForDiscard(target, 1, 1, true, "imperial_order_skill", false, ".|.|.|.|.|equip")

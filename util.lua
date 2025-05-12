@@ -275,7 +275,13 @@ function H.ArraySummonSkill:onUse(room, effect)
       general = Fk.generals[to:getMark("__heg_deputy")]
       deputy = general.kingdom == _kingdom or general.subkingdom == _kingdom
     end
-    return H.askForRevealGenerals(room, to, skill_name, main, deputy)
+    local flag = main and "m" or ""
+    if deputy then
+      flag = flag.."d"
+    end
+    return H.askToRevealGenerals(player, {
+      skill_name = skill_name,
+    }) ~= "Cancel"
   end
   if pattern == "formation" then
     for i = 1, 2 do
@@ -596,34 +602,50 @@ function H.getHegLord(room, player)
   return table.find(room.alive_players, function(p) return p.kingdom == kingdom and not not string.find(p.general, "lord") end)
 end
 
---- 询问亮将
----@param room Room
----@param player ServerPlayer
----@param skill_name string
----@param main? boolean
----@param deputy? boolean
----@param all? boolean
----@param cancelable? boolean
----@param lord_convert? boolean
----@return boolean
-function H.askForRevealGenerals(room, player, skill_name, main, deputy, all, cancelable, lord_convert)
-  if H.allGeneralsRevealed(player) then return false end
-  main = (main == nil) and true or main
-  deputy = (deputy == nil) and true or deputy
-  all = (all == nil) and true or all
-  cancelable = (cancelable == nil) and true or cancelable
-  local all_choices = {"revealMain:::" .. player:getMark("__heg_general"), "revealDeputy:::" .. player:getMark("__heg_deputy"), "revealAll", "Cancel"}
-  local choices = {}
 
-  if main and player.general == "anjiang" and not player:prohibitReveal() then
+---@class AskForRevealGeneralsParams
+---@field skill_name string @ 发起亮将的技能名
+---@field prompt? string @ 烧条上面显示的提示文本内容
+---@field flag? string @ "m"仅主将，"d"仅副将，"md"全亮。默认可以全亮
+---@field cancelable? boolean  @ 是否可以取消。默认可以
+---@field lord_convert? boolean  @ 是否可以变为君主。默认不可以
+
+--- 询问亮将
+---@param player ServerPlayer @ 被询问亮将的玩家
+---@param params AskForRevealGeneralsParams @ 各种变量
+---@return string @ 返回选择的选项（"m"、"d"、"md"、"Cancel"）
+function H.askToRevealGenerals(player, params)
+  local room = player.room
+  if H.allGeneralsRevealed(player) then
+    return "Cancel"
+  end
+  local skill_name = params.skill_name or "heg_rule"
+  local flag = params.flag or "md"
+  local cancelable = params.cancelable or true
+  local lord_convert = params.lord_convert or false
+
+  local all_choices = {
+    "revealMain:::" .. player:getMark("__heg_general"),
+    "revealDeputy:::" .. player:getMark("__heg_deputy"),
+    "revealAll",
+    "Cancel",
+  }
+  local choices = {}
+  if string.find(flag, "m") and player.general == "anjiang" and not player:prohibitReveal() then
     table.insert(choices, "revealMain:::" .. player:getMark("__heg_general"))
   end
-  if deputy and player.deputyGeneral == "anjiang" and not player:prohibitReveal(true) then
+  if string.find(flag, "d") and player.deputyGeneral == "anjiang" and not player:prohibitReveal(true) then
     table.insert(choices, "revealDeputy:::" .. player:getMark("__heg_deputy"))
   end
-  if #choices == 2 and all then table.insert(choices, "revealAll") end
-  if cancelable then table.insert(choices, "Cancel") end
-  if #choices == 0 then return false end
+  if #choices == 2 and flag == "md" then
+    table.insert(choices, "revealAll")
+  end
+  if cancelable then
+    table.insert(choices, "Cancel")
+  end
+  if #choices == 0 then
+    return "Cancel"
+  end
 
   -- 能否变身君主
   local convert = false
@@ -636,9 +658,31 @@ function H.askForRevealGenerals(room, player, skill_name, main, deputy, all, can
     end
   end
 
-  local choice = room:askToChoice(player, {choices = choices, skill_name = skill_name, prompt = convert and "#HegPrepareConvertLord" or nil, all_choices = all_choices, cancelable = false})
+  local prompt = params.prompt
+  if prompt == nil then
+    if convert then
+      prompt = "#HegPrepareConvertLord"
+    else
+      prompt = "#HegRevealGenerals"
+    end
+  end
+
+  local choice = room:askToChoice(player, {
+    choices = choices,
+    skill_name = skill_name,
+    prompt = prompt,
+    all_choices = all_choices,
+    cancelable = false,
+  })
   -- 先变身君主
-  if convert and (choice:startsWith("revealMain") or choice == "revealAll") and room:askForChoice(player, {"ConvertToLord:::" .. H.lordGenerals[player:getMark("__heg_general")], "Cancel"}, skill_name, nil) ~= "Cancel" then
+  if convert and (choice:startsWith("revealMain") or choice == "revealAll") and
+    room:askToChoice(player, {
+      choices = {
+        "ConvertToLord:::" .. H.lordGenerals[player:getMark("__heg_general")],
+        "Cancel",
+      },
+      skill_name = skill_name,
+    }) ~= "Cancel" then
     for _, s in ipairs(Fk.generals[player:getMark("__heg_general")]:getSkillNameList()) do
       local skill = Fk.skills[s]
       player:loseFakeSkill(skill)
@@ -667,17 +711,23 @@ function H.askForRevealGenerals(room, player, skill_name, main, deputy, all, can
     player:doNotify("SetPlayerMark", json.encode{ player.id, "CompanionEffect", 1})
   end
 
-  if choice:startsWith("revealMain") then player:revealGeneral(false)
-  elseif choice:startsWith("revealDeputy") then player:revealGeneral(true)
+  if choice:startsWith("revealMain") then
+    player:revealGeneral(false)
+    return "m"
+  elseif choice:startsWith("revealDeputy") then
+    player:revealGeneral(true)
+    return "d"
   elseif choice == "revealAll" then
     player:revealGenerals()
+    return "md"
   elseif choice == "Cancel" then
-    return false
+    return "Cancel"
   end
-  return true
+  return "Cancel"
 end
 
 Fk:loadTranslationTable{
+  ["#HegRevealGenerals"] = "国战规则：请选择要明置的武将",
   ["#HegPrepareConvertLord"] = "国战规则：请选择要明置的武将（仅本次明置主将可变身君主）",
   ["ConvertToLord"] = "<b>变身为<font color='goldenrod'>%arg</font></b>！",
 }

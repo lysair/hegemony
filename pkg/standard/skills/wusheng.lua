@@ -9,7 +9,7 @@ wusheng:addEffect('viewas', {
     if #selected == 1 then return false end
     return (H.getHegLord(Fk:currentRoom(), player) and H.getHegLord(Fk:currentRoom(), Self):hasSkill("shouyue")) or Fk:getCardById(to_select).color == Card.Red
   end,
-  view_as = function(self, cards)
+  view_as = function(self, player, cards)
     if #cards ~= 1 then
       return nil
     end

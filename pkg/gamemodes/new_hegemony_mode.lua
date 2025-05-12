@@ -251,7 +251,7 @@ end
 
 function HegLogic:chooseGenerals()
   local room = self.room
-  local generalNum = math.max(room.settings.generalNum, 5)
+  local generalNum = math.max(room.settings.generalNum, 6)
   room:doBroadcastNotify("ShowToast", Fk:translate("#HegInitialNotice"))
 
   local lord = room:getLord()

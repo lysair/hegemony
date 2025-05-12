@@ -1,0 +1,28 @@
+local ejue = fk.CreateSkill{
+  name = "zq__ejue",
+  tags = { Skill.Compulsory },
+}
+
+Fk:loadTranslationTable{
+  ["zq__ejue"] = "扼绝",
+  [":zq__ejue"] = "锁定技，当你使用【杀】对未确定势力的角色造成伤害时，此伤害+1。",
+}
+
+ejue:addEffect(fk.DamageCaused, {
+  anim_type = "offensive",
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(ejue.name) and
+      not data.chain and data.card and data.card.trueName == "slash" and
+      data.to.kingdom == "unknown"
+  end,
+  on_use = function(self, event, target, player, data)
+    data:changeDamage(1)
+  end,
+})
+
+ejue:addTest(function(room, me)
+  local comp2 = room.players[2]
+end)
+
+return ejue
+
