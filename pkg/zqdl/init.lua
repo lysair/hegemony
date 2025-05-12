@@ -115,4 +115,11 @@ Fk:loadTranslationTable{
   ["illustrator:zq__wangjun"] = "荆芥",
 }
 
+General:new(extension, "zq__malong", "jin", 4):addSkills{ "zq__zhuanzhan", "zq__xunjim" }
+Fk:loadTranslationTable{
+  ["zq__malong"] = "马隆",
+  ["#zq__malong"] = "困局诡阵",
+  ["illustrator:zq__malong"] = "荆芥",
+}
+
 return extension

@@ -149,7 +149,7 @@ hegRule:addEffect(fk.GameOverJudge, {
     if winner ~= "" then
       for _, ps in ipairs(room.alive_players) do
         -- 先检测并询问主将是不是野人
-        if ps.general == "anjiang" then 
+        if ps.general == "anjiang" then
           -- 是野人则强制亮出来
           if ps:getMark("__heg_wild") == 1 then
             room:setPlayerMark(ps, "_wild_final_end", 1)
@@ -183,43 +183,6 @@ hegRule:addEffect(fk.GameOverJudge, {
         end
         room:gameOver(winner)
         return true
-      end
-    end
-    room:setTag("SkipGameRule", true)
-  end
-})
-hegRule:addEffect(fk.Deathed, {
-  priority = 0,
-  can_trigger = can_trigger,
-  on_trigger = function(self, event, target, player, data)
-    local room = player.room
-    local killer = data.killer
-    if killer then
-      if killer.kingdom ~= "unknown" and not killer.dead then
-        -- 因为建国，修改奖惩；如果还没建国
-        if killer.kingdom == "wild" and killer:getMark("__heg_construct_wild") == 0 and killer:getMark("__heg_join_wild") == 0 then
-          killer:drawCards(3, "kill")
-        elseif H.compareKingdomWith(killer, player) then
-          if not (room.logic:getCurrentEvent():findParent(GameEvent.Death, true).data[1].extra_data or {}).ignorePunishment then
-            killer:throwAllCards("he")
-          end
-        else
-          killer:drawCards(H.getSameKingdomPlayersNum(room, player) + 1, "kill")
-        end
-      end
-    end
-    if string.find(player.general, "lord") then
-      local players = (table.filter(room.players, function(p) return
-        (p:getMark("__heg_kingdom") == player.kingdom or (p.dead and p.kingdom == player.kingdom)) and p ~= player and p.kingdom ~= "wild"
-      end))
-      room:sortByAction(players)
-      for _, p in ipairs(players) do
-        local oldKingdom = p.kingdom
-        room:setPlayerMark(p, "__heg_kingdom", "wild")
-        if oldKingdom ~= "unknown" then
-          room:setPlayerProperty(p, "kingdom", "wild")
-          if not p.dead then wildChooseKingdom(room, p, p.general) end
-        end
       end
     end
   end

@@ -32,12 +32,19 @@ tanfeng:addEffect(fk.EventPhaseStart, {
   on_use = function(self, event, target, player, data)
     local room = player.room
     target = event:getCostData(self).tos[1]
-    local cid = room:askForCardChosen(player, target, "hej", tanfeng.name)
-    room:throwCard({cid}, tanfeng.name, target, player)
+    local cid = room:askToChooseCard(player, {
+      target = target,
+      flag = "hej",
+      skill_name = tanfeng.name,
+    })
+    room:throwCard(cid, tanfeng.name, target, player)
     local choices = {"os_heg__tanfeng_damaged::" .. player.id, "Cancel"}
     local slash = Fk:cloneCard("slash")
     slash.skillName = tanfeng.name
-    local choice = room:askForChoice(target, choices, tanfeng.name, nil)
+    local choice = room:askToChoice(target, {
+      choices = choices,
+      skill_name = tanfeng.name,
+    })
     if choice ~= "Cancel" then
       room:damage{
         from = player,

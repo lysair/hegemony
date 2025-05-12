@@ -440,7 +440,6 @@ function HegLogic:attachSkillToPlayers()
     end
   end
 
-  room:setTag("SkipNormalDeathProcess", true)
   room:doBroadcastNotify("ShowToast", Fk:translate("#HegInitialNotice"))
 end
 
@@ -568,7 +567,86 @@ heg = fk.CreateGameMode{
     end
 
     return draw, void
-  end
+  end,
+
+  reward_punish = function (self, victim, killer)
+    local room = victim.room
+    if killer then
+      if killer.kingdom ~= "unknown" and not killer.dead then
+        local times = 1
+        if room:getBanner("additional_reward") then
+          times = 1 + room:getBanner("additional_reward")
+        end
+        -- 因为建国，修改奖惩；如果还没建国
+        if killer.kingdom == "wild" and killer:getMark("__heg_construct_wild") == 0 and killer:getMark("__heg_join_wild") == 0 then
+          killer:drawCards(times * 3, "kill")
+        elseif H.compareKingdomWith(killer, victim) then
+          killer:throwAllCards("he")
+        else
+          killer:drawCards(times * (H.getSameKingdomPlayersNum(room, victim) + 1), "kill")
+        end
+      end
+    end
+    if string.find(victim.general, "lord") then
+      local players = (table.filter(room.players, function(p) return
+        (p:getMark("__heg_kingdom") == victim.kingdom or (p.dead and p.kingdom == victim.kingdom)) and p ~= victim and p.kingdom ~= "wild"
+      end))
+      room:sortByAction(players)
+      local function wildChooseKingdom(player, generalName)
+        local allKingdoms = room:getBanner("all_kingdoms")
+        table.insertTable(allKingdoms, {"unknown", "hidden"})
+
+        local choice
+        local all_choices = table.clone(H.wildKingdoms)
+        local choices = table.clone(all_choices)
+        for _, p in ipairs(room.players) do
+          table.removeOne(choices, p.role)
+        end
+        if player.general == generalName and H.kingdomMapper[generalName] and H.kingdomMapper[generalName] ~= player.role then -- 野心家钦定
+          if table.contains(choices, H.kingdomMapper[generalName]) then
+            choice = H.kingdomMapper[generalName]
+          else
+            choice = room:askToChoice(player, {
+              choices = choices,
+              skill_name = "heg_rule",
+              prompt = "#wild-choose",
+              cancelable = false,
+              all_choices = all_choices,
+            })
+          end
+        elseif table.contains(allKingdoms, player.role) then
+          choice = room:askToChoice(player, {
+            choices = choices,
+            skill_name = "heg_rule",
+            prompt = "#wild-choose",
+            cancelable = false,
+            all_choices = all_choices,
+          })
+        end
+        if choice then
+          player.role = choice
+          room:setPlayerProperty(player, "role_shown", true)
+          room:broadcastProperty(player, "role")
+          room:sendLog{
+            type = "#WildChooseKingdom",
+            from = player.id,
+            arg = choice,
+            arg2 = "wild",
+          }
+        end
+      end
+      for _, p in ipairs(players) do
+        local oldKingdom = p.kingdom
+        room:setPlayerMark(p, "__heg_kingdom", "wild")
+        if oldKingdom ~= "unknown" then
+          room:setPlayerProperty(p, "kingdom", "wild")
+          if not p.dead then
+            wildChooseKingdom(p, p.general)
+          end
+        end
+      end
+    end
+  end,
 }
 
 Fk:loadTranslationTable{

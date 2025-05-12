@@ -6,11 +6,13 @@ local formation = require(prefix .. "formation")
 local momentum = require(prefix .. "momentum")
 local transformation = require(prefix .. "transformation")
 local power = require(prefix .. "power")
+local ex = require(prefix .. "lord_ex")
+local ziqidonglai = require(prefix .. "zqdl")
+
+local mobile = require(prefix .. "mobile_heg")
 local tenyear = require(prefix .. "tenyear_heg")
 local overseas = require(prefix .. "overseas_heg")
 local offline = require(prefix .. "offline_heg")
-local ex = require(prefix .. "lord_ex")
-local ziqidonglai = require(prefix .. "zqdl")
 
 local hegemony_cards = require(prefix .. "standard_cards")
 local strategic_advantage = require(prefix .. "strategic_advantage")
@@ -33,11 +35,13 @@ return {
   momentum,
   transformation,
   power,
+  ex,
+  ziqidonglai,
+
+  mobile,
   tenyear,
   overseas,
   offline,
-  ex,
-  ziqidonglai,
 
   hegemony_cards,
   strategic_advantage,
