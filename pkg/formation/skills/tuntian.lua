@@ -39,6 +39,10 @@ tuntian:addEffect('distance', {
   end,
 })
 
+tuntian:addAI({
+  think_skill_invoke = Util.TrueFunc,
+})
+
 Fk:loadTranslationTable{
   ["ld__tuntian"] = "屯田",
   [":ld__tuntian"] = "当你于回合外失去牌后，你可判定：若结果不为<font color='red'>♥</font>，你可将弃牌堆里的此判定牌置于武将牌上（称为“田”）。你至其他角色的距离-X（X为“田”数）。",

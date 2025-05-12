@@ -32,7 +32,7 @@ lijian:addEffect("active", {
     }
     room:useCard(new_use)
   end,
-  target_tip = function(self, to_select, selected, _, _, selectable, _)
+  target_tip = function(self, _, to_select, selected, _, _, selectable, _)
     if not selectable then return end
     if #selected == 0 or (#selected > 0 and selected[1] == to_select) then
       return "lijian_tip_1"

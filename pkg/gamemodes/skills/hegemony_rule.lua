@@ -322,7 +322,7 @@ hegRule:addEffect(fk.GameStart, {
       p:setMark("@seat", 0)
       p:doNotify("SetPlayerMark", json.encode{ p.id, "@seat", 0})
     end
-    if room.settings.gameMode == "nos_heg_mode" then -- 藕一下算了
+    if room.settings.gameMode == "nos_heg_mode" then -- 耦一下算了
       for _, p in ipairs(room.alive_players) do
         if p:isAlive() then p:revealGeneral(false) end
       end

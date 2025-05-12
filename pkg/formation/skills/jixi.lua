@@ -25,6 +25,7 @@ jixi:addEffect("viewas", {
     return c
   end,
 })
+jixi:addAI(nil, "vs_skill")
 
 Fk:loadTranslationTable{
   ["ld__jixi"] = "急袭",

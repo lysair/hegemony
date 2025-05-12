@@ -26,13 +26,35 @@ function HegLogic:chooseGenerals()
   local generalNum = math.max(room.settings.generalNum, 5)
   room:doBroadcastNotify("ShowToast", Fk:translate("#HegInitialNotice"))
 
-  local lord = room:getLord()
+  local lord = room:getLord() --[[@as ServerPlayer]]
   room:setCurrent(lord)
   lord.role = "hidden"
 
-  local allKingdoms = {}
-  table.forEach(room.general_pile, function(name) table.insertIfNeed(allKingdoms, Fk.generals[name].kingdom) end)
-  table.removeOne(allKingdoms, "wild")
+  local allKingdoms = {} ---@type string[]
+  table.forEach(room.general_pile, function(name)
+    table.insertIfNeed(allKingdoms, Fk.generals[name].kingdom) -- 假设不会有只出现在副势力的势力
+  end)
+  table.removeOne(allKingdoms, "wild") -- 野心家势力不包括
+  if #allKingdoms > 4 then
+    local kingdoms = table.random(allKingdoms, 4)
+    local unused = table.filter(allKingdoms, function(k)
+      return not table.contains(kingdoms, k)
+    end)
+    room:sendLog{
+      type = "#KingdomFiltered",
+      arg = table.concat(table.map(unused, Util.TranslateMapper), " "),
+      arg2 = table.concat(table.map(kingdoms, Util.TranslateMapper), " "),
+      toast = true,
+    }
+    for i = #room.general_pile, 1, -1 do
+      local g = Fk.generals[room.general_pile[i]]
+      if table.contains(unused, g.kingdom) or table.contains(unused, g.subkingdom) then
+        table.remove(room.general_pile, i)
+      end
+    end
+    -- 然后把武将牌堆弄好
+    allKingdoms = kingdoms
+  end
   table.sort(allKingdoms)
   room:setBanner("all_kingdoms", allKingdoms)
 
@@ -165,9 +187,6 @@ function HegLogic:prepareDrawPile()
 end
 
 local function addHegSkill(player, skill, room)
-  if skill.frequency == Skill.Compulsory then
-    player:addFakeSkill("reveal_skill&")
-  end
   player:addFakeSkill(skill)
   local toget = {table.unpack(skill.related_skills)}
   table.insert(toget, skill)
@@ -187,9 +206,13 @@ function HegLogic:attachSkillToPlayers()
 
     local general = Fk.generals[p:getMark("__heg_general")]
     local skills = table.connect(general.skills, table.map(general.other_skills, Util.Name2SkillMapper))
+    local hasRevealSkill = false
     for _, s in ipairs(skills) do
-      if s.relate_to_place ~= "d" then
+      if not s:hasTag(Skill.DeputyPlace) then
         addHegSkill(p, s, room)
+        if not hasRevealSkill and s:hasTag(Skill.Compulsory) then
+          hasRevealSkill = true
+        end
       end
     end
 
@@ -197,10 +220,17 @@ function HegLogic:attachSkillToPlayers()
     if deputy then
       skills = table.connect(deputy.skills, table.map(deputy.other_skills, Util.Name2SkillMapper))
       for _, s in ipairs(skills) do
-        if s.relate_to_place ~= "m" then
+        if not s:hasTag(Skill.MainPlace) then
           addHegSkill(p, s, room)
+          if not hasRevealSkill and s:hasTag(Skill.Compulsory) then
+            hasRevealSkill = true
+          end
         end
       end
+    end
+
+    if hasRevealSkill then
+      p:addFakeSkill("reveal_skill&")
     end
   end
 
@@ -254,7 +284,7 @@ heg = fk.CreateGameMode{
     "overseas_heg",
     "lord_ex",
     "offline_heg",
-    "zqdl",
+    "ziqidonglai",
 
     "formation_cards",
     "momentum_cards",

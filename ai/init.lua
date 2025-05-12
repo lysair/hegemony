@@ -4,10 +4,6 @@
 
 -- 阵包
 ------------------------------
-SmartAI:setSkillAI("ld__tuntian", {
-  think_skill_invoke = Util.TrueFunc,
-})
-SmartAI:setSkillAI("ld__jixi", nil, "spear_skill")
 
 -- 势包
 ------------------------------

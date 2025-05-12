@@ -7,9 +7,9 @@ local heg_description = [==[
 
 **挑选武将：**
 
-发给每位玩家若干张张武将牌，选出两张势力相同的武将牌并背面朝上放置，称为“暗置”（参考段落“明置和暗置”）。
+发给每位玩家若干张武将牌，选出两张势力相同的武将牌并背面朝上放置，称为“暗置”（参考段落“明置和暗置”）。（特别的，野心家势力武将仅可以做主将，其副将可以是任意势力武将）
 
-靠近体力牌的武将视为副将，另一个视为主将。
+左侧为主将，右侧为副将。（按，此为网杀惯例）
 
 游戏中，每名玩家扮演的角色由两张武将牌组成。
 
@@ -18,8 +18,6 @@ local heg_description = [==[
 每位玩家拿取一张体力牌，翻到对应体力上限的一面，放置在武将牌旁边。体力上限为两张武将牌上的完整阴阳鱼的数量之和。两个单独的阴阳鱼可以组成一个完整的阴阳鱼。
 
 注：**当一名角色的两张武将牌第一次均明置时，若其武将牌上有单独的阴阳鱼没有组成1 点体力，则其获得一枚“阴阳鱼”**（参见段落“标记牌”）。例如，司马懿1.5阴阳鱼，张辽2阴阳鱼，合计3.5阴阳鱼，体力上限为3，获得一枚“阴阳鱼”。
-
-扣减体力时，用主将挡住扣减的体力，露出当前体力值。
 
 ## 进行游戏
 
@@ -88,7 +86,7 @@ local heg_description = [==[
 
 **处于暗置状态的武将牌没有任何武将技能、性别以及势力**。当暗置的武将牌发动技能时，将武将牌明置，然后发动相应的技能。
 
-一般地，**暗置的武将牌只有两个时机可以将武将牌明置：1. 准备阶段开始时；2. 发动武将牌的技能时。** 
+一般地，**暗置的武将牌只有两个时机可以将武将牌明置：1. 回合开始时；2. 发动武将牌的技能时。** 
 
 例：郭嘉、司马懿等，受到伤害后发动技能时明置武将牌；
 马超、黄忠等，使用【杀】指定一名角色为目标后，发动技能并明置武将牌；
@@ -96,7 +94,7 @@ local heg_description = [==[
 
 （在网杀中，你需要“预亮”某些触发技，即点击技能到“预亮”状态，来让系统在相应的时机询问你是否发动技能亮将，如预亮郭嘉、马超等的遗计、铁骑。不“预亮”的技能不会询问。）
 
-另外，**拥有锁定技的武将，可以在出牌阶段明置。** 例如：有咆哮的张飞、有马术的马超。
+另外，**拥有锁定技的武将，可以在出牌阶段明置。** 例如：有〖咆哮〗的张飞、有〖马术〗的马超。
 
 **全场游戏第一个明置武将的角色获得一枚“先驱”标记（参见段落“标记牌”）。
 
@@ -251,16 +249,38 @@ end
 
 function HegLogic:chooseGenerals()
   local room = self.room
-  local generalNum = math.max(room.settings.generalNum, 6)
+  local generalNum = math.max(room.settings.generalNum, 5)
   room:doBroadcastNotify("ShowToast", Fk:translate("#HegInitialNotice"))
 
-  local lord = room:getLord()
+  local lord = room:getLord() --[[@as ServerPlayer]]
   room:setCurrent(lord)
   lord.role = "hidden"
 
-  local allKingdoms = {}
-  table.forEach(room.general_pile, function(name) table.insertIfNeed(allKingdoms, Fk.generals[name].kingdom) end)
-  table.removeOne(allKingdoms, "wild")
+  local allKingdoms = {} ---@type string[]
+  table.forEach(room.general_pile, function(name)
+    table.insertIfNeed(allKingdoms, Fk.generals[name].kingdom) -- 假设不会有只出现在副势力的势力
+  end)
+  table.removeOne(allKingdoms, "wild") -- 野心家势力不包括
+  if #allKingdoms > 4 then
+    local kingdoms = table.random(allKingdoms, 4)
+    local unused = table.filter(allKingdoms, function(k)
+      return not table.contains(kingdoms, k)
+    end)
+    room:sendLog{
+      type = "#KingdomFiltered",
+      arg = table.concat(table.map(unused, Util.TranslateMapper), " "),
+      arg2 = table.concat(table.map(kingdoms, Util.TranslateMapper), " "),
+      toast = true,
+    }
+    for i = #room.general_pile, 1, -1 do
+      local g = Fk.generals[room.general_pile[i]]
+      if table.contains(unused, g.kingdom) or table.contains(unused, g.subkingdom) then
+        table.remove(room.general_pile, i)
+      end
+    end
+    -- 然后把武将牌堆弄好
+    allKingdoms = kingdoms
+  end
   table.sort(allKingdoms)
   room:setBanner("all_kingdoms", allKingdoms)
 
@@ -489,7 +509,7 @@ heg = fk.CreateGameMode{
     "overseas_heg",
     "lord_ex",
     "offline_heg",
-    "zqdl",
+    "ziqidonglai",
 
     "formation_cards",
     "momentum_cards",
@@ -652,6 +672,7 @@ heg = fk.CreateGameMode{
 Fk:loadTranslationTable{
   ["new_heg_mode"] = "国战模式",
   [":new_heg_mode"] = heg_description,
+  ["#KingdomFiltered"] = "本局移除 %arg，使用 %arg2 4个势力",
   ["#ChooseHegInitialKingdom"] = "国战规则：选择你的初始势力",
   ["wild"] = "野心家",
   ["heg_rule"] = "国战规则",
