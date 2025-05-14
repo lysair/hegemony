@@ -509,7 +509,7 @@ heg = fk.CreateGameMode{
     "overseas_heg",
     "lord_ex",
     "offline_heg",
-    "ziqidonglai",
+    "zqdl",
 
     "formation_cards",
     "momentum_cards",

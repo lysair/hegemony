@@ -35,7 +35,6 @@ local function hasMark(object, markName, suffixes)
   return false
 end
 lureTigerSkill:addEffect('prohibit', {
-  name = "#lure_tiger_prohibit",
   global = true,
   prohibit_use = function(self, player, card)
     return hasMark(player, "@@lure_tiger", MarkEnum.TempMarkSuffix)

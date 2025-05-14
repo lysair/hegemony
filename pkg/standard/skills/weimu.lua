@@ -64,7 +64,7 @@ weimu:addEffect(fk.BeforeCardsMove, {
         end
         if #mirror_info > 0 then
           move.moveInfo = move_info
-          local mirror_move = table.simpleClone(move)
+          local mirror_move = move:copy()
           --print((move.from or {}).general, Fk:getCardById(mirror_info[1].cardId).name, (mirror_move.to or {}).general, mirror_info[1].fromArea)
           mirror_move.to = nil
           mirror_move.toArea = Card.DiscardPile

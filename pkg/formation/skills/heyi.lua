@@ -6,22 +6,46 @@ local heyi = fk.CreateSkill{
 heyi:addEffect("arraysummon", {
   array_type = "formation",
 })
---[[ heyi:addEffect{
-  refresh_events = {fk.TurnStart, fk.GeneralRevealed, fk.EventAcquireSkill, "fk.RemoveStateChanged", fk.EventLoseSkill, fk.GeneralHidden, fk.Deathed},
+
+local can_refresh = function(self, event, target, player, data)
+  return player:hasShownSkill(heyi.name, true, true)
+end
+local on_refresh = function(self, event, target, player, data)
+  local room = player.room
+  for _, p in ipairs(room.alive_players) do
+    local ret = #room.alive_players > 3 and player:hasSkill(heyi.name) and H.inFormationRelation(p, player)
+    room:handleAddLoseSkills(p, ret and 'feiying' or "-feiying", nil, false, true)
+  end
+end
+
+heyi:addEffect(fk.TurnStart, {
+  can_refresh = can_refresh,
+  on_refresh = on_refresh,
+})
+heyi:addEffect(fk.GeneralRevealed, {
+  can_refresh = can_refresh,
+  on_refresh = on_refresh,
+})
+heyi:addEffect(fk.EventLoseSkill, {
   can_refresh = function(self, event, target, player, data)
-    if event == fk.EventLoseSkill then return data == heyi
-    elseif event == fk.GeneralHidden then return player == target
-    else return player:hasShownSkill(self.name, true, true) end
+    return data.name == heyi.name
   end,
-  on_refresh = function(self, event, target, player, data)
-    local room = player.room
-    for _, p in ipairs(room.alive_players) do
-      local ret = #room.alive_players > 3 and player:hasSkill(self) and H.inFormationRelation(p, player)
-      room:handleAddLoseSkills(p, ret and 'feiying' or "-feiying", nil, false, true)
-    end
+  on_refresh = on_refresh
+})
+heyi:addEffect(fk.GeneralHidden, {
+  can_refresh = function(self, event, target, player, data)
+    return player == target
   end,
-}
-heyi:addRelatedSkill(heyiTrig) ]]
+  on_refresh = on_refresh
+})
+heyi:addEffect(fk.EventAcquireSkill, {
+  can_refresh = can_refresh,
+  on_refresh = on_refresh
+})
+heyi:addEffect(H.PlayerRemoved, {
+  can_refresh = can_refresh,
+  on_refresh = on_refresh
+})
 
 heyi:addTest(function (room, me)
   FkTest.runInRoom(function ()

@@ -45,7 +45,7 @@ qianhuan:addEffect(fk.TargetConfirming, {
     data:cancelTarget(target)
   end
 })
---[[ qianhuan:addEffect(fk.BeforeCardsMove, {
+qianhuan:addEffect(fk.BeforeCardsMove, {
   anim_type = "defensive",
   can_trigger = function(self, event, target, player, data)
     if not player:hasSkill(qianhuan.name) then return false end
@@ -101,7 +101,7 @@ qianhuan:addEffect(fk.TargetConfirming, {
         end
         if #mirror_info > 0 then
           move.moveInfo = move_info
-          local mirror_move = table.simpleClone(move)
+          local mirror_move = move:copy()
           mirror_move.to = nil
           mirror_move.toArea = Card.DiscardPile
           mirror_move.moveInfo = mirror_info
@@ -111,7 +111,7 @@ qianhuan:addEffect(fk.TargetConfirming, {
     end
     table.insertTable(data, mirror_moves)
   end,
-}) ]]
+})
 qianhuan:addTest(function (room, me)
   local comp2 = room.players[2] ---@type ServerPlayer, ServerPlayer
   FkTest.runInRoom(function() room:handleAddLoseSkills(me, qianhuan.name) end)

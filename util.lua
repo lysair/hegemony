@@ -590,8 +590,8 @@ function H.allGeneralsRevealed(player)
   else return num == 1 end
 end
 
--- 君主将。为了方便……
-H.lordGenerals = {}
+-- 君主将。
+H.lordGenerals = {} ---@type table<string, string> @ 普通将 --> 君主将
 
 --- 获取所属势力的君主，可能为nil
 ---@param room AbstractRoom
@@ -1211,6 +1211,8 @@ H.RemovePlayerData = TriggerData:subclass("RemovePlayerData")
 H.RemovePlayerEvent = TriggerEvent:subclass("RemovePlayerEvent")
 
 --- 被调离改变后
+--- 
+--- 原RemoveStateChanged
 ---@class H.PlayerRemoved: H.RemovePlayerEvent
 H.PlayerRemoved = H.RemovePlayerEvent:subclass("H.PlayerRemoved")
 
