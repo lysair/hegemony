@@ -107,7 +107,7 @@ imperialOrderSkill:addEffect(fk.BeforeCardsMove, {
         end
         if #mirror_info > 0 then
           move.moveInfo = move_info
-          local mirror_move = table.simpleClone(move)
+          local mirror_move = move:copy()
           mirror_move.to = nil
           mirror_move.toArea = Card.Void
           mirror_move.moveInfo = mirror_info
@@ -157,7 +157,7 @@ imperialOrderSkill:addTest(function(room, me)
   lu.assertIsTrue(comp3:isNude())
 
   -- test2：选择亮将
-  FkTest.setNextReplies(comp2, {"IO_reveal"})
+  FkTest.setNextReplies(comp2, {"IO_reveal", "revealMain:::sunquan"})
   FkTest.setNextReplies(comp3, {"IO_reveal", "revealDeputy:::huangyueying"})
   FkTest.runInRoom(function()
     room:useCard {
@@ -168,11 +168,12 @@ imperialOrderSkill:addTest(function(room, me)
   end)
   lu.assertEquals(comp2.hp, 3)
   lu.assertEquals(comp2:getHandcardNum(), 1)
-  -- lu.assertEquals(comp3.hp, 4)
+  lu.assertEquals(comp3.hp, 4)
   lu.assertEquals(comp2.general, "sunquan")
-  -- lu.assertEquals(comp3.general, "huangyueying")
+  lu.assertEquals(comp3.deputyGeneral, "huangyueying")
 
   -- test3：强制目标
+  FkTest.setNextReplies(comp2, {"IO_reveal", "revealDeputy:::zhouyu"})
   FkTest.runInRoom(function()
     room:useCard {
       from = me,
@@ -185,12 +186,13 @@ imperialOrderSkill:addTest(function(room, me)
   lu.assertEquals(comp2:getHandcardNum(), 2)
 
   -- test4：移出游戏后执行
+  FkTest.setNextReplies(comp2, {"IO_reveal", "revealMain:::sunquan"})
   FkTest.runInRoom(function()
     comp2:hideGeneral(false)
     comp2:hideGeneral(true)
     room:setPlayerProperty(comp2, "kingdom", "unknown")
-    room:obtainCard(me, card)
-    room:throwCard(card, "", me, me)
+    room:obtainCard(comp3, card)
+    comp3:throwAllCards("h")
     GameEvent.Turn:create(TurnData:new(me, "game_rule", { Player.Finish })):exec()
   end)
   lu.assertEquals(comp2.general, "sunquan")
