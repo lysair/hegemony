@@ -17,6 +17,8 @@ function HegLogic:assignRoles()
     room:broadcastProperty(p, "role")
   end
 
+  room:addSkill(Fk.skills["heg_rule"])
+
   -- for adjustSeats
   room.players[1].role = "lord"
 end
@@ -234,24 +236,7 @@ function HegLogic:attachSkillToPlayers()
     end
   end
 
-  room:setTag("SkipNormalDeathProcess", true)
   room:doBroadcastNotify("ShowToast", Fk:translate("#HegInitialNotice"))
-end
-
-function HegLogic:prepareForStart()
-  local room = self.room
-  local players = room.players
-
-  self:addTriggerSkill(Fk.skills["game_rule"] --[[@as TriggerSkill]])
-  self:addTriggerSkill(Fk.skills["heg_rule"] --[[@as TriggerSkill]]) -- 调用国战的游戏规则
-  for _, trig in ipairs(Fk.global_trigger) do
-    self:addTriggerSkill(trig)
-  end
-  for _, trig in ipairs(Fk.legacy_global_trigger) do
-    self:addTriggerSkill(trig)
-  end
-
-  self.room:sendLog{ type = "$GameStart" }
 end
 
 local heg_getLogic = function()

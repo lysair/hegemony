@@ -126,7 +126,7 @@ hegRule:addEffect(fk.BeforeTurnStart, {
 })
 
 hegRule:addEffect(fk.TurnStart, {
-  priority = 0,
+  priority = 100,
   can_trigger = can_trigger,
   on_trigger = function(self, event, target, player, data)
     H.askToRevealGenerals(player, {
