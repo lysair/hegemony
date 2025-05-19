@@ -21,7 +21,9 @@ ironArmorSkill:addEffect(fk.BeforeChainStateChange, {
     if target ~= player or not player:hasSkill(ironArmorSkill.name) then return false end
     return H.isSmallKingdomPlayer(player) and not player.chained
   end,
-  on_use = Util.TrueFunc,
+  on_use = function (self, event, target, player, data)
+    data.prevented = true
+  end,
 })
 
 ironArmorSkill:addTest(function (room, me)

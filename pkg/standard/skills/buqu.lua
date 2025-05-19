@@ -1,10 +1,10 @@
 local buqu = fk.CreateSkill{
   name = "hs__buqu",
-  tags = {Skill.Compulsory},
-  derived_piles = "hs__buqu_scar",
+  tags = { Skill.Compulsory },
 }
 buqu:addEffect(fk.AskForPeaches, {
   anim_type = "defensive",
+  derived_piles = "hs__buqu_scar",
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(buqu.name) and player.dying
   end,
