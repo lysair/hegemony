@@ -17,8 +17,6 @@ function HegLogic:assignRoles()
     room:broadcastProperty(p, "role")
   end
 
-  room:addSkill(Fk.skills["heg_rule"])
-
   -- for adjustSeats
   room.players[1].role = "lord"
 end

@@ -243,8 +243,6 @@ function HegLogic:assignRoles()
     room:broadcastProperty(p, "role")
   end
 
-  room:addSkill(Fk.skills["heg_rule"]) -- FIXME: mode设置rule蒸的
-
   -- for adjustSeats
   room.players[1].role = "lord"
 end
@@ -477,7 +475,7 @@ heg = fk.CreateGameMode{
   name = "new_heg_mode",
   minPlayer = 2,
   maxPlayer = 10,
-  rule = Fk.skills["heg_rule"] --[[@as TriggerSkill]],
+  rule = "heg_rule",
   logic = heg_getLogic,
   main_mode = "heg_mode",
   is_counted = function(self, room)

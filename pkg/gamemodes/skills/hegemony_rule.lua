@@ -22,10 +22,10 @@ local function wildChooseKingdom(room, player, generalName)
     if table.contains(choices, H.kingdomMapper[generalName]) then
       choice = H.kingdomMapper[generalName]
     else
-      choice = room:askToChoice(player, {choices = choices, skill_name = "heg_rule", prompt = "#wild-choose", cancelable = false, all_choices = all_choices})
+      choice = room:askToChoice(player, {choices = choices, skill_name = hegRule.name, prompt = "#wild-choose", cancelable = false, all_choices = all_choices})
     end
   elseif table.contains(allKingdoms, player.role) then
-    choice = room:askToChoice(player, {choices = choices, skill_name = "heg_rule", prompt = "#wild-choose", cancelable = false, all_choices = all_choices})
+    choice = room:askToChoice(player, {choices = choices, skill_name = hegRule.name, prompt = "#wild-choose", cancelable = false, all_choices = all_choices})
   end
   if choice then
     player.role = choice
@@ -52,7 +52,7 @@ local function AskForBuildCountry(room, player, generalName, isActive)
   for _, p in ipairs(room:getAlivePlayers()) do
     if p:getMark("__heg_join_wild") == 0 and p.kingdom ~= "wild" and not string.find(p.general, "lord")
       and (not isActive or p.general ~= "anjiang") then
-      local choice = room:askToChoice(p, {choices = choices, skill_name = "heg_rule", prompt = "#wild_join-choose"})
+      local choice = room:askToChoice(p, {choices = choices, skill_name = hegRule.name, prompt = "#wild_join-choose"})
       if choice ~= "Cancel" then
         p.role = player.role
         room:setPlayerProperty(p, "role_shown", true)
@@ -77,11 +77,11 @@ local function AskForBuildCountry(room, player, generalName, isActive)
             who = p,
             num = 1,
             recoverBy = player,
-            skillName = "heg_rule",
+            skillName = hegRule.name,
           })
         end
         if p:getHandcardNum() < 4 then
-          p:drawCards(4 - p:getHandcardNum(), "heg_rule")
+          p:drawCards(4 - p:getHandcardNum(), hegRule.name)
         end
         return true
       end
@@ -258,7 +258,7 @@ hegRule:addEffect(fk.GeneralShown, {
       if player:getMark("__heg_wild") == 1 and player:getMark("_wild_final_end") == 0 then
         table.insert(choices, "heg_build_country:::" .. player.role)
       end
-      -- if room:askForChoice(player, choices, "heg_rule") ~= "Cancel" then
+      -- if room:askForChoice(player, choices, hegRule.name) ~= "Cancel" then
       --   AskForBuildCountry(room, player, general_name, true)
       --   room:setPlayerMark(player, "_wild_gained", 1)
       -- end
