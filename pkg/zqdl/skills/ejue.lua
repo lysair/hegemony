@@ -6,6 +6,9 @@ local ejue = fk.CreateSkill{
 Fk:loadTranslationTable{
   ["zq__ejue"] = "扼绝",
   [":zq__ejue"] = "锁定技，当你使用【杀】对未确定势力的角色造成伤害时，此伤害+1。",
+
+  ["$zq__ejue1"] = "莫说是你，天潢贵胄亦可杀得！",
+  ["$zq__ejue2"] = "你我不到黄泉，不复相见！",
 }
 
 ejue:addEffect(fk.DamageCaused, {

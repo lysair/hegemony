@@ -7,6 +7,9 @@ Fk:loadTranslationTable{
   [":zq__yingshis"] = "出牌阶段开始时，你可以令一名角色视为对你指定的另一名角色使用一张【知己知彼】，然后若使用者不为你，你摸一张牌。",
 
   ["#zq__yingshi-choose"] = "鹰视：选择两名角色，视为前者对后者使用【知己知彼】，若使用者不为你，你摸一张牌",
+
+  ["$zq__yingshis1"] = "鹰扬千里，明察秋毫。",
+  ["$zq__yingshis2"] = "鸢飞戾天，目入百川。",
 }
 
 yingshi:addEffect(fk.EventPhaseStart, {

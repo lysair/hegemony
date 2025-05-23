@@ -23,6 +23,8 @@ Fk:loadTranslationTable{
   ["zq__zhangchunhua"] = "张春华",
   ["#zq__zhangchunhua"] = "锋刃染霜",
   ["illustrator:zq__zhangchunhua"] = "小罗没想好",
+
+  ["~zq__zhangchunhua"] = "冷眸残情，孤苦为一人。",
 }
 
 --General:new(extension, "zq__simashi", "jin", 4):addSkills { "zq__yimie", "zq__ruilue" }
