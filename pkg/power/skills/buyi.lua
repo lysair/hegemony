@@ -9,10 +9,16 @@ buyi:addEffect(fk.AfterDying, {
     H.compareKingdomWith(target, player) and ((data.damage or {}).from or {}).dead
   end,
   on_cost = function(self, event, target, player, data)
-    return player.room:askForSkillInvoke(player, buyi.name, nil, "#ld__buyi-ask:" .. target.id .. ":" .. data.damage.from.id)
+    local room = player.room
+    if room:askToSkillInvoke(player, {
+      skill_name = buyi.name,
+      prompt = "#ld__buyi-ask:" .. target.id .. ":" .. data.damage.from.id,
+    }) then
+      event:setCostData(self, {tos = {data.damage.from}})
+      return true
+    end
   end,
   on_use = function(self, event, target, player, data)
-    player.room:doIndicate(player.id, {data.damage.from.id})
     if not H.askCommandTo(player, data.damage.from, buyi.name) then
       player.room:recover({
         who = target,

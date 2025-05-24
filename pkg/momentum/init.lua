@@ -292,8 +292,6 @@ Fk:loadTranslationTable{
   ["designer:ld__lordzhangjiao"] = "韩旭",
   ["illustrator:ld__lordzhangjiao"] = "青骑士",
 
-  ["wuxin"] = "悟心",
-  [":wuxin"] = "摸牌阶段开始时，你可观看牌堆顶的X张牌（X为群势力角色数）并可改变这些牌的顺序。",
   ["hongfa"] = "弘法",
   [":hongfa"] = "<b><font color='goldenrod'>君主技</font></b>，你拥有“黄巾天兵符”。<br>#<b>黄巾天兵符</b>：<br>" ..
           "①准备阶段，若没有“天兵”，你将牌堆顶的X张牌置于武将牌上（称为“天兵”）（X为群势力角色数）。<br>" ..
@@ -310,8 +308,6 @@ Fk:loadTranslationTable{
   ["#heavenly_army_skill_trig"] = "黄巾天兵符",
   ["#heavenly_army_skill-ask"] = "黄巾天兵符：你可移去一张“天兵”，防止此次失去体力",
 
-  ["$wuxin1"] = "冀悟迷惑之心。",
-  ["$wuxin2"] = "吾已明此救世之术矣。",
   ["$hongfa1"] = "苍天已死，黄天当立！", -- 亮将
   ["$hongfa2"] = "汝等安心，吾乃大贤良师矣。", -- 拿天兵
   ["$hongfa3"] = "此法可助汝等脱离苦海。", -- 拿天兵
@@ -322,12 +318,5 @@ Fk:loadTranslationTable{
   ["$wendao2"] = "求太平之法以安天下。",
   ["~ld__lordzhangjiao"] = "天，真要灭我……",
 }
-
-Fk:loadTranslationTable{
-  ["momentum_cards"] = "君临天下·势卡牌",
-}
-
 --]]
 return extension
-  --extension_card,
-

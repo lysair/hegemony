@@ -24,12 +24,24 @@ huyuan:addEffect(fk.EventPhaseStart, {
     elseif choice == "ld__huyuan_equip" then
       room:moveCardIntoEquip(dat.tos[1], dat.cards, huyuan.name, true, player)
       if not player.dead then
-        local targets = table.map(table.filter(room.alive_players, function(p)
-          return #p:getCardIds("ej") > 0 end), Util.IdMapper)
-        local to2 = room:askForChoosePlayers(player, targets, 1, 1, "#ld__huyuan_discard-choose", huyuan.name, true, true)
+        local targets = table.filter(room.alive_players, function(p)
+          return #p:getCardIds("ej") > 0
+        end)
+        local to2 = room:askToChoosePlayers(player, {
+          min_num = 1,
+          max_num = 1,
+          targets = targets,
+          skill_name = huyuan.name,
+          prompt = "#ld__huyuan_discard-choose",
+          cancelable = true,
+        })
         if #to2 > 0 then
-          local cid = room:askForCardChosen(player, room:getPlayerById(to2[1]), "ej", huyuan.name)
-          room:throwCard({cid}, huyuan.name, room:getPlayerById(to2[1]), player)
+          local cid = room:askToChooseCard(player, {
+            target = to2[1],
+            flag = "ej",
+            skill_name = huyuan.name,
+          })
+          room:throwCard(cid, huyuan.name, to2[1], player)
         end
       end
     end

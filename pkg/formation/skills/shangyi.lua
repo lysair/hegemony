@@ -28,10 +28,17 @@ shangyi:addEffect("active", {
       table.insert(choices, "shangyi_card")
     end
     if #choices == 0 then return end
-    local choice = room:askForChoice(player, choices, shangyi.name)
+    local choice = room:askToChoice(player, {
+      choices = choices,
+      skill_name = shangyi.name,
+    })
     if choice == "shangyi_hidden" then
       local general = {target:getMark("__heg_general"), target:getMark("__heg_deputy"), target.seat}
-      room:askForCustomDialog(player, shangyi.name, "packages/hegemony/qml/KnownBothBox.qml", general)
+      room:askToCustomDialog(player, {
+        skill_name = shangyi.name,
+        qml_path = "packages/hegemony/qml/KnownBothBox.qml",
+        extra_data = general,
+      })
     elseif choice == "shangyi_card" then
       if table.find(target:getCardIds("h"), function(id) return Fk:getCardById(id).color == Card.Black end) then
         local card, _ = U.askforChooseCardsAndChoice(player, table.filter(target:getCardIds("h"), function(id) return Fk:getCardById(id).color == Card.Black end), 

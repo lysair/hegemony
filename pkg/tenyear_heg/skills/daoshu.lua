@@ -25,7 +25,11 @@ daoshu:addEffect("active", {
       arg2 = daoshu.name,
       toast = true,
     }
-    local card = room:askForCardChosen(player, target, "h", daoshu.name)
+    local card = room:askToChooseCard(player, {
+    target = target,
+    flag = "h",
+    skill_name = daoshu.name,
+  })
     room:obtainCard(player, card, true, fk.ReasonPrey)
     if Fk:getCardById(card):getSuitString(true) == choice then
       room:damage{

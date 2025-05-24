@@ -16,7 +16,16 @@ qianhuan:addEffect(fk.Damaged, {
     for _, id in ipairs(player:getPile("yuji_sorcery")) do
       table.insert(suits, Fk:getCardById(id):getSuitString())
     end
-    card = room:askForCard(player, 1, 1, true, qianhuan.name, true, ".|.|^(" .. table.concat(suits, ",") .. ")", "#qianhuan-dmg", "yuji_sorcery")
+    card = room:askToCards(player, {
+      min_num = 1,
+      max_num = 1,
+      include_equip = true,
+      skill_name = qianhuan.name,
+      pattern = ".|.|^(" .. table.concat(suits, ",") .. ")",
+      prompt = "#qianhuan-dmg",
+      cancelable = true,
+      expand_pile = "yuji_sorcery",
+    })
     if #card > 0 then
       event:setCostData(self, {cards = card})
       return true
@@ -33,7 +42,16 @@ qianhuan:addEffect(fk.TargetConfirming, {
       (data.card.type == Card.TypeBasic or data.card.type == Card.TypeTrick) and data:isOnlyTarget(target)
   end,
   on_cost = function (self, event, target, player, data)
-    local card = player.room:askForCard(player, 1, 1, false, qianhuan.name, true, ".|.|.|yuji_sorcery", "#qianhuan-def::" .. target.id .. ":" .. data.card:toLogString(), "yuji_sorcery")
+    local room = player.room
+    local card = room:askToCards(player, {
+      min_num = 1,
+      max_num = 1,
+      include_equip = false,
+      skill_name = qianhuan.name,
+      pattern = ".|.|.|yuji_sorcery",
+      prompt = "#qianhuan-def::" .. target.id .. ":" .. data.card:toLogString(),
+      cancelable = true,
+    })
     if #card > 0 then
       event:setCostData(self, {cards = card})
       return true
@@ -41,7 +59,7 @@ qianhuan:addEffect(fk.TargetConfirming, {
   end,
   on_use = function (self, event, target, player, data)
     local room = player.room
-    room:moveCardTo(event:getCostData(self).cards, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, qianhuan.name, "yuji_sorcery")
+    room:moveCardTo(event:getCostData(self).cards, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, qianhuan.name, nil, true, player)
     data:cancelTarget(target)
   end
 })
@@ -77,9 +95,18 @@ qianhuan:addEffect(fk.BeforeCardsMove, {
         if delayed_trick then break end
       end
     end
+    if friend == nil or delayed_trick == nil then return end
     if delayed_trick then
-      card = room:askForCard(player, 1, 1, false, self.name, true, ".|.|.|yuji_sorcery",
-      "#qianhuan-def::" .. friend.id .. ":" .. delayed_trick:toLogString(), "yuji_sorcery")
+      card = room:askToCards(player, {
+        min_num = 1,
+        max_num = 1,
+        include_equip = false,
+        skill_name = qianhuan.name,
+        pattern = ".|.|.|yuji_sorcery",
+        prompt = "#qianhuan-def::" .. friend.id .. ":" .. delayed_trick:toLogString(),
+        cancelable = true,
+        expand_pile = "yuji_sorcery",
+      })
     end
     if #card > 0 then
       event:setCostData(self, {cards = card})
@@ -87,7 +114,7 @@ qianhuan:addEffect(fk.BeforeCardsMove, {
     end
   end,
   on_use = function(self, event, target, player, data)
-    player.room:moveCardTo(event:getCostData(self).cards, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, self.name, "yuji_sorcery")
+    player.room:moveCardTo(event:getCostData(self).cards, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, qianhuan.name, "yuji_sorcery")
     local mirror_moves = {}
     local ids = {}
     for _, move in ipairs(data) do

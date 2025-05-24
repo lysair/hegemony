@@ -9,7 +9,10 @@ shejian:addEffect(fk.TargetConfirmed, {
       not player:isKongcheng()
   end,
   on_cost = function(self, event, target, player, data)
-    return player.room:askForSkillInvoke(player, shejian.name, nil, "#ty_heg__shejian-invoke::"..data.from.id..":"..data.card:toLogString())
+    return player.room:askToSkillInvoke(player, {
+      skill_name = shejian.name,
+      prompt = "#ty_heg__shejian-invoke::"..data.from.id..":"..data.card:toLogString(,
+    }))
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room

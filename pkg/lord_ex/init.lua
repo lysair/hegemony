@@ -217,7 +217,10 @@ local qiance = fk.CreateTriggerSkill{
     return H.compareKingdomWith(target, player) and player:hasSkill(self) and data.card:isCommonTrick() and data.firstTarget
   end,
   on_cost = function (self, event, target, player, data)
-    return player.room:askForSkillInvoke(player, self.name, nil, "#ld__qiance-ask") 
+    return player.room:askToSkillInvoke(player, {
+      skill_name = self.name,
+      prompt = "#ld__qiance-ask",
+    }) 
   end,
   on_use = function (self, event, target, player, data)
     local room = player.room
@@ -240,7 +243,10 @@ local jujian = fk.CreateTriggerSkill{
     return player:hasSkill(self) and H.compareKingdomWith(player, data.to) and data.damage >= data.to.hp
   end,
   on_cost = function (self, event, target, player, data)
-    return player.room:askForSkillInvoke(player, self.name, nil, "#ld__jujian-ask") 
+    return player.room:askToSkillInvoke(player, {
+      skill_name = self.name,
+      prompt = "#ld__jujian-ask",
+    }) 
   end,
   on_use = function (self, event, target, player, data)
     data.damage = 0
@@ -435,7 +441,10 @@ local tongdu = fk.CreateTriggerSkill{
     end
   end,
   on_cost = function(self, event, target, player, data)
-    return target.room:askForSkillInvoke(target, self.name, nil, "#ld__tongdu-ask:" .. player.id .. "::" .. self.cost_data)
+    return target.room:askToSkillInvoke(target, {
+      skill_name = self.name,
+      prompt = "#ld__tongdu-ask:" .. player.id .. "::" .. self.cost_data,
+    })
   end,
   on_use = function (self, event, target, player, data)
     target:drawCards(self.cost_data, self.name)
@@ -782,7 +791,11 @@ local zhidao_trigger = fk.CreateTriggerSkill{
   end,
   on_use = function (self, event, target, player, data)
     local room = player.room
-    local card = room:askForCardChosen(player, data.to, "hej", self.name)
+    local card = room:askToChooseCard(player, {
+    target = data.to,
+    flag = "hej",
+    skill_name = self.name,
+  })
     room:obtainCard(player.id, card, false, fk.ReasonPrey)
   end,
 }
@@ -991,7 +1004,11 @@ local liangfan = fk.CreateTriggerSkill{
       room:obtainCard(player, player:getPile("ld__mengda_letter"), true)
       room:loseHp(player, 1, self.name)
     else
-      local card = room:askForCardChosen(player, data.to, "he", self.name)
+      local card = room:askToChooseCard(player, {
+    target = data.to,
+    flag = "he",
+    skill_name = self.name,
+  })
       room:obtainCard(player, card, false, fk.ReasonPrey)
     end
   end,
@@ -1166,7 +1183,11 @@ local fengshih = fk.CreateTriggerSkill{
     local target = room:getPlayerById(data.to)
     room:askForDiscard(player, 1, 1, true, self.name, false)
     if not target:isNude() then
-      local cid = room:askForCardChosen(player, target, "he", self.name)
+      local cid = room:askToChooseCard(player, {
+    target = target,
+    flag = "he",
+    skill_name = self.name,
+  })
       room:throwCard({cid}, self.name, target, player)
     end
     data.additionalDamage = (data.additionalDamage or 0) + 1
@@ -1183,13 +1204,20 @@ local fengshih_back = fk.CreateTriggerSkill{
       and player:getHandcardNum() < player.room:getPlayerById(data.from):getHandcardNum()
   end,
   on_cost = function (self, event, target, player, data)
-    return player.room:askForSkillInvoke(player.room:getPlayerById(data.from), self.name, nil, "#ld__fengshih_back-ask:" .. player.id)
+    return player.room:askToSkillInvoke(player.room:getPlayerById(data.from), {
+      skill_name = self.name,
+      prompt = "#ld__fengshih_back-ask:" .. player.id,
+    })
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
     player:broadcastSkillInvoke("ld__fengshih")
     room:notifySkillInvoked(player, "ld__fengshih", "negative")
-    local cid = room:askForCardChosen(player, room:getPlayerById(data.from), "he", self.name)
+    local cid = room:askToChooseCard(player, {
+    target = room:getPlayerById(data.from),
+    flag = "he",
+    skill_name = self.name,
+  })
     room:throwCard({cid}, self.name, room:getPlayerById(data.from), player)
     if not player:isNude() then
       room:askForDiscard(player, 1, 1, true, self.name, false)
@@ -1241,11 +1269,18 @@ local lixia = fk.CreateTriggerSkill{
      and #player.player_cards[Player.Equip] > 0 and target.phase == Player.Start and not target.dead
   end,
   on_cost = function (self, event, target, player, data)
-    return player.room:askForSkillInvoke(target, self.name, nil, "#hs__lixia-ask")
+    return player.room:askToSkillInvoke(target, {
+      skill_name = self.name,
+      prompt = "#hs__lixia-ask",
+    })
   end,
   on_use = function (self, event, target, player, data)
     local room = player.room
-    local id = room:askForCardChosen(target, player, "e", self.name)
+    local id = room:askToChooseCard(target, {
+    target = player,
+    flag = "e",
+    skill_name = self.name,
+  })
     room:throwCard({id}, self.name, player, target)
     local choices = {}
     if #target:getCardIds("he") > 1 then
@@ -1583,7 +1618,11 @@ local baolie = fk.CreateTriggerSkill{
           use.extraUse = true
           room:useCard(use)
         elseif not to:isNude() then
-          local card = room:askForCardChosen(player, to, "he", self.name)
+          local card = room:askToChooseCard(player, {
+    target = to,
+    flag = "he",
+    skill_name = self.name,
+  })
           room:throwCard({card}, self.name, to, player)
         end
       end
@@ -1779,7 +1818,11 @@ local jinfa = fk.CreateActiveSkill{
         end
       end
     else
-      local card2 = room:askForCardChosen(player, target, "he", self.name)
+      local card2 = room:askToChooseCard(player, {
+    target = target,
+    flag = "he",
+    skill_name = self.name,
+  })
       room:obtainCard(player, card2, false, fk.ReasonPrey)
     end
   end,
@@ -1888,7 +1931,10 @@ local chenglue = fk.CreateTriggerSkill{
     return player:hasSkill(self) and H.compareKingdomWith(target, player) and #AimGroup:getAllTargets(data.tos) > 1 and data.firstTarget
   end,
   on_cost = function(self, event, target, player, data)
-    return player.room:askForSkillInvoke(player, self.name, nil, "#ld__chenglue-ask:" .. target.id)
+    return player.room:askToSkillInvoke(player, {
+      skill_name = self.name,
+      prompt = "#ld__chenglue-ask:" .. target.id,
+    })
   end,
   on_use = function(self, event, target, player, data)
     if target:isAlive() then
@@ -2210,7 +2256,10 @@ local zhaoxin = fk.CreateTriggerSkill{
     return player:hasSkill(self) and player == target and not player:isKongcheng()
   end,
   on_cost = function(self, event, target, player, data)
-    return player.room:askForSkillInvoke(player, self.name, nil, "#ld__zhaoxin-ask")
+    return player.room:askToSkillInvoke(player, {
+      skill_name = self.name,
+      prompt = "#ld__zhaoxin-ask",
+    })
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
@@ -2276,7 +2325,11 @@ local suzhi = fk.CreateTriggerSkill{
       elseif event == fk.AfterCardsMove then
         room:notifySkillInvoked(player, self.name, "control")
         room:doIndicate(player.id, {self.cost_data})
-        local card = room:askForCardChosen(player, room:getPlayerById(self.cost_data), "he", self.name)
+        local card = room:askToChooseCard(player, {
+    target = room:getPlayerById(self.cost_data),
+    flag = "he",
+    skill_name = self.name,
+  })
         room:obtainCard(player.id, card, false, fk.ReasonPrey)
       end
     end
@@ -2320,7 +2373,11 @@ local fankui = fk.CreateTriggerSkill{
     local from = data.from
     room:doIndicate(player.id, {from.id})
     local flag =  from == player and "e" or "he"
-    local card = room:askForCardChosen(player, from, flag, self.name)
+    local card = room:askToChooseCard(player, {
+    target = from,
+    flag = flag,
+    skill_name = self.name,
+  })
     room:obtainCard(player.id, card, false, fk.ReasonPrey)
   end
 }
@@ -2384,7 +2441,10 @@ local shilus = fk.CreateTriggerSkill{
         return true
       end
     else
-      if room:askForSkillInvoke(player, self.name, nil, "#shilus-invoke::"..target.id) then
+      if room:askToSkillInvoke(player, {
+      skill_name = self.name,
+      prompt = "#shilus-invoke::"..target.id,
+    }) then
         room:doIndicate(player.id, {target.id})
         return true
       end
@@ -2556,7 +2616,11 @@ local xiongnve_delay = fk.CreateTriggerSkill{
       elseif effect_name == "xiongnve_effect2" then
         room:notifySkillInvoked(player, self.name, "control")
         local flag =  data.to == player and "e" or "he"
-        local card = room:askForCardChosen(player, data.to, flag, self.name)
+        local card = room:askToChooseCard(player, {
+    target = data.to,
+    flag = flag,
+    skill_name = self.name,
+  })
         room:obtainCard(player.id, card, false, fk.ReasonPrey)
       end
     else
@@ -2654,7 +2718,11 @@ local huaiyi = fk.CreateActiveSkill{
         local target = room:getPlayerById(pid)
         if target.dead or target:isNude() then
         else
-          local id = room:askForCardChosen(player, target, "he", self.name)
+          local id = room:askToChooseCard(player, {
+    target = target,
+    flag = "he",
+    skill_name = self.name,
+  })
           if Fk:getCardById(id).type == Card.TypeEquip then
             player:addToPile("ld__gongsunyuan_infidelity", id, true, self.name)
           else

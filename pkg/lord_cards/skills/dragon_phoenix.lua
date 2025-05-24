@@ -29,7 +29,11 @@ dragonPhoenixSkill:addEffect(fk.EnterDying, {
   on_use = function (self, event, target, player, data)
     local room = player.room
     -- room:setEmotion(player, "./packages/hegemony/image/anim/dragon_phoenix")
-    local card = room:askForCardChosen(player, target, "h", dragonPhoenixSkill.name)
+    local card = room:askToChooseCard(player, {
+    target = target,
+    flag = "h",
+    skill_name = dragonPhoenixSkill.name,
+  })
     room:obtainCard(player, card, false, fk.ReasonPrey)
   end
 })

@@ -4,9 +4,6 @@ extension.game_modes_whitelist = { 'nos_heg_mode', 'new_heg_mode' }
 
 extension:loadSkillSkelsByPath("./packages/hegemony/pkg/transformation/skills")
 
-local H = require "packages/hegemony/util"
-local U = require "packages/utility/utility"
-
 Fk:loadTranslationTable{
   ["transformation"] = "君临天下·变",
   ["transformDeputy"] = "变更副将",
@@ -456,10 +453,18 @@ local jubao = fk.CreateTriggerSkill{
       for _, pid in ipairs(targets) do
         local p = room:getPlayerById(pid)
         if p == player then
-          local card = room:askForCardChosen(player, p, "e", self.name)
+          local card = room:askToChooseCard(player, {
+    target = p,
+    flag = "e",
+    skill_name = self.name,
+  })
           room:obtainCard(player.id, card, false, fk.ReasonPrey)
         else
-          local card = room:askForCardChosen(player, p, "he", self.name)
+          local card = room:askToChooseCard(player, {
+    target = p,
+    flag = "he",
+    skill_name = self.name,
+  })
           room:obtainCard(player.id, card, false, fk.ReasonPrey)
         end
       end

@@ -26,7 +26,10 @@ yinyangfishSkill:addEffect(fk.EventPhaseStart, {
       and player:getHandcardNum() > player:getMaxCards()
   end,
   on_cost = function(self, event, target, player, data)
-    return player.room:askForSkillInvoke(player, yinyangfishSkill.name, nil, "#yinyangfish_max-ask")
+    return player.room:askToSkillInvoke(player, {
+      skill_name = yinyangfishSkill.name,
+      prompt = "#yinyangfish_max-ask",
+    })
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room

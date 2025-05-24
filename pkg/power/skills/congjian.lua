@@ -8,7 +8,7 @@ congjian:addEffect(fk.DamageInflicted, {
     if not (target == player and player:hasSkill(congjian.name)) then return end
     return player.room.current == player
   end,
-  on_use = function(_, _, _, _, data)
+  on_use = function(self, event, target, player, data)
     data:changeDamage(1)
   end,
 })
@@ -18,7 +18,7 @@ congjian:addEffect(fk.DamageCaused, {
     if not (target == player and player:hasSkill(congjian.name)) then return end
     return player.room.current ~= player
   end,
-  on_use = function(_, _, _, _, data)
+  on_use = function(self, event, target, player, data)
     data:changeDamage(1)
   end,
 })

@@ -687,7 +687,11 @@ local tuxiJA = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     local room = player.room
     for _, id in ipairs(self.cost_data) do
-      local c = room:askForCardChosen(player, room:getPlayerById(id), "h", self.name)
+      local c = room:askToChooseCard(player, {
+    target = room:getPlayerById(id),
+    flag = "h",
+    skill_name = self.name,
+  })
       room:obtainCard(player, c, false, fk.ReasonPrey)
     end
     data.n = data.n - #self.cost_data
@@ -730,7 +734,11 @@ local qiaobianJA = fk.CreateTriggerSkill{
           for _, id in ipairs(tos) do
             local p = room:getPlayerById(id)
             if not p:isKongcheng() then
-              local card_id = room:askForCardChosen(player, p, "h", self.name)
+              local card_id = room:askToChooseCard(player, {
+    target = p,
+    flag = "h",
+    skill_name = self.name,
+  })
               room:obtainCard(player, card_id, false, fk.ReasonPrey)
             end
           end
@@ -984,7 +992,10 @@ local zongyu = fk.CreateTriggerSkill{
     if event == fk.CardUsing then
       return true
     else
-      return player.room:askForSkillInvoke(player, self.name, nil, "#zongyu-ask")
+      return player.room:askToSkillInvoke(player, {
+      skill_name = self.name,
+      prompt = "#zongyu-ask",
+    })
     end
   end,
   on_use = function (self, event, target, player, data)

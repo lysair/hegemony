@@ -20,7 +20,6 @@ niaoxiang:addEffect(fk.TargetSpecified, {
 Fk:loadTranslationTable{
   ["niaoxiang"] = "鸟翔",
   [":niaoxiang"] = "阵法技，若你是围攻角色，此围攻关系中的围攻角色使用【杀】指定被围攻角色为目标后，你令被围攻角色响应此【杀】的方式改为依次使用两张【闪】。",
-  ["#niaoxiang_trigger"] = "鸟翔",
 
   ["$niaoxiang1"] = "此战，必是有死无生！",
   ["$niaoxiang2"] = "抢占先机，占尽优势！",

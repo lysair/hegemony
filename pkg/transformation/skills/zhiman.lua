@@ -7,14 +7,21 @@ zhiman:addEffect(fk.DamageCaused, {
     return target == player and player:hasSkill(zhiman.name) and data.to ~= player
   end,
   on_cost = function(self, event, target, player, data)
-    return player.room:askForSkillInvoke(player, zhiman.name, nil, "#ld__zhiman-invoke::"..data.to.id)
+    return player.room:askToSkillInvoke(player, {
+      skill_name = zhiman.name,
+      prompt = "#ld__zhiman-invoke::"..data.to.id,
+    })
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
     data:preventDamage()
     local target = data.to
-    if #target:getCardIds{Player.Equip, Player.Judge} > 0 then -- 开摆！
-      local card = room:askForCardChosen(player, target, "ej", zhiman.name)
+    if #target:getCardIds("ej") > 0 then -- 开摆！
+      local card = room:askToChooseCard(player, {
+        target = target,
+        flag = "ej",
+        skill_name = zhiman.name,
+      })
       room:obtainCard(player.id, card, true, fk.ReasonPrey)
     end
     if H.compareKingdomWith(target, player) and player:getMark("@@ld__zhiman_transform") == 0

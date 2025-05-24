@@ -22,7 +22,11 @@ chuli:addEffect("active", {
     room:sortByAction(targets)
     for _, tar in ipairs(targets) do
       if not tar:isNude() then
-        local c = room:askForCardChosen(player, tar, "he", chuli.name)
+        local c = room:askToChooseCard(player, {
+    target = tar,
+    flag = "he",
+    skill_name = chuli.name,
+  })
         room:throwCard({c}, chuli.name, tar, player)
         if Fk:getCardById(c).suit == Card.Spade then
           room:addPlayerMark(tar, "_hs__chuli-phase", 1)

@@ -16,7 +16,11 @@ weimeng_mn:addEffect("active", {
   on_use = function (self, room, effect)
     local player = effect.from
     local target = effect.tos[1]
-    local card1 = room:askForCardChosen(player, target, "h", weimeng_mn.name)
+    local card1 = room:askToChooseCard(player, {
+    target = target,
+    flag = "h",
+    skill_name = weimeng_mn.name,
+  })
     room:obtainCard(player, card1, false, fk.ReasonPrey)
     if player.dead or player:isNude() or target.dead then return end
     local cards2 = room:askForCard(player, 1, 1, true, weimeng_mn.name, false, ".", "#ty_heg__weimeng-give::"..target.id..":"..tostring(1))

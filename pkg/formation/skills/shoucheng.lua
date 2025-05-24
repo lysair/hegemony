@@ -39,17 +39,20 @@ shoucheng:addEffect(fk.AfterCardsMove, {
     for _, _p in ipairs(targets) do
       if not player:hasSkill(shoucheng.name) then break end
       if _p:isAlive() then
-        self:doCost(event, _p, player, nil)
+        event:setCostData(self, {tos = {_p}})
+        self:doCost(event, target, player, data)
       end
     end
   end,
   on_cost = function(self, event, target, player, data)
-    return player.room:askForSkillInvoke(player, shoucheng.name, nil, "#shoucheng-draw::" .. target.id)
+    local to = event:getCostData(self).tos[1]
+    return player.room:askToSkillInvoke(player, {
+      skill_name = shoucheng.name,
+      prompt = "#shoucheng-draw::" .. to.id,
+    })
   end,
   on_use = function(self, event, target, player, data)
-    local room = player.room
-    room:doIndicate(player.id, {target.id})
-    target:drawCards(1, shoucheng.name)
+    event:getCostData(self).tos[1]:drawCards(1, shoucheng.name)
   end,
 })
 

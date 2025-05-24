@@ -20,7 +20,11 @@ fenglve_mn:addEffect("active", {
     local pindian = player:pindian({target}, fenglve_mn.name)
     if pindian.results[target.id].winner == player then
       if not (player.dead or target.dead or target:isNude()) then
-        local cards1 = room:askForCardChosen(target, target, "hej", fenglve_mn.name)
+        local cards1 = room:askToChooseCard(target, {
+    target = target,
+    flag = "hej",
+    skill_name = fenglve_mn.name,
+  })
         room:obtainCard(player, cards1, false, fk.ReasonGive)
       end
     elseif pindian.results[target.id].winner == target then

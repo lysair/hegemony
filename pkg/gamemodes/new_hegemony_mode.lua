@@ -651,6 +651,9 @@ heg = fk.CreateGameMode{
       end
     end
   end,
+  friend_enemy_judge = function (self, targetOne, targetTwo)
+    return H.compareExpectedKingdomWith(targetOne, targetTwo)
+  end,
 }
 
 Fk:loadTranslationTable{

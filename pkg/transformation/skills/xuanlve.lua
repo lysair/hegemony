@@ -33,7 +33,11 @@ xuanlve:addEffect(fk.AfterCardsMove, {
   on_use = function(self, event, target, player, data)
     local room = player.room
     local to = event:getCostData(self).tos[1]
-    local id = room:askForCardChosen(player, to, "he", xuanlve.name)
+    local id = room:askToChooseCard(player, {
+    target = to,
+    flag = "he",
+    skill_name = xuanlve.name,
+  })
     room:throwCard(id, xuanlve.name, to, player)
   end,
 })

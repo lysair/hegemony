@@ -262,7 +262,10 @@ local ty_heg__lundao = fk.CreateTriggerSkill{
   end,
   on_cost = function(self, event, target, player, data)
     if data.from:getHandcardNum() > player:getHandcardNum() then
-      return player.room:askForSkillInvoke(player, self.name, nil, "#ty_heg__lundao-invoke::"..data.from.id)
+      return player.room:askToSkillInvoke(player, {
+      skill_name = self.name,
+      prompt = "#ty_heg__lundao-invoke::"..data.from.id,
+    })
     else
       return true
     end
@@ -272,7 +275,11 @@ local ty_heg__lundao = fk.CreateTriggerSkill{
     local from = data.from
     if data.from:getHandcardNum() > player:getHandcardNum() then
       room:doIndicate(player.id, {from.id})
-      local id = room:askForCardChosen(player, from, "he", self.name)
+      local id = room:askToChooseCard(player, {
+    target = from,
+    flag = "he",
+    skill_name = self.name,
+  })
       room:throwCard({id}, self.name, from, player)
     else
       player:drawCards(1, self.name)

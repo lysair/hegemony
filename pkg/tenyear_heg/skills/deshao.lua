@@ -10,13 +10,20 @@ deshao:addEffect(fk.TargetSpecified, {
       and player:usedSkillTimes(deshao.name, Player.HistoryTurn) < player.hp
   end,
   on_cost = function(self, event, target, player, data)
-    return player.room:askForSkillInvoke(player, deshao.name, nil, "#ty_heg__deshao-invoke::"..data.from)
+    return player.room:askToSkillInvoke(player, {
+      skill_name = deshao.name,
+      prompt = "#ty_heg__deshao-invoke::"..data.from,
+    })
   end,
   on_use = function (self, event, target, player, data)
     local room = player.room
     local from = data.from
     if not from:isNude() then
-      local id = room:askForCardChosen(player, from, "he", deshao.name)
+      local id = room:askToChooseCard(player, {
+    target = from,
+    flag = "he",
+    skill_name = deshao.name,
+  })
       room:throwCard(id, deshao.name, from, player)
     end
   end,

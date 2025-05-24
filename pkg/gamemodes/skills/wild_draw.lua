@@ -62,7 +62,10 @@ wildDraw:addEffect(fk.EventPhaseStart, {
       and player:getMark("@!wild") > 0 and player:getHandcardNum() > player:getMaxCards()
   end,
   on_cost = function(self, event, target, player, data)
-    return player.room:askForSkillInvoke(player, wildDraw.name, nil, "#wild_max-ask")
+    return player.room:askToSkillInvoke(player, {
+      skill_name = wildDraw.name,
+      prompt = "#wild_max-ask",
+    })
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room

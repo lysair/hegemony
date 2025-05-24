@@ -9,14 +9,24 @@ ziliang:addEffect(fk.Damaged, {
     return player:hasSkill(ziliang.name) and H.compareKingdomWith(player, target) and not target.dead and #player:getPile("ld__dengai_field") > 0
   end,
   on_cost = function(self, event, target, player, data)
-    local card = player.room:askForCard(player, 1, 1, false, ziliang.name, true, ".|.|.|ld__dengai_field", "#ziliang-card::" .. target.id, "ld__dengai_field")
+    local room = player.room
+    local card = room:askToCards(player, {
+      min_num = 1,
+      max_num = 1,
+      include_equip = false,
+      skill_name = ziliang.name,
+      pattern = ".|.|.|ld__dengai_field",
+      prompt = "#ziliang-card::" .. target.id,
+      cancelable = true,
+      expand_pile = "ld__dengai_field",
+    })
     if #card > 0 then
       event:setCostData(self, {cards = card})
       return true
     end
   end,
   on_use = function(self, event, target, player, data)
-    player.room:moveCardTo(event:getCostData(self).cards, Card.PlayerHand, target, fk.ReasonGive, ziliang.name, "ld__dengai_field", true, player.id)
+    player.room:moveCardTo(event:getCostData(self).cards, Card.PlayerHand, target, fk.ReasonGive, ziliang.name, nil, true, player)
   end,
 })
 

@@ -45,7 +45,10 @@ luanji:addEffect(fk.CardRespondFinished, {
     end
   end,
   on_cost = function(self, event, target, player, data)
-    return player.room:askForSkillInvoke(player, luanji.name, nil, "#hs__luanji-draw")
+    return player.room:askToSkillInvoke(player, {
+      skill_name = luanji.name,
+      prompt = "#hs__luanji-draw",
+    })
   end,
   on_use = function(self, event, target, player, data)
     player:drawCards(1, luanji.name)

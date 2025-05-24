@@ -9,7 +9,14 @@ chuanxin:addEffect(fk.DamageCaused, {
       and H.compareExpectedKingdomWith(player, data.to, true) and H.hasGeneral(data.to, true)
   end,
   on_cost = function(self, event, target, player, data)
-    return player.room:askForSkillInvoke(player, chuanxin.name, data, "#chuanxin-ask::" .. data.to.id)
+    local room = player.room
+    if room:askToSkillInvoke(player, {
+      skill_name = chuanxin.name,
+      prompt = "#chuanxin-ask::" .. data.to.id,
+    }) then
+      event:setCostData(self, {tos = {data.to}})
+      return true
+    end
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
@@ -18,7 +25,11 @@ chuanxin:addEffect(fk.DamageCaused, {
     local all_choices = {"chuanxin_discard", "removeDeputy:::" .. H.getActualGeneral(player, true)}
     local choices = table.clone(all_choices)
     if #data.to:getCardIds(Player.Equip) == 0 then table.remove(choices, 1) end
-    local choice = room:askForChoice(target, choices, chuanxin.name, nil, false, all_choices)
+    local choice = room:askToChoice(target, {
+      choices = choices,
+      skill_name = chuanxin.name,
+      all_choices = all_choices,
+    })
     if choice:startsWith("removeDeputy") then
       H.removeGeneral(target, true)
     else

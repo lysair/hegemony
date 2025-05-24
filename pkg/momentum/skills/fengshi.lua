@@ -13,7 +13,15 @@ fengshi:addEffect(fk.TargetSpecified, {
   end,
   on_cost = Util.TrueFunc,
   on_use = function(self, event, target, player, data)
-    player.room:askForDiscard(data.to, 1, 1, true, fengshi.name, false, ".|.|.|equip", "#fengshi-discard")
+    player.room:askToDiscard(data.to, {
+      min_num = 1,
+      max_num = 1,
+      include_equip = true,
+      skill_name = fengshi.name,
+      cancelable = false,
+      pattern = ".|.|.|equip",
+      prompt = "#fengshi-discard",
+    })
   end
 })
 
@@ -21,7 +29,6 @@ Fk:loadTranslationTable{
   ['fengshi'] = '锋矢',
   [':fengshi'] = '阵法技，若你是围攻角色，此围攻关系中的围攻角色使用【杀】指定被围攻角色为目标后，你令被围攻角色角色弃置其装备区里的一张牌。',
 
-  ["#fengshi_trigger"] = "锋矢",
   ["#fengshi-discard"] = "锋矢：弃置装备区里的一张牌",
 
   ['$fengshi1'] = '大军压境，还不卸甲受降！',

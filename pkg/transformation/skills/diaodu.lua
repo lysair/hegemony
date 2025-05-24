@@ -24,16 +24,24 @@ diaodu:addEffect(fk.EventPhaseStart, {
   anim_type = "drawcard",
   can_trigger = function(self, event, target, player, data)
     if not player:hasSkill(diaodu.name) then return false end
-    return target == player and target.phase == Player.Play and table.find(player.room.alive_players, function(p)
-      return H.compareKingdomWith(p, player) and #p:getCardIds(Player.Equip) > 0 end)
+    return target == player and target.phase == Player.Play and
+      table.find(player.room.alive_players, function(p)
+        return H.compareKingdomWith(p, player) and #p:getCardIds("e") > 0
+      end)
   end,
   on_cost = function(self, event, target, player, data)
     local room = player.room
     local targets = table.filter(room.alive_players, function(p)
-      return H.compareKingdomWith(p, player) and #p:getCardIds(Player.Equip) > 0 end)
-    if #targets == 0 then return false end
-    local tos = room:askToChoosePlayers(player, {targets = targets, min_num = 1, max_num = 1,
-      prompt = "#diaodu-choose", skill_name = diaodu.name, cancelable = true})
+      return H.compareKingdomWith(p, player) and #p:getCardIds("e") > 0
+    end)
+    local tos = room:askToChoosePlayers(player, {
+      targets = targets,
+      min_num = 1,
+      max_num = 1,
+      prompt = "#diaodu-choose",
+      skill_name = diaodu.name,
+      cancelable = true,
+    })
     if #tos > 0 then
       event:setCostData(self, {tos = tos})
       return true
@@ -42,16 +50,28 @@ diaodu:addEffect(fk.EventPhaseStart, {
   on_use = function(self, event, target, player, data)
     local room = player.room
     target = event:getCostData(self).tos[1]
-    local cid = room:askForCardChosen(player, target, "e", diaodu.name)
+    local cid = room:askToChooseCard(player, {
+      target = target,
+      flag = "e",
+      skill_name = diaodu.name,
+    })
     room:obtainCard(player, cid, true, fk.ReasonPrey)
     if not table.contains(player:getCardIds(Player.Hand), cid) then return false end
     local card = Fk:getCardById(cid)
     if player.dead then return false end
-    local targets = table.map(table.filter(room.alive_players, function(p) return p ~= player and p ~= target end), Util.IdMapper)
-    -- local to = room:askForChoosePlayers(player, targets, 1, 1, "#diaodu-give:::" .. card:toLogString(), diaodu.name, target ~= player)
-    local to = room:askForChoosePlayers(player, targets, 1, 1, "#diaodu-give:::" .. card:toLogString(), diaodu.name, true)
+    local targets = table.filter(room.alive_players, function(p)
+      return p ~= player and p ~= target
+    end)
+    local to = room:askToChoosePlayers(player, {
+      min_num = 1,
+      max_num = 1,
+      targets = targets,
+      prompt = "#diaodu-give:::" .. card:toLogString(),
+      skill_name = diaodu.name,
+      cancelable = true,
+    })
     if #to > 0 then
-      room:moveCardTo(card, Card.PlayerHand, room:getPlayerById(to[1]), fk.ReasonGive, diaodu.name, nil, true, player.id)
+      room:moveCardTo(card, Card.PlayerHand, to[1], fk.ReasonGive, diaodu.name, nil, true, player)
     end
   end,
 })

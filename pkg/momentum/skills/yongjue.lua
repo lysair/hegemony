@@ -5,24 +5,24 @@ local H = require "packages/hegemony/util"
 yongjue:addEffect(fk.CardUseFinished, {
   anim_type = "support",
   can_trigger = function(self, event, target, player, data)
-    if player:hasSkill(yongjue.name) and H.compareKingdomWith(target, player) and not target.dead and data.card.trueName == "slash" and target.phase == Player.Play then
-      local events = target.room.logic:getEventsOfScope(GameEvent.UseCard, 1, function(e)
+    if player:hasSkill(yongjue.name) and H.compareKingdomWith(target, player) and
+      not target.dead and data.card.trueName == "slash" and target.phase == Player.Play and
+      player.room:getCardArea(data.card) == Card.Processing then
+      local use_events = player.room.logic:getEventsOfScope(GameEvent.UseCard, 1, function(e)
         local use = e.data
         return use.from == target
       end, Player.HistoryPhase)
-      if #events == 1 and events[1].id == target.room.logic:getCurrentEvent().id then
-        local cards = Card:getIdList(data.card)
-        return #cards > 0 and table.every(cards, function(id) return target.room:getCardArea(id) == Card.Processing end)
-      end
+      return #use_events == 1 and use_events[1].data == data
     end
   end,
   on_cost = function(self, event, target, player, data)
-    return target.room:askForSkillInvoke(target, yongjue.name, nil, "#yongjue-invoke:::" .. data.card:toLogString())
+    return player.room:askToSkillInvoke(player, {
+      skill_name = yongjue.name,
+      prompt = "#yongjue-invoke:::" .. data.card:toLogString(),
+    })
   end,
   on_use = function(self, event, target, player, data)
-    local room = target.room
-    -- room:doIndicate(player.id, {target.id})
-    room:obtainCard(target, data.card, true, fk.ReasonJustMove)
+    player.room:obtainCard(target, data.card, true, fk.ReasonJustMove)
   end,
 })
 

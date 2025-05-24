@@ -16,12 +16,6 @@ local offline = require(prefix .. "offline_heg")
 
 local hegemony_cards = require(prefix .. "standard_cards")
 local strategic_advantage = require(prefix .. "strategic_advantage")
---[[
-local formation_cards = require "packages/hegemony/formation"[2]
-local momentum_cards = require "packages/hegemony/momentum"[2]
-local transformation_cards = require "packages/hegemony/transformation"[2]
-local power_cards = require "packages/hegemony/power"[2]
---]]
 local lord_cards = require(prefix .. "lord_cards")
 
 Fk:loadTranslationTable{ ["hegemony"] = "国战" }

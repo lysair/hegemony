@@ -21,13 +21,16 @@ tuntian:addEffect(fk.AfterCardsMove, {
     local room = player.room
     local judge = {
       who = player,
-      reason = self.name,
+      reason = tuntian.name,
       pattern = ".|.|spade,club,diamond",
     }
     room:judge(judge)
-    if judge.card.suit ~= Card.Heart and room:getCardArea(judge.card.id) == Card.DiscardPile and not player.dead and
-      room:askForSkillInvoke(player, self.name, nil, "ld__tuntian_field:::" .. judge.card:toLogString()) then
-      player:addToPile("ld__dengai_field", judge.card, true, self.name)
+    if judge:matchPattern() and room:getCardArea(judge.card.id) == Card.DiscardPile and not player.dead and
+      room:askToSkillInvoke(player, {
+        skill_name = tuntian.name,
+        prompt = "ld__tuntian_field:::" .. judge.card:toLogString(),
+      }) then
+      player:addToPile("ld__dengai_field", judge.card, true, tuntian.name)
     end
   end,
 })
