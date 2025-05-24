@@ -12,7 +12,7 @@ shejian:addEffect(fk.TargetConfirmed, {
     return player.room:askToSkillInvoke(player, {
       skill_name = shejian.name,
       prompt = "#ty_heg__shejian-invoke::"..data.from.id..":"..data.card:toLogString(),
-    }))
+    })
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
