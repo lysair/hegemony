@@ -490,13 +490,13 @@ function H.doCommand(to, skill_name, index, from, forced)
     room:setPlayerMark(to, "@@command5_effect-turn", 1)
     room:handleAddLoseSkills(to, "#command5_cannotrecover", nil, false, true) -- 为了不全局，流汗了
   elseif index == 6 then
-    if to:getHandcardNum() < 2 and #to:getCardIds(Player.Equip) < 2 then return true end
+    if to:getHandcardNum() < 2 and #to:getCardIds("e") < 2 then return true end
     local to_remain = {}
     if not to:isKongcheng() then
-      table.insert(to_remain, to:getCardIds(Player.Hand)[1])
+      table.insert(to_remain, to:getCardIds("h")[1])
     end
-    if #to:getCardIds(Player.Equip) > 0 then
-      table.insert(to_remain, to:getCardIds(Player.Equip)[1])
+    if #to:getCardIds("e") > 0 then
+      table.insert(to_remain, to:getCardIds("e")[1])
     end
     local _, ret = room:askForUseActiveSkill(to, "#command6_select", "#command6-select", false)
     if ret then

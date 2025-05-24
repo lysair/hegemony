@@ -4,7 +4,6 @@ local jieming = fk.CreateSkill{
 }
 jieming:addEffect(fk.Damaged, {
   anim_type = "masochism",
-  events = {fk.Damaged},
   on_cost = function(self, event, target, player, data)
     local room = player.room
     local to = room:askToChoosePlayers(player, {targets = room.alive_players, min_num = 1, max_num = 1,

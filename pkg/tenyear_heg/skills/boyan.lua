@@ -22,7 +22,10 @@ boyan:addEffect("active", {
     end
     room:setPlayerMark(target, "@@ty_heg__boyan-turn", 1)
     local choices = {"ty_heg__boyan_mn_ask::" .. target.id, "Cancel"}
-    if room:askForChoice(player, choices, boyan.name) ~= "Cancel" then
+    if room:askToChoice(player, {
+      choices = choices,
+      skill_name = boyan.name
+    }) ~= "Cancel" then
       room:setPlayerMark(target, "@@ty_heg__boyan_manoeuvre", 1)
       room:handleAddLoseSkills(target, "ty_heg__boyan_manoeuvre", nil)
     end
@@ -33,14 +36,14 @@ boyan:addEffect("prohibit", {
     if player:getMark("@@ty_heg__boyan-turn") == 0 then return false end
     local subcards = Card:getIdList(card)
     return #subcards > 0 and table.every(subcards, function(id)
-      return table.contains(player:getCardIds(Player.Hand), id)
+      return table.contains(player:getCardIds("h"), id)
     end)
   end,
   prohibit_response = function(self, player, card)
     if player:getMark("@@ty_heg__boyan-turn") == 0 then return false end
     local subcards = Card:getIdList(card)
     return #subcards > 0 and table.every(subcards, function(id)
-      return table.contains(player:getCardIds(Player.Hand), id)
+      return table.contains(player:getCardIds("h"), id)
     end)
   end,
 })

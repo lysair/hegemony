@@ -47,7 +47,11 @@ wildDraw:addEffect("active", {
         table.remove(choices)
       end
       if #choices == 0 then return end
-      local choice = room:askForChoice(player, choices, wildDraw.name, "#known_both-choice::"..target.id, false)
+      local choice = room:askToChoice(player, {
+        choices = choices,
+        skill_name = wildDraw.name,
+        prompt = "#known_both-choice::"..target.id, false,
+      })
       local general = choice == "known_both_main" and {target:getMark("__heg_general"), target.deputyGeneral, target.seat} or {target.general, target:getMark("__heg_deputy"), target.seat}
       room:askForCustomDialog(player, wildDraw.name, "packages/hegemony/qml/KnownBothBox.qml", general)
     end

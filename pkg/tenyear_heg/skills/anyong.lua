@@ -21,7 +21,13 @@ anyong:addEffect(fk.DamageCaused, {
     local to = data.to
     local num = H.getGeneralsRevealedNum(to)
     if num == 1 then
-      room:askForDiscard(player, 2, 2, false, anyong.name, false)
+      room:askToDiscard(player, {
+        min_num = 2,
+        max_num = 2,
+        include_equip = false,
+        skill_name = anyong.name,
+        cancelable = false,
+      })
     elseif num == 2 then
       room:loseHp(player, 1, anyong.name)
       room:handleAddLoseSkills(player, "-ty_heg__anyong")

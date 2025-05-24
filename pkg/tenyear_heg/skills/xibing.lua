@@ -32,7 +32,11 @@ xibing:addEffect(fk.TargetSpecified, {
       cards = target:drawCards(num, xibing.name)
     end
     if H.allGeneralsRevealed(player) and H.allGeneralsRevealed(target)
-      and room:askForChoice(player, {"ty_heg__xibing_hide::" .. target.id, "Cancel"}, xibing.name) ~= "Cancel" then
+      and room:askToChoice(player, {
+        choices = {"ty_heg__xibing_hide::" .. target.id,
+        skill_name = "Cancel"},
+        prompt = xibing.name,
+      }) ~= "Cancel" then
       for _, p in ipairs({player, target}) do
         local isDeputy = H.doHideGeneral(room, player, p, xibing.name)
         room:setPlayerMark(p, "@ty_heg__xibing_reveal-turn", H.getActualGeneral(p, isDeputy))
@@ -51,7 +55,7 @@ xibing:addEffect("prohibit", {
     if player:getMark("@@ty_heg__xibing-turn") == 0 then return false end 
     local subcards = Card:getIdList(card)
     return #subcards > 0 and table.every(subcards, function(id)
-      return table.contains(player:getCardIds(Player.Hand), id)
+      return table.contains(player:getCardIds("h"), id)
     end)
   end,
 })

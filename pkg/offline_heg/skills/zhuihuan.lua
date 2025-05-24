@@ -31,7 +31,10 @@ zhuihuan:addEffect(fk.EventPhaseStart, {
     local tos = event:getCostData(self).tos
     local choices = {"zhuihuan-damage::" ..tos[1], "zhuihuan-discard::" ..tos[1]}
     if #tos == 1 then
-      local choice = room:askForChoice(player, choices, zhuihuan.name)
+      local choice = room:askToChoice(player, {
+        choices = choices,
+        skill_name = zhuihuan.name,
+      })
       local target1 = tos[1]
       if choice:startsWith("zhuihuan-damage") then
         handleZhuihuan(room, target1, true, true)
@@ -39,7 +42,10 @@ zhuihuan:addEffect(fk.EventPhaseStart, {
         handleZhuihuan(room, target1, true, false)
       end
     elseif #tos == 2 then
-      local choice = room:askForChoice(player, choices, zhuihuan.name)
+      local choice = room:askToChoice(player, {
+        choices = choices,
+        skill_name = zhuihuan.name,
+      })
       local target1, target2 = table.unpack(tos)
       if choice:startsWith("zhuihuan-damage") then
         handleZhuihuan(room, target1, true, true)
@@ -110,9 +116,14 @@ zhuihuan:addEffect(fk.Damaged, {
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    local from = data.from ---@type ServerPlayer
     handleZhuihuan(room, target, false, false)
-    room:askForDiscard(from, 2, 2, false, zhuihuan.name, false)
+    room:askToDiscard(data.from, {
+      min_num = 2,
+      max_num = 2,
+      include_equip = false,
+      skill_name = zhuihuan.name,
+      cancelable = false,
+    })
   end,
 })
 

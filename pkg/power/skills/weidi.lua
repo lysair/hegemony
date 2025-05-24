@@ -16,17 +16,22 @@ weidi:addEffect("active", {
     local player = effect.from
     local target = effect.tos[1]
     if not H.askCommandTo(player, target, weidi.name) and not target:isKongcheng() then
-      local cards = target:getCardIds(Player.Hand)
+      local cards = target:getCardIds("h")
       room:obtainCard(player, cards, false, fk.ReasonPrey)
       local num = #cards
-      local cids
-      if #player:getCardIds{Player.Hand} > num then
-        cids = room:askForCard(player, num, num, true, weidi.name, false, nil, "#ld__weidi-cards::" .. target.id .. ":" .. num)
-      else
-        cids = player:getCardIds{Player.Hand}
+      local cids = player:getCardIds("he")
+      if #cids > num then
+        cids = room:askToCards(player, {
+          min_num = num,
+          max_num = num,
+          include_equip = true,
+          skill_name = weidi.name,
+          prompt = "#ld__weidi-cards::" .. target.id .. ":" .. num,
+          cancelable = false,
+        })
       end
       if #cids > 0 then
-        room:moveCardTo(cids, Player.Hand, target, fk.ReasonGive, weidi.name, nil, false, player.id)
+        room:moveCardTo(cids, Player.Hand, target, fk.ReasonGive, weidi.name, nil, false, player)
       end
     end
   end,

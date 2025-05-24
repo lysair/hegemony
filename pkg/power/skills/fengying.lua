@@ -15,7 +15,7 @@ fengying:addEffect("active", {
   end,
   on_use = function(self, room, effect)
     local player = effect.from
-    room:useVirtualCard("threaten_emperor", player:getCardIds(Player.Hand), player, player, fengying.name)
+    room:useVirtualCard("threaten_emperor", player:getCardIds("h"), player, player, fengying.name)
     local targets = table.map(table.filter(room.alive_players, function(p) return H.compareKingdomWith(p, player) end), Util.IdMapper)
     if #targets > 0 then
       for _, pid in ipairs(targets) do

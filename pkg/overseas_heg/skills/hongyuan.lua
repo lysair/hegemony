@@ -95,8 +95,8 @@ hongyuan:addTest(function (room, me)
     room:moveCardTo(2, Card.DrawPile)
     GameEvent.Turn:create(TurnData:new(me, "game_rule", { Player.Play })):exec()
   end)
-  lu.assertEquals(alliance_to:getCardIds(Player.Hand), { 1 })
-  lu.assertEquals(hongyuan_to:getCardIds(Player.Hand), { 2 })
+  lu.assertEquals(alliance_to:getCardIds("h"), { 1 })
+  lu.assertEquals(hongyuan_to:getCardIds("h"), { 2 })
   times = {me:usedSkillTimes(hongyuan.name, Player.HistoryPhase),
       me:usedEffectTimes(hongyuan.name, Player.HistoryPhase)}
   lu.assertEquals(times[1], 2)
@@ -120,8 +120,8 @@ hongyuan:addTest(function (room, me)
     room:moveCardTo(2, Card.DrawPile, nil, nil, nil, nil, true)
     GameEvent.Turn:create(TurnData:new(me, "game_rule", { Player.Play })):exec()
   end)
-  lu.assertEquals(alliance_to:getCardIds(Player.Hand), { 1 })
-  lu.assertEquals(hongyuan_to:getCardIds(Player.Hand), { 2 })
+  lu.assertEquals(alliance_to:getCardIds("h"), { 1 })
+  lu.assertEquals(hongyuan_to:getCardIds("h"), { 2 })
 end)
 
 Fk:loadTranslationTable{

@@ -12,7 +12,10 @@ zhuwei:addEffect(fk.FinishJudge, {
     room:obtainCard(player.id, data.card, true, fk.ReasonJustMove)
     local current = room.current
     local choices = {"ld__zhuwei_ask::" .. current.id, "Cancel"}
-    if room:askForChoice(player, choices, zhuwei.name) ~= "Cancel" then
+    if room:askToChoice(player, {
+      choices = choices,
+      skill_name = zhuwei.name,
+    }) ~= "Cancel" then
       room:addPlayerMark(current, "@ld__zhuwei_buff-turn", 1)
       room:addPlayerMark(current, MarkEnum.AddMaxCardsInTurn, 1)
     end

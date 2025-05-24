@@ -7,7 +7,10 @@ gongxiu:addEffect(fk.DrawNCards, {
     return target == player and player:hasSkill(gongxiu.name) and data.n > 0
   end,
   on_cost = function(self, event, target, player, data)
-    return player.room:askForSkillInvoke(player, gongxiu.name, data, "#ty_heg__gongxiu_" .. player:getMark("ty_heg__gongxiu") .. "-ask:::" .. player.maxHp)
+    return player.room:askToSkillInvoke(player, {
+      skill_name = gongxiu.name,
+      prompt = "#ty_heg__gongxiu_" .. player:getMark("ty_heg__gongxiu") .. "-ask:::" .. player.maxHp
+    })
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
@@ -19,7 +22,11 @@ gongxiu:addEffect(fk.DrawNCards, {
     if player:getMark("ty_heg__gongxiu") ~= 2 then
       table.insert(choices, "ty_heg__gongxiu_discard:::" .. player.maxHp)
     end
-    local choice = room:askForChoice(player, choices, gongxiu.name, "#ty_heg__gongxiu-choice")
+    local choice = room:askToChoice(player, {
+        choices = choices,
+        skill_name = gongxiu.name,
+        prompt = "#ty_heg__gongxiu-choice",
+      })
     local tos
     if choice:startsWith("ty_heg__gongxiu_draw") then
       room:setPlayerMark(player, "ty_heg__gongxiu", 1)
@@ -44,7 +51,13 @@ gongxiu:addEffect(fk.DrawNCards, {
       room:sortByAction(tos)
       for _, p in ipairs(tos) do
         if not p.dead and not p:isNude() then
-          room:askForDiscard(p, 1, 1, true, gongxiu.name, false)
+          room:askToDiscard(p, {
+            min_num = 1,
+            max_num = 1,
+            include_equip = true,
+            skill_name = gongxiu.name,
+            cancelable = false,
+          })
         end
       end
     end

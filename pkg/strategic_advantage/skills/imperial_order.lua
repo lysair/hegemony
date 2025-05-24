@@ -1,4 +1,10 @@
+
+local imperialOrderSkill = fk.CreateSkill{
+  name = "imperial_order_skill",
+}
+
 local H = require "packages/hegemony/util"
+
 local function doImperialOrder(room, target)
   local all_choices = {"IO_reveal", "IO_discard", "IO_hplose"}
   local choices = table.clone(all_choices)
@@ -12,7 +18,11 @@ local function doImperialOrder(room, target)
     table.remove(choices, 1) -- 没有暗将或不能亮将不能亮将
   end
   if #choices == 0 then return false end
-  local choice = room:askForChoice(target, choices, "imperial_order_skill", nil, false, all_choices)
+  local choice = room:askToChoice(target, {
+        choices = choices,
+        skill_name = "imperial_order_skill",
+        prompt = nil, false, all_choices,
+      })
   if choice == "IO_reveal" then
     H.askToRevealGenerals(target, {
       skill_name = "imperial_order_skill",
@@ -20,15 +30,19 @@ local function doImperialOrder(room, target)
     })
     target:drawCards(1, "imperial_order_skill")
   elseif choice == "IO_discard" then
-    room:askForDiscard(target, 1, 1, true, "imperial_order_skill", false, ".|.|.|.|.|equip")
+    room:askToDiscard(target, {
+      min_num = 1,
+      max_num = 1,
+      include_equip = true,
+      skill_name = imperialOrderSkill.name,
+      prompt = ".|.|.|.|.|equip",
+      cancelable = false,
+    })
   else
     room:loseHp(target, 1, "imperial_order_skill")
   end
 end
 
-local imperialOrderSkill = fk.CreateSkill{
-  name = "imperial_order_skill",
-}
 imperialOrderSkill:addEffect('cardskill', {
   prompt = "#imperial_order_skill",
   mod_target_filter = function(self, player, to_select, selected)

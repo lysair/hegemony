@@ -3,7 +3,6 @@ local lirang = fk.CreateSkill{
 }
 lirang:addEffect(fk.AfterCardsMove, {
   anim_type = "support",
-  events = {fk.AfterCardsMove},
   can_trigger = function(self, event, target, player, data)
     if not player:hasSkill(self) then return false end
     for _, move in ipairs(data) do

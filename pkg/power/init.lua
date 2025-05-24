@@ -275,7 +275,11 @@ local tieqiXH = fk.CreateTriggerSkill{
       if H.getHegLord(room, player) and #choices > 1 and H.getHegLord(room, player):hasSkill("shouyue") then
         choice = choices
       else
-        choice = {room:askForChoice(player, choices, self.name, "#hs__tieqi-ask::" .. to.id)}
+        choice = {room:askToChoice(player, {
+        choices = choices,
+        skill_name = self.name,
+        prompt = "#hs__tieqi-ask::" .. to.id,
+      })}
       end
       local record = to:getTableMark("@hs__tieqi-turn")
       for _, c in ipairs(choice) do
@@ -318,7 +322,7 @@ local liegongXH = fk.CreateTriggerSkill{
     if not (target == player and player:hasSkill(self)) then return end
     local room = player.room
     local to = room:getPlayerById(data.to)
-    local num = #to:getCardIds(Player.Hand)
+    local num = #to:getCardIds("h")
     local filter = num <= player:getAttackRange() or num >= player.hp
     return data.card.trueName == "slash" and filter and player.phase == Player.Play
   end,
@@ -483,7 +487,11 @@ local xuanhuoOther = fk.CreateActiveSkill{
     end
     if #choices == 0 then return false end
 
-    local choice = room:askForChoice(player, choices, self.name, "#ld__xuanhuo-choice", true, all_choices)
+    local choice = room:askToChoice(player, {
+        choices = choices,
+        skill_name = self.name,
+        prompt = "#ld__xuanhuo-choice", true, all_choices,
+      })
     room:handleAddLoseSkills(player, choice, nil)
     room:addTableMark(player, "@ld__xuanhuo_skills-turn", choice)
   end,

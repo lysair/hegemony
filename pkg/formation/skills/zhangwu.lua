@@ -94,7 +94,7 @@ zhangwu:addTest(function (room, me)
       card = card
     }
   end)
-  lu.assertEquals(me:getCardIds(Player.Hand), {card.id})
+  lu.assertEquals(me:getCardIds("h"), {card.id})
   FkTest.runInRoom(function ()
     me:throwAllCards("h")
   end)

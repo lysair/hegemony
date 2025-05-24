@@ -18,7 +18,10 @@ kuanggu:addEffect(fk.Damage, {
     if player:isWounded() then
       table.insert(choices, 2, "recover")
     end
-    local choice = room:askForChoice(player, choices, kuanggu.name)
+    local choice = room:askToChoice(player, {
+      choices = choices,
+      skill_name = kuanggu.name,
+    })
     if choice ~= "Cancel" then
       event:setCostData(self, {choice = choice})
       return true

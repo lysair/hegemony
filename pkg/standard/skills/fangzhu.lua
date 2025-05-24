@@ -3,7 +3,6 @@ local fangzhu = fk.CreateSkill{
 }
 fangzhu:addEffect(fk.Damaged, {
   anim_type = "masochism",
-  events = {fk.Damaged},
   on_cost = function(self, event, target, player, data)
     local to = player.room:askToChoosePlayers(player, {
       targets = player.room:getOtherPlayers(player, false),

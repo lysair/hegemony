@@ -9,7 +9,7 @@ fengshi:addEffect(fk.TargetSpecified, {
   anim_type = "control",
   can_trigger = function(self, event, target, player, data)
     return player:hasShownSkill(fengshi.name) and data.card.trueName == "slash" and H.inSiegeRelation(target, player, data.to)
-      and #player.room.alive_players > 3 and #data.to:getCardIds(Player.Equip) > 0
+      and #player.room.alive_players > 3 and #data.to:getCardIds("e") > 0
   end,
   on_cost = Util.TrueFunc,
   on_use = function(self, event, target, player, data)

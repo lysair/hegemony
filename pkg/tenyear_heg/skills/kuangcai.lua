@@ -4,7 +4,6 @@ local kuangcai = fk.CreateSkill{
 }
 kuangcai:addEffect(fk.EventPhaseStart, {
   mute = true,
-  events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
     if target == player and player:hasSkill(kuangcai.name) and player.phase == Player.Discard then
       local used = #player.room.logic:getEventsOfScope(GameEvent.UseCard, 1, function(e)

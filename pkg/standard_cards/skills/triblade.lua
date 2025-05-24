@@ -13,7 +13,7 @@ tribladeSkill:addEffect(fk.Damage, {
     local targets = table.filter(room.alive_players, function(p)
       return data.to:distanceTo(p) == 1 and p ~= player end)
     if #targets == 0 then return false end
-    local cards = table.filter(player:getCardIds(Player.Hand), function (id)
+    local cards = table.filter(player:getCardIds("h"), function (id)
       return not player:prohibitDiscard(id)
     end)
     local to, card = room:askToChooseCardsAndPlayers(player, {targets = targets, min_num = 1, max_num = 1, skill_name = "triblade",

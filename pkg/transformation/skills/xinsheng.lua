@@ -56,7 +56,6 @@ local xinsheng = fk.CreateSkill{
   name = "ld__xinsheng",
 }
 xinsheng:addEffect(fk.EventPhaseStart, {
-  events = {fk.EventPhaseStart, fk.Damaged},
   can_trigger = function(self, event, target, player, _)
     if not (target == player and player:hasSkill(xinsheng.name)) then return end
     return player.phase == Player.Start

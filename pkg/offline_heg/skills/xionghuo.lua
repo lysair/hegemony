@@ -84,8 +84,8 @@ xionghuo:addEffect(fk.EventPhaseStart, {
         room:addPlayerMark(target, "MinusMaxCards-turn", 1)
       end
     else
-      local cards = table.random(target:getCardIds(Player.Hand), 1)
-      table.insertTable(cards, table.random(target:getCardIds(Player.Equip), 1))
+      local cards = table.random(target:getCardIds("h"), 1)
+      table.insertTable(cards, table.random(target:getCardIds("e"), 1))
       room:obtainCard(player, cards, false, fk.ReasonPrey)
     end
   end,

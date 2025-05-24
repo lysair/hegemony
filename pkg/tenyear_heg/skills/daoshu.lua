@@ -2,9 +2,25 @@
 local daoshu = fk.CreateSkill{
   name = "ty_heg__daoshu",
 }
+
+Fk:loadTranslationTable{
+  ["ty_heg__daoshu"] = "盗书",
+  [":ty_heg__daoshu"] = "出牌阶段限一次，你可以选择一名其他角色并选择一种花色，然后获得其一张手牌。若此牌与你选择的花色："..
+  "相同，你对其造成1点伤害且此技能视为未发动过；不同，你交给其一张其他花色的手牌（若没有需展示所有手牌）。",
+
+  ["#ty_heg__daoshu"] = "盗书：声明一种花色，获得一名角色的一张手牌",
+  ["#ty_heg__daoshu-give"] = "盗书：交给 %dest 一张非%arg手牌",
+
+  ["$ty_heg__daoshu1"] = "得此文书，丞相定可高枕无忧。",
+  ["$ty_heg__daoshu2"] = "让我看看，这是什么机密。",
+}
+
 daoshu:addEffect("active", {
+  anim_type = "control",
+  prompt = "#ty_heg__daoshu",
   card_num = 0,
   target_num = 1,
+  interaction = UI.ComboBox { choices = {"log_spade", "log_club", "log_heart", "log_diamond"} },
   can_use = function(self, player)
     return player:usedSkillTimes(daoshu.name, Player.HistoryPhase) == 0
   end,
@@ -15,55 +31,48 @@ daoshu:addEffect("active", {
   on_use = function(self, room, effect)
     local player = effect.from
     local target = effect.tos[1]
-    local suits = {"log_spade", "log_club", "log_heart", "log_diamond"}
-    local choice = room:askForChoice(player, suits, daoshu.name)
     room:sendLog{
-      type = "#ty_heg__daoshuLog",
+      type = "#Choice",
       from = player.id,
-      to = effect.tos,
-      arg = choice,
-      arg2 = daoshu.name,
+      arg = self.interaction.data,
       toast = true,
     }
     local card = room:askToChooseCard(player, {
-    target = target,
-    flag = "h",
-    skill_name = daoshu.name,
-  })
-    room:obtainCard(player, card, true, fk.ReasonPrey)
-    if Fk:getCardById(card):getSuitString(true) == choice then
-      room:damage{
-        from = player,
-        to = target,
-        damage = 1,
-        skillName = daoshu.name,
-      }
+      target = target,
+      flag = "h",
+      skill_name = daoshu.name,
+    })
+    room:obtainCard(player, card, true, fk.ReasonPrey, player, daoshu.name)
+    if Fk:getCardById(card):getSuitString(true) == self.interaction.data then
+      if not target.dead then
+        room:damage{
+          from = player,
+          to = target,
+          damage = 1,
+          skillName = daoshu.name,
+        }
+      end
       player:addSkillUseHistory(daoshu.name, -1)
     else
-      local suit = Fk:getCardById(card):getSuitString(true)
-      table.removeOne(suits, suit)
-      suits = table.map(suits, function(s) return s:sub(5) end)
-      local others = table.filter(player:getCardIds(Player.Hand), function(id) return Fk:getCardById(id):getSuitString(true) ~= suit end)
+      if player.dead or player:isKongcheng() then return end
+      local others = table.filter(player:getCardIds("h"), function(id)
+        return Fk:getCardById(id):compareSuitWith(Fk:getCardById(card), true)
+      end)
       if #others > 0 then
-        local cards = room:askForCard(player, 1, 1, false, daoshu.name, false, ".|.|"..table.concat(suits, ","),
-          "#ty_heg__daoshu-give::"..target.id..":"..suit)
-        room:obtainCard(target, cards, true, fk.ReasonGive)
+        local cards = room:askToCards(player, {
+          min_num = 1,
+          max_num = 1,
+          pattern = tostring(Exppattern{ id = others }),
+          prompt = "#ty_heg__daoshu-give::"..target.id..":"..Fk:getCardById(card):getSuitString(true),
+          skill_name = daoshu.name,
+          cancelable = false,
+        })[1]
+        room:obtainCard(target, cards, true, fk.ReasonGive, player, daoshu.name)
       else
-        player:showCards(player:getCardIds(Player.Hand))
+        player:showCards(player:getCardIds("h"))
       end
     end
   end,
 })
-
-Fk:loadTranslationTable{
-  ["ty_heg__daoshu"] = "盗书",
-  [":ty_heg__daoshu"] = "出牌阶段限一次，你可以选择一名其他角色并选择一种花色，然后获得其一张手牌。若此牌与你选择的花色："..
-  "相同，你对其造成1点伤害且此技能视为未发动过；不同，你交给其一张其他花色的手牌（若没有需展示所有手牌）。",
-  ["#ty_heg__daoshuLog"] = "%from 对 %to 发动了 “%arg2”，选择了 %arg",
-  ["#ty_heg__daoshu-give"] = "盗书：交给 %dest 一张非%arg手牌",
-
-  ["$ty_heg__daoshu1"] = "得此文书，丞相定可高枕无忧。",
-  ["$ty_heg__daoshu2"] = "让我看看，这是什么机密。",
-}
 
 return daoshu

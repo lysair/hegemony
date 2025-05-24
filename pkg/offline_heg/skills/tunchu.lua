@@ -1,40 +1,6 @@
 local tunchu = fk.CreateSkill{
   name = "of_heg__tunchu",
 }
-tunchu:addEffect(fk.DrawNCards, {
-  anim_type = "drawcard",
-  derived_piles = "of_heg__lifeng_liang",
-  can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(tunchu.name)
-  end,
-  on_cost = function(self, event, target, player, data)
-    return player.room:askForSkillInvoke(player, tunchu.name)
-  end,
-  on_use = function(self, event, target, player, data)
-    data.n = data.n + 2
-    player.room:setPlayerMark(player, "@@of_heg__tunchu_prohibit-turn", 1)
-  end,
-})
-tunchu:addEffect(fk.AfterDrawNCards, {
-  anim_type = "drawcard",
-  derived_piles = "of_heg__lifeng_liang",
-  can_trigger = function(self, event, target, player, data)
-    return target == player and player:usedSkillTimes(tunchu.name, Player.HistoryPhase) > 0 and not player:isKongcheng()
-  end,
-  on_cost = function(self, event, target, player, data)
-    local cards = player.room:askForCard(player, 1, 2, false, tunchu.name, false, ".", "#of_heg__tunchu-put")
-    event:setCostData(self, {cards = cards})
-    return true
-  end,
-  on_use = function(self, event, target, player, data)
-    player:addToPile("of_heg__lifeng_liang", event:getCostData(self).cards, true, tunchu.name)
-  end,
-})
-tunchu:addEffect("prohibit", {
-  prohibit_use = function(self, player, card)
-    return player:hasSkill(tunchu.name) and player:getMark("@@of_heg__tunchu_prohibit-turn") > 0 and card.trueName == "slash"
-  end,
-})
 
 Fk:loadTranslationTable{
   ["of_heg__tunchu"] = "屯储",
@@ -46,5 +12,43 @@ Fk:loadTranslationTable{
   ["$of_heg__tunchu1"] = "屯粮事大，暂不与尔等计较。",
   ["$of_heg__tunchu2"] = "屯粮待战，莫动刀枪。",
 }
+
+tunchu:addEffect(fk.DrawNCards, {
+  anim_type = "drawcard",
+  derived_piles = "of_heg__lifeng_liang",
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(tunchu.name)
+  end,
+  on_use = function(self, event, target, player, data)
+    data.n = data.n + 2
+    player.room:setPlayerMark(player, "@@of_heg__tunchu_prohibit-turn", 1)
+  end,
+})
+
+tunchu:addEffect(fk.AfterDrawNCards, {
+  mute = true,
+  is_delay_effect = true,
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:usedSkillTimes(tunchu.name, Player.HistoryPhase) > 0 and not player:isKongcheng()
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local cards = room:askToCards(player, {
+      min_num = 1,
+      max_num = 2,
+      include_equip = false,
+      skill_name = tunchu.name,
+      prompt = "#of_heg__tunchu-put",
+      cancelable = true,
+    })
+    player:addToPile("of_heg__lifeng_liang", cards, true, tunchu.name)
+  end,
+})
+
+tunchu:addEffect("prohibit", {
+  prohibit_use = function(self, player, card)
+    return card and player:getMark("@@of_heg__tunchu_prohibit-turn") > 0 and card.trueName == "slash"
+  end,
+})
 
 return tunchu

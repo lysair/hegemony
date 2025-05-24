@@ -271,7 +271,7 @@ local wendao = fk.CreateActiveSkill{
       room:obtainCard(from, card[1], false, fk.ReasonPrey)
     else
       for _, p in ipairs(room.alive_players) do
-        for _, id in ipairs(p:getCardIds(Player.Equip)) do
+        for _, id in ipairs(p:getCardIds("e")) do
           if Fk:getCardById(id).name == "peace_spell" then
             room:obtainCard(from, id, false, fk.ReasonPrey)
             return false

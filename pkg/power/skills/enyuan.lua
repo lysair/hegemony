@@ -37,9 +37,16 @@ enyuan:addEffect(fk.Damaged, {
       if from == player then
         room:loseHp(player, 1, enyuan.name)
       else
-        local card = room:askForCard(from, 1, 1, false, enyuan.name, true, ".|.|.|hand", "#ld__enyuan-give:"..player.id)
+        local card = room:askToCards(from, {
+          min_num = 1,
+          max_num = 1,
+          include_equip = false,
+          skill_name = enyuan.name,
+          prompt = "#ld__enyuan-give:"..player.id,
+          cancelable = true,
+        })
         if #card > 0 then
-          room:moveCardTo(card, Card.PlayerHand, player, fk.ReasonGive, enyuan.name, nil, false, player.id)
+          room:moveCardTo(card, Card.PlayerHand, player, fk.ReasonGive, enyuan.name, nil, false, player)
         else
           room:loseHp(from, 1, enyuan.name)
         end

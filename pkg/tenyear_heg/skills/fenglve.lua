@@ -18,23 +18,41 @@ fenglve:addEffect("active", {
     local player = effect.from
     local target = effect.tos[1]
     local pindian = player:pindian({target}, fenglve.name)
-    if pindian.results[target.id].winner == player then
+    if pindian.results[target].winner == player then
       if not (player.dead or target.dead or target:isNude()) then
         local cards = target:getCardIds("hej")
         if #cards > 2 then
-          cards = room:askForCardsChosen(target, target, 2, 2, "hej", fenglve.name)
+          cards = room:askToChooseCards(target, {
+            target = target,
+            min = 2,
+            max = 2,
+            flag = "hej",
+            skill_name = fenglve.name,
+          })
         end
-        room:moveCardTo(cards, Player.Hand, player, fk.ReasonGive, fenglve.name, nil, false, player.id)
+        room:moveCardTo(cards, Player.Hand, player, fk.ReasonGive, fenglve.name, nil, false, player)
       end
-    elseif pindian.results[target.id].winner == target then
+    elseif pindian.results[target].winner == target then
       if not (player.dead or target.dead or player:isNude()) then
-        local cards2 = room:askForCard(player, 1, 1, true, fenglve.name, false, ".", "#ty_heg__fenglve-give::" .. target.id)
-        room:obtainCard(target, cards2[1], false, fk.ReasonGive)
+        local cards2 = room:askToCards(player, {
+          min_num = 1,
+          max_num = 1,
+          include_equip = true,
+          skill_name = fenglve.name,
+          prompt = "#ty_heg__fenglve-give::" .. target.id,
+          cancelable = false,
+        })
+        room:obtainCard(target, cards2, false, fk.ReasonGive)
       end
     end
     if player.dead or target.dead then return false end
-    local choices = {"ty_heg__fenglve_mn_ask::" .. target.id, "Cancel"}
-    if room:askForChoice(player, choices, fenglve.name) ~= "Cancel" then
+    if room:askToChoice(player, {
+      choices = {
+        "ty_heg__fenglve_mn_ask::" .. target.id,
+        "Cancel",
+      },
+      skill_name = fenglve.name,
+    }) ~= "Cancel" then
       room:setPlayerMark(target, "@@ty_heg__fenglve_manoeuvre", 1)
       room:handleAddLoseSkills(target, "ty_heg__fenglve_manoeuvre", nil)
     end

@@ -24,12 +24,20 @@ qingcheng:addEffect("active", {
     room:throwCard(effect.cards, self.name, player, player)
     H.doHideGeneral(room, player, target, self.name)
     if ret and not player.dead then
-      local targets = table.filter(room.alive_players, function(p) return p.general ~= "anjiang" and p.deputyGeneral ~= "anjiang" and p ~= player and p ~= target end)
+      local targets = table.filter(room.alive_players, function(p)
+        return p.general ~= "anjiang" and p.deputyGeneral ~= "anjiang" and p ~= player and p ~= target
+      end)
       if #targets == 0 then return false end
-      local to = room:askForChoosePlayers(player, table.map(targets, Util.IdMapper), 1, 1, "#qingcheng-again", self.name, true)
+      local to = room:askToChoosePlayers(player, {
+        min_num = 1,
+        max_num = 1,
+        targets = targets,
+        skill_name = qingcheng.name,
+        prompt = "#qingcheng-again",
+        cancelable = true,
+      })
       if #to > 0 then
-        target = room:getPlayerById(to[1])
-        H.doHideGeneral(room, player, target, self.name)
+        H.doHideGeneral(room, player, to[1], self.name)
       end
     end
   end,

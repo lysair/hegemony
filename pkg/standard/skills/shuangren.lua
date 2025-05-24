@@ -5,7 +5,6 @@ local shuangren = fk.CreateSkill{
 local H = require "packages/hegemony/util"
 shuangren:addEffect(fk.EventPhaseStart, {
   anim_type = "offensive",
-  events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
     return player:hasSkill(shuangren.name) and player.phase == Player.Play and
       not player:isKongcheng() and table.find(player.room:getOtherPlayers(player, false), function(p)

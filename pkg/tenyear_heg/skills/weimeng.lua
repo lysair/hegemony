@@ -18,22 +18,34 @@ weimeng:addEffect("active", {
   on_use = function (self, room, effect)
     local player = effect.from
     local target = effect.tos[1]
-    local cards = room:askForCardsChosen(player, target, 1, player.hp, "h", weimeng.name)
+    local cards = room:askToChooseCards(player, {
+      target = target,
+      min = 1,
+      max = player.hp,
+      flag = "h",
+      skill_name = weimeng.name,
+    })
     room:obtainCard(player, cards, false, fk.ReasonPrey)
     if player.dead or player:isNude() or target.dead then return end
-    local cards2
-    if #player:getCardIds("he") <= #cards then
-      cards2 = player:getCardIds("he")
-    else
-      cards2 = room:askForCard(player, #cards, #cards, true, weimeng.name, false, ".",
-        "#ty_heg__weimeng-give::"..target.id..":"..#cards)
-      if #cards2 < #cards then
-        cards2 = table.random(player:getCardIds("he"), #cards)
-      end
+    local cards2 = player:getCardIds("he")
+    if #cards2 > #cards then
+      cards2 = room:askToCards(player, {
+        min_num = #cards,
+        max_num = #cards,
+        include_equip = true,
+        skill_name = weimeng.name,
+        prompt = "#ty_heg__weimeng-give::"..target.id..":"..#cards,
+        cancelable = false,
+      })
     end
     room:obtainCard(target, cards2, false, fk.ReasonGive)
-    local choices = {"ty_heg__weimeng_mn_ask::" .. target.id, "Cancel"}
-    if room:askForChoice(player, choices, weimeng.name) ~= "Cancel" then
+    if room:askToChoice(player, {
+      choices = {
+        "ty_heg__weimeng_mn_ask::" .. target.id,
+        "Cancel",
+      },
+      skill_name = weimeng.name
+    }) ~= "Cancel" then
       room:setPlayerMark(target, "@@ty_heg__weimeng_manoeuvre", 1)
       room:handleAddLoseSkills(target, "ty_heg__weimeng_manoeuvre", nil)
     end

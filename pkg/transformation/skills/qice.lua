@@ -5,7 +5,7 @@ local H = require "packages/hegemony/util"
 qice:addEffect("active", {
   prompt = "#ld__qice-active",
   interaction = function(self, player)
-    local handcards = player:getCardIds(Player.Hand)
+    local handcards = player:getCardIds("h")
     local names, all_names = {} , {}
     for _, id in ipairs(Fk:getAllCardIds()) do
       local card = Fk:getCardById(id)
@@ -41,7 +41,7 @@ qice:addEffect("active", {
     if self.interaction.data == nil then return false end
     local to_use = Fk:cloneCard(self.interaction.data)
     to_use.skillName = qice.name
-    to_use:addSubcards(player:getCardIds(Player.Hand))
+    to_use:addSubcards(player:getCardIds("h"))
     if not to_use.skill:targetFilter(player, to_select, selected, selected_cards, to_use, Util.DummyTable) then return false end
     if (#selected == 0 or to_use.multiple_targets) and
       player:isProhibited(to_select, to_use) then return false end
@@ -63,13 +63,13 @@ qice:addEffect("active", {
     if self.interaction.data == nil then return false end
     local to_use = Fk:cloneCard(self.interaction.data)
     to_use.skillName = qice.name
-    to_use:addSubcards(player:getCardIds(Player.Hand))
+    to_use:addSubcards(player:getCardIds("h"))
     return to_use.skill:feasible(selected, selected_cards, player, to_use)
   end,
   on_use = function(self, room, effect)
     local player = effect.from
     local card = Fk:cloneCard(self.interaction.data)
-    card:addSubcards(player:getCardIds(Player.Hand))
+    card:addSubcards(player:getCardIds("h"))
     card.skillName = qice.name
     room:useCard{
       from = player,

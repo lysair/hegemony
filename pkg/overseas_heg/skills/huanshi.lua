@@ -4,7 +4,6 @@ local huanshi = fk.CreateSkill{
 local H = require "packages/hegemony/util"
 huanshi:addEffect(fk.AskForRetrial, {
   anim_type = "control",
-  events = {fk.AskForRetrial},
   can_trigger = function(self, event, target, player, data)
     return player:hasSkill(huanshi.name) and not player:isNude() and
       H.compareKingdomWith(target, player)

@@ -9,8 +9,10 @@ zhente:addEffect(fk.TargetConfirmed, {
     end
   end,
   on_cost = function(self, event, target, player, data)
-    if player.room:askForSkillInvoke(player, zhente.name, nil,
-    "#ty_heg__zhente-invoke:" .. data.from.id .. "::" .. data.card:toLogString() .. ":" .. data.card:getColorString()) then
+    if player.room:askToSkillInvoke(player, {
+        skill_name = zhente.name,
+        prompt = "#ty_heg__zhente-invoke:" .. data.from.id .. "::" .. data.card:toLogString() .. ":" .. data.card:getColorString()
+      }) then
       event:setCostData(self, {tos = {data.from} })
       return true
     end
@@ -19,10 +21,13 @@ zhente:addEffect(fk.TargetConfirmed, {
     local room = player.room
     local to = data.from
     local color = data.card:getColorString()
-    local choice = room:askForChoice(to, {
-      "ty_heg__zhente_negate::" .. tostring(player.id) .. ":" .. data.card.name,
-      "ty_heg__zhente_colorlimit:::" .. color
-    }, zhente.name)
+    local choice = room:askToChoice(to, {
+      choices = {
+        "ty_heg__zhente_negate::" .. tostring(player.id) .. ":" .. data.card.name,
+        "ty_heg__zhente_colorlimit:::" .. color
+      },
+      skill_name = zhente.name,
+    })
     if choice:startsWith("ty_heg__zhente_negate") then
       data.nullified = true
     else

@@ -18,7 +18,7 @@ jushou:addEffect(fk.EventPhaseStart, {
     room:drawCards(player, num, self.name)
     if player.dead then return false end
     local cards = {}
-    for _, id in pairs(player:getCardIds(Player.Hand)) do
+    for _, id in pairs(player:getCardIds("h")) do
       local card = Fk:getCardById(id)
       if (card.type == Card.TypeEquip and not player:prohibitUse(card)) or (card.type ~= Card.TypeEquip and not player:prohibitDiscard(card)) then
         table.insert(cards, id)
@@ -79,7 +79,7 @@ jushou:addTest(function (room, me)
   } })
   FkTest.resumeRoom() -- 继续
   lu.assertEquals(me:getHandcardNum(), num - 1)
-  lu.assertEquals(#me:getCardIds(Player.Equip), 2)
+  lu.assertEquals(#me:getCardIds("e"), 2)
   lu.assertEquals(#room.discard_pile, 0)
   if num > 2 then
     lu.assertIsFalse(me.faceup)
@@ -95,7 +95,7 @@ jushou:addTest(function (room, me)
     GameEvent.Turn:create(TurnData:new(me, "game_rule", { Player.Finish })):exec()
   end)
   lu.assertEquals(me:getHandcardNum(), 2 * num - 2)
-  lu.assertEquals(#me:getCardIds(Player.Equip), 2)
+  lu.assertEquals(#me:getCardIds("e"), 2)
   lu.assertEquals(#room.discard_pile, 1)
 end)
 

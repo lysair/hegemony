@@ -24,7 +24,7 @@ alliance:addEffect("active", {
   prompt = "#alliance&",
   anim_type = "support",
   can_use = function(self, player)
-    return player:usedSkillTimes(alliance.name, Player.HistoryPhase) == 0 and table.find(player:getCardIds(Player.Hand), function(id) return hasMark(Fk:getCardById(id), "@@alliance", MarkEnum.CardTempMarkSuffix) end)
+    return player:usedSkillTimes(alliance.name, Player.HistoryPhase) == 0 and table.find(player:getCardIds("h"), function(id) return hasMark(Fk:getCardById(id), "@@alliance", MarkEnum.CardTempMarkSuffix) end)
   end,
   max_card_num = 3,
   min_card_num = 1,

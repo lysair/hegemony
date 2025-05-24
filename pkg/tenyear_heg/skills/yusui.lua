@@ -22,9 +22,18 @@ yusui:addEffect(fk.TargetConfirmed, {
       table.insert(choices, "ty_heg__yusui_loseHp::" .. to.id .. ":" .. player.hp)
     end
     if #choices == 0 then return false end
-    local choice = room:askForChoice(player, choices, yusui.name)
+    local choice = room:askToChoice(player, {
+      choices = choices,
+      skill_name = yusui.name,
+    })
     if choice:startsWith("ty_heg__yusui_discard") then
-      room:askForDiscard(to, to.maxHp, to.maxHp, false, yusui.name, false)
+      room:askToDiscard(to, {
+        min_num = to.maxHp,
+        max_num = to.maxHp,
+        include_equip = false,
+        skill_name = yusui.name,
+        cancelable = false,
+      })
     else
       room:loseHp(to, to.hp - player.hp, yusui.name)
     end

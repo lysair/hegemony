@@ -13,7 +13,7 @@ hongyan:addEffect("filter", {
 
 hongyan:addEffect("maxcards", {
   correct_func = function (self, player)
-    if player:hasSkill(hongyan.name) and table.find(player:getCardIds(Player.Equip), function (id)
+    if player:hasSkill(hongyan.name) and table.find(player:getCardIds("e"), function (id)
       return Fk:getCardById(id).suit == Card.Heart
     end) then
       return 1
@@ -32,7 +32,7 @@ hongyan:addTest(function (room, me)
     }
   end)
   lu.assertEquals(me:getMaxCards(), 5)
-  lu.assertEquals(Fk:getCardById(me:getCardIds(Player.Equip)[1]).suit, Card.Heart)
+  lu.assertEquals(Fk:getCardById(me:getCardIds("e")[1]).suit, Card.Heart)
 end)
 
 Fk:loadTranslationTable{

@@ -35,7 +35,11 @@ xiongsuan:addEffect("active", {
     end)
     if #skills == 0 then return false end
     local skillNames = table.map(skills, Util.NameMapper)
-    local skill = room:askForChoice(player, skillNames, xiongsuan.name, "#xiongsuan-reset::" .. target.id)
+    local skill = room:askToChoice(player, {
+        choices = skillNames,
+        skill_name = xiongsuan.name,
+        prompt = "#xiongsuan-reset::" .. target.id,
+      })
     room:setPlayerMark(player, "_xiongsuan-turn", {skill, target.id})
   end,
 })

@@ -4,16 +4,15 @@ local zhengbi = fk.CreateSkill{
 local H = require "packages/hegemony/util"
 zhengbi:addEffect(fk.EventPhaseStart, {
   anim_type = "control",
-  events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(zhengbi.name) and player.phase == Player.Play
-      and (table.find(player:getCardIds(Player.Hand), function(id) return Fk:getCardById(id).type == Card.TypeBasic end)
+      and (table.find(player:getCardIds("h"), function(id) return Fk:getCardById(id).type == Card.TypeBasic end)
       or table.every(player.room:getOtherPlayers(player, false), function(p) return H.getGeneralsRevealedNum(p) == 0 end))
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
     local choices = {}
-    local basic_cards1 = table.filter(player:getCardIds(Player.Hand), function(id)
+    local basic_cards1 = table.filter(player:getCardIds("h"), function(id)
       return Fk:getCardById(id).type == Card.TypeBasic end)
     local targets1 = table.filter(room:getOtherPlayers(player, false), function(p)
       return H.getGeneralsRevealedNum(p) > 0 end)
@@ -26,7 +25,10 @@ zhengbi:addEffect(fk.EventPhaseStart, {
       table.insert(choices, "zhengbi_useCard")
     end
     if #choices == 0 then return false end
-    local choice = room:askForChoice(player, choices, zhengbi.name)
+    local choice = room:askToChoice(player, {
+      choices = choices,
+      skill_name = zhengbi.name,
+    })
     if choice:startsWith("zhengbi_giveCard") then
       local tos, card = room:askToChooseCardsAndPlayers(player, {
         targets = targets1, min_num = 1, max_num = 1,
@@ -39,7 +41,7 @@ zhengbi:addEffect(fk.EventPhaseStart, {
       local cards2 = to:getCardIds("he")
       if #cards2 > 1 then
         local card_choices = {}
-        local num = #table.filter(to:getCardIds(Player.Hand), function(id)
+        local num = #table.filter(to:getCardIds("h"), function(id)
           return Fk:getCardById(id).type == Card.TypeBasic end)
         if num > 1 then
           table.insert(card_choices, "zhengbi_basic-back:"..player.id)
@@ -48,18 +50,43 @@ zhengbi:addEffect(fk.EventPhaseStart, {
           table.insert(card_choices, "zhengbi_nobasic-back:"..player.id)
         end
         if #card_choices == 0 then return false end
-        local card_choice = room:askForChoice(to, card_choices, zhengbi.name)
+        local card_choice = room:askToChoice(to, {
+          choices = card_choices,
+          skill_name = zhengbi.name
+        })
         if card_choice:startsWith("zhengbi_basic-back") then
-          cards2 = room:askForCard(to, 2, 2, false, zhengbi.name, false, ".|.|.|.|.|basic", "#ld__zhengbi-give1:"..player.id)
+          cards2 = room:askToCards(to, {
+            min_num = 2,
+            max_num = 2,
+            include_equip = false,
+            skill_name = zhengbi.name,
+            pattern = ".|.|.|.|.|basic",
+            prompt = "#ld__zhengbi-give1:"..player.id,
+            cancelable = false,
+          })
         elseif card_choice:startsWith("zhengbi_nobasic-back") then
-          cards2 = room:askForCard(to, 1, 1, true, zhengbi.name, false, ".|.|.|.|.|^basic", "#ld__zhengbi-give2:"..player.id)
+          cards2 = room:askToCards(to, {
+            min_num = 1,
+            max_num = 1,
+            include_equip = true,
+            skill_name = zhengbi.name,
+            pattern = ".|.|.|.|.|^basic",
+            prompt = "#ld__zhengbi-give2:"..player.id,
+            cancelable = false,
+          })
         end
       end
-      room:moveCardTo(cards2, Player.Hand, player, fk.ReasonGive, zhengbi.name, nil, false, player.id)
+      room:moveCardTo(cards2, Player.Hand, player, fk.ReasonGive, zhengbi.name, nil, false, player)
     elseif choice:startsWith("zhengbi_useCard") then
-      local to = room:askToChoosePlayers(player, {targets = targets2,
-        min_num = 1, max_num = 1, prompt = "#ld__zhengbi_choose", skill_name = zhengbi.name, cancelable = false})
-      room:setPlayerMark(to[1], "@@ld__zhengbi_choose-turn", 1)
+      local to = room:askToChoosePlayers(player, {
+        targets = targets2,
+        min_num = 1,
+        max_num = 1,
+        prompt = "#ld__zhengbi_choose",
+        skill_name = zhengbi.name,
+        cancelable = false,
+      })[1]
+      room:setPlayerMark(to, "@@ld__zhengbi_choose-turn", 1)
     end
   end,
 })
@@ -83,7 +110,8 @@ zhengbi:addEffect("targetmod", {
 
 Fk:loadTranslationTable{
   ["ld__zhengbi"] = "征辟",
-  [":ld__zhengbi"] = "出牌阶段开始时，你可选择一项：1.选择一名没有势力的角色，直至其确定势力或此回合结束，你对其使用牌无距离与次数限制；2.将一张基本牌交给一名已确定势力的角色，然后其交给你一张非基本牌或两张基本牌。",
+  [":ld__zhengbi"] = "出牌阶段开始时，你可选择一项：1.选择一名没有势力的角色，直至其确定势力或此回合结束，你对其使用牌无距离与次数限制；"..
+  "2.将一张基本牌交给一名已确定势力的角色，然后其交给你一张非基本牌或两张基本牌。",
 
   ["zhengbi_giveCard"] = "交给有势力角色基本牌",
   ["zhengbi_useCard"] = "选择无势力角色用牌无限制",

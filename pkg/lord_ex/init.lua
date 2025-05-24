@@ -931,7 +931,11 @@ local xishe_delay = fk.CreateTriggerSkill{
       table.insertTableIfNeed(data.disresponsiveList, targets)
     else
       local room = player.room
-      if room:askForChoice(player, {"transformDeputy", "Cancel"}, self.name) ~= "Cancel" then
+      if room:askToChoice(player, {
+        choices = {"transformDeputy",
+        skill_name = "Cancel"},
+        prompt = self.name,
+      }) ~= "Cancel" then
         room:notifySkillInvoked(player, xishe.name, "special")
         player:broadcastSkillInvoke(xishe.name)
         room:setPlayerMark(player, "@@ld__xishe_change_before", 1)
@@ -2037,7 +2041,7 @@ local tongling = fk.CreateTriggerSkill{
         local user = room:getPlayerById(to[1])
         local cardNames = {}
         local selfCards = {"peach", "analeptic", "ex_nihilo", "lightning"} -- FIXME: how to tell ex_niholo from AOE and AG?
-        for _, id in ipairs(user:getCardIds(Player.Hand)) do
+        for _, id in ipairs(user:getCardIds("h")) do
           local card = Fk:getCardById(id)
           if card.skill:modTargetFilter(victim, {}, user, card, true) and not table.contains(selfCards, card.name) and card.type ~= Card.TypeEquip then -- FIXME
             table.insert(cardNames, card.name)

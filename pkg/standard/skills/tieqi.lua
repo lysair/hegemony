@@ -73,7 +73,16 @@ tieqi:addEffect(fk.TargetSpecified, {
     end
     room:judge(judge)
     if judge.card.suit ~= Card.NoSuit then
-      if #room:askForDiscard(to, 1, 1, true, self.name, true, ".|.|" .. judge.card:getSuitString(), "#hs__tieqi-discard:::" .. judge.card:getSuitString()) == 0 then
+      if #room:askToDiscard(to, {
+        min_num = 1,
+        max_num = 1,
+        include_equip = true,
+        skill_name = tieqi.name,
+        pattern = ".|.|" .. judge.card:getSuitString(),
+        prompt = "#hs__tieqi-discard:::" .. judge.card:getSuitString(),
+        cancelable = true,
+        skip = true,
+      }) == 0 then
         data.disresponsive = true
       end
     end

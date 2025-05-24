@@ -106,7 +106,7 @@ zhiwei:addEffect(fk.Damaged, {
     local room = player.room
     zhiweiUpdate(room, player, target)
     if player:isKongcheng() then
-      room:throwCard(table.random(player:getCardIds(Player.Hand), 1), zhiwei.name, player, player)
+      room:throwCard(table.random(player:getCardIds("h"), 1), zhiwei.name, player, player)
     end
   end,
 })

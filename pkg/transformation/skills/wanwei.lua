@@ -29,7 +29,14 @@ wanwei:addEffect(fk.BeforeCardsMove, {
     local _data = event:getCostData(self)._data
     for _, tab in ipairs(_data) do
       local index, num = tab[1], tab[2]
-      local ids = room:askForCardsChosen(player, player, num, num, "he", wanwei.name, "#ld__wanwei-choose")
+      local ids = room:askToChooseCards(player, {
+        target = player,
+        min = num,
+        max = num,
+        flag = "he",
+        skill_name = wanwei.name,
+        prompt = "#ld__wanwei-choose",
+      })
       if #ids == num then
         local moveInfo = {}
         for _, id in ipairs(ids) do

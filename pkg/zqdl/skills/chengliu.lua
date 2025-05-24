@@ -9,14 +9,14 @@ chengliu:addEffect("active", {
   prompt = "#zq__chengliu-active",
   can_use = function (self, player)
     return player:usedSkillTimes(chengliu.name, Player.HistoryPhase) == 0 and table.find(Fk:currentRoom().alive_players, function(p)
-      return #p:getCardIds(Player.Equip) < #player:getCardIds(Player.Equip)
+      return #p:getCardIds("e") < #player:getCardIds("e")
     end)
   end,
   card_num = 0,
   card_filter = Util.FalseFunc,
   target_num = 1,
   target_filter = function (self, player, to_select, selected, selected_cards)
-    return #to_select:getCardIds(Player.Equip) < #player:getCardIds(Player.Equip) and #selected == 0
+    return #to_select:getCardIds("e") < #player:getCardIds("e") and #selected == 0
   end,
   on_use = function (self, room, skillUseEvent)
     local player = skillUseEvent.from

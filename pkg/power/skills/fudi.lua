@@ -1,5 +1,5 @@
 local fudi = fk.CreateSkill{
-  name = 'ld__fudi',
+  name = "ld__fudi",
 }
 local H = require "packages/hegemony/util"
 fudi:addEffect(fk.Damaged, {
@@ -9,10 +9,16 @@ fudi:addEffect(fk.Damaged, {
   end,
   on_cost = function(self, event, target, player, data)
     local room = player.room
-    local c = room:askForCard(player, 1, 1, false, fudi.name, true,
-      '.|.|.|hand', '#ld__fudi-give:' .. data.from.id)[1]
-    if c then
-      event:setCostData(self, {cards = c})
+    local card = room:askToCards(player, {
+      min_num = 1,
+      max_num = 1,
+      include_equip = false,
+      skill_name = fudi.name,
+      prompt = "#ld__fudi-give:" .. data.from.id,
+      cancelable = true,
+    })
+    if #card > 0 then
+      event:setCostData(self, {cards = card})
       return true
     end
   end,
@@ -41,7 +47,7 @@ fudi:addEffect(fk.Damaged, {
       to = targets[1]
     else
       to = room:askToChoosePlayers(player, {targets = targets,
-        min_num = 1, max_num = 1, prompt = '#ld__fudi-dmg', skill_name = fudi.name, cancelable = false})[1]
+        min_num = 1, max_num = 1, prompt = "#ld__fudi-dmg", skill_name = fudi.name, cancelable = false})[1]
     end
 
     room:damage {
@@ -54,13 +60,13 @@ fudi:addEffect(fk.Damaged, {
 })
 
 Fk:loadTranslationTable{
-  ['ld__fudi'] = '附敌',
-  [':ld__fudi'] = '当你受到其他角色造成的伤害后，你可以交给伤害来源一张手牌。若如此做，你对与其势力相同的角色中体力值最多且不小于你的一名角色造成1点伤害。',
-  ['#ld__fudi-give'] = '附敌：你可以交给 %src 一张手牌，然后对其势力体力最大造成一点伤害',
-  ['#ld__fudi-dmg'] = '附敌：选择要造成伤害的目标',
+  ["ld__fudi"] = "附敌",
+  [":ld__fudi"] = "当你受到其他角色造成的伤害后，你可以交给伤害来源一张手牌。若如此做，你对与其势力相同的角色中体力值最多且不小于你的一名角色造成1点伤害。",
+  ["#ld__fudi-give"] = "附敌：你可以交给 %src 一张手牌，然后对其势力体力最大造成一点伤害",
+  ["#ld__fudi-dmg"] = "附敌：选择要造成伤害的目标",
 
-  ['$ld__fudi1'] = '弃暗投明，为明公计！',
-  ['$ld__fudi2'] = '绣虽有降心，奈何贵营难容。',
+  ["$ld__fudi1"] = "弃暗投明，为明公计！",
+  ["$ld__fudi2"] = "绣虽有降心，奈何贵营难容。",
 }
 
 return fudi

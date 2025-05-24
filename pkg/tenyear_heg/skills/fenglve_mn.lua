@@ -18,20 +18,27 @@ fenglve_mn:addEffect("active", {
     local player = effect.from
     local target = effect.tos[1]
     local pindian = player:pindian({target}, fenglve_mn.name)
-    if pindian.results[target.id].winner == player then
+    if pindian.results[target].winner == player then
       if not (player.dead or target.dead or target:isNude()) then
         local cards1 = room:askToChooseCard(target, {
-    target = target,
-    flag = "hej",
-    skill_name = fenglve_mn.name,
-  })
+          target = target,
+          flag = "hej",
+          skill_name = fenglve_mn.name,
+        })
         room:obtainCard(player, cards1, false, fk.ReasonGive)
       end
-    elseif pindian.results[target.id].winner == target then
+    elseif pindian.results[target].winner == target then
       if not (player.dead or target.dead or player:isNude()) then
         local cards = player:getCardIds("he")
         if #cards > 2 then
-          cards = room:askForCard(player, 2, 2, true, fenglve_mn.name, false, ".", "#ty_heg__fenglve-give::" .. target.id .. ":" .. tostring(2))
+          cards = room:askToCards(player, {
+            min_num = 2,
+            max_num = 2,
+            include_equip = true,
+            skill_name = fenglve_mn.name,
+            prompt = "#ty_heg__fenglve-give::" .. target.id .. ":2",
+            cancelable = false,
+          })
         end
         room:moveCardTo(cards, Player.Hand, target, fk.ReasonGive, fenglve_mn.name, nil, false, player.id)
       end

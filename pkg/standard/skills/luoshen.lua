@@ -21,17 +21,15 @@ luoshen:addEffect(fk.EventPhaseStart, {
       if card.color == Card.Black then
         table.insert(cardsJudged, card)
       elseif room:getCardArea(card) == Card.Processing then
-        room:moveCardTo(card, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, luoshen.name, nil, true, player.id)
+        room:moveCardTo(card, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, luoshen.name, nil, true, player)
       end
-      if not judge:matchPattern() or player.dead or not room:askForSkillInvoke(player, luoshen.name) then
+      if not judge:matchPattern() or player.dead or not room:askToSkillInvoke(player, {skill_name = luoshen.name}) then
         break
       end
     end
     cardsJudged = table.filter(cardsJudged, function(c) return room:getCardArea(c.id) == Card.Processing end)
     if #cardsJudged > 0 then
-      room:obtainCard(player, table.map(cardsJudged, function(card)
-        return card.id
-      end), true, fk.ReasonJustMove)
+      room:obtainCard(player, cardsJudged, true, fk.ReasonJustMove)
     end
   end,
 })

@@ -6,7 +6,7 @@ kuangfu:addEffect(fk.TargetSpecified, {
     if player:hasSkill(kuangfu.name) and data.card and data.card.trueName == "slash" and
       player.phase == Player.Play and player:usedSkillTimes(kuangfu.name, Player.HistoryPhase) == 0 and target == player then
       for _, p in ipairs(data:getAllTargets()) do
-        if #p:getCardIds(Player.Equip) > 0 then
+        if #p:getCardIds("e") > 0 then
           return true
         end
       end
@@ -14,7 +14,7 @@ kuangfu:addEffect(fk.TargetSpecified, {
   end,
   on_cost = function (self, event, target, player, data)
     local targets = table.filter(data:getAllTargets(), function (p)
-      return #p:getCardIds(Player.Equip) > 0
+      return #p:getCardIds("e") > 0
     end)
     if #targets == 0 then return end
     if #targets == 1 then
@@ -46,9 +46,14 @@ kuangfu:addEffect(fk.CardUseFinished, {
   can_trigger = function (self, event, target, player, data)
     return (data.extra_data or {}).kuangfuUser == player.id and not data.damageDealt
   end,
-  on_cost = Util.TrueFunc,
   on_use = function (self, event, target, player, data)
-    player.room:askForDiscard(player, 2, 2, true, kuangfu.name, false)
+    player.room:askToDiscard(player, {
+      min_num = 2,
+      max_num = 2,
+      include_equip = true,
+      skill_name = kuangfu.name,
+      cancelable = false,
+    })
   end,
 })
 
@@ -67,7 +72,7 @@ kuangfu:addTest(function (room, me)
     room:useCard{from = comp2, tos = {comp2}, card = axe}
     GameEvent.Turn:create(TurnData:new(me, "game_rule", { Player.Play })):exec()
   end)
-  lu.assertEquals(#me:getCardIds(Player.Hand), 1)
+  lu.assertEquals(#me:getCardIds("h"), 1)
 
   FkTest.setNextReplies(me, {
     json.encode {

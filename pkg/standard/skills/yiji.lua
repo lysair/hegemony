@@ -52,8 +52,8 @@ yiji:addTest(function (room, me)
   end)
   lu.assertEquals(me:getHandcardNum(), 1)
   lu.assertEquals(comp2:getHandcardNum(), 1)
-  lu.assertEquals(me:getCardIds(Player.Hand)[1], 1)
-  lu.assertEquals(comp2:getCardIds(Player.Hand)[1], 2)
+  lu.assertEquals(me:getCardIds("h")[1], 1)
+  lu.assertEquals(comp2:getCardIds("h")[1], 2)
 end)
 
 Fk:loadTranslationTable{

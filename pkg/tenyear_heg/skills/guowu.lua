@@ -8,7 +8,7 @@ guowu:addEffect(fk.EventPhaseStart, {
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    local cards = player:getCardIds(Player.Hand)
+    local cards = player:getCardIds("h")
     player:showCards(cards)
     room:delay(300)
     local types = {}

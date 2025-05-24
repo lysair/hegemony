@@ -56,7 +56,7 @@ diaodu:addEffect(fk.EventPhaseStart, {
       skill_name = diaodu.name,
     })
     room:obtainCard(player, cid, true, fk.ReasonPrey)
-    if not table.contains(player:getCardIds(Player.Hand), cid) then return false end
+    if not table.contains(player:getCardIds("h"), cid) then return false end
     local card = Fk:getCardById(cid)
     if player.dead then return false end
     local targets = table.filter(room.alive_players, function(p)

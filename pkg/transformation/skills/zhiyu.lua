@@ -10,8 +10,16 @@ zhiyu:addEffect(fk.Damaged, {
     player:showCards(cards)
     local from = data.from
     if from and not from.dead and not from:isKongcheng() and
-      table.every(cards, function(id) return #cards == 0 or Fk:getCardById(id).color == Fk:getCardById(cards[1]).color end) then
-      room:askForDiscard(data.from, 1, 1, false, zhiyu.name, false)
+      table.every(cards, function(id)
+        return #cards == 0 or Fk:getCardById(id):compareColorWith(Fk:getCardById(cards[1]))
+      end) then
+      room:askToDiscard(data.from, {
+        min_num = 1,
+        max_num = 1,
+        include_equip = false,
+        skill_name = zhiyu.name,
+        cancelable = false,
+      })
     end
   end,
 })

@@ -3,7 +3,6 @@ local weicheng = fk.CreateSkill{
 }
 weicheng:addEffect(fk.AfterCardsMove, {
   anim_type = "drawcard",
-  events = {fk.AfterCardsMove},
   can_trigger = function(self, event, target, player, data)
     if not player:hasSkill(weicheng.name) or player:getHandcardNum() >= player.hp then return false end
     for _, move in ipairs(data) do

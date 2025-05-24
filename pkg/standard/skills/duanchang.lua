@@ -19,7 +19,11 @@ duanchang:addEffect(fk.Death, {
       table.insert(choices, to.deputyGeneral ~= "anjiang" and to.deputyGeneral or "deputyGeneral")
     end
     if #choices == 0 then return false end
-    local choice = room:askForChoice(player, choices, duanchang.name, "#hs__duanchang-ask::" .. to.id)
+    local choice = room:askToChoice(player, {
+        choices = choices,
+        skill_name = duanchang.name,
+        prompt = "#hs__duanchang-ask::" .. to.id,
+      })
     room:addTableMark(to, "@hs__duanchang", choice)
     local _g = (choice == "mainGeneral" or choice == to.general) and to.general or to.deputyGeneral
     if _g ~= "anjiang" then

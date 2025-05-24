@@ -3,10 +3,9 @@ local liegong = fk.CreateSkill{
 }
 liegong:addEffect(fk.TargetSpecified, {
   anim_type = "offensive",
-  events = {fk.TargetSpecified},
   can_trigger = function(self, event, target, player, data)
     if not (target == player and player:hasSkill(self)) then return end
-    local num = #data.to:getCardIds(Player.Hand)
+    local num = #data.to:getCardIds("h")
     return data.card.trueName == "slash" and
       (num <= player:getAttackRange() or num >= player.hp) and
       player.phase == Player.Play

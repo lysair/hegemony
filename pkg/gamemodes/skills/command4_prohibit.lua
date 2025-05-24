@@ -7,13 +7,13 @@ command4_prohibit:addEffect("prohibit", {
   prohibit_use = function(self, player, card)
     if player:getMark("@@command4_effect-turn") > 0 then
       local subcards = card:isVirtual() and card.subcards or {card.id}
-      return #subcards > 0 and table.every(subcards, function(id) return table.contains(player:getCardIds(Player.Hand), id) end)
+      return #subcards > 0 and table.every(subcards, function(id) return table.contains(player:getCardIds("h"), id) end)
     end
   end,
   prohibit_response = function(self, player, card)
     if player:getMark("@@command4_effect-turn") > 0 then
       local subcards = card:isVirtual() and card.subcards or {card.id}
-      return #subcards > 0 and table.every(subcards, function(id) return table.contains(player:getCardIds(Player.Hand), id) end)
+      return #subcards > 0 and table.every(subcards, function(id) return table.contains(player:getCardIds("h"), id) end)
     end
   end,
 })

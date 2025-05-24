@@ -66,7 +66,7 @@ yongsi:addEffect(fk.TargetConfirmed, {
   end,
   on_use = function(self, event, target, player, data)
     if not player:isKongcheng() then
-      player:showCards(player:getCardIds(Player.Hand))
+      player:showCards(player:getCardIds("h"))
     end
   end,
 })

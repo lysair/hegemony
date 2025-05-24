@@ -30,7 +30,7 @@ knownBothSkill:addEffect("cardskill", {
     if #choices == 0 then return end
     local choice = room:askToChoice(player, {choices = choices, skill_name = "known_both", prompt = "#known_both-choice::"..target.id, cancelable = false, all_choices = all_choices})
     if choice == "known_both_hand" then
-      U.viewCards(player, target:getCardIds(Player.Hand), "known_both", "#known_both-hand::"..target.id)
+      U.viewCards(player, target:getCardIds("h"), "known_both", "#known_both-hand::"..target.id)
       for _, p in ipairs(room:getOtherPlayers(player, false)) do
         p:doNotify("GameLog", json.encode{
           type = "#know_hand",
@@ -41,7 +41,11 @@ knownBothSkill:addEffect("cardskill", {
       end
     else
       local general = choice == "known_both_main" and {target:getMark("__heg_general"), target.deputyGeneral, tostring(target.seat)} or {target.general, target:getMark("__heg_deputy"), tostring(target.seat)}
-      room:askForCustomDialog(player, knownBothSkill.name, "packages/hegemony/qml/KnownBothBox.qml", general)
+      room:askToCustomDialog(player, {
+        skill_name = knownBothSkill.name,
+        qml_path = "packages/hegemony/qml/KnownBothBox.qml",
+        extra_data = general,
+      })
       for _, p in ipairs(room:getOtherPlayers(player, false)) do
         p:doNotify("GameLog", json.encode{
           type = "#know_general",

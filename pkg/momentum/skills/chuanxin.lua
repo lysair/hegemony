@@ -24,7 +24,7 @@ chuanxin:addEffect(fk.DamageCaused, {
     data:preventDamage()
     local all_choices = {"chuanxin_discard", "removeDeputy:::" .. H.getActualGeneral(player, true)}
     local choices = table.clone(all_choices)
-    if #data.to:getCardIds(Player.Equip) == 0 then table.remove(choices, 1) end
+    if #data.to:getCardIds("e") == 0 then table.remove(choices, 1) end
     local choice = room:askToChoice(target, {
       choices = choices,
       skill_name = chuanxin.name,

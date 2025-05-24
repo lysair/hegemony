@@ -6,7 +6,7 @@ drowningSkill:addEffect("cardskill", {
   can_use = Util.CanUse,
   target_num = 1,
   mod_target_filter = function(self, player, to_select, selected, card, distance_limited)
-    return to_select ~= player and #to_select:getCardIds(Player.Equip) > 0
+    return to_select ~= player and #to_select:getCardIds("e") > 0
   end,
   target_filter = Util.CardTargetFilter,
   on_effect = function(self, room, effect)
@@ -14,8 +14,8 @@ drowningSkill:addEffect("cardskill", {
     local to = effect.to
     local all_choices = {"sa__drowning_throw", "sa__drowning_damage:" .. from.id}
     local choices = table.clone(all_choices)
-    --if not table.find(to:getCardIds(Player.Equip), function(id) return not to:prohibitDiscard(Fk:getCardById(id)) end) then
-    if #to:getCardIds(Player.Equip) == 0 then
+    --if not table.find(to:getCardIds("e"), function(id) return not to:prohibitDiscard(Fk:getCardById(id)) end) then
+    if #to:getCardIds("e") == 0 then
       table.remove(choices, 1)
     end
     local choice = room:askToChoice(to, {choices = choices, all_choices = all_choices, skill_name = "sa__drowning", cancelable = false})
@@ -70,7 +70,7 @@ drowningSkill:addTest(function(room, me)
     }
   end)
   lu.assertEquals(comp2.hp, 3)
-  lu.assertEquals(#comp2:getCardIds(Player.Equip), 2)
+  lu.assertEquals(#comp2:getCardIds("e"), 2)
   FkTest.runInRoom(function()
     room:useCard {
       from = me,
@@ -79,7 +79,7 @@ drowningSkill:addTest(function(room, me)
     }
   end)
   lu.assertEquals(comp2.hp, 3)
-  lu.assertEquals(#comp2:getCardIds(Player.Equip), 0)
+  lu.assertEquals(#comp2:getCardIds("e"), 0)
 end)
 
 Fk:loadTranslationTable{

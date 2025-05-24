@@ -36,8 +36,12 @@ mingfa:addEffect(fk.TurnEnd, {
         skillName = mingfa.name,
       }
       if target:getHandcardNum() > 0 then
-        local cards = room:askForCardsChosen(player, target, 1, 1, "h", mingfa.name)
-        room:obtainCard(player, cards, false, fk.ReasonPrey)
+        local card = room:askToChooseCard(player, {
+          target = target,
+          flag = "h",
+          skill_name = mingfa.name,
+        })
+        room:obtainCard(player, card, false, fk.ReasonPrey)
       end
     elseif player:getHandcardNum() < target:getHandcardNum() then
       player:drawCards(math.min(target:getHandcardNum() - player:getHandcardNum(), 5), mingfa.name)

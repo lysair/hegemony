@@ -8,7 +8,7 @@ dujin:addEffect(fk.DrawNCards, {
     return target == player and player:hasSkill(dujin.name)
   end,
   on_use = function(self, event, target, player, data)
-    data.n = data.n + math.ceil(#player:getCardIds(Player.Equip) / 2)
+    data.n = data.n + math.ceil(#player:getCardIds("e") / 2)
   end,
 })
 dujin:addEffect(fk.GeneralRevealed, {

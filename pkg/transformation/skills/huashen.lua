@@ -39,7 +39,11 @@ huashen:addEffect(fk.AfterSkillEffect, {
         table.insert(choices, s)
       end
     end
-    local choice = player.room:askForChoice(player, choices, huashen.name, "#ld__huashen_remove")
+    local choice = player.room:askToChoice(player, {
+        choices = choices,
+        skill_name = huashen.name,
+        prompt = "#ld__huashen_remove",
+      })
     removeFangke(player, choice)
   end,
 })

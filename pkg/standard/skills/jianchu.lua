@@ -56,7 +56,7 @@ jianchu:addTest(function (room, me)
   end)
   lu.assertEquals(comp2:getHandcardNum(), 1)
   lu.assertEquals(comp2.hp, 4)
-  lu.assertEquals(comp2:getCardIds(Player.Hand)[1], 1)
+  lu.assertEquals(comp2:getCardIds("h")[1], 1)
 
   local axe = room:printCard("axe")
   FkTest.setNextReplies(me, {"1", tostring(axe.id)})
@@ -75,7 +75,7 @@ jianchu:addTest(function (room, me)
   end)
   lu.assertEquals(comp2:getHandcardNum(), 1)
   lu.assertEquals(comp2.hp, 3)
-  lu.assertEquals(comp2:getCardIds(Player.Hand)[1], jink.id)
+  lu.assertEquals(comp2:getCardIds("h")[1], jink.id)
 end)
 
 Fk:loadTranslationTable{
