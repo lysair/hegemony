@@ -23,7 +23,7 @@ wooden_ox_skill:addEffect("active", {
       if #targets > 0 then
         local tos = room:askToChoosePlayers(player, {cancelable = true, max_num = 1, min_num = 1, skill_name = wooden_ox_skill.name, targets = targets, prompt = "#wooden_ox-move" })
         if #tos > 0 then
-          room:moveCardTo(ox, Card.PlayerEquip, tos[1], fk.ReasonPut, wooden_ox_skill.name, nil, true, player.id, nil)
+          room:moveCardTo(ox, Card.PlayerEquip, tos[1], fk.ReasonPut, wooden_ox_skill.name, nil, true, player, nil)
         end
       end
     end
@@ -43,6 +43,7 @@ wooden_ox_skill:addEffect(fk.AfterCardsMove, {
             local room = player.room
             --注意到一次交换事件的过程中的两次移动事件都是在一个parent事件里进行的，因此查询到parent事件为止即可
             local move_event = room.logic:getCurrentEvent():findParent(GameEvent.MoveCards, true) ---@class GameEvent.MoveCards
+            if not move_event then return end
             local parent_event = move_event.parent
             local move_events = room.logic:getEventsByRule(GameEvent.MoveCards, 1, function (e)
               if e.id >= move_event.id or e.parent ~= parent_event then return false end
@@ -60,11 +61,11 @@ wooden_ox_skill:addEffect(fk.AfterCardsMove, {
                       if last_move.from == player and last_info.fromArea == Card.PlayerEquip then
                         if move.toArea == Card.PlayerEquip then
                           if move.to ~= player then
-                            event:setCostData(self, { tos = {move.to} })
+                            event:setCostData(self, {extra_data = move.to})
                             return true
                           end
                         else
-                          self.cost_data = nil
+                          event:setCostData(self, nil)
                           return true
                         end
                       end
@@ -76,17 +77,17 @@ wooden_ox_skill:addEffect(fk.AfterCardsMove, {
           elseif move.moveReason == fk.ReasonExchange then
             if move.from == player and info.fromArea == Card.PlayerEquip and move.toArea ~= Card.Processing then
               --适用于被修改了移动区域的情况，如销毁，虽然说原则上移至处理区是不应销毁的
-              self.cost_data = nil
+              event:setCostData(self, nil)
               return true
             end
           elseif move.from == player and info.fromArea == Card.PlayerEquip then
             if move.toArea == Card.PlayerEquip then
               if move.to ~= player then
-                event:setCostData(self, { tos = {move.to} })
+                event:setCostData(self, {extra_data = move.to})
                 return true
               end
             else
-              self.cost_data = nil
+              event:setCostData(self, nil)
               return true
             end
           end
@@ -98,17 +99,14 @@ wooden_ox_skill:addEffect(fk.AfterCardsMove, {
   on_use = function(self, event, _, player, data)
     local room = player.room
     local cards = player:getPile("$sa_carriage")
-    local to = event:getCostData(self).tos[1] ---@class ServerPlayer
-    if to then
-      to:addToPile("$sa_carriage", cards, false, "wooden_ox_skill", nil, {player.id, to.id})
+    if event:getCostData(self) ~= nil then
+      event:getCostData(self).extra_data:addToPile("$sa_carriage", cards, false, wooden_ox_skill.name)
     else
-      room:moveCardTo(cards, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, "wooden_ox_skill", nil, true)
+      room:moveCardTo(cards, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, wooden_ox_skill.name, nil, true)
     end
   end,
 })
 wooden_ox_skill:addEffect("filter", {
-  name = "#wooden_ox_filter",
-
   handly_cards = function (self, player)
     if player:hasSkill("wooden_ox_skill") then
       return player:getPile("$sa_carriage")
@@ -122,7 +120,6 @@ Fk:loadTranslationTable{
     "1. 出牌阶段限一次，你可将一张手牌置入仓廪（称为“辎”，“辎”数至多为5），然后你可将装备区里的【木牛流马】置入一名其他角色的装备区。<br/>" ..
     "2. 你可如手牌般使用或打出“辎”。<br/>" ..
     "3. 当你并非因交换而失去装备区里的【木牛流马】前，若目标区域不为其他角色的装备区，则当你失去此牌后，你将所有“辎”置入弃牌堆。<br/>"..
-    "<b>◆目前“辎”无法被转化使用</b>"..
     "◆“辎”对你可见。<br/>◆此延时类效果于你的死亡流程中能被执行。",
   ["wooden_ox_skill"] = "木牛",
   [":wooden_ox_skill"] = "出牌阶段限一次，你可将一张手牌置入仓廪（称为“辎”，“辎”数至多为5），然后你可将装备区里的【木牛流马】置入一名其他角色的装备区。你可如手牌般使用或打出“辎”。",
