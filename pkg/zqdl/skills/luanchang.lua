@@ -1,15 +1,15 @@
 
 
 local luanchang = fk.CreateSkill{
-  name = "zq__luanchang",
+  name = "zq_heg__luanchang",
   tags = { Skill.Limited },
 }
 
 Fk:loadTranslationTable{
-  ["zq__luanchang"] = "乱常",
-  [":zq__luanchang"] = "限定技，与你势力相同的角色受到过伤害的回合结束时，你可以令当前回合角色将所有手牌（至少一张）当【万箭齐发】使用。",
+  ["zq_heg__luanchang"] = "乱常",
+  [":zq_heg__luanchang"] = "限定技，与你势力相同的角色受到过伤害的回合结束时，你可以令当前回合角色将所有手牌（至少一张）当【万箭齐发】使用。",
 
-  ["#zq__luanchang-invoke"] = "乱常：是否令 %dest 将所有手牌当【万箭齐发】使用？",
+  ["#zq_heg__luanchang-invoke"] = "乱常：是否令 %dest 将所有手牌当【万箭齐发】使用？",
 }
 
 local H = require "packages/hegemony/util"
@@ -28,7 +28,7 @@ luanchang:addEffect(fk.TurnEnd, {
     local room = player.room
     if room:askToSkillInvoke(player, {
       skill_name = luanchang.name,
-      prompt = "#zq__luanchang-invoke::"..target.id,
+      prompt = "#zq_heg__luanchang-invoke::"..target.id,
     }) then
       event:setCostData(self, {tos = {target}})
       return true

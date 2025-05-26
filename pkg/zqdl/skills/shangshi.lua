@@ -1,13 +1,13 @@
 local shangshi = fk.CreateSkill{
-  name = "zq__shangshi",
+  name = "zq_heg__shangshi",
 }
 
 Fk:loadTranslationTable{
-  ["zq__shangshi"] = "伤逝",
-  [":zq__shangshi"] = "每名角色的回合结束时，你可以将手牌摸至已损失体力值。",
+  ["zq_heg__shangshi"] = "伤逝",
+  [":zq_heg__shangshi"] = "每名角色的回合结束时，你可以将手牌摸至已损失体力值。",
 
-  ["$zq__shangshi1"] = "伤我最深的，竟是你司马懿。",
-  ["$zq__shangshi2"] = "世间刀剑数万，何以情字伤人？",
+  ["$zq_heg__shangshi1"] = "伤我最深的，竟是你司马懿。",
+  ["$zq_heg__shangshi2"] = "世间刀剑数万，何以情字伤人？",
 }
 
 shangshi:addEffect(fk.TurnEnd, {

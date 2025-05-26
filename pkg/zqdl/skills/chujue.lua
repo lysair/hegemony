@@ -1,11 +1,11 @@
 local chujue = fk.CreateSkill {
-  name = "zq__chujue",
+  name = "zq_heg__chujue",
   tags = { Skill.Compulsory },
 }
 
 Fk:loadTranslationTable{
-  ["zq__chujue"] = "除绝",
-  [":zq__chujue"] = "锁定技，你对有角色死亡的势力的角色使用牌无次数限制且不能被这些角色响应。",
+  ["zq_heg__chujue"] = "除绝",
+  [":zq_heg__chujue"] = "锁定技，你对有角色死亡的势力的角色使用牌无次数限制且不能被这些角色响应。",
 }
 
 local H = require "packages/hegemony/util"

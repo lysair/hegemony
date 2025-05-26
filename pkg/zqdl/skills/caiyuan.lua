@@ -1,11 +1,11 @@
 local caiyuan = fk.CreateSkill{
-  name = "zq__caiyuan",
+  name = "zq_heg__caiyuan",
   tags = { Skill.Compulsory },
 }
 
 Fk:loadTranslationTable{
-  ["zq__caiyuan"] = "才媛",
-  [":zq__caiyuan"] = "锁定技，若你的武将牌均明置：回合开始时，你摸两张牌；当你受到伤害后，你暗置此武将牌。",
+  ["zq_heg__caiyuan"] = "才媛",
+  [":zq_heg__caiyuan"] = "锁定技，若你的武将牌均明置：回合开始时，你摸两张牌；当你受到伤害后，你暗置此武将牌。",
 }
 
 local H = require "packages/hegemony/util"

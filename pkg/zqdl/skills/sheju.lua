@@ -1,11 +1,11 @@
 local sheju = fk.CreateSkill{
-  name = "zq__shejus",
+  name = "zq_heg__shejus",
   tags = { Skill.Compulsory },
 }
 
 Fk:loadTranslationTable{
-  ["zq__shejus"] = "慑惧",
-  [":zq__shejus"] = "锁定技，当其他角色明置武将牌后，若其势力与你相同，你回复1点体力，然后弃置所有手牌。",
+  ["zq_heg__shejus"] = "慑惧",
+  [":zq_heg__shejus"] = "锁定技，当其他角色明置武将牌后，若其势力与你相同，你回复1点体力，然后弃置所有手牌。",
 }
 
 local H = require "packages/hegemony/util"

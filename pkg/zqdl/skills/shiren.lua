@@ -1,12 +1,12 @@
 local shiren = fk.CreateSkill{
-  name = "zq__shiren",
+  name = "zq_heg__shiren",
 }
 
 Fk:loadTranslationTable{
-  ["zq__shiren"] = "识人",
-  [":zq__shiren"] = "每回合限一次，当一名未确定势力的其他角色受到伤害后，你可以交给其两张牌并摸两张牌。",
+  ["zq_heg__shiren"] = "识人",
+  [":zq_heg__shiren"] = "每回合限一次，当一名未确定势力的其他角色受到伤害后，你可以交给其两张牌并摸两张牌。",
 
-  ["#zq__shiren-invoke"] = "识人：你可以交给 %dest 两张牌并摸两张牌",
+  ["#zq_heg__shiren-invoke"] = "识人：你可以交给 %dest 两张牌并摸两张牌",
 }
 
 shiren:addEffect(fk.Damaged, {
@@ -23,7 +23,7 @@ shiren:addEffect(fk.Damaged, {
       max_num = 2,
       include_equip = true,
       skill_name = shiren.name,
-      prompt = "#zq__shiren-invoke::"..target.id,
+      prompt = "#zq_heg__shiren-invoke::"..target.id,
       cancelable = true,
     })
     if #cards > 0 then

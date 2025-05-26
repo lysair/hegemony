@@ -1,11 +1,11 @@
 local zhuanzhan = fk.CreateSkill {
-  name = "zq__zhuanzhan",
+  name = "zq_heg__zhuanzhan",
   tags = { Skill.Compulsory },
 }
 
 Fk:loadTranslationTable{
-  ["zq__zhuanzhan"] = "转战",
-  [":zq__zhuanzhan"] = "锁定技，若场上有未确定势力的角色，你使用【杀】无距离限制且不能指定未确定势力的角色为目标。",
+  ["zq_heg__zhuanzhan"] = "转战",
+  [":zq_heg__zhuanzhan"] = "锁定技，若场上有未确定势力的角色，你使用【杀】无距离限制且不能指定未确定势力的角色为目标。",
 }
 
 zhuanzhan:addEffect("targetmod", {

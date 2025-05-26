@@ -1,9 +1,9 @@
 local yingshi_active = fk.CreateSkill{
-  name = "zq__yingshis_active",
+  name = "zq_heg__yingshis_active",
 }
 
 Fk:loadTranslationTable{
-  ["zq__yingshis_active"] = "鹰视",
+  ["zq_heg__yingshis_active"] = "鹰视",
 }
 
 yingshi_active:addEffect("active", {
@@ -12,7 +12,7 @@ yingshi_active:addEffect("active", {
   card_filter = Util.FalseFunc,
   target_filter = function(self, player, to_select, selected)
     local card = Fk:cloneCard("known_both")
-    card.skillName = "zq__yingshis"
+    card.skillName = "zq_heg__yingshis"
     if #selected == 0 then
       return to_select:canUse(card)
     elseif #selected == 1 then

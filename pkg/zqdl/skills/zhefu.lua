@@ -1,23 +1,23 @@
 local zhefu = fk.CreateSkill{
-  name = "zq__zhefu",
+  name = "zq_heg__zhefu",
 }
 
 Fk:loadTranslationTable{
-  ["zq__zhefu"] = "哲妇",
-  [":zq__zhefu"] = "当你于回合外使用或打出基本牌后，你可以观看一名同势力角色数不小于你的角色的手牌，然后你可以弃置其中一张基本牌。",
+  ["zq_heg__zhefu"] = "哲妇",
+  [":zq_heg__zhefu"] = "当你于回合外使用或打出基本牌后，你可以观看一名同势力角色数不小于你的角色的手牌，然后你可以弃置其中一张基本牌。",
 
-  ["#zq__zhefu-choose"] = "哲妇：你可以观看其中一名角色的手牌并弃置其中一张基本牌",
-  ["#zq__zhefu-discard"] = "哲妇：你可以弃置其中一张基本牌",
+  ["#zq_heg__zhefu-choose"] = "哲妇：你可以观看其中一名角色的手牌并弃置其中一张基本牌",
+  ["#zq_heg__zhefu-discard"] = "哲妇：你可以弃置其中一张基本牌",
 
-  ["$zq__zhefu1"] = "非我善妒，实乃汝之过也！",
-  ["$zq__zhefu2"] = "履行不端者，当有此罚。",
+  ["$zq_heg__zhefu1"] = "非我善妒，实乃汝之过也！",
+  ["$zq_heg__zhefu2"] = "履行不端者，当有此罚。",
 }
 
 local H = require "packages/hegemony/util"
 
 Fk:addPoxiMethod{
-  name = "zq__zhefu",
-  prompt = "#zq__zhefu-discard",
+  name = "zq_heg__zhefu",
+  prompt = "#zq_heg__zhefu-discard",
   card_filter = function(to_select, selected, data)
     return #selected == 0 and Fk:getCardById(to_select).type == Card.TypeBasic
   end,
@@ -45,7 +45,7 @@ local zhefu_spec = {
       max_num = 1,
       targets = targets,
       skill_name = zhefu.name,
-      prompt = "#zq__zhefu-choose",
+      prompt = "#zq_heg__zhefu-choose",
       cancelable = true,
     })
     if #to > 0 then

@@ -1,12 +1,12 @@
 local gongzhi = fk.CreateSkill{
-  name = "zq__gongzhi",
+  name = "zq_heg__gongzhi",
 }
 
 Fk:loadTranslationTable{
-  ["zq__gongzhi"] = "共执",
-  [":zq__gongzhi"] = "你可以跳过摸牌阶段，令势力与你相同的角色依次摸一张牌，直到共计摸四张牌。",
+  ["zq_heg__gongzhi"] = "共执",
+  [":zq_heg__gongzhi"] = "你可以跳过摸牌阶段，令势力与你相同的角色依次摸一张牌，直到共计摸四张牌。",
 
-  ["#zq__gongzhi-invoke"] = "共执：是否跳过摸牌阶段，令势力与你相同的角色摸共计四张牌？",
+  ["#zq_heg__gongzhi-invoke"] = "共执：是否跳过摸牌阶段，令势力与你相同的角色摸共计四张牌？",
 }
 
 local H = require "packages/hegemony/util"
@@ -20,7 +20,7 @@ gongzhi:addEffect(fk.EventPhaseChanging, {
   on_cost = function (self, event, target, player, data)
     return player.room:askToSkillInvoke(player, {
       skill_name = gongzhi.name,
-      prompt = "#zq__gongzhi-invoke",
+      prompt = "#zq_heg__gongzhi-invoke",
     })
   end,
   on_use = function(self, event, target, player, data)

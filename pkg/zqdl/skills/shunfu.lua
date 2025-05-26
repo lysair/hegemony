@@ -1,20 +1,20 @@
 
 local shunfu = fk.CreateSkill{
-  name = "zq__shunfu",
+  name = "zq_heg__shunfu",
   tags = { Skill.Limited },
 }
 
 Fk:loadTranslationTable{
-  ["zq__shunfu"] = "瞬覆",
-  [":zq__shunfu"] = "限定技，出牌阶段，你可以令至多三名未确定势力的其他角色各摸两张牌，然后这些角色依次可以使用一张【杀】（无距离限制且不可被响应）。",
+  ["zq_heg__shunfu"] = "瞬覆",
+  [":zq_heg__shunfu"] = "限定技，出牌阶段，你可以令至多三名未确定势力的其他角色各摸两张牌，然后这些角色依次可以使用一张【杀】（无距离限制且不可被响应）。",
 
-  ["#zq__shunfu"] = "瞬覆：令至多三名未确定势力的角色各摸两张牌且可以使用一张【杀】",
-  ["#zq__shunfu-slash"] = "瞬覆：你可以使用一张无距离限制且不可被响应的【杀】",
+  ["#zq_heg__shunfu"] = "瞬覆：令至多三名未确定势力的角色各摸两张牌且可以使用一张【杀】",
+  ["#zq_heg__shunfu-slash"] = "瞬覆：你可以使用一张无距离限制且不可被响应的【杀】",
 }
 
 shunfu:addEffect("active", {
   anim_type = "offensive",
-  prompt = "#zq__shunfu",
+  prompt = "#zq_heg__shunfu",
   card_num = 0,
   min_target_num = 1,
   max_target_num = 3,
@@ -38,7 +38,7 @@ shunfu:addEffect("active", {
         local use = room:askToUseCard(p, {
           skill_name = shunfu.name,
           pattern = "slash",
-          prompt = "#zq__shunfu-slash",
+          prompt = "#zq_heg__shunfu-slash",
           cancelable = true,
           extra_data = {
             bypass_distances = true,

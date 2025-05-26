@@ -339,8 +339,10 @@ function HegLogic:chooseGenerals()
       kingdoms = table.filter(kingdoms, function(k) return curGeneral.kingdom == k or curGeneral.subkingdom == k end)
     end
 
-    if curGeneral == "mouxusheng" or Fk.generals[p:getMark("__heg_general")] == "mouxusheng" then -- 方便测
-      table.insertIfNeed(kingdoms, "wu")
+    if not table.contains(allKingdoms, "wu") and
+      (curGeneral == "mouxusheng" or p:getMark("__heg_general") == "mouxusheng") then -- 方便测
+        table.insert(kingdoms, "wu")
+        table.insert(allKingdoms, "wu")
     end
 
     req:setData(p, {kingdoms, allKingdoms, "AskForKingdom", "#ChooseHegInitialKingdom"})
@@ -435,9 +437,10 @@ function HegLogic:attachSkillToPlayers()
     p:doNotify("SetPlayerMark", json.encode{ p.id, "@seat", "seat#" .. tostring(p.seat)})
 
     local general = Fk.generals[p:getMark("__heg_general")]
-    local skills = table.connect(general.skills, table.map(general.other_skills, Util.Name2SkillMapper))
+    local skills = general:getSkillNameList(true)
     local hasRevealSkill = false
-    for _, s in ipairs(skills) do
+    for _, sn in ipairs(skills) do
+      local s = Fk.skills[sn]
       if not s:hasTag(Skill.DeputyPlace) then
         addHegSkill(p, s, room)
         if not hasRevealSkill and s:hasTag(Skill.Compulsory) then
@@ -448,8 +451,9 @@ function HegLogic:attachSkillToPlayers()
 
     local deputy = Fk.generals[p:getMark("__heg_deputy")]
     if deputy then
-      skills = table.connect(deputy.skills, table.map(deputy.other_skills, Util.Name2SkillMapper))
-      for _, s in ipairs(skills) do
+      skills = deputy:getSkillNameList(true)
+      for _, sn in ipairs(skills) do
+        local s = Fk.skills[sn]
         if not s:hasTag(Skill.MainPlace) then
           addHegSkill(p, s, room)
           if not hasRevealSkill and s:hasTag(Skill.Compulsory) then

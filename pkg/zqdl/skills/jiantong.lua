@@ -1,18 +1,18 @@
 local jiantong = fk.CreateSkill{
-  name = "zq__jiantong",
+  name = "zq_heg__jiantong",
 }
 
 Fk:loadTranslationTable{
-  ["zq__jiantong"] = "监统",
-  [":zq__jiantong"] = "当你受到伤害后，你可以观看一名角色的手牌，然后你可以用装备区内的一张牌交换其中至多两张牌。",
+  ["zq_heg__jiantong"] = "监统",
+  [":zq_heg__jiantong"] = "当你受到伤害后，你可以观看一名角色的手牌，然后你可以用装备区内的一张牌交换其中至多两张牌。",
 
-  ["#zq__jiantong-choose"] = "监统：观看一名角色的手牌，你可以用一张装备交换其中至多两张牌",
-  ["#zq__jiantong-exchange"] = "监统：你可以用一张装备交换其中至多两张牌",
+  ["#zq_heg__jiantong-choose"] = "监统：观看一名角色的手牌，你可以用一张装备交换其中至多两张牌",
+  ["#zq_heg__jiantong-exchange"] = "监统：你可以用一张装备交换其中至多两张牌",
 }
 
 Fk:addPoxiMethod{
-  name = "zq__jiantong",
-  prompt = "#zq__jiantong-exchange",
+  name = "zq_heg__jiantong",
+  prompt = "#zq_heg__jiantong-exchange",
   card_filter = function(to_select, selected, data)
     local equips = data[2][2]
     if #equips == 0 then
@@ -57,7 +57,7 @@ jiantong:addEffect(fk.Damaged, {
       max_num = 1,
       targets = targets,
       skill_name = jiantong.name,
-      prompt = "#zq__jiantong-choose",
+      prompt = "#zq_heg__jiantong-choose",
       cancelable = true,
     })
     if #to > 0 then

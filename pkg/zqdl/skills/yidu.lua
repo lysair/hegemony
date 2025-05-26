@@ -1,16 +1,16 @@
 local yidu = fk.CreateSkill{
-  name = "zq__yidu",
+  name = "zq_heg__yidu",
 }
 
 Fk:loadTranslationTable{
-  ["zq__yidu"] = "遗毒",
-  [":zq__yidu"] = "当你使用伤害类牌后，你可以展示一名未受到此牌伤害的目标角色至多两张手牌，若颜色均相同，你弃置这些牌。",
+  ["zq_heg__yidu"] = "遗毒",
+  [":zq_heg__yidu"] = "当你使用伤害类牌后，你可以展示一名未受到此牌伤害的目标角色至多两张手牌，若颜色均相同，你弃置这些牌。",
 
-  ["#zq__yidu-invoke"] = "遗毒：你可以展示 %dest 至多两张手牌，若颜色相同则全部弃置",
-  ["#zq__yidu-choose"] = "遗毒：你可以展示一名目标至多两张手牌，若颜色相同则全部弃置",
+  ["#zq_heg__yidu-invoke"] = "遗毒：你可以展示 %dest 至多两张手牌，若颜色相同则全部弃置",
+  ["#zq_heg__yidu-choose"] = "遗毒：你可以展示一名目标至多两张手牌，若颜色相同则全部弃置",
 
-  ["$zq__yidu1"] = "彼之砒霜，吾之蜜糖。",
-  ["$zq__yidu2"] = "巧动心思，以遗他人。",
+  ["$zq_heg__yidu1"] = "彼之砒霜，吾之蜜糖。",
+  ["$zq_heg__yidu2"] = "巧动心思，以遗他人。",
 }
 
 yidu:addEffect(fk.CardUseFinished, {
@@ -31,7 +31,7 @@ yidu:addEffect(fk.CardUseFinished, {
         max_num = 1,
         targets = targets,
         skill_name = yidu.name,
-        prompt = "#zq__yidu-choose",
+        prompt = "#zq_heg__yidu-choose",
         cancelable = true,
       })
       if #to > 0 then
@@ -40,7 +40,7 @@ yidu:addEffect(fk.CardUseFinished, {
       end
     elseif room:askToSkillInvoke(player, {
       skill_name = yidu.name,
-      prompt = "#zq__yidu-invoke::"..targets[1].id,
+      prompt = "#zq_heg__yidu-invoke::"..targets[1].id,
     }) then
       event:setCostData(self, {tos = targets})
       return true

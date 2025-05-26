@@ -1,15 +1,15 @@
 
 
 local chengxi = fk.CreateSkill{
-  name = "zq__chengxi",
+  name = "zq_heg__chengxi",
 }
 
 Fk:loadTranslationTable{
-  ["zq__chengxi"] = "乘隙",
-  [":zq__chengxi"] = "准备阶段，你可以令一名角色视为使用一张【以逸待劳】，结算结束后，若因此【以逸待劳】弃置的牌中包含非基本牌，"..
+  ["zq_heg__chengxi"] = "乘隙",
+  [":zq_heg__chengxi"] = "准备阶段，你可以令一名角色视为使用一张【以逸待劳】，结算结束后，若因此【以逸待劳】弃置的牌中包含非基本牌，"..
   "此【以逸待劳】的使用者对目标各造成1点伤害。",
 
-  ["#zq__chengxi-choose"] = "乘隙：令一名角色视为使用【以逸待劳】，若因此弃置非基本牌，则所有目标受到伤害",
+  ["#zq_heg__chengxi-choose"] = "乘隙：令一名角色视为使用【以逸待劳】，若因此弃置非基本牌，则所有目标受到伤害",
 }
 
 local H = require "packages/hegemony/util"
@@ -32,7 +32,7 @@ chengxi:addEffect(fk.EventPhaseStart, {
       max_num = 1,
       targets = targets,
       skill_name = chengxi.name,
-      prompt = "#zq__chengxi-choose",
+      prompt = "#zq_heg__chengxi-choose",
       cancelable = true,
     })
     if #to > 0 then
@@ -47,7 +47,7 @@ chengxi:addEffect(fk.EventPhaseStart, {
       return H.compareKingdomWith(p, to)
     end)
     local use = room:useVirtualCard("await_exhausted", nil, to, targets, chengxi.name)
-    if use and use.extra_data and use.extra_data.zq__chengxi then
+    if use and use.extra_data and use.extra_data.zq_heg__chengxi then
       room:sortByAction(use.tos)
       for _, p in ipairs(use.tos) do
         if not p.dead then
@@ -80,7 +80,7 @@ chengxi:addEffect(fk.AfterCardsMove, {
             local use_event = player.room.logic:getCurrentEvent():findParent(GameEvent.UseCard)
             if use_event then
               use_event.data.extra_data = use_event.data.extra_data or {}
-              use_event.data.extra_data.zq__chengxi = true
+              use_event.data.extra_data.zq_heg__chengxi = true
             end
           end
         end

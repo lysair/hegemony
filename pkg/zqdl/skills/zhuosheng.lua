@@ -1,5 +1,5 @@
 local zhuosheng = fk.CreateSkill{
-  name = "zq__zhuosheng",
+  name = "zq_heg__zhuosheng",
 }
 
 zhuosheng:addEffect(fk.AfterCardsMove, {
@@ -12,7 +12,7 @@ zhuosheng:addEffect(fk.AfterCardsMove, {
     end
   end,
   on_use = function(self, event, target, player, data)
-    player.room:addPlayerMark(player, "@@zq__zhuosheng-turn", 1)
+    player.room:addPlayerMark(player, "@@zq_heg__zhuosheng-turn", 1)
   end,
 })
 
@@ -20,11 +20,11 @@ zhuosheng:addEffect(fk.PreCardUse, {
   is_delay_effect = true,
   mute = true,
   can_trigger = function (self, event, target, player, data)
-    return player:getMark("@@zq__zhuosheng-turn") ~= 0 and target == player
+    return player:getMark("@@zq_heg__zhuosheng-turn") ~= 0 and target == player
   end,
   on_use = function (self, event, target, player, data)
     data.additionalDamage = (data.additionalDamage or 0) + 1
-    player.room:setPlayerMark(player, "@@zq__zhuosheng-turn", 0)
+    player.room:setPlayerMark(player, "@@zq_heg__zhuosheng-turn", 0)
   end
 })
 
@@ -56,10 +56,10 @@ zhuosheng:addTest(function (room, me)
 end)
 
 Fk:loadTranslationTable{
-  ["zq__zhuosheng"] = "擢升",
-  [":zq__zhuosheng"] = "当你得到牌后，你可以令你本回合使用的下一张牌的伤害值基数+1（不能叠加）。",
+  ["zq_heg__zhuosheng"] = "擢升",
+  [":zq_heg__zhuosheng"] = "当你得到牌后，你可以令你本回合使用的下一张牌的伤害值基数+1（不能叠加）。",
 
-  ["@@zq__zhuosheng-turn"] = "擢升",
+  ["@@zq_heg__zhuosheng-turn"] = "擢升",
 }
 
 return zhuosheng

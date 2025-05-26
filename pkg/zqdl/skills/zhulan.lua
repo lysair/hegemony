@@ -1,13 +1,13 @@
 
 local zhulan = fk.CreateSkill{
-  name = "zq__zhulan",
+  name = "zq_heg__zhulan",
 }
 
 Fk:loadTranslationTable{
-  ["zq__zhulan"] = "助澜",
-  [":zq__zhulan"] = "当一名其他角色受到伤害时，若伤害来源与其势力相同，你可以弃置一张牌令此伤害+1。",
+  ["zq_heg__zhulan"] = "助澜",
+  [":zq_heg__zhulan"] = "当一名其他角色受到伤害时，若伤害来源与其势力相同，你可以弃置一张牌令此伤害+1。",
 
-  ["#zq__zhulan-invoke"] = "助澜：你可以弃置一张牌，令 %dest 受到的伤害+1",
+  ["#zq_heg__zhulan-invoke"] = "助澜：你可以弃置一张牌，令 %dest 受到的伤害+1",
 }
 
 local H = require "packages/hegemony/util"
@@ -27,7 +27,7 @@ zhulan:addEffect(fk.DamageInflicted, {
       include_equip = true,
       skill_name = zhulan.name,
       cancelable = true,
-      prompt = "#zq__zhulan-invoke::" .. target.id,
+      prompt = "#zq_heg__zhulan-invoke::" .. target.id,
       skip = true,
     })
     if #card > 0 then

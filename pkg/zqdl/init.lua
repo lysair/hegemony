@@ -6,122 +6,122 @@ extension:loadSkillSkelsByPath("./packages/hegemony/pkg/zqdl/skills")
 
 Fk:loadTranslationTable{
   ["zqdl"] = "紫气东来",
-  ["zq"] = "紫气",
+  ["zq_heg"] = "紫气",
 }
 
-General:new(extension, "zq__simayi", "jin", 4):addSkills { "zq__yingshis", "zq__shunfu" }
+General:new(extension, "zq_heg__simayi", "jin", 4):addSkills { "zq_heg__yingshis", "zq_heg__shunfu" }
 Fk:loadTranslationTable{
-  ["zq__simayi"] = "司马懿",
-  ["#zq__simayi"] = "应期佐命",
-  ["illustrator:zq__simayi"] = "小罗没想好",
+  ["zq_heg__simayi"] = "司马懿",
+  ["#zq_heg__simayi"] = "应期佐命",
+  ["illustrator:zq_heg__simayi"] = "小罗没想好",
 }
 
-local zhangchunhua = General:new(extension, "zq__zhangchunhua", "jin", 3, 3, General.Female)
-zhangchunhua:addSkills { "zq__ejue", "zq__shangshi" }
-zhangchunhua:addCompanions("zq__simayi")
+local zhangchunhua = General:new(extension, "zq_heg__zhangchunhua", "jin", 3, 3, General.Female)
+zhangchunhua:addSkills { "zq_heg__ejue", "zq_heg__shangshi" }
+zhangchunhua:addCompanions("zq_heg__simayi")
 Fk:loadTranslationTable{
-  ["zq__zhangchunhua"] = "张春华",
-  ["#zq__zhangchunhua"] = "锋刃染霜",
-  ["illustrator:zq__zhangchunhua"] = "小罗没想好",
+  ["zq_heg__zhangchunhua"] = "张春华",
+  ["#zq_heg__zhangchunhua"] = "锋刃染霜",
+  ["illustrator:zq_heg__zhangchunhua"] = "小罗没想好",
 
-  ["~zq__zhangchunhua"] = "冷眸残情，孤苦为一人。",
+  ["~zq_heg__zhangchunhua"] = "冷眸残情，孤苦为一人。",
 }
 
---General:new(extension, "zq__simashi", "jin", 4):addSkills { "zq__yimie", "zq__ruilue" }
+--General:new(extension, "zq_heg__simashi", "jin", 4):addSkills { "zq_heg__yimie", "zq_heg__ruilue" }
 Fk:loadTranslationTable{
-  ["zq__simashi"] = "司马师",
-  ["#zq__simashi"] = "睚眥侧目",
-  ["illustrator:zq__simashi"] = "拉布拉卡",
+  ["zq_heg__simashi"] = "司马师",
+  ["#zq_heg__simashi"] = "睚眥侧目",
+  ["illustrator:zq_heg__simashi"] = "拉布拉卡",
 }
 
-General:new(extension, "zq__simazhao", "jin", 3):addSkills { "zq__zhaoran", "zq__beiluan" }
+General:new(extension, "zq_heg__simazhao", "jin", 3):addSkills { "zq_heg__zhaoran", "zq_heg__beiluan" }
 Fk:loadTranslationTable{
-  ["zq__simazhao"] = "司马昭",
-  ["#zq__simazhao"] = "天下畏威",
-  ["illustrator:zq__simazhao"] = "君桓文化",
+  ["zq_heg__simazhao"] = "司马昭",
+  ["#zq_heg__simazhao"] = "天下畏威",
+  ["illustrator:zq_heg__simazhao"] = "君桓文化",
 }
 
-General:new(extension, "zq__simazhou", "jin", 4):addSkills { "zq__pojing" }
+General:new(extension, "zq_heg__simazhou", "jin", 4):addSkills { "zq_heg__pojing" }
 Fk:loadTranslationTable{
-  ["zq__simazhou"] = "司马伷",
-  ["#zq__simazhou"] = "温恭的狻猊",
-  ["illustrator:zq__simazhou"] = "凝聚永恒",
+  ["zq_heg__simazhou"] = "司马伷",
+  ["#zq_heg__simazhou"] = "温恭的狻猊",
+  ["illustrator:zq_heg__simazhou"] = "凝聚永恒",
 }
 
-General:new(extension, "zq__simaliang", "jin", 4):addSkills { "zq__gongzhi", "zq__shejus" }
+General:new(extension, "zq_heg__simaliang", "jin", 4):addSkills { "zq_heg__gongzhi", "zq_heg__shejus" }
 Fk:loadTranslationTable{
-  ["zq__simaliang"] = "司马亮",
-  ["#zq__simaliang"] = "蒲牢惊啼",
-  ["illustrator:zq__simaliang"] = "小罗没想好",
+  ["zq_heg__simaliang"] = "司马亮",
+  ["#zq_heg__simaliang"] = "蒲牢惊啼",
+  ["illustrator:zq_heg__simaliang"] = "小罗没想好",
 }
 
-General:new(extension, "zq__simalun", "jin", 4):addSkills { "zq__zhulan", "zq__luanchang" }
+General:new(extension, "zq_heg__simalun", "jin", 4):addSkills { "zq_heg__zhulan", "zq_heg__luanchang" }
 Fk:loadTranslationTable{
-  ["zq__simalun"] = "司马伦",
-  ["#zq__simalun"] = "螭吻裂冠",
-  ["illustrator:zq__simalun"] = "荆芥",
+  ["zq_heg__simalun"] = "司马伦",
+  ["#zq_heg__simalun"] = "螭吻裂冠",
+  ["illustrator:zq_heg__simalun"] = "荆芥",
 }
 
-General:new(extension, "zq__shibao", "jin", 4):addSkill("zq__zhuosheng")
+General:new(extension, "zq_heg__shibao", "jin", 4):addSkill("zq_heg__zhuosheng")
 Fk:loadTranslationTable{
-  ["zq__shibao"] = "石苞",
-  ["#zq__shibao"] = "经国之才",
-  ["illustrator:zq__shibao"] = "凝聚永恒",
+  ["zq_heg__shibao"] = "石苞",
+  ["#zq_heg__shibao"] = "经国之才",
+  ["illustrator:zq_heg__shibao"] = "凝聚永恒",
 }
 
-local yanghuiyu = General:new(extension, "zq__yanghuiyu", "jin", 3, 3, General.Female)
-yanghuiyu:addSkills { "zq__ciwei", "zq__caiyuan" }
-yanghuiyu:addCompanions("zq__simashi")
+local yanghuiyu = General:new(extension, "zq_heg__yanghuiyu", "jin", 3, 3, General.Female)
+yanghuiyu:addSkills { "zq_heg__ciwei", "zq_heg__caiyuan" }
+yanghuiyu:addCompanions("zq_heg__simashi")
 Fk:loadTranslationTable{
-  ["zq__yanghuiyu"] = "羊徽瑜",
-  ["#zq__yanghuiyu"] = "克明礼教",
-  ["illustrator:zq__yanghuiyu"] = "Jzeo",
+  ["zq_heg__yanghuiyu"] = "羊徽瑜",
+  ["#zq_heg__yanghuiyu"] = "克明礼教",
+  ["illustrator:zq_heg__yanghuiyu"] = "Jzeo",
 }
 
-local wangyuanji = General:new(extension, "zq__wangyuanji", "jin", 3, 3, General.Female)
-wangyuanji:addSkills { "zq__yanxi", "zq__shiren" }
-wangyuanji:addCompanions("zq__simazhao")
+local wangyuanji = General:new(extension, "zq_heg__wangyuanji", "jin", 3, 3, General.Female)
+wangyuanji:addSkills { "zq_heg__yanxi", "zq_heg__shiren" }
+wangyuanji:addCompanions("zq_heg__simazhao")
 Fk:loadTranslationTable{
-  ["zq__wangyuanji"] = "王元姬",
-  ["#zq__wangyuanji"] = "垂心万物",
-  ["illustrator:zq__wangyuanji"] = "六道目",
+  ["zq_heg__wangyuanji"] = "王元姬",
+  ["#zq_heg__wangyuanji"] = "垂心万物",
+  ["illustrator:zq_heg__wangyuanji"] = "六道目",
 }
 
-General:new(extension, "zq__weiguan", "jin", 3):addSkills { "zq__chengxi", "zq__jiantong" }
+General:new(extension, "zq_heg__weiguan", "jin", 3):addSkills { "zq_heg__chengxi", "zq_heg__jiantong" }
 Fk:loadTranslationTable{
-  ["zq__weiguan"] = "卫瓘",
-  ["#zq__weiguan"] = "忠允清识",
-  ["illustrator:zq__weiguan"] = "Karneval",
+  ["zq_heg__weiguan"] = "卫瓘",
+  ["#zq_heg__weiguan"] = "忠允清识",
+  ["illustrator:zq_heg__weiguan"] = "Karneval",
 }
 
-General:new(extension, "zq__jiachong", "jin", 3):addSkills { "zq__chujue", "zq__jianzhi" }
+General:new(extension, "zq_heg__jiachong", "jin", 3):addSkills { "zq_heg__chujue", "zq_heg__jianzhi" }
 Fk:loadTranslationTable{
-  ["zq__jiachong"] = "贾充",
-  ["#zq__jiachong"] = "悖逆篡弑",
-  ["illustrator:zq__jiachong"] = "游漫美绘",
+  ["zq_heg__jiachong"] = "贾充",
+  ["#zq_heg__jiachong"] = "悖逆篡弑",
+  ["illustrator:zq_heg__jiachong"] = "游漫美绘",
 }
 
-local guohuaij = General:new(extension, "zq__guohuaij", "jin", 3, 3, General.Female)
-guohuaij:addSkills { "zq__zhefu", "zq__yidu" }
-guohuaij:addCompanions("zq__jiachong")
+local guohuaij = General:new(extension, "zq_heg__guohuaij", "jin", 3, 3, General.Female)
+guohuaij:addSkills { "zq_heg__zhefu", "zq_heg__yidu" }
+guohuaij:addCompanions("zq_heg__jiachong")
 Fk:loadTranslationTable{
-  ["zq__guohuaij"] = "郭槐",
-  ["#zq__guohuaij"] = "嫉贤妒能",
-  ["illustrator:zq__guohuaij"] = "凝聚永恒",
+  ["zq_heg__guohuaij"] = "郭槐",
+  ["#zq_heg__guohuaij"] = "嫉贤妒能",
+  ["illustrator:zq_heg__guohuaij"] = "凝聚永恒",
 }
 
-General:new(extension, "zq__wangjun", "jin", 4):addSkill("zq__chengliu")
+General:new(extension, "zq_heg__wangjun", "jin", 4):addSkill("zq_heg__chengliu")
 Fk:loadTranslationTable{
-  ["zq__wangjun"] = "王濬",
-  ["#zq__wangjun"] = "顺流长驱",
-  ["illustrator:zq__wangjun"] = "荆芥",
+  ["zq_heg__wangjun"] = "王濬",
+  ["#zq_heg__wangjun"] = "顺流长驱",
+  ["illustrator:zq_heg__wangjun"] = "荆芥",
 }
 
-General:new(extension, "zq__malong", "jin", 4):addSkills{ "zq__zhuanzhan", "zq__xunjim" }
+General:new(extension, "zq_heg__malong", "jin", 4):addSkills{ "zq_heg__zhuanzhan", "zq_heg__xunjim" }
 Fk:loadTranslationTable{
-  ["zq__malong"] = "马隆",
-  ["#zq__malong"] = "困局诡阵",
-  ["illustrator:zq__malong"] = "荆芥",
+  ["zq_heg__malong"] = "马隆",
+  ["#zq_heg__malong"] = "困局诡阵",
+  ["illustrator:zq_heg__malong"] = "荆芥",
 }
 
 return extension

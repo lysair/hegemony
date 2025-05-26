@@ -1,12 +1,12 @@
 local xunji = fk.CreateSkill{
-  name = "zq__xunjim",
+  name = "zq_heg__xunjim",
 }
 
 Fk:loadTranslationTable{
-  ["zq__xunjim"] = "勋济",
-  [":zq__xunjim"] = "你使用【杀】可以多选择至多两名角色为目标，此【杀】结算结束后，若对所有目标角色均造成伤害，此【杀】不计次数。",
+  ["zq_heg__xunjim"] = "勋济",
+  [":zq_heg__xunjim"] = "你使用【杀】可以多选择至多两名角色为目标，此【杀】结算结束后，若对所有目标角色均造成伤害，此【杀】不计次数。",
 
-  ["#zq__xunjim-choose"] = "誓仇：你可以为此%arg额外指定至多两个目标",
+  ["#zq_heg__xunjim-choose"] = "誓仇：你可以为此%arg额外指定至多两个目标",
 }
 
 xunji:addEffect(fk.AfterCardTargetDeclared, {
@@ -22,7 +22,7 @@ xunji:addEffect(fk.AfterCardTargetDeclared, {
       max_num = 2,
       targets = data:getExtraTargets(),
       skill_name = xunji.name,
-      prompt = "#zq__xunjim-choose:::"..data.card:toLogString(),
+      prompt = "#zq_heg__xunjim-choose:::"..data.card:toLogString(),
       cancelable = true,
     })
     if #tos > 0 then
@@ -37,7 +37,7 @@ xunji:addEffect(fk.AfterCardTargetDeclared, {
     end
     if not data.extraUse then
       data.extra_data = data.extra_data or {}
-      data.extra_data.zq__xunjim = true
+      data.extra_data.zq_heg__xunjim = true
     end
   end,
 })
@@ -45,7 +45,7 @@ xunji:addEffect(fk.AfterCardTargetDeclared, {
 xunji:addEffect(fk.CardUseFinished, {
   can_refresh = function (self, event, target, player, data)
     return target == player and data.card.trueName == "slash" and
-      data.extra_data and data.extra_data.zq__xunjim and data.damageDealt and
+      data.extra_data and data.extra_data.zq_heg__xunjim and data.damageDealt and
       table.every(data.tos, function (p)
         return data.damageDealt[p] and data.damageDealt[p] > 0
       end) and

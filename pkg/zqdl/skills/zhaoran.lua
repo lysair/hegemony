@@ -1,12 +1,12 @@
 local zhaoran = fk.CreateSkill{
-  name = "zq__zhaoran",
+  name = "zq_heg__zhaoran",
 }
 
 Fk:loadTranslationTable{
-  ["zq__zhaoran"] = "昭然",
-  [":zq__zhaoran"] = "出牌阶段开始前，你可以摸X张牌（X为4-场上势力数），然后未确定势力的角色可以明置一张武将牌，令你结束此回合。",
+  ["zq_heg__zhaoran"] = "昭然",
+  [":zq_heg__zhaoran"] = "出牌阶段开始前，你可以摸X张牌（X为4-场上势力数），然后未确定势力的角色可以明置一张武将牌，令你结束此回合。",
 
-  ["#zq__zhaoran-ask"] = "昭然：是否明置一张武将牌，令 %src 结束此回合？",
+  ["#zq_heg__zhaoran-ask"] = "昭然：是否明置一张武将牌，令 %src 结束此回合？",
 }
 
 local H = require "packages/hegemony/util"
@@ -36,7 +36,7 @@ zhaoran:addEffect(fk.EventPhaseChanging, {
       if not p.dead and p.kingdom == "unknown" and
       H.askToRevealGenerals(p, {
         skill_name = zhaoran.name,
-        prompt = "#zq__zhaoran-ask:"..player.id,
+        prompt = "#zq_heg__zhaoran-ask:"..player.id,
       }) ~= "Cancel" then
         data.skipped = true
         room:endTurn()

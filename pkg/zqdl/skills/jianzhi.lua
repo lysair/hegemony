@@ -1,12 +1,12 @@
 local jianzhi = fk.CreateSkill{
-  name = "zq__jianzhi",
+  name = "zq_heg__jianzhi",
 }
 
 Fk:loadTranslationTable{
-  ["zq__jianzhi"] = "奸志",
-  [":zq__jianzhi"] = "当你造成致命伤害时，你可以弃置所有手牌（至少一张），然后本回合下次击杀奖励改为三倍。",
+  ["zq_heg__jianzhi"] = "奸志",
+  [":zq_heg__jianzhi"] = "当你造成致命伤害时，你可以弃置所有手牌（至少一张），然后本回合下次击杀奖励改为三倍。",
 
-  ["#zq__jianzhi-invoke"] = "奸志：是否弃置所有手牌，令本回合下次击杀奖励改为三倍？",
+  ["#zq_heg__jianzhi-invoke"] = "奸志：是否弃置所有手牌，令本回合下次击杀奖励改为三倍？",
 }
 
 jianzhi:addEffect(fk.DamageCaused, {
@@ -26,14 +26,14 @@ jianzhi:addEffect(fk.DamageCaused, {
         include_equip = false,
         skill_name = jianzhi.name,
         pattern = "false",
-        prompt = "#zq__jianzhi-invoke",
+        prompt = "#zq_heg__jianzhi-invoke",
         cancelable = true,
       })
       return
     end
     return room:askToSkillInvoke(player, {
       skill_name = jianzhi.name,
-      prompt = "#zq__jianzhi-invoke",
+      prompt = "#zq_heg__jianzhi-invoke",
     })
   end,
   on_use = function(self, event, target, player, data)

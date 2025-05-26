@@ -1,18 +1,18 @@
 local yanxi = fk.CreateSkill{
-  name = "zq__yanxi",
+  name = "zq_heg__yanxi",
 }
 
 Fk:loadTranslationTable{
-  ["zq__yanxi"] = "宴戏",
-  [":zq__yanxi"] = "准备阶段，你可以选择至多三名其他势力的角色各一张手牌，这些角色依次声明一个牌名，然后你展示并获得其中一张牌，"..
+  ["zq_heg__yanxi"] = "宴戏",
+  [":zq_heg__yanxi"] = "准备阶段，你可以选择至多三名其他势力的角色各一张手牌，这些角色依次声明一个牌名，然后你展示并获得其中一张牌，"..
   "若获得的牌与其声明的牌名不同，你再获得其余被选择的牌。",
 
-  ["#zq__yanxi-choose"] = "宴戏：选择至多三名角色各一张手牌",
-  ["#zq__yanxi-choice"] = "宴戏：%src 选择了你的%arg，请声明一个牌名",
-  ["#zq__yanxi-prey"] = "宴戏：获得其中一张你选择的牌，若与其声明的牌名不同，你获得所有选择的牌",
+  ["#zq_heg__yanxi-choose"] = "宴戏：选择至多三名角色各一张手牌",
+  ["#zq_heg__yanxi-choice"] = "宴戏：%src 选择了你的%arg，请声明一个牌名",
+  ["#zq_heg__yanxi-prey"] = "宴戏：获得其中一张你选择的牌，若与其声明的牌名不同，你获得所有选择的牌",
 
-  ["$zq__yanxi1"] = "宴会嬉趣，其乐融融。",
-  ["$zq__yanxi2"] = "宴中趣玩，得遇知己。",
+  ["$zq_heg__yanxi1"] = "宴会嬉趣，其乐融融。",
+  ["$zq_heg__yanxi2"] = "宴中趣玩，得遇知己。",
 }
 
 local U = require "packages/utility/utility"
@@ -36,7 +36,7 @@ yanxi:addEffect(fk.EventPhaseStart, {
       max_num = 3,
       targets = targets,
       skill_name = yanxi.name,
-      prompt = "#zq__yanxi-choose",
+      prompt = "#zq_heg__yanxi-choose",
       cancelable = true,
     })
     if #tos > 0 then
@@ -59,7 +59,7 @@ yanxi:addEffect(fk.EventPhaseStart, {
     end
     for _, to in ipairs(targets) do
       local name = U.askForChooseCardNames(room, to, Fk:getAllCardNames("btde", true), 1, 1, yanxi.name,
-        "#zq__yanxi-choice:"..player.id.."::"..Fk:getCardById(ids[table.indexOf(targets, to)]):toLogString())
+        "#zq_heg__yanxi-choice:"..player.id.."::"..Fk:getCardById(ids[table.indexOf(targets, to)]):toLogString())
       room:sendLog{
         type = "#Choice",
         from = to.id,
@@ -73,7 +73,7 @@ yanxi:addEffect(fk.EventPhaseStart, {
       max_num = 1,
       targets = targets,
       skill_name = yanxi.name,
-      prompt = "#zq__yanxi-prey",
+      prompt = "#zq_heg__yanxi-prey",
       cancelable = false,
     })[1]
     local id = ids[table.indexOf(targets, to)]

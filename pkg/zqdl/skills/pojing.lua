@@ -1,24 +1,24 @@
 
 local pojing = fk.CreateSkill{
-  name = "zq__pojing",
+  name = "zq_heg__pojing",
 }
 
 Fk:loadTranslationTable{
-  ["zq__pojing"] = "迫境",
-  [":zq__pojing"] = "出牌阶段限一次，你可以令一名其他角色选择一项：1.令你获得其区域内的一张牌；2.所有与你势力相同的角色可以明置任意张"..
+  ["zq_heg__pojing"] = "迫境",
+  [":zq_heg__pojing"] = "出牌阶段限一次，你可以令一名其他角色选择一项：1.令你获得其区域内的一张牌；2.所有与你势力相同的角色可以明置任意张"..
   "武将牌，对其造成等量的伤害。",
 
-  ["#zq__pojing"] = "迫境：令一名角色选择你获得其区域内一张牌，或与你势力相同的角色可以亮将并对其造成伤害",
-  ["zq__pojing_prey"] = "%src获得你区域内一张牌",
-  ["zq__pojing_damage"] = "与%src势力相同的角色可以明置武将牌，对你造成伤害",
-  ["#zq__pojing-ask"] = "迫境：你可以明置任意张武将牌，对 %dest 造成等量伤害",
+  ["#zq_heg__pojing"] = "迫境：令一名角色选择你获得其区域内一张牌，或与你势力相同的角色可以亮将并对其造成伤害",
+  ["zq_heg__pojing_prey"] = "%src获得你区域内一张牌",
+  ["zq_heg__pojing_damage"] = "与%src势力相同的角色可以明置武将牌，对你造成伤害",
+  ["#zq_heg__pojing-ask"] = "迫境：你可以明置任意张武将牌，对 %dest 造成等量伤害",
 }
 
 local H = require "packages/hegemony/util"
 
 pojing:addEffect("active", {
   anim_type = "offensive",
-  prompt = "#zq__pojing",
+  prompt = "#zq_heg__pojing",
   card_num = 0,
   target_num = 1,
   can_use = function(self, player)
@@ -30,15 +30,15 @@ pojing:addEffect("active", {
   on_use = function(self, room, effect)
     local player = effect.from
     local target = effect.tos[1]
-    local choices = { "zq__pojing_damage:"..player.id }
+    local choices = { "zq_heg__pojing_damage:"..player.id }
     if not target:isAllNude() then
-      table.insert(choices, 1, "zq__pojing_prey:"..player.id)
+      table.insert(choices, 1, "zq_heg__pojing_prey:"..player.id)
     end
     local choice = room:askToChoice(target, {
       choices = choices,
       skill_name = pojing.name,
     })
-    if choice:startsWith("zq__pojing_prey") then
+    if choice:startsWith("zq_heg__pojing_prey") then
       local card = room:askToChooseCard(player, {
         target = target,
         flag = "hej",
@@ -50,7 +50,7 @@ pojing:addEffect("active", {
         if not p.dead and H.compareKingdomWith(player, p, false) then
           local result = H.askToRevealGenerals(p, {
             skill_name = pojing.name,
-            prompt = "#zq__pojing-ask::"..target.id,
+            prompt = "#zq_heg__pojing-ask::"..target.id,
           })
           if result ~= "Cancel" and not target.dead then
             local n = result == "md" and 2 or 1

@@ -5,7 +5,7 @@ local paoxiao = fk.CreateSkill{
 local H = require "packages/hegemony/util"
 paoxiao:addEffect('targetmod', {
   bypass_times = function(self, player, skill, scope, card)
-    if card and player:hasSkill(paoxiao.name) and skill.trueName == "slash_skill"
+    if card and player:hasShownSkill(paoxiao.name) and skill.trueName == "slash_skill" -- FIXME
       and scope == Player.HistoryPhase then
       return true
     end
