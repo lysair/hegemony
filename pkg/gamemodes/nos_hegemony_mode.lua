@@ -113,6 +113,10 @@ function HegLogic:chooseGenerals()
       kingdoms = table.filter(kingdoms, function(k) return curGeneral.kingdom == k or curGeneral.subkingdom == k end)
     end
 
+    if curGeneral == "mouxusheng" or Fk.generals[p:getMark("__heg_general")] == "mouxusheng" then
+      table.insertIfNeed(kingdoms, "wu")
+    end
+
     req:setData(p, {kingdoms, allKingdoms, "AskForKingdom", "#ChooseHegInitialKingdom"})
     req:setDefaultReply(p, kingdoms[1])
   end
@@ -249,7 +253,7 @@ heg = fk.CreateGameMode{
   name = "nos_heg_mode",
   minPlayer = 2,
   maxPlayer = 10,
-  -- rule = hegRule,
+  rule = "heg_rule",
   logic = heg_getLogic,
   main_mode = "heg_mode",
   is_counted = function(self, room)

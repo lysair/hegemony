@@ -230,34 +230,34 @@ H.ArraySummonSkill.arrayType = ""
 ---@return boolean?
 function H.ArraySummonSkill:canUse(player, card)
   local room = Fk:currentRoom()
-    local ret = self:isEffectable(player) and player:usedEffectTimes(self.name, Player.HistoryPhase) == 0 and player.kingdom ~= "wild"
-      and H.inGeneralSkills(player, self:getSkeleton().name) and table.find(room.alive_players, function(p) return p.kingdom == "unknown" end)
-      and H.getKingdomPlayersNum(room, true)[H.getKingdom(player)] < #room.players // 2
-    if not ret then return false end
-    local pattern = self.arrayType
-    if pattern == "formation" then -- 队列
-      local p = player
-      while true do
-        p = p:getNextAlive() -- 下家
-        if p == player then break end
-        if not H.compareKingdomWith(p, player) then
-          if p.kingdom == "unknown" then return true
-          else break end
-        end
+  local ret = self:isEffectable(player) and player:usedEffectTimes(self.name, Player.HistoryPhase) == 0 and player.kingdom ~= "wild"
+    and H.inGeneralSkills(player, self:getSkeleton().name) and table.find(room.alive_players, function(p) return p.kingdom == "unknown" end)
+    and H.getKingdomPlayersNum(room, true)[H.getKingdom(player)] < #room.players // 2
+  if not ret then return false end
+  local pattern = self.arrayType
+  if pattern == "formation" then -- 队列
+    local p = player
+    while true do
+      p = p:getNextAlive() -- 下家
+      if p == player then break end
+      if not H.compareKingdomWith(p, player) then
+        if p.kingdom == "unknown" then return true
+        else break end
       end
-      while true do
-        p = p:getLastAlive() -- 上家
-        if p == player then break end
-        if not H.compareKingdomWith(p, player) then
-          if p.kingdom == "unknown" then return true
-          else break end
-        end
-      end
-    elseif pattern == "siege" then -- 围攻
-      if H.compareKingdomWith(player:getNextAlive(), player, true) and player:getNextAlive(false, 2).kingdom == "unknown" then return true end
-      if H.compareKingdomWith(player:getLastAlive(), player, true) and player:getLastAlive(false, 2).kingdom == "unknown" then return true end
     end
-    return false
+    while true do
+      p = p:getLastAlive() -- 上家
+      if p == player then break end
+      if not H.compareKingdomWith(p, player) then
+        if p.kingdom == "unknown" then return true
+        else break end
+      end
+    end
+  elseif pattern == "siege" then -- 围攻
+    if H.compareKingdomWith(player:getNextAlive(), player, true) and player:getNextAlive(false, 2).kingdom == "unknown" then return true end
+    if H.compareKingdomWith(player:getLastAlive(), player, true) and player:getLastAlive(false, 2).kingdom == "unknown" then return true end
+  end
+  return false
 end
 
 ---@param room Room
@@ -267,20 +267,17 @@ function H.ArraySummonSkill:onUse(room, effect)
   local player = effect.from
   local pattern = self.arrayType
   local kingdom = H.getKingdom(player)
-  local function ArraySummonAskForReveal(_kingdom, to, skill_name)
-    local main, deputy = false, false
+  local function arraySummonAskForReveal(_kingdom, to, skill_name)
+    local flag = ""
     if H.compareExpectedKingdomWith(to, player) then
       local general = Fk.generals[to:getMark("__heg_general")]
-      main = general.kingdom == _kingdom or general.subkingdom == _kingdom
+      if (general.kingdom == _kingdom or general.subkingdom == _kingdom) then flag = flag .. "m" end
       general = Fk.generals[to:getMark("__heg_deputy")]
-      deputy = general.kingdom == _kingdom or general.subkingdom == _kingdom
-    end
-    local flag = main and "m" or ""
-    if deputy then
-      flag = flag.."d"
+      if (general.kingdom == _kingdom or general.subkingdom == _kingdom) then flag = flag .. "d" end
     end
     return H.askToRevealGenerals(player, {
       skill_name = skill_name,
+      flag = flag,
     }) ~= "Cancel"
   end
   if pattern == "formation" then
@@ -292,7 +289,7 @@ function H.ArraySummonSkill:onUse(room, effect)
         if p == player then break end
         if not H.compareKingdomWith(p, player) then
           if p.kingdom == "unknown" then
-            if not ArraySummonAskForReveal(kingdom, p, self:getSkeleton().name) then break end
+            if not arraySummonAskForReveal(kingdom, p, self:getSkeleton().name) then break end
           else break end
         end
       end
@@ -305,7 +302,7 @@ function H.ArraySummonSkill:onUse(room, effect)
       p = player:getLastAlive(false, 2)
     end
     if p.kingdom == "unknown" then
-      ArraySummonAskForReveal(kingdom, p, self:getSkeleton().name)
+      arraySummonAskForReveal(kingdom, p, self:getSkeleton().name)
     end
   end
 end
@@ -337,7 +334,7 @@ function H:CreateArraySummonSkill(_skill, idx, key, attr, spec)
   return skill
 end
 
-Fk:addSkillType("arraysummon", H.CreateArraySummonSkill)
+Fk:addSkillType("arraysummon", H.CreateArraySummonSkill, 5)
 
 -- 军令
 

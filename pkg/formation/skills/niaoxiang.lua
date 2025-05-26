@@ -25,4 +25,10 @@ Fk:loadTranslationTable{
   ["$niaoxiang2"] = "抢占先机，占尽优势！",
 }
 
+niaoxiang:addTest(function (room, me)
+  FkTest.runInRoom(function ()
+    room:handleAddLoseSkills(me, niaoxiang.name)
+  end)
+end)
+
 return niaoxiang

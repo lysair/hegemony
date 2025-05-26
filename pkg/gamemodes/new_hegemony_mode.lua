@@ -339,6 +339,10 @@ function HegLogic:chooseGenerals()
       kingdoms = table.filter(kingdoms, function(k) return curGeneral.kingdom == k or curGeneral.subkingdom == k end)
     end
 
+    if curGeneral == "mouxusheng" or Fk.generals[p:getMark("__heg_general")] == "mouxusheng" then -- 方便测
+      table.insertIfNeed(kingdoms, "wu")
+    end
+
     req:setData(p, {kingdoms, allKingdoms, "AskForKingdom", "#ChooseHegInitialKingdom"})
     req:setDefaultReply(p, kingdoms[1])
   end
