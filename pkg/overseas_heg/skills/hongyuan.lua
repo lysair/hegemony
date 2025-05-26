@@ -2,23 +2,6 @@ local hongyuan = fk.CreateSkill{
   name = "os_heg__hongyuan",
 }
 
----@param object Card|Player
----@param markname string
----@param suffixes string[]
----@return boolean
-local function hasMark(object, markname, suffixes)
-  if not object then return false end
-  for mark, _ in pairs(object.mark) do
-    if mark == markname then return true end
-    if mark:startsWith(markname .. "-") then
-      for _, suffix in ipairs(suffixes) do
-        if mark:find(suffix, 1, true) then return true end
-      end
-    end
-  end
-  return false
-end
-
 hongyuan:addEffect("active", {
   anim_type = "support",
   can_use = function(self, player)
@@ -27,7 +10,7 @@ hongyuan:addEffect("active", {
   card_num = 1,
   card_filter = function(self, player, to_select, selected)
     if #selected > 0 then return false end
-    return Fk:currentRoom():getCardArea(to_select) == Card.PlayerHand and not hasMark(Fk:getCardById(to_select), "@@alliance", MarkEnum.CardTempMarkSuffix)
+    return Fk:currentRoom():getCardArea(to_select) == Card.PlayerHand and not Fk:getCardById(to_select):hasMark("@@alliance", MarkEnum.CardTempMarkSuffix)
   end,
   target_filter = Util.FalseFunc,
   on_use = function(self, room, effect)

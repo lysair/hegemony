@@ -18,35 +18,20 @@ lureTigerSkill:addEffect("cardskill", {
     room.logic:trigger(H.PlayerRemoved, target, {who = target}) -- FIXME
   end,
 })
----@param object Card|Player
----@param markName string
----@param suffixes string[]
----@return boolean
-local function hasMark(object, markName, suffixes)
-  if not object then return false end
-  for mark, _ in pairs(object.mark) do
-    if mark == markName then return true end
-    if mark:startsWith(markName .. "-") then
-      for _, suffix in ipairs(suffixes) do
-        if mark:find(suffix, 1, true) then return true end
-      end
-    end
-  end
-  return false
-end
+
 lureTigerSkill:addEffect('prohibit', {
   global = true,
   prohibit_use = function(self, player, card)
-    return hasMark(player, "@@lure_tiger", MarkEnum.TempMarkSuffix)
+    return player:hasMark("@@lure_tiger", MarkEnum.TempMarkSuffix)
   end,
   is_prohibited = function(self, from, to, card)
-    return hasMark(to, "@@lure_tiger", MarkEnum.TempMarkSuffix)
+    return to:hasMark("@@lure_tiger", MarkEnum.TempMarkSuffix)
   end,
 })
 lureTigerSkill:addEffect(fk.PreHpRecover, {
   global = true,
   can_refresh = function(self, event, target, player, data)
-    return target == player and hasMark(player, "@@lure_tiger", MarkEnum.TempMarkSuffix)
+    return target == player and player:hasMark("@@lure_tiger", MarkEnum.TempMarkSuffix)
   end,
   on_refresh = function(self, event, target, player, data)
     data:preventRecover()
@@ -55,7 +40,7 @@ lureTigerSkill:addEffect(fk.PreHpRecover, {
 lureTigerSkill:addEffect(fk.PreHpLost, {
   global = true,
   can_refresh = function(self, event, target, player, data)
-    return target == player and hasMark(player, "@@lure_tiger", MarkEnum.TempMarkSuffix)
+    return target == player and player:hasMark("@@lure_tiger", MarkEnum.TempMarkSuffix)
   end,
   on_refresh = function(self, event, target, player, data)
     data:preventHpLost()
@@ -64,7 +49,7 @@ lureTigerSkill:addEffect(fk.PreHpLost, {
 lureTigerSkill:addEffect(fk.DamageInflicted, {
   global = true,
   can_refresh = function(self, event, target, player, data)
-    return target == player and hasMark(player, "@@lure_tiger", MarkEnum.TempMarkSuffix)
+    return target == player and player:hasMark("@@lure_tiger", MarkEnum.TempMarkSuffix)
   end,
   on_refresh = function(self, event, target, player, data)
     data:preventDamage()

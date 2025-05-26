@@ -8,7 +8,7 @@ wooden_ox_skill:addEffect("active", {
     return player:usedSkillTimes(wooden_ox_skill.name, Player.HistoryPhase) == 0 and #player:getPile("$sa_carriage") < 5
   end,
   card_num = 1,
-  card_filter = function(self, to_select, selected)
+  card_filter = function(self, player, to_select, selected)
     return #selected == 0 and table.contains(Self.player_cards[Player.Hand], to_select)
   end,
   target_num = 0,

@@ -1,20 +1,3 @@
----@param object Card|Player
----@param markName string
----@param suffixes string[]
----@return boolean
-local function hasMark(object, markName, suffixes)
-  if not object then return false end
-  for mark, _ in pairs(object.mark) do
-    if mark == markName then return true end
-    if mark:startsWith(markName .. "-") then
-      for _, suffix in ipairs(suffixes) do
-        if mark:find(suffix, 1, true) then return true end
-      end
-    end
-  end
-  return false
-end
-
 local H = require "packages/hegemony/util"
 
 local alliance = fk.CreateSkill{
@@ -24,12 +7,14 @@ alliance:addEffect("active", {
   prompt = "#alliance&",
   anim_type = "support",
   can_use = function(self, player)
-    return player:usedSkillTimes(alliance.name, Player.HistoryPhase) == 0 and table.find(player:getCardIds("h"), function(id) return hasMark(Fk:getCardById(id), "@@alliance", MarkEnum.CardTempMarkSuffix) end)
+    return player:usedSkillTimes(alliance.name, Player.HistoryPhase) == 0 and table.find(player:getCardIds("h"), function(id)
+      return not not Fk:getCardById(id):hasMark("@@alliance", MarkEnum.CardTempMarkSuffix)
+    end)
   end,
   max_card_num = 3,
   min_card_num = 1,
   card_filter = function(self, player, to_select, selected)
-    return hasMark(Fk:getCardById(to_select), "@@alliance", MarkEnum.CardTempMarkSuffix) and table.contains(player.player_cards[Player.Hand], to_select) and #selected <= 3
+    return Fk:getCardById(to_select):hasMark("@@alliance", MarkEnum.CardTempMarkSuffix) and table.contains(player.player_cards[Player.Hand], to_select) and #selected <= 3
   end,
   target_num = 1,
   target_filter = function(self, player, to_select, selected, selected_cards)

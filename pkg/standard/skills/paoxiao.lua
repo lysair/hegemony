@@ -5,7 +5,7 @@ local paoxiao = fk.CreateSkill{
 local H = require "packages/hegemony/util"
 paoxiao:addEffect('targetmod', {
   bypass_times = function(self, player, skill, scope, card)
-    if card and player:hasShownSkill(paoxiao.name) and skill.trueName == "slash_skill" -- FIXME
+    if card and player:hasSkill(self.name) and skill.trueName == "slash_skill" -- FIXME
       and scope == Player.HistoryPhase then
       return true
     end
@@ -15,7 +15,7 @@ paoxiao:addEffect(fk.CardUsing, {
   name = "#hs__paoxiaoTrigger",
   anim_type = "offensive",
   can_trigger = function(self, event, target, player, data)
-    if target ~= player or not player:hasSkill(paoxiao.name) or data.card.trueName ~= "slash" then return false end
+    if target ~= player or not player:hasSkill(self.name) or data.card.trueName ~= "slash" then return false end
     local events = player.room.logic:getEventsOfScope(GameEvent.UseCard, 2, function(e)
       local use = e.data
       return use.from == player and use.card.trueName == "slash"
