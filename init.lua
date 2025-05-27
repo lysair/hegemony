@@ -8,6 +8,7 @@ local transformation = require(prefix .. "transformation")
 local power = require(prefix .. "power")
 local ex = require(prefix .. "lord_ex")
 local ziqidonglai = require(prefix .. "zqdl")
+local jinyinzishou = require(prefix .. "jyzs")
 
 local mobile = require(prefix .. "mobile_heg")
 local tenyear = require(prefix .. "tenyear_heg")
@@ -31,6 +32,7 @@ return {
   power,
   ex,
   ziqidonglai,
+  jinyinzishou,
 
   mobile,
   tenyear,

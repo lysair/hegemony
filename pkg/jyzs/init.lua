@@ -9,4 +9,12 @@ Fk:loadTranslationTable{
   ["jy_heg"] = "金印",
 }
 
+local bailingyun = General:new(extension, "jy_heg__bailingyun", "jin", 3, 3, General.Female)
+bailingyun:addSkills{ "jy_heg__xiace", "jy_heg__limeng" }
+bailingyun:addCompanions("zq_heg__simayi")
+
+Fk:loadTranslationTable{
+  ["jy_heg__bailingyun"] = "柏灵筠",
+}
+
 return extension
