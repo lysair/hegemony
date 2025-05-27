@@ -23,7 +23,15 @@ xiace:addEffect("viewas", {
     local curPlayer = Fk:currentRoom():getCurrent()
     if curPlayer then
       local card = Fk:cloneCard("slash")
-      return card.skill:canUse(curPlayer, card)
+      local card_skill = card.skill
+      local status_skills = Fk:currentRoom().status_skills[TargetModSkill] or Util.DummyTable
+      for _, skill in ipairs(status_skills) do
+        if skill:bypassTimesCheck(curPlayer, card_skill, Player.HistoryPhase, card, nil) then return true end
+      end
+      local limit = card_skill:getMaxUseTime(curPlayer, Player.HistoryPhase, card, nil)
+      if not limit or curPlayer:usedCardTimes("slash", Player.HistoryPhase) < limit then
+        return true
+      end
     end
   end,
   card_filter = function (self, player, to_select, selected)

@@ -4,6 +4,8 @@ local battleRoyal = fk.CreateSkill{
 }
 battleRoyal:addEffect("viewas", {
   pattern = "slash,jink",
+  mute_card = false,
+  mute = true,
   handly_pile = true,
   interaction = function()
     local names = {}
@@ -41,6 +43,11 @@ battleRoyal:addEffect("viewas", {
       return Fk:getCardById(id).trueName == "peach"
     end)
   end,
+  before_use = function (self, player, use)
+    local room = player.room
+    room:notifySkillInvoked(player, battleRoyal.name,
+      use.card.trueName == "slash" and "offensive" or "defensive")
+  end
 })
 battleRoyal:addEffect("prohibit", {
   name = "#battle_royal_prohibit&",
@@ -53,7 +60,7 @@ battleRoyal:addEffect("prohibit", {
   end
 })
 
-battleRoyal:addAI(nil, "vs_skill")
+-- battleRoyal:addAI(nil, "vs_skill")
 
 Fk:loadTranslationTable{
   ["battle_royal&"] = "鏖战",
