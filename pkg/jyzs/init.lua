@@ -14,7 +14,7 @@ bailingyun:addSkills{ "jy_heg__xiace", "jy_heg__limeng" }
 bailingyun:addCompanions("zq_heg__simayi")
 
 Fk:loadTranslationTable{
-  ["jy_heg__bailingyun"] = "柏灵筠",
+  ["jy_heg__bailingyun"] = "柏夫人",
 }
 
 return extension

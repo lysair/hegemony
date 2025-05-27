@@ -26,14 +26,13 @@ zhiman:addEffect(fk.DamageCaused, {
     end
     if H.compareKingdomWith(target, player) and player:getMark("@@ld__zhiman_transform") == 0
       and room:askToChoice(player, {
-        choices = {"ld__zhiman_transform::" .. target.id,
-        skill_name = "Cancel"},
-        prompt = zhiman.name,
+        choices = {"ld__zhiman_transform::" .. target.id, "Cancel"},
+        skill_name = zhiman.name,
+        prompt = "ld__zhiman_transform::" .. target.id,
       }) ~= "Cancel"
       and room:askToChoice(target, {
-        choices = {"transformDeputy",
-        skill_name = "Cancel"},
-        prompt = zhiman.name,
+        choices = {"transformDeputy", "Cancel"},
+        skill_name = zhiman.name,
       }) ~= "Cancel" then
         room:setPlayerMark(player, "@@ld__zhiman_transform", 1)
         H.transformGeneral(room, target)

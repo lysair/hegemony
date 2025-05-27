@@ -8,19 +8,22 @@ Fk:loadTranslationTable{
     "并令当前回合角色【杀】的剩余使用次数-1，然后你可以变更副将。",
 
   ["@jy_heg__xiace_slash-phase"] = "黠策",
+  ["@@jy_heg__xiace_transform"] = "黠策 已变更",
 }
 
 local H = require "packages/hegemony/util"
 
 xiace:addEffect("viewas", {
+  anim_type = "control",
   pattern = "nullification",
   card_num = 1,
   handly_pile = true,
   enabled_at_nullification = function (self, player, response)
+    if player:isNude() then return false end
     local curPlayer = Fk:currentRoom():getCurrent()
     if curPlayer then
       local card = Fk:cloneCard("slash")
-      return card.skill:withinTimesLimit(curPlayer, Player.HistoryPhase, card)
+      return card.skill:canUse(curPlayer, card)
     end
   end,
   card_filter = function (self, player, to_select, selected)
@@ -36,20 +39,28 @@ xiace:addEffect("viewas", {
   before_use = function (self, player, use)
     use.extra_data = use.extra_data or {}
     use.extra_data.jy_heg__xiaceUser = player.id
+    local room = player.room
+    local curPlayer = room:getCurrent() --[[@as ServerPlayer]]
+    if curPlayer and curPlayer:isAlive() then
+      room:addPlayerMark(curPlayer, "@jy_heg__xiace_slash-phase")
+    end
   end,
 })
 xiace:addEffect(fk.CardUseFinished, {
   is_delay_effect = true,
   can_trigger = function (self, event, target, player, data)
     return target == player and (data.extra_data or {}).jy_heg__xiaceUser == player.id
+      and player:isAlive() and player:getMark("@@jy_heg__xiace_transform") == 0
   end,
   on_use = function (self, event, target, player, data)
     local room = player.room
-    local curPlayer = room:getCurrent() --[[@as ServerPlayer]]
-    if curPlayer and curPlayer:isAlive() then
-      room:addPlayerMark(curPlayer, "@jy_heg__xiace_slash-phase")
+    if room:askToChoice(player, {
+      choices = {"transformDeputy", "Cancel"},
+      skill_name = xiace.name,
+    }) ~= "Cancel" then
+      room:setPlayerMark(player, "@@jy_heg__xiace_transform", 1)
+      H.transformGeneral(room, player)
     end
-    H.transformGeneral(room, player)
   end
 })
 xiace:addEffect("targetmod", {

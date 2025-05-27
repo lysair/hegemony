@@ -30,9 +30,8 @@ diancai:addEffect(fk.EventPhaseEnd, {
     end
     if player:getMark("@@ld__diancai_transform") == 0 and player:isAlive()
       and room:askToChoice(player, {
-        choices = {"transformDeputy",
-        skill_name = "Cancel"},
-        prompt = diancai.name,
+        choices = {"transformDeputy", "Cancel"},
+        skill_name = diancai.name,
       }) ~= "Cancel" then
         room:setPlayerMark(player, "@@ld__diancai_transform", 1)
         H.transformGeneral(room, player)

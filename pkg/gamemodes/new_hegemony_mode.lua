@@ -340,7 +340,7 @@ function HegLogic:chooseGenerals()
     end
 
     if not table.contains(allKingdoms, "wu") and
-      (curGeneral == "mouxusheng" or p:getMark("__heg_general") == "mouxusheng") then -- 方便测
+      (p:getMark("__heg_deputy") == "mouxusheng" or p:getMark("__heg_general") == "mouxusheng") then -- 方便测
         table.insert(kingdoms, "wu")
         table.insert(allKingdoms, "wu")
     end

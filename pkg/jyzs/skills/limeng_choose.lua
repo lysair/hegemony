@@ -1,5 +1,12 @@
 local limeng_choose = fk.CreateSkill{
-  name = "jy_heg__limeng_choos",
+  name = "#jy_heg__limeng_choose&",
+}
+
+Fk:loadTranslationTable{
+  ["#jy_heg__limeng_choose&"] = "离梦",
+
+  ["jy_heg__limeng_tip_1"] = "确认则无事",
+  ["jy_heg__limeng_tip_2"] = "造成伤害",
 }
 
 limeng_choose:addEffect("active", {
@@ -18,21 +25,17 @@ limeng_choose:addEffect("active", {
       generals[p] = {Fk.generals[p.general], Fk.generals[p.deputyGeneral]}
     end)
     if #selected == 0 then
-      --local compGenerals = {}
       for p, gs in pairs(generals) do
         for _, g in ipairs(gs) do
           for _p, _gs in pairs(generals) do
             for _, _g in ipairs(_gs) do
               if g:isCompanionWith(_g) then
                 if p == to_select or _p == to_select then return true end
-                --compGenerals[p] = compGenerals[p] or {}
-                --table.insert(compGenerals[p], g)
               end
             end
           end
         end
       end
-      --return false --compGenerals[to_select] ~= nil
     else
       local tar = selected[1]
       local gs = generals[tar]
@@ -48,6 +51,7 @@ limeng_choose:addEffect("active", {
         end
       end
     end
+    return false
   end,
   feasible = function (self, player, selected, selected_cards, card)
     if #selected_cards ~= 1 then return false end
@@ -57,6 +61,16 @@ limeng_choose:addEffect("active", {
       return Fk.generals[tar.general]:isCompanionWith(Fk.generals[tar.deputyGeneral])
     end
     return false
+  end,
+  target_tip = function (self, player, to_select, selected, selected_cards, card, selectable, extra_data)
+    if not selectable then return end
+    if #selected > 0 then
+      if #selected == 1 and selected[1] == to_select and self:feasible(player, selected, selected_cards) then
+        return "jy_heg__limeng_tip_1"
+      else
+        return "jy_heg__limeng_tip_2"
+      end
+    end
   end
 })
 
