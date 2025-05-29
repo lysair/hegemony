@@ -6,7 +6,7 @@ wildDraw:addEffect("active", {
   prompt = "#wild_draw&",
   anim_type = "drawcard",
   can_use = function(self, player)
-    return player:getMark("@!wild") > 0
+    return player:getMark("@!!wild") > 0
   end,
   interaction = UI.ComboBox { choices = {"wild_vanguard", "wild_companion", "wild_yinyangfish"} },
   card_filter = Util.FalseFunc,
@@ -63,7 +63,7 @@ wildDraw:addEffect(fk.EventPhaseStart, {
   anim_type = "defensive",
   can_trigger = function(self, event, target, player, data)
     return target == player and player.phase == Player.Discard and player:hasSkill(wildDraw.name)
-      and player:getMark("@!wild") > 0 and player:getHandcardNum() > player:getMaxCards()
+      and player:getMark("@!!wild") > 0 and player:getHandcardNum() > player:getMaxCards()
   end,
   on_cost = function(self, event, target, player, data)
     return player.room:askToSkillInvoke(player, {

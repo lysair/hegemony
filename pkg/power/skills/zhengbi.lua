@@ -5,7 +5,7 @@ local H = require "packages/hegemony/util"
 zhengbi:addEffect(fk.EventPhaseStart, {
   anim_type = "control",
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(zhengbi.name) and player.phase == Player.Play
+    return target == player and player:hasSkill(self.name) and player.phase == Player.Play
       and (table.find(player:getCardIds("h"), function(id) return Fk:getCardById(id).type == Card.TypeBasic end)
       or table.every(player.room:getOtherPlayers(player, false), function(p) return H.getGeneralsRevealedNum(p) == 0 end))
   end,
@@ -92,7 +92,7 @@ zhengbi:addEffect(fk.EventPhaseStart, {
 })
 zhengbi:addEffect(fk.GeneralRevealed, {
   can_refresh = function(self, event, target, player, data)
-    return player:hasSkill(zhengbi.name) and target:getMark("@@ld__zhengbi_choose-turn") > 0
+    return player:hasSkill(self.name) and target:getMark("@@ld__zhengbi_choose-turn") > 0
   end,
   on_refresh = function(self, event, target, player, data)
     player.room:setPlayerMark(target, "@@ld__zhengbi_choose-turn", 0)
@@ -101,10 +101,10 @@ zhengbi:addEffect(fk.GeneralRevealed, {
 
 zhengbi:addEffect("targetmod", {
   bypass_times = function(self, player, skill, scope, card, to)
-    return card and player:hasSkill(zhengbi.name) and to:getMark("@@ld__zhengbi_choose-turn") > 0
+    return card and player:hasSkill(self.name) and to:getMark("@@ld__zhengbi_choose-turn") > 0
   end,
   bypass_distances =  function(self, player, skill, card, to)
-    return card and player:hasSkill(zhengbi.name) and to:getMark("@@ld__zhengbi_choose-turn") > 0
+    return card and player:hasSkill(self.name) and to:getMark("@@ld__zhengbi_choose-turn") > 0
   end,
 })
 

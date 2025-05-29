@@ -6,7 +6,7 @@ yinyangfishSkill:addEffect("active", {
   prompt = "#yinyangfish_skill&",
   anim_type = "drawcard",
   can_use = function(self, player)
-    return player:getMark("@!yinyangfish") > 0
+    return player:getMark("@!!yinyangfish") > 0
   end,
   card_filter = Util.FalseFunc,
   target_num = 0,
@@ -22,7 +22,7 @@ yinyangfishSkill:addEffect(fk.EventPhaseStart, {
   can_trigger = function(self, event, target, player, data)
     return target == player and player.phase == Player.Discard
       and player:hasSkill(yinyangfishSkill.name)
-      and player:getMark("@!yinyangfish") > 0
+      and player:getMark("@!!yinyangfish") > 0
       and player:getHandcardNum() > player:getMaxCards()
   end,
   on_cost = function(self, event, target, player, data)

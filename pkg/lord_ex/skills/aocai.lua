@@ -1,16 +1,16 @@
 local aocai = fk.CreateSkill{
-    name = "ld__aocai",
+  name = "ld__aocai",
 }
 
 Fk:loadTranslationTable{
-    ["ld__aocai"] = "傲才",
-    [":ld__aocai"] = "当你于回合外需要使用或打出一张基本牌时，你可以观看牌堆顶的两张牌，若你观看的牌中有相同牌名的牌，你可以使用或打出之。",
+  ["ld__aocai"] = "傲才",
+  [":ld__aocai"] = "当你于回合外需要使用或打出一张基本牌时，你可以观看牌堆顶的两张牌，若你观看的牌中有相同牌名的牌，你可以使用或打出之。",
 
-    ["#ld__aocai"] = "发动 傲才，观看牌堆顶的两张牌，并可以使用或打出其中你需要的基本牌",
-    ["#ld__aocai-choose"] = "傲才：选择你需要使用或打出的基本牌",
+  ["#ld__aocai"] = "发动 傲才，观看牌堆顶的两张牌，并可以使用或打出其中你需要的基本牌",
+  ["#ld__aocai-choose"] = "傲才：选择你需要使用或打出的基本牌",
 
-    ["$ld__aocai1"] = "哼，易如反掌。",
-    ["$ld__aocai2"] = "吾主圣明，泽披臣属。",
+  ["$ld__aocai1"] = "哼，易如反掌。",
+  ["$ld__aocai2"] = "吾主圣明，泽披臣属。",
 }
 
 local U = require "packages/utility/utility"
@@ -64,7 +64,7 @@ aocai:addEffect("viewas",{
   end,
   enabled_at_play = Util.FalseFunc,
   enabled_at_response = function(self, player, response)
-    return player.phase == Player.NotActive
+    return Fk:currentRoom():getCurrent() ~= player
   end,
 })
 

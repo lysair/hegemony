@@ -1,8 +1,8 @@
-local zaoyun = fk.CreateSkill{
+local zaoyun = fk.CreateSkill {
   name = "zaoyun",
 }
 
-Fk:loadTranslationTable{
+Fk:loadTranslationTable {
   ["zaoyun"] = "凿运",
   [":zaoyun"] = "出牌阶段限一次，你可选择一名与你势力不同且你至其距离大于1的角色并弃置X张手牌（X为你至其的距离-1），令你至其的距离此回合视为1，然后你对其造成1点伤害。",
 
@@ -24,22 +24,23 @@ zaoyun:addEffect("active", {
   end,
   min_card_num = 1,
   card_filter = function(self, player, to_select, selected)
-    return Fk:currentRoom():getCardArea(to_select) == Player.Hand and not player:prohibitDiscard(Fk:getCardById(to_select))
+    return Fk:currentRoom():getCardArea(to_select) == Player.Hand and
+    not player:prohibitDiscard(Fk:getCardById(to_select))
   end,
   target_num = 1,
   target_filter = function(self, player, to_select, selected, selected_cards)
     return #selected == 0 and H.compareKingdomWith(to_select, player, true)
-      and player:distanceTo(to_select) - 1 == #selected_cards and #selected_cards > 0
+        and player:distanceTo(to_select) - 1 == #selected_cards and #selected_cards > 0
   end,
-  target_tip = function (self, player, to_select, selected, selected_cards, card, selectable, extra_data)
+  target_tip = function(self, player, to_select, selected, selected_cards, card, selectable, extra_data)
     if not H.compareKingdomWith(to_select, player, true) then return end
     local n = player:distanceTo(to_select) - 1
     if n < 1 then
       return -- { {content = "zaoyun_unable", type = "warning"} }
     elseif n == #selected_cards or #selected_cards == 0 then
-      return { {content = "zaoyun_num:::" .. n, type = "normal"} }
+      return { { content = "zaoyun_num:::" .. n, type = "normal" } }
     else
-      return { {content = "zaoyun_num:::" .. n, type = "warning"} }
+      return { { content = "zaoyun_num:::" .. n, type = "warning" } }
     end
   end,
   on_use = function(self, room, effect)
@@ -48,7 +49,7 @@ zaoyun:addEffect("active", {
     room:throwCard(effect.cards, zaoyun.name, player, player)
     if not player.dead and not target.dead then
       room:setPlayerMark(player, "_zaoyun_distance-turn", target.id)
-      room:damage{ from = player, to = target, damage = 1, skillName = zaoyun.name }
+      room:damage { from = player, to = target, damage = 1, skillName = zaoyun.name }
     end
   end,
 })

@@ -3,13 +3,12 @@ local yongsi = fk.CreateSkill{
   name = "ld__yongsi",
   tags = {Skill.Compulsory}
 }
-local H = require "packages/hegemony/util"
 
 --- 没有角色有玉玺
----@param player ServerPlayer
+---@param player Player
 ---@return boolean
 local canYongsi = function (player)
-  return not table.find(player.room.alive_players, function(p)
+  return not table.find(Fk:currentRoom().alive_players, function(p)
     return not not table.find(p:getEquipments(Card.SubtypeTreasure), function(cid)
       return Fk:getCardById(cid).name == "jade_seal"
     end)
@@ -18,7 +17,7 @@ end
 yongsi:addEffect(fk.EventPhaseStart, {
   anim_type = "control",
   can_trigger = function(self, event, target, player, data)
-    if target ~= player or not player:hasSkill(yongsi.name) or
+    if target ~= player or not player:hasSkill(self.name) or
       not canYongsi(player) or player.phase ~= Player.Play then return false end
     local card = Fk:cloneCard("known_both")
     return player:canUse(card)
@@ -33,7 +32,7 @@ yongsi:addEffect(fk.EventPhaseStart, {
     if #targets == 0 or max_num == 0 then return end
     local to = room:askToChoosePlayers(player, {
       targets = targets, min_num = 1, max_num = max_num,
-      prompt = "#yongsi__jade_seal-ask", skill_name = yongsi.name, cancelable = false
+      prompt = "#yongsi__jade_seal-ask", skill_name = self.name, cancelable = false
     })
     if #to > 0 then
       event:setCostData(self, {tos = to})
@@ -47,7 +46,7 @@ yongsi:addEffect(fk.EventPhaseStart, {
 yongsi:addEffect(fk.DrawNCards, {
   anim_type = "drawcard",
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(yongsi.name) and canYongsi(player)
+    return target == player and player:hasSkill(self.name) and canYongsi(player)
   end,
   on_use = function(self, event, target, player, data)
     data.n = data.n + 1
@@ -55,13 +54,13 @@ yongsi:addEffect(fk.DrawNCards, {
 })
 yongsi:addEffect("bigkingdom", {
   fixed_func = function(self, player)
-    return player:hasShownSkill(yongsi.name) and player.kingdom ~= "unknown" and canYongsi(player)
+    return player:hasSkill(self.name) and player.kingdom ~= "unknown" and canYongsi(player)
   end
 })
 yongsi:addEffect(fk.TargetConfirmed, {
   anim_type = "negative",
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(yongsi.name) and
+    return target == player and player:hasSkill(self.name) and
       data.card.trueName == "known_both" and not player:isKongcheng()
   end,
   on_use = function(self, event, target, player, data)

@@ -204,9 +204,9 @@ function H.inFormationRelation(player, target)
 end
 
 --- 确认与某角色是否处于围攻关系
----@param player ServerPlayer @ 围攻角色1
----@param target ServerPlayer @ 围攻角色2，可填 player
----@param victim ServerPlayer @ 被围攻角色
+---@param player Player @ 围攻角色1
+---@param target Player @ 围攻角色2，可填 player
+---@param victim Player @ 被围攻角色
 ---@return boolean?
 function H.inSiegeRelation(player, target, victim)
   if H.compareKingdomWith(player, victim) or not H.compareKingdomWith(player, target) or victim.kingdom == "unknown" then return false end
@@ -1031,23 +1031,34 @@ end
 function H.addHegMark(room, player, markName, number)
   number = number or 1
   if markName == "vanguard" then
-    room:addPlayerMark(player, "@!vanguard", number)
+    room:addPlayerMark(player, "@!!vanguard", number)
     player:addFakeSkill("vanguard_skill&")
   elseif markName == "yinyangfish" then
-    room:addPlayerMark(player, "@!yinyangfish", number)
+    room:addPlayerMark(player, "@!!yinyangfish", number)
     player:addFakeSkill("yinyangfish_skill&")
     player:prelightSkill("yinyangfish_skill&", true)
   elseif markName == "companion" then
-    room:addPlayerMark(player, "@!companion", number)
+    room:addPlayerMark(player, "@!!companion", number)
     player:addFakeSkill("companion_draw&")
     player:addFakeSkill("companion_peach&")
   elseif markName == "wild" then
-    room:addPlayerMark(player, "@!wild", number)
+    room:addPlayerMark(player, "@!!wild", number)
     player:addFakeSkill("wild_draw&")
     player:addFakeSkill("wild_peach&")
     player:prelightSkill("wild_draw&", true)
   end
 end
+
+Fk:loadTranslationTable{
+  ["@!!vanguard"] = "先驱",
+  [":@!!vanguard"] = "出牌阶段，你可弃一枚“先驱”，将手牌摸至4张，然后观看一名其他角色的一张暗置武将牌",
+  ["@!!yinyangfish"] = "阴阳鱼",
+  [":@!!yinyangfish"] = "①出牌阶段，你可弃一枚“阴阳鱼”，摸一张牌；②弃牌阶段开始时，你可弃一枚“阴阳鱼”，此回合手牌上限+2。",
+  ["@!!companion"] = "珠联璧合",
+  [":@!!companion"] = "①出牌阶段，你可弃一枚“珠联璧合”，摸两张牌；②你可弃一枚“珠联璧合”，视为使用【桃】。",
+  ["@!!wild"] = "野心家",
+  [":@!!wild"] = "你可弃一枚“野心家”，执行“先驱”、“阴阳鱼”或“珠联璧合”的效果。",
+}
 
 --- 移除国战标记
 ---@param room Room @ 房间
@@ -1057,24 +1068,24 @@ end
 function H.removeHegMark(room, player, markName, number)
   number = number or 1
   if markName == "vanguard" then
-    room:removePlayerMark(player, "@!vanguard", number)
-    if player:getMark("@!vanguard") == 0 then
+    room:removePlayerMark(player, "@!!vanguard", number)
+    if player:getMark("@!!vanguard") == 0 then
       player:loseFakeSkill("vanguard_skill&")
     end
   elseif markName == "yinyangfish" then
-    room:removePlayerMark(player, "@!yinyangfish", number)
-    if player:getMark("@!yinyangfish") == 0 then
+    room:removePlayerMark(player, "@!!yinyangfish", number)
+    if player:getMark("@!!yinyangfish") == 0 then
       player:loseFakeSkill("yinyangfish_skill&")
     end
   elseif markName == "companion" then
-    room:removePlayerMark(player, "@!companion", number)
-    if player:getMark("@!companion") == 0 then
+    room:removePlayerMark(player, "@!!companion", number)
+    if player:getMark("@!!companion") == 0 then
       player:loseFakeSkill("companion_draw&")
       player:loseFakeSkill("companion_peach&")
     end
   elseif markName == "wild" then
-    room:removePlayerMark(player, "@!wild", number)
-    if player:getMark("@!wild") == 0 then
+    room:removePlayerMark(player, "@!!wild", number)
+    if player:getMark("@!!wild") == 0 then
       player:loseFakeSkill("wild_draw&")
       player:loseFakeSkill("wild_peach&")
     end

@@ -6,7 +6,7 @@ vanguardSkill:addEffect("active", {
   prompt = "#vanguard_skill&",
   anim_type = "drawcard",
   can_use = function(self, player)
-    return player:getMark("@!vanguard") > 0
+    return player:getMark("@!!vanguard") > 0
   end,
   card_filter = Util.FalseFunc,
   target_num = function(self, player)

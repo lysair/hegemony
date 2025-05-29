@@ -17,10 +17,10 @@ companionSkill:addEffect("viewas", {
     H.removeHegMark(player.room, player, "companion", 1)
   end,
   enabled_at_play = function(self, player)
-    return player:getMark("@!companion") > 0
+    return player:getMark("@!!companion") > 0
   end,
   enabled_at_response = function(self, player)
-    return player:getMark("@!companion") > 0
+    return player:getMark("@!!companion") > 0
   end,
 })
 Fk:loadTranslationTable{

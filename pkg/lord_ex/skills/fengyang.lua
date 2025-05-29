@@ -1,30 +1,30 @@
-local fengyang = fk.CreateSkill{
-    name = "ld__fengyang",
-    tags = { Skill.Compulsory },
+local fengyang = fk.CreateSkill {
+  name = "ld__fengyang",
+  tags = { Skill.Compulsory },
 }
 
-Fk:loadTranslationTable{
-    ["ld__fengyang"] = "风扬",
-    [":ld__fengyang"] = "阵法技，与你处于同一<a href='heg_formation'>队列</a>的角色装备区内的牌被与你势力不同的角色弃置或获得时，取消之。",
+Fk:loadTranslationTable {
+  ["ld__fengyang"] = "风扬",
+  [":ld__fengyang"] = "阵法技，与你处于同一<a href='heg_formation'>队列</a>的角色装备区内的牌被与你势力不同的角色弃置或获得时，取消之。",
 
-    ["$ld__fengyang1"] = "谁也休想染指江东寸土。",
-    ["$ld__fengyang2"] = "如此咽喉要地，吾当倾力守之。",
+  ["$ld__fengyang1"] = "谁也休想染指江东寸土。",
+  ["$ld__fengyang2"] = "如此咽喉要地，吾当倾力守之。",
 }
 
 local H = require "packages/hegemony/util"
 
 fengyang:addEffect("arraysummon", {
-    array_type = "formation",
+  array_type = "formation",
 })
 
-fengyang:addEffect(fk.BeforeCardsMove,{
+fengyang:addEffect(fk.BeforeCardsMove, {
   mute = true,
   can_trigger = function(self, event, target, player, data)
-    if not player:hasSkill(fengyang.name) or #player.room.alive_players < 4  then return false end
+    if not player:hasSkill(fengyang.name) or #player.room.alive_players < 4 then return false end
     for _, move in ipairs(data) do
-      if move.from and H.inFormationRelation(player, move.from)and player:hasShownSkill(fengyang.name) and
-        (move.moveReason == fk.ReasonDiscard or (move.toArea == Card.PlayerHand and move.to ~= move.from and move.moveReason ~= fk.ReasonGive))
-        and move.proposer and not H.compareKingdomWith(move.proposer, player)  then
+      if move.from and H.inFormationRelation(player, move.from) and player:hasShownSkill(fengyang.name) and
+          (move.moveReason == fk.ReasonDiscard or (move.toArea == Card.PlayerHand and move.to ~= move.from and move.moveReason ~= fk.ReasonGive))
+          and move.proposer and not H.compareKingdomWith(move.proposer, player) then
         for _, info in ipairs(move.moveInfo) do
           if info.fromArea == Card.PlayerEquip then
             return true
@@ -40,8 +40,8 @@ fengyang:addEffect(fk.BeforeCardsMove,{
     player:broadcastSkillInvoke(fengyang.name)
     for _, move in ipairs(data) do
       if move.from and H.inFormationRelation(player, move.from) and
-        (move.moveReason == fk.ReasonDiscard or (move.toArea == Card.PlayerHand and move.to ~= move.from and move.moveReason ~= fk.ReasonGive))
-        and move.proposer and not H.compareKingdomWith(move.proposer, player) then
+          (move.moveReason == fk.ReasonDiscard or (move.toArea == Card.PlayerHand and move.to ~= move.from and move.moveReason ~= fk.ReasonGive))
+          and move.proposer and not H.compareKingdomWith(move.proposer, player) then
         local move_info = {}
         for _, info in ipairs(move.moveInfo) do
           local id = info.cardId
@@ -59,7 +59,7 @@ fengyang:addEffect(fk.BeforeCardsMove,{
     end
     if #ids > 0 then
       room:doIndicate(player.id, targets)
-      room:sendLog{
+      room:sendLog {
         type = "#cancelDismantle",
         card = ids,
         arg = fengyang.name,

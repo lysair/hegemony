@@ -6,7 +6,7 @@ companionDraw:addEffect("active", {
   prompt = "#companion_draw&",
   anim_type = "drawcard",
   can_use = function(self, player)
-    return player:getMark("@!companion") > 0
+    return player:getMark("@!!companion") > 0
   end,
   card_filter = Util.FalseFunc,
   target_num = 0,

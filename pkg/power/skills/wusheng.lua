@@ -24,7 +24,7 @@ wusheng:addEffect("viewas", {
 
 wusheng:addEffect("targetmod", {
   bypass_distances = function (self, player, skill, card, to)
-    return card and player:hasSkill(wusheng.name) and skill.trueName == "slash_skill" and card.suit == Card.Diamond
+    return card and player:hasSkill(self.name) and skill.trueName == "slash_skill" and card.suit == Card.Diamond
   end
 })
 
