@@ -88,3 +88,5 @@ Fk:loadTranslationTable{
   -- ["#wild_max&"] = "野心家[手牌上限]",
   ["#wild_max-ask"] = "你可弃一枚“野心家”，此回合手牌上限+2",
 }
+
+return wildDraw
