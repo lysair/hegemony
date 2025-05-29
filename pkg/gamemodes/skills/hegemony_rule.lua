@@ -264,7 +264,7 @@ hegRule:addEffect(fk.GeneralShown, {
       -- end
     elseif player:getMark("__heg_join_wild") == 0 and player:getMark("__heg_construct_wild") == 0 then
       if player:getMark("__heg_wild") == 1 then
-        player.role = player.kingdom
+        room:setPlayerProperty(player, "role", H.kingdomMapper[player.general])
       else
         room:setPlayerProperty(player, "role", player.kingdom)
       end

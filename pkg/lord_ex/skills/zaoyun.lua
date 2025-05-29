@@ -1,8 +1,21 @@
-
 local zaoyun = fk.CreateSkill{
   name = "zaoyun",
 }
+
+Fk:loadTranslationTable{
+  ["zaoyun"] = "凿运",
+  [":zaoyun"] = "出牌阶段限一次，你可选择一名与你势力不同且你至其距离大于1的角色并弃置X张手牌（X为你至其的距离-1），令你至其的距离此回合视为1，然后你对其造成1点伤害。",
+
+  ["#zaoyun-discard"] = "凿运：弃置 %arg 张手牌（你至%src的距离-1）",
+  ["#zaoyun"] = "凿运：选择任意张手牌弃置，再选择一名与你势力不同且你至其距离为弃置手牌数+1的角色",
+  ["zaoyun_num"] = "弃置%arg张牌",
+
+  ["$zaoyun1"] = "开渠输粮，振军之心，破敌之胆！",
+  ["$zaoyun2"] = "兵精粮足，胜局已定！",
+}
+
 local H = require "packages/hegemony/util"
+
 zaoyun:addEffect("active", {
   anim_type = "offensive",
   prompt = "#zaoyun",
@@ -46,17 +59,5 @@ zaoyun:addEffect("distance", {
     end
   end,
 })
-
-Fk:loadTranslationTable{
-  ["zaoyun"] = "凿运",
-  [":zaoyun"] = "出牌阶段限一次，你可选择一名与你势力不同且你至其距离大于1的角色并弃置X张手牌（X为你至其的距离-1），令你至其的距离此回合视为1，然后你对其造成1点伤害。",
-
-  ["#zaoyun-discard"] = "凿运：弃置 %arg 张手牌（你至%src的距离-1）",
-  ["#zaoyun"] = "凿运：选择任意张手牌弃置，再选择一名与你势力不同且你至其距离为弃置手牌数+1的角色",
-  ["zaoyun_num"] = "弃置%arg张牌",
-
-  ["$zaoyun1"] = "开渠输粮，振军之心，破敌之胆！",
-  ["$zaoyun2"] = "兵精粮足，胜局已定！",
-}
 
 return zaoyun

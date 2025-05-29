@@ -21,6 +21,7 @@ youyan:addEffect(fk.AfterCardsMove, {
       end
       if can_invoked and #suits > 0 then
         event:setCostData(self, {suits = suits})
+        return true
       end
     end
   end,

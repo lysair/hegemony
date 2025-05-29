@@ -3,7 +3,7 @@
 ---@param add boolean
 ---@param isDamage boolean
 local function handleZhuihuan(room, player, add, isDamage)
-  local mark_name = isDamage and "ty_heg__zhuihuan-damage" or "ty_heg__zhuihuan-discard"
+  local mark_name = isDamage and "ty_heg__zhuihuan_damage" or "ty_heg__zhuihuan_discard"
   room:setPlayerMark(player, "@@" .. mark_name, add and 1 or 0)
   -- room:handleAddLoseSkills(player, add and "#" .. mark_name or "-#" .. mark_name, nil, false, true)
 end
@@ -29,7 +29,7 @@ zhuihuan:addEffect(fk.EventPhaseStart, {
   on_use = function (self, event, target, player, data)
     local room = player.room
     local tos = event:getCostData(self).tos
-    local choices = {"zhuihuan-damage::" ..tos[1], "zhuihuan-discard::" ..tos[1]}
+    local choices = {"zhuihuan-damage::" ..tos[1].id, "zhuihuan-discard::" ..tos[1].id}
     if #tos == 1 then
       local choice = room:askToChoice(player, {
         choices = choices,

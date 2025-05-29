@@ -1,8 +1,19 @@
-
 local quanjin = fk.CreateSkill{
   name = "quanjin",
 }
+
+Fk:loadTranslationTable{
+  ["quanjin"] = "劝进",
+  [":quanjin"] = "出牌阶段限一次，你可将一张手牌交给一名此阶段受到过伤害的角色，对其发起“军令”。若其执行，你摸一张牌；若其不执行，你将手牌摸至与手牌最多的角色相同（最多摸五张）。",
+
+  ["#quanjin-active"] = "发动 劝进，选择一张手牌交给一名此阶段内受到过伤害的角色并对其发起军令",
+
+  ["$quanjin1"] = "今称魏公，则可以藩卫之名，征吴伐蜀也。",
+  ["$quanjin2"] = "明公受封，正合天心人意！",
+}
+
 local H = require "packages/hegemony/util"
+
 quanjin:addEffect("active", {
   prompt = "#quanjin-active",
   anim_type = "control",
@@ -57,15 +68,5 @@ quanjin:addEffect(fk.Damaged, {
     player.room:setPlayerMark(target, "_quanjin-phase", 1)
   end,
 })
-
-Fk:loadTranslationTable{
-  ["quanjin"] = "劝进",
-  [":quanjin"] = "出牌阶段限一次，你可将一张手牌交给一名此阶段受到过伤害的角色，对其发起“军令”。若其执行，你摸一张牌；若其不执行，你将手牌摸至与手牌最多的角色相同（最多摸五张）。",
-
-  ["#quanjin-active"] = "发动 劝进，选择一张手牌交给一名此阶段内受到过伤害的角色并对其发起军令",
-
-  ["$quanjin1"] = "今称魏公，则可以藩卫之名，征吴伐蜀也。",
-  ["$quanjin2"] = "明公受封，正合天心人意！",
-}
 
 return quanjin
