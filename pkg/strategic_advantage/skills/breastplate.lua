@@ -21,7 +21,7 @@ breastplateSkill:addEffect(fk.DamageInflicted, {
     }
     room:moveCardTo(table.filter(player:getEquipments(Card.SubtypeArmor), function(id) return Fk:getCardById(id).name == "sa__breastplate" end),
       Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, self.name, nil, true, player.id)
-    return true
+    data:preventDamage()
   end,
 })
 

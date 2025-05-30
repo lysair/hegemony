@@ -41,6 +41,7 @@ hegNullificationSkill:addEffect("cardskill", {
       if (effect.extra_data or {}).hegN_all then
         local to = effect.responseToEvent.to
         effect.responseToEvent.use.disresponsiveList = effect.responseToEvent.use.disresponsiveList or {}
+        effect.responseToEvent.use.nullifiedTargets = effect.responseToEvent.use.nullifiedTargets or {}
         for _, p in ipairs(room.alive_players) do
           if H.compareKingdomWith(p, to) then
             table.insertIfNeed(effect.responseToEvent.use.nullifiedTargets, p)

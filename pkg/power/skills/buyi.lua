@@ -6,7 +6,7 @@ buyi:addEffect(fk.AfterDying, {
   anim_type = "support",
   can_trigger = function(self, event, target, player, data)
     return player:hasSkill(buyi.name) and player:usedSkillTimes(buyi.name) == 0 and target and not target.dead and
-    H.compareKingdomWith(target, player) and ((data.damage or {}).from or {}).dead
+    H.compareKingdomWith(target, player) and not ((data.damage or {}).from or {}).dead
   end,
   on_cost = function(self, event, target, player, data)
     local room = player.room
@@ -19,6 +19,7 @@ buyi:addEffect(fk.AfterDying, {
     end
   end,
   on_use = function(self, event, target, player, data)
+    player.room:doIndicate(player.id, {data.damage.from.id})
     if not H.askCommandTo(player, data.damage.from, buyi.name) then
       player.room:recover({
         who = target,

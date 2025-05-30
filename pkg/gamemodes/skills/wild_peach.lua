@@ -13,7 +13,7 @@ wildPeach:addEffect("viewas", {
     return c
   end,
   before_use = function(self, player)
-    H.removeHegMark(player.room, player, "vanguard", 1)
+    H.removeHegMark(player.room, player, "wild", 1)
   end,
   enabled_at_play = function(self, player)
     return player:getMark("@!!wild") > 0

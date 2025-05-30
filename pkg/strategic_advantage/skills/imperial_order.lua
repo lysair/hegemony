@@ -26,6 +26,7 @@ local function doImperialOrder(room, target)
   if choice == "IO_reveal" then
     H.askToRevealGenerals(target, {
       skill_name = "imperial_order_skill",
+      revealAll = false,
       cancelable = false,
     })
     target:drawCards(1, "imperial_order_skill")

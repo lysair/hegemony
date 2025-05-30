@@ -37,9 +37,11 @@ zhaoran:addEffect(fk.EventPhaseChanging, {
       H.askToRevealGenerals(p, {
         skill_name = zhaoran.name,
         prompt = "#zq_heg__zhaoran-ask:"..player.id,
+        revealAll = false,
       }) ~= "Cancel" then
         data.skipped = true
         room:endTurn()
+        break
       end
     end
   end,

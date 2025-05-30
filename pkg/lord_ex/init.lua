@@ -193,6 +193,7 @@ Fk:loadTranslationTable{
 
 local wenqin = General:new(extension, "ld__wenqin", "wei", 4)
 wenqin.subkingdom = "wu"
+wenqin:addSkills{ "ld__jinfa" }
 Fk:loadTranslationTable{
   ["ld__wenqin"] = "文钦",
   ["#ld__wenqin"] = "勇而无算",

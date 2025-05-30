@@ -27,7 +27,7 @@ jianglue:addEffect("active", {
         if deputy then
           flag = flag.. "d"
         end
-        H.askToRevealGenerals(player, {
+        H.askToRevealGenerals(p, {
           skill_name = jianglue.name,
           flag = flag,
         })

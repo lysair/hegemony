@@ -27,11 +27,13 @@ Fk:loadTranslationTable{
   ["~zq_heg__zhangchunhua"] = "冷眸残情，孤苦为一人。",
 }
 
---General:new(extension, "zq_heg__simashi", "jin", 4):addSkills { "zq_heg__yimie", "zq_heg__ruilue" }
+General:new(extension, "zq_heg__simashi", "jin", 4):addSkills { "zq_heg__yimie", "zq_heg__ruilve" }
 Fk:loadTranslationTable{
   ["zq_heg__simashi"] = "司马师",
   ["#zq_heg__simashi"] = "睚眥侧目",
   ["illustrator:zq_heg__simashi"] = "拉布拉卡",
+
+  ["~zq_heg__simashi"] = "子上，这是为兄给你打下的江山……",
 }
 
 General:new(extension, "zq_heg__simazhao", "jin", 3):addSkills { "zq_heg__zhaoran", "zq_heg__beiluan" }

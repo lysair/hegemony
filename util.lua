@@ -275,7 +275,7 @@ function H.ArraySummonSkill:onUse(room, effect)
       general = Fk.generals[to:getMark("__heg_deputy")]
       if (general.kingdom == _kingdom or general.subkingdom == _kingdom) then flag = flag .. "d" end
     end
-    return H.askToRevealGenerals(player, {
+    return H.askToRevealGenerals(to, {
       skill_name = skill_name,
       flag = flag,
     }) ~= "Cancel"
@@ -459,7 +459,7 @@ function H.doCommand(to, skill_name, index, from, forced)
       from = from.id,
       to = {dest.id},
     }
-    room:doIndicate(from.id, dest.id)
+    room:doIndicate(from.id, {dest.id})
     room:damage{
       from = to,
       to = dest,
@@ -473,7 +473,14 @@ function H.doCommand(to, skill_name, index, from, forced)
     if #to:getCardIds{Player.Hand, Player.Equip} == 1 then
       cards = to:getCardIds{Player.Hand, Player.Equip}
     else
-      cards = room:askForCard(to, 2, 2, true, "command", false, nil, "#command2-give::" .. from.id)
+      cards = room:askToCards(to,{
+        min_num = 2,
+        max_num = 2,
+        include_equip = true,
+        skill_name = "command",
+        prompt = "#command2-give::" .. from.id,
+        cancelable = false,
+      })
     end
     room:moveCardTo(cards, Player.Hand, from, fk.ReasonGive, "command", nil, false, from.id)
   elseif index == 3 then
@@ -495,7 +502,7 @@ function H.doCommand(to, skill_name, index, from, forced)
     if #to:getCardIds("e") > 0 then
       table.insert(to_remain, to:getCardIds("e")[1])
     end
-    local _, ret = room:askForUseActiveSkill(to, "#command6_select", "#command6-select", false)
+    local _, ret = room:askToUseActiveSkill(to, {prompt = "#command6_select", skill_name = "#command6-select", cancelable = false})
     if ret then
       to_remain = ret.cards
     end
@@ -606,6 +613,7 @@ end
 ---@field flag? string @ "m"仅主将，"d"仅副将，"md"全亮。默认可以全亮
 ---@field cancelable? boolean  @ 是否可以取消。默认可以
 ---@field lord_convert? boolean  @ 是否可以变为君主。默认不可以
+---@field revealAll? boolean @ 是否可以全亮。默认可以
 
 --- 询问亮将
 ---@param player ServerPlayer @ 被询问亮将的玩家
@@ -618,8 +626,9 @@ function H.askToRevealGenerals(player, params)
   end
   local skill_name = params.skill_name or "heg_rule"
   local flag = params.flag or "md"
-  local cancelable = params.cancelable or true
+  local cancelable = params.cancelable == nil and true or params.cancelable
   local lord_convert = params.lord_convert or false
+  local revealAll = params.revealAll == nil and true or params.revealAll
 
   local all_choices = {
     "revealMain:::" .. player:getMark("__heg_general"),
@@ -634,7 +643,7 @@ function H.askToRevealGenerals(player, params)
   if string.find(flag, "d") and player.deputyGeneral == "anjiang" and not player:prohibitReveal(true) then
     table.insert(choices, "revealDeputy:::" .. player:getMark("__heg_deputy"))
   end
-  if #choices == 2 and flag == "md" then
+  if #choices == 2 and flag == "md" and revealAll then
     table.insert(choices, "revealAll")
   end
   if cancelable then
@@ -954,52 +963,23 @@ function H.transformGeneral(room, player, isMain, isHidden, num)
   table.removeOne(generals, general)
   table.insert(generals, orig)
   room:returnToGeneralPile(generals)
-  if not isHidden then
-    room:changeHero(player, general, false, not isMain, true, false, false)
-  else
-    if isMain then
-      room:setPlayerGeneral(player, "anjiang", true)
-      local general = Fk.generals[player:getMark("__heg_general")]
-      local skills = table.connect(general.skills, table.map(general.other_skills, Util.Name2SkillMapper))
-      for _, s in ipairs(skills) do
-        if s.relate_to_place ~= "d" then
-          addHegSkill(player, s, room)
-        end
-      end
-    else
-      room:setDeputyGeneral(player, "anjiang")
-      local deputy = Fk.generals[player:getMark("__heg_deputy")]
-      if deputy then
-        local skills = table.connect(deputy.skills, table.map(deputy.other_skills, Util.Name2SkillMapper))
-        for _, s in ipairs(skills) do
-          if s.relate_to_place ~= "m" then
-            addHegSkill(player, s, room)
-          end
-        end
-      end
-    end
+  room:changeHero(player, general, false, not isMain, not isHidden, false, false)
+  --暗置变更
+  if isHidden then
+    player:hideGeneral(not isMain)
+    room:sendLog{
+      type = "#ChangeHiddenGeneral",
+      from = player.id,
+      toast = true,
+    }
   end
   room:setPlayerMark(player, isMain and "__heg_general" or "__heg_deputy", general)
-  if not isHidden then
-    room:changeHero(player, general, false, not isMain, true, false, false)
-  else
-    -- 暗置变更
-    local lose = Fk.generals[orig]
-    local general = isMain and Fk.generals[player:getMark("__heg_general")] or Fk.generals[player:getMark("__heg_deputy")]
-    room:setPlayerGeneral(player, "anjiang", isMain)
-    local skills = table.connect(general.skills, table.map(general.other_skills, Util.Name2SkillMapper))
-    local location = isMain and "d" or "m"
-    for _, s in ipairs(skills) do
-      if s.relate_to_place ~= location then
-        addHegSkill(player, s, room)
-      end
-    end
-    for _, s in ipairs(lose:getSkillNameList()) do
-      room:handleAddLoseSkills(player, "-"..s, nil)
-    end
-  end
   room.logic:trigger("fk.GeneralTransformed", player, orig)
 end
+
+Fk:loadTranslationTable{
+  ["#ChangeHiddenGeneral"] = "%from 变更了 副将（暗置）",
+}
 
 -- 技能相关
 
