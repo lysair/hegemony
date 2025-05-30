@@ -7,7 +7,7 @@ jieyue:addEffect(fk.EventPhaseStart, {
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(jieyue.name) and player.phase == Player.Start
       and not player:isKongcheng() and table.find(player.room.alive_players, function(p) return
-        p.kingdom ~= "wei"
+        p.kingdom ~= "wei" and p ~= player
       end)
   end,
   on_cost = function(self, event, target, player, data)

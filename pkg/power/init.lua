@@ -23,7 +23,7 @@ Fk:loadTranslationTable{
 }
 
 local yujin = General:new(extension, "ld__yujin", "wei", 4)
-yujin:addSkill("ld__jieyue")
+yujin:addSkills{"ld__jieyue"}
 yujin:addCompanions("hs__xiahoudun")
 
 Fk:loadTranslationTable{

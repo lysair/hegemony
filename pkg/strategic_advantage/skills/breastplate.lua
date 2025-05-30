@@ -4,6 +4,7 @@ local breastplateSkill = fk.CreateSkill{
 }
 
 breastplateSkill:addEffect(fk.DamageInflicted, {
+  mute = true,
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(self) and data.damage >= player.hp
   end,
@@ -12,6 +13,7 @@ breastplateSkill:addEffect(fk.DamageInflicted, {
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
+    data:preventDamage()
     room:sendLog{
       type = "#BreastplateSkill",
       from = player.id,
@@ -21,7 +23,6 @@ breastplateSkill:addEffect(fk.DamageInflicted, {
     }
     room:moveCardTo(table.filter(player:getEquipments(Card.SubtypeArmor), function(id) return Fk:getCardById(id).name == "sa__breastplate" end),
       Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, self.name, nil, true, player.id)
-    data:preventDamage()
   end,
 })
 

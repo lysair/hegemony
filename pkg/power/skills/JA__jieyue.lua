@@ -18,7 +18,7 @@ jieyue:addEffect(fk.EventPhaseStart, {
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(jieyue.name) and player.phase == Player.Start and
         not player:isKongcheng()
-        and table.find(player.room.alive_players, function(p) return p.kingdom ~= "wei" end)
+        and table.find(player.room.alive_players, function(p) return p.kingdom ~= "wei" and p ~= player end)
   end,
   on_cost = function(self, event, target, player, data)
     local plist, cid = player.room:askToChooseCardsAndPlayers(player, {
@@ -33,13 +33,13 @@ jieyue:addEffect(fk.EventPhaseStart, {
       cancelable = true,
     })
     if #plist > 0 then
-      event:setCostData(self, { to = plist[1], card = cid })
+      event:setCostData(self, { tos = plist, card = cid })
       return true
     end
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    local to = event:getCostData(self).to
+    local to = event:getCostData(self).tos[1]
     room:moveCardTo(event:getCostData(self).card, Player.Hand, to, fk.ReasonGive, jieyue.name, nil, false, player)
     if H.askCommandTo(player, to, jieyue.name) then
       player:drawCards(1, jieyue.name)
