@@ -19,7 +19,7 @@ zhuanzhan:addEffect("targetmod", {
 
 zhuanzhan:addEffect("prohibit", {
   is_prohibited = function (self, from, to, card)
-    return from:hasSkill(zhuanzhan.name) and card and card.trueName == "slash" and to.kingdom == "unknown"
+    return from and from:hasSkill(zhuanzhan.name) and card and card.trueName == "slash" and to.kingdom == "unknown"
   end,
 })
 

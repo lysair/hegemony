@@ -99,7 +99,7 @@ xionghuo:addLoseEffect(function (self, player, is_death)
 end)
 xionghuo:addEffect("prohibit", {
   is_prohibited = function(self, from, to, card)
-    return card.trueName == "slash" and table.contains(from:getTableMark("of_heg__xionghuo_prohibit-turn") ,to.id)
+    return card.trueName == "slash" and from and table.contains(from:getTableMark("of_heg__xionghuo_prohibit-turn") ,to.id)
   end,
 })
 

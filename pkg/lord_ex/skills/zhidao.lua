@@ -58,7 +58,7 @@ zhidao:addEffect(fk.Damage, {
 
 zhidao:addEffect("prohibit", {
   is_prohibited = function(self, from, to, card)
-    return from:usedSkillTimes(zhidao.name, Player.HistoryTurn) > 0 and to:getMark("ld__zhidao-turn") == 0
+    return from and from:usedSkillTimes(zhidao.name, Player.HistoryTurn) > 0 and to:getMark("ld__zhidao-turn") == 0
   end,
 })
 
