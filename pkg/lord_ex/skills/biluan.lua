@@ -11,7 +11,7 @@ Fk:loadTranslationTable {
 biluan:addEffect("distance", {
   correct_func = function(self, from, to)
     if to:hasSkill(biluan.name) and to:hasShownSkill(biluan.name) then
-      return math.max(#to:getCardIds("h"), 0)
+      return math.max(#to.player_cards[Player.Equip], 0)
     end
   end,
 })

@@ -503,10 +503,7 @@ heg = fk.CreateGameMode{
     "offline_heg",
     "zqdl",
 
-    "formation_cards",
-    "momentum_cards",
-    "transformation_cards",
-    "power_cards",
+    "lord_cards",
   },
   winner_getter = function(self, victim)
     local room = victim.room
