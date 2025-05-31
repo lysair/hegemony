@@ -101,10 +101,10 @@ zhengbi:addEffect(fk.GeneralRevealed, {
 
 zhengbi:addEffect("targetmod", {
   bypass_times = function(self, player, skill, scope, card, to)
-    return card and player:hasSkill(self.name) and to:getMark("@@ld__zhengbi_choose-turn") > 0
+    return card and to and player:hasSkill(self.name) and to:getMark("@@ld__zhengbi_choose-turn") > 0
   end,
   bypass_distances =  function(self, player, skill, card, to)
-    return card and player:hasSkill(self.name) and to:getMark("@@ld__zhengbi_choose-turn") > 0
+    return card and to and player:hasSkill(self.name) and to:getMark("@@ld__zhengbi_choose-turn") > 0
   end,
 })
 

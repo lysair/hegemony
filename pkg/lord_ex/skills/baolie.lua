@@ -60,10 +60,10 @@ baolie:addEffect(fk.EventPhaseStart, {
 
 baolie:addEffect("targetmod", {
   bypass_times = function(self, player, skill, scope, card, to)
-    return player:hasSkill(baolie.name) and to.hp >= player.hp and skill.trueName == "slash_skill"
+    return player:hasSkill(baolie.name) and to and to.hp >= player.hp and skill.trueName == "slash_skill"
   end,
   bypass_distances = function(self, player, skill, card, to)
-    return player:hasSkill(baolie.name) and to.hp >= player.hp and skill.trueName == "slash_skill"
+    return player:hasSkill(baolie.name) and to and to.hp >= player.hp and skill.trueName == "slash_skill"
   end,
 })
 
