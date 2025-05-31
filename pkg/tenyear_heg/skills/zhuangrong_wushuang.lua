@@ -6,11 +6,8 @@ local wushuang = fk.CreateSkill {
 ---@type TrigSkelSpec<AimFunc>
 local wushuang_spec = {
   on_use = function(self, event, target, player, data)
-    data.fixedResponseTimes = 2
-    if data.card.trueName == "duel" then
-      data.fixedAddTimesResponsors = data.fixedAddTimesResponsors or {}
-      table.insertIfNeed(data.fixedAddTimesResponsors, (event == fk.TargetSpecified) and data.to or data.from)
-    end
+    local to = (event == fk.TargetConfirmed and data.card.trueName == "duel") and data.from or data.to
+    data:setResponseTimes(2, to)
   end,
 }
 

@@ -13,7 +13,7 @@ niaoxiang:addEffect(fk.TargetSpecified, {
   end,
   on_cost = Util.TrueFunc,
   on_use = function(self, event, target, player, data)
-    data.fixedResponseTimes = 2
+    data:setResponseTimes(2)
   end
 })
 
