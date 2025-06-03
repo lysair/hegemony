@@ -4,7 +4,7 @@ local H = require "packages/hegemony/util"
 local longdan = fk.CreateSkill{
   name = "hs__longdan",
   dynamic_desc = function(self, player)
-    if H.getHegLord(Fk:currentRoom(), player) and H.getHegLord(Fk:currentRoom(), player):hasSkill("shouyue") then
+    if H.hasHegLordSkill(Fk:currentRoom(), player, "shouyue") then
       return "hs__longdan_shouyue"
     else
       return "hs__longdan"
@@ -108,11 +108,9 @@ local longdan_draw_spec = {
   anim_type = "drawcard",
   is_delay_effect = true,
   can_trigger = function (self, event, target, player, data)
-    local room = player.room
-      return player == target and H.getHegLord(room, player) and
-        table.contains(data.card.skillNames, longdan.name) and H.getHegLord(room, player):hasSkill("shouyue")
+    return player == target and
+      table.contains(data.card.skillNames, longdan.name) and H.hasHegLordSkill(player.room, player, "shouyue")
   end,
-  on_cost = Util.TrueFunc,
   on_use = function (self, event, target, player, data)
     player:drawCards(1, longdan.name)
   end,

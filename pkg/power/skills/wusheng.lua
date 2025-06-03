@@ -2,6 +2,13 @@ local H = require "packages/hegemony/util"
 
 local wusheng = fk.CreateSkill{
   name = "xuanhuo__hs__wusheng",
+  dynamic_desc = function(self, player)
+    if H.hasHegLordSkill(Fk:currentRoom(), player, "shouyue") then
+      return "hs__wusheng_shouyue"
+    else
+      return "xuanhuo__hs__wusheng"
+    end
+  end,
 }
 wusheng:addEffect("viewas", {
   anim_type = "offensive",
@@ -9,7 +16,7 @@ wusheng:addEffect("viewas", {
   handly_pile = true,
   card_filter = function(self, player, to_select, selected)
     if #selected == 1 then return false end
-    return (H.getHegLord(Fk:currentRoom(), player) and H.getHegLord(Fk:currentRoom(), player):hasSkill("shouyue")) or Fk:getCardById(to_select).color == Card.Red
+    return H.hasHegLordSkill(Fk:currentRoom(), player, "shouyue") or Fk:getCardById(to_select).color == Card.Red
   end,
   view_as = function(self, player,cards)
     if #cards ~= 1 then

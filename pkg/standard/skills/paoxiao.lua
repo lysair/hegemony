@@ -1,8 +1,17 @@
+local H = require "packages/hegemony/util"
+
 local paoxiao = fk.CreateSkill{
   name = "hs__paoxiao",
   tags = {Skill.Compulsory},
+  dynamic_desc = function(self, player)
+    if H.hasHegLordSkill(Fk:currentRoom(), player, "shouyue") then
+      return "hs__paoxiao_shouyue"
+    else
+      return "hs__paoxiao"
+    end
+  end,
 }
-local H = require "packages/hegemony/util"
+
 paoxiao:addEffect('targetmod', {
   bypass_times = function(self, player, skill, scope, card)
     if card and player:hasSkill(self.name) and skill.trueName == "slash_skill" -- FIXME
@@ -43,9 +52,8 @@ paoxiao:addEffect(fk.CardUsing, {
 })
 paoxiao:addEffect(fk.TargetSpecified, {
   can_refresh = function (self, event, target, player, data)
-    local room = player.room
     return player == target and data.card.trueName == "slash" and player:hasSkill("hs__paoxiao")
-      and H.getHegLord(room, player) and H.getHegLord(room, player):hasSkill("shouyue") and data.to:isAlive()
+      and H.hasHegLordSkill(player.room, player, "shouyue") and data.to:isAlive()
   end,
   on_refresh = function (self, event, target, player, data)
     data.to:addQinggangTag(data)
@@ -53,8 +61,9 @@ paoxiao:addEffect(fk.TargetSpecified, {
 })
 
 Fk:loadTranslationTable{
-  ["hs__paoxiao"] = "咆哮", -- 动态描述
+  ["hs__paoxiao"] = "咆哮",
   [":hs__paoxiao"] = "锁定技，你使用【杀】无次数限制。当你于一个回合内使用第二张【杀】时，你摸一张牌。",
+  [":hs__paoxiao_shouyue"] = "锁定技，你使用【杀】无次数限制。当你于一个回合内使用第二张【杀】时，你摸一张牌。当你使用杀指定目标后，此【杀】无视其他角色的防具。",
   ["#hs__paoxiaoTrigger"] = "咆哮",
   ["$hs__paoxiao1"] = "啊~~~",
   ["$hs__paoxiao2"] = "燕人张飞在此！",

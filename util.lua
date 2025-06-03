@@ -602,10 +602,18 @@ H.lordGenerals = {} ---@type table<string, string> @ 普通将 --> 君主将
 ---@param player Player
 ---@return Player? @ 君主
 function H.getHegLord(room, player)
-  local kingdom = player.kingdom
+  local kingdom = H.getKingdom(player)
   return table.find(room.alive_players, function(p) return p.kingdom == kingdom and not not string.find(p.general, "lord") end)
 end
 
+--- 获取是否有君主拥有技能
+---@param room AbstractRoom
+---@param player Player
+---@param skill string
+---@return boolean
+function H.hasHegLordSkill(room, player, skill)
+  return not not H.getHegLord(room, player) and H.getHegLord(room, player):hasSkill(skill)
+end
 
 ---@class AskForRevealGeneralsParams
 ---@field skill_name string @ 发起亮将的技能名

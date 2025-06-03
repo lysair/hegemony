@@ -1,8 +1,15 @@
+local H = require "packages/hegemony/util"
+
 local tieqi = fk.CreateSkill{
   name = "hs__tieqi",
+  dynamic_desc = function(self, player)
+    if H.hasHegLordSkill(Fk:currentRoom(), player, "shouyue") then
+      return "hs__tieqi_shouyue"
+    else
+      return "hs__tieqi"
+    end
+  end,
 }
-
-local H = require "packages/hegemony/util"
 
 tieqi:addEffect(fk.TargetSpecified, {
   anim_type = "offensive",
@@ -29,7 +36,7 @@ tieqi:addEffect(fk.TargetSpecified, {
     local disable_choices = table.filter(all_choices, function(g) return not table.contains(choices, g) end)
     if #choices > 0 then
       local choice
-      if H.getHegLord(room, player) and #choices > 1 and H.getHegLord(room, player):hasSkill("shouyue") then
+      if H.hasHegLordSkill(room, player, "shouyue") and #choices > 1 then
         choice = choices
       else
         local result = room:askToCustomDialog(player, {
@@ -113,7 +120,11 @@ end)
 
 Fk:loadTranslationTable{
   ["hs__tieqi"] = "铁骑",
-  [":hs__tieqi"] = "当你使用【杀】指定目标后，你可判定，令其本回合一张明置的武将牌非锁定技失效，其需弃置一张与判定结果花色相同的牌，否则其不能使用【闪】抵消此【杀】。",
+  [":hs__tieqi"] = "当你使用【杀】指定目标后，你可判定，令其本回合一张明置的武将牌非锁定技失效，"..
+    "其需弃置一张与判定结果花色相同的牌，否则其不能使用【闪】抵消此【杀】。",
+  [":hs__tieqi_shouyue"] = "当你使用【杀】指定目标后，你可判定，令其本回合所有明置的武将牌非锁定技失效，"..
+    "其需弃置一张与判定结果花色相同的牌，否则其不能使用【闪】抵消此【杀】。",
+
   ["@hs__tieqi-turn"] = "铁骑",
   ["#HsTieqiTo"] = "%from 令 %to 此回合 %arg 的非锁定技失效",
   ["#hs__tieqi-ask"] = "铁骑：令 %dest 一张武将牌上的非锁定技此回合失效",

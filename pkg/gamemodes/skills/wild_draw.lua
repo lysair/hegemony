@@ -26,7 +26,7 @@ wildDraw:addEffect("active", {
   end,
   on_use = function(self, room, effect)
     local player = effect.from
-    H.removeHegMark(room, player, "vanguard", 1)
+    H.removeHegMark(room, player, "wild", 1)
     local pattern = self.interaction.data
     if pattern == "wild_companion" then
       player:drawCards(2, wildDraw.name)
@@ -73,7 +73,7 @@ wildDraw:addEffect(fk.EventPhaseStart, {
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    H.removeHegMark(room, player, "vanguard", 1)
+    H.removeHegMark(room, player, "wild", 1)
     room:addPlayerMark(target, MarkEnum.AddMaxCardsInTurn, 2)
   end,
 })

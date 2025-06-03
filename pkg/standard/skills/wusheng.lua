@@ -1,13 +1,21 @@
+local H = require "packages/hegemony/util"
+
 local wusheng = fk.CreateSkill{
   name = "hs__wusheng",
+  dynamic_desc = function(self, player)
+    if H.hasHegLordSkill(Fk:currentRoom(), player, "shouyue") then
+      return "hs__wusheng_shouyue"
+    else
+      return "hs__wusheng"
+    end
+  end,
 }
-local H = require "packages/hegemony/util"
 wusheng:addEffect('viewas', {
   anim_type = "offensive",
   pattern = "slash",
   card_filter = function(self, player, to_select, selected)
     if #selected == 1 then return false end
-    return (H.getHegLord(Fk:currentRoom(), player) and H.getHegLord(Fk:currentRoom(), Self):hasSkill("shouyue")) or Fk:getCardById(to_select).color == Card.Red
+    return H.hasHegLordSkill(Fk:currentRoom(), player, "shouyue") or Fk:getCardById(to_select).color == Card.Red
   end,
   view_as = function(self, player, cards)
     if #cards ~= 1 then
@@ -28,8 +36,9 @@ wusheng:addEffect("targetmod", {
 })
 
 Fk:loadTranslationTable{
-  ["hs__wusheng"] = "武圣", -- 动态描述
+  ["hs__wusheng"] = "武圣",
   [":hs__wusheng"] = "你可将一张红色牌当【杀】使用或打出。你使用的<font color='red'>♦</font>【杀】无距离限制。",
+  [":hs__wusheng_shouyue"] = "你可将一张牌当【杀】使用或打出。你使用的<font color='red'>♦</font>【杀】无距离限制。",
   ["$hs__wusheng1"] = "关羽在此，尔等受死！",
   ["$hs__wusheng2"] = "看尔乃插标卖首！",
 }

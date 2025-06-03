@@ -1,5 +1,14 @@
+local H = require "packages/hegemony/util"
+
 local liegong = fk.CreateSkill({
   name = "xuanhuo__hs__liegong",
+  dynamic_desc = function(self, player)
+    if H.hasHegLordSkill(Fk:currentRoom(), player, "shouyue") then
+      return "hs__liegong_shouyue"
+    else
+      return "xuanhuo__hs__liegong"
+    end
+  end,
 })
 
 liegong:addEffect(fk.TargetSpecified, {
@@ -11,6 +20,14 @@ liegong:addEffect(fk.TargetSpecified, {
   end,
   on_use = function(self, event, target, player, data)
     data.disresponsive = true
+  end,
+})
+liegong:addEffect("atkrange", {
+  correct_func = function(self, from, to)
+    if H.hasHegLordSkill(Fk:currentRoom(), from, "shouyue") then
+      return 1
+    end
+    return 0
   end,
 })
 

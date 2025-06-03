@@ -1,7 +1,14 @@
+local H = require "packages/hegemony/util"
 local tieqi = fk.CreateSkill {
   name = "xuanhuo__hs__tieqi",
+  dynamic_desc = function(self, player)
+    if H.hasHegLordSkill(Fk:currentRoom(), player, "shouyue") then
+      return "hs__tieqi_shouyue"
+    else
+      return "xuanhuo__hs__tieqi"
+    end
+  end,
 }
-local H = require "packages/hegemony/util"
 
 tieqi:addEffect(fk.TargetSpecified, {
   anim_type = "offensive",
@@ -28,7 +35,7 @@ tieqi:addEffect(fk.TargetSpecified, {
     local disable_choices = table.filter(all_choices, function(g) return not table.contains(choices, g) end)
     if #choices > 0 then
       local choice
-      if H.getHegLord(room, player) and #choices > 1 and H.getHegLord(room, player):hasSkill("shouyue") then
+      if H.hasHegLordSkill(room, player, "shouyue") and #choices > 1 then
         choice = choices
       else
         local result = room:askToCustomDialog(player, {

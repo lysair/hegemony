@@ -19,7 +19,8 @@ jiaheOther:addEffect("active", {
     return "#ld__jiahe_other:" .. to.id
   end,
   can_use = function(self, player)
-    return player:usedSkillTimes(jiaheOther.name, Player.HistoryPhase) == 0 and H.getHegLord(Fk:currentRoom(), player) and H.getHegLord(Fk:currentRoom(), player):hasSkill("jiahe")
+    return player:usedSkillTimes(jiaheOther.name, Player.HistoryPhase) == 0 and
+      H.hasHegLordSkill(Fk:currentRoom(), player, "jiahe")
   end,
   card_num = 1,
   card_filter = function(self, player, to_select, selected)
@@ -27,8 +28,8 @@ jiaheOther:addEffect("active", {
   end,
   target_num = 0,
   on_use = function(self, room, effect)
-    local player = room:getPlayerById(effect.from)
-    local to = H.getHegLord(room, player)
+    local player = effect.from
+    local to = H.getHegLord(room, player) --[[@as ServerPlayer]]
     if to and to:hasSkill("jiahe") then
       to:addToPile("lord_fenghuo", effect.cards, true, jiaheOther.name)
     end
