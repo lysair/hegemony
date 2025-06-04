@@ -12,8 +12,6 @@ Fk:loadTranslationTable{
   ["$m_heg__miewu2"] = "吾军势如破竹，江东六郡唾手可得。",
 }
 
-local U = require "packages/utility/utility"
-
 miewu:addEffect("viewas", {
   pattern = ".",
   prompt = "#m_heg__miewu",
@@ -21,7 +19,7 @@ miewu:addEffect("viewas", {
     local all_names = Fk:getAllCardNames("btd")
     local names = player:getViewAsCardNames(miewu.name, all_names)
     if #names == 0 then return end
-    return U.CardNameBox {choices = names, all_choices = all_names}
+    return UI.CardNameBox {choices = names, all_choices = all_names}
   end,
   handly_pile = true,
   card_filter = function(self, player, to_select, selected)

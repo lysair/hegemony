@@ -13,8 +13,6 @@ Fk:loadTranslationTable{
   ["$ld__aocai2"] = "吾主圣明，泽披臣属。",
 }
 
-local U = require "packages/utility/utility"
-
 aocai:addEffect("viewas",{
   pattern = ".|.|.|.|.|basic",
   anim_type = "defensive",
@@ -27,7 +25,7 @@ aocai:addEffect("viewas",{
     --FIXME: 不支持鏖战（需要特判）
     local all_names = {"slash", "jink", "peach", "analeptic"}
     local names = player:getViewAsCardNames(aocai.name, all_names)
-    return U.CardNameBox {choices = { table.concat(names, ",") }}
+    return UI.CardNameBox {choices = { table.concat(names, ",") }}
   end,
   view_as = function(self, cards)
     if self.interaction.data == nil or self.interaction.data == "" then return end
