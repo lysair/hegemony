@@ -68,8 +68,19 @@ H.addCardToConvertCards("liulongcanjia", "zhuahuangfeidian")
 
 extension:addCardSpec("liulongcanjia", Card.Heart, 13)
 
+local scaly_wings = fk.CreateCard{
+  name = "scaly_wings",
+  type = Card.TypeEquip,
+  sub_type = Card.SubtypeWeapon,
+  attack_range = 0,
+  equip_skill = "#scaly_wings_skill",
+}
+H.addCardToConvertCards("scaly_wings", "qinggang_sword")
+
+extension:addCardSpec("scaly_wings", Card.Spade, 6)
+
 extension:loadCardSkels{
-  dragonPhoenix, peaceSpell, luminousPearl, liulongcanjia
+  dragonPhoenix, peaceSpell, luminousPearl, liulongcanjia, scaly_wings
 }
 
 Fk:loadTranslationTable{
@@ -84,6 +95,10 @@ Fk:loadTranslationTable{
 
   ["liulongcanjia"] = "六龙骖驾",
   [":liulongcanjia"] = "装备牌·坐骑<br /><b>坐骑技能</b>：锁定技，其他角色与你的距离+1，你与其他角色的距离-1；当【六龙骖驾】移至你的装备区后，你将你的装备区里所有其他坐骑牌置入弃牌堆；你不能使用坐骑牌。",
+
+  ["scaly_wings"] = "戢鳞潜翼",
+  [":scaly_wings"] = "装备牌·武器<br/><b>攻击范围</b>：X <br/><b>武器技能</b>：锁定技，此牌的攻击范围为你已损失的体力值；"..
+  "当你使用【杀】指定目标后，你令你攻击范围内不为此【杀】目标的角色不能使用牌直至此【杀】结算后。",
 }
 
 return extension

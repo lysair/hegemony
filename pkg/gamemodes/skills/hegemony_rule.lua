@@ -192,6 +192,8 @@ hegRule:addEffect(fk.GeneralRevealed, {
   can_trigger = can_trigger,
   on_trigger = function(self, event, target, player, data)
     local room = player.room
+    --本轮明置过武将牌
+    room:setPlayerMark(player, "GeneralRevealed-round", 1)
     for _, general_name in pairs(data) do
       if room:getTag("TheFirstToShowRewarded") == player.id and player:getMark("_vanguard_gained") == 0 then
         room:setPlayerMark(player, "_vanguard_gained", 1)
