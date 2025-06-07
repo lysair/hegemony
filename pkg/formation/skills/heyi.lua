@@ -28,7 +28,7 @@ heyi:addEffect(fk.GeneralRevealed, {
 })
 heyi:addEffect(fk.EventLoseSkill, {
   can_refresh = function(self, event, target, player, data)
-    return data.name == heyi.name
+    return data.skill.name == heyi.name
   end,
   on_refresh = on_refresh
 })

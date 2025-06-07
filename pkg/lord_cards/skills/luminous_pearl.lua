@@ -24,8 +24,9 @@ luminousPearlSkill:addEffect("active", {
   end
 })
 local LP_can_refresh = function(self, event, target, player, data)
-  return player == target and (data == Fk.skills["hs__zhiheng"] or data == Fk.skills["ld__lordsunquan_zhiheng"]
-    or data == Fk.skills["wk_heg__zhiheng"]) and table.find(player:getEquipments(Card.SubtypeTreasure), function(cid)
+  local skill = data.skill
+  return player == target and (skill == Fk.skills["hs__zhiheng"] or skill == Fk.skills["ld__lordsunquan_zhiheng"]
+    or skill == Fk.skills["wk_heg__zhiheng"]) and table.find(player:getEquipments(Card.SubtypeTreasure), function(cid)
       return Fk:getCardById(cid).name == "luminous_pearl"
   end)
 end

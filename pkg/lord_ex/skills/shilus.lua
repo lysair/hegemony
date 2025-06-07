@@ -93,7 +93,7 @@ local shilus_spec = {
 
 shilus:addEffect(fk.EventLoseSkill, {
   can_refresh = function(self, event, target, player, data)
-    return player:getMark("@&massacre") ~= 0 and target == player and data == shilus.name
+    return player:getMark("@&massacre") ~= 0 and target == player and data.skill.name == shilus.name
   end,
   on_refresh = shilus_spec.on_refresh,
 })

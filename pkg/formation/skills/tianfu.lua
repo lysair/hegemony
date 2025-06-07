@@ -27,7 +27,7 @@ tianfu:addEffect(fk.GeneralRevealed, {
 })
 tianfu:addEffect(fk.EventLoseSkill, {
   can_refresh = function(self, event, target, player, data)
-    return data.name == tianfu.name
+    return data.skill.name == tianfu.name
   end,
   on_refresh = on_refresh
 })
