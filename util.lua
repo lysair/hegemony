@@ -689,40 +689,87 @@ function H.askToRevealGenerals(player, params)
     cancelable = false,
   })
   -- 先变身君主
-  if convert and (choice:startsWith("revealMain") or choice == "revealAll") and
-    room:askToChoice(player, {
+  local doConvert = false
+  if convert and (choice:startsWith("revealMain") or choice == "revealAll") then
+    local lordGeneral = H.lordGenerals[player:getMark("__heg_general")]
+    doConvert = room:askToChoice(player, {
       choices = {
-        "ConvertToLord:::" .. H.lordGenerals[player:getMark("__heg_general")],
+        "ConvertToLord:::" .. lordGeneral,
         "Cancel",
       },
       skill_name = skill_name,
-    }) ~= "Cancel" then
-    for _, s in ipairs(Fk.generals[player:getMark("__heg_general")]:getSkillNameList()) do
-      local skill = Fk.skills[s]
-      player:loseFakeSkill(skill)
+    }) ~= "Cancel"
+    if doConvert then
+      local normalGeneral = player:getMark("__heg_general")
+      room:setPlayerMark(player, "__heg_general", lordGeneral)
+      -- 以下一坨用来处理技能
+      --room:changeHero(player, lordGeneral, false, false, false, false, false)
+      --player:hideGeneral(false)
+      local tolose = {}
+      for _, s in ipairs(Fk.generals[normalGeneral]:getSkillNameList(true)) do
+        local skill = Fk.skills[s]
+        if player:isFakeSkill(skill) then
+          player:loseFakeSkill(skill)
+        else
+          table.insert(tolose, skill.name)
+        end
+      end
+      local ret = true
+      if player.deputyGeneral == "anjiang" then
+        local other = Fk.generals[player:getMark("__heg_deputy")]
+        for _, sname in ipairs(other:getSkillNameList(true)) do
+          local s = Fk.skills[sname]
+          if s:hasTag(Skill.Compulsory) and not s:hasTag(Skill.MainPlace) and player:isFakeSkill(s) then
+            ret = false
+            break
+          end
+        end
+      end
+      if ret then
+        player:loseFakeSkill("reveal_skill&")
+      end
+
+      local general = Fk.generals[lordGeneral]
+      local skills = general:getSkillNameList(true)
+
+      local function addHegSkill(skill)
+        player:addFakeSkill(skill)
+        local toget = {table.unpack(skill.related_skills)}
+        table.insert(toget, skill)
+        for _, s in ipairs(toget) do
+          if s:isInstanceOf(TriggerSkill) then
+            room.logic:addTriggerSkill(s)
+          end
+        end
+      end
+
+      for _, sn in ipairs(skills) do
+        local s = Fk.skills[sn]
+        addHegSkill(s)
+      end
+
+      -- local general = Fk.generals[lordGeneral]
+      local deputy = Fk.generals[player:getMark("__heg_deputy")]
+      local dmaxHp = deputy.maxHp + deputy.deputyMaxHpAdjustedValue
+      local gmaxHp = general.maxHp + general.mainMaxHpAdjustedValue
+      local maxHp = (dmaxHp + gmaxHp) // 2
+      local num = maxHp - player.maxHp
+      if num > 0 then
+        player.maxHp = maxHp
+        player.hp = player.hp + num
+        room:broadcastProperty(player, "maxHp")
+        room:broadcastProperty(player, "hp")
+      end
+      if (dmaxHp + gmaxHp) % 2 == 1 then -- 重新计算阴阳鱼
+        player:setMark("HalfMaxHpLeft", 1)
+        player:doNotify("SetPlayerMark", json.encode{ player.id, "HalfMaxHpLeft", 1})
+      else
+        player:setMark("HalfMaxHpLeft", 0)
+        player:doNotify("SetPlayerMark", json.encode{ player.id, "HalfMaxHpLeft", 0})
+      end
+      player:setMark("CompanionEffect", 1)
+      player:doNotify("SetPlayerMark", json.encode{ player.id, "CompanionEffect", 1})
     end
-    room:setPlayerMark(player, "__heg_general", H.lordGenerals[player:getMark("__heg_general")])
-    local general = Fk.generals[player:getMark("__heg_general")]
-    local deputy = Fk.generals[player:getMark("__heg_deputy")]
-    local dmaxHp = deputy.maxHp + deputy.deputyMaxHpAdjustedValue
-    local gmaxHp = general.maxHp + general.mainMaxHpAdjustedValue
-    local maxHp = (dmaxHp + gmaxHp) // 2
-    local num = maxHp - player.maxHp
-    if num > 0 then
-      player.maxHp = maxHp
-      player.hp = player.hp + num
-      room:broadcastProperty(player, "maxHp")
-      room:broadcastProperty(player, "hp")
-    end
-    if (dmaxHp + gmaxHp) % 2 == 1 then -- 重新计算阴阳鱼
-      player:setMark("HalfMaxHpLeft", 1)
-      player:doNotify("SetPlayerMark", json.encode{ player.id, "HalfMaxHpLeft", 1})
-    else
-      player:setMark("HalfMaxHpLeft", 0)
-      player:doNotify("SetPlayerMark", json.encode{ player.id, "HalfMaxHpLeft", 0})
-    end
-    player:setMark("CompanionEffect", 1)
-    player:doNotify("SetPlayerMark", json.encode{ player.id, "CompanionEffect", 1})
   end
 
   if choice:startsWith("revealMain") then
@@ -916,21 +963,6 @@ Fk:loadTranslationTable{
   ["removeMain"] = "移除主将 %arg",
   ["removeDeputy"] = "移除副将 %arg",
 }
-
--- TODO: 暗置逻辑重构
-local function addHegSkill(player, skill, room)
-  if skill.frequency == Skill.Compulsory then
-    player:addFakeSkill("reveal_skill&")
-  end
-  player:addFakeSkill(skill)
-  local toget = {table.unpack(skill.related_skills)}
-  table.insert(toget, skill)
-  for _, s in ipairs(toget) do
-    if s:isInstanceOf(TriggerSkill) then
-      room.logic:addTriggerSkill(s)
-    end
-  end
-end
 
 --- 变更武将牌
 ---@param room Room

@@ -20,7 +20,7 @@ tanfeng:addEffect(fk.EventPhaseStart, {
       targets = availableTargets,
       min_num = 1,
       max_num = 1,
-      propmt = "#os_heg__tanfeng-ask",
+      prompt = "#os_heg__tanfeng-ask",
       skill_name = tanfeng.name,
       cancelable = true
     })

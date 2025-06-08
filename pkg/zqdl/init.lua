@@ -5,7 +5,7 @@ extension.game_modes_whitelist = { "nos_heg_mode", "new_heg_mode" }
 extension:loadSkillSkelsByPath("./packages/hegemony/pkg/zqdl/skills")
 
 Fk:loadTranslationTable{
-  ["zqdl"] = "紫气东来",
+  ["zqdl"] = "国战-紫气东来",
   ["zq_heg"] = "紫气",
 }
 
