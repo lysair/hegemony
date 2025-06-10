@@ -15,7 +15,14 @@ dragonPhoenixSkill:addEffect(fk.TargetSpecified, {
   on_use = function(self, event, target, player, data)
     local room = player.room
     -- room:setEmotion(player, "./packages/hegemony/image/anim/dragon_phoenix")
-    room:askForDiscard(data.to, 1, 1, true, dragonPhoenixSkill.name, false, ".", "#dragon_phoenix-invoke")
+    room:askToDiscard(data.to, {
+      min_num = 1,
+      max_num = 1,
+      include_equip = true,
+      skill_name = dragonPhoenixSkill.name,
+      cancelable = false,
+      prompt = "#dragon_phoenix-invoke",
+    })
   end,
 })
 dragonPhoenixSkill:addEffect(fk.EnterDying, {

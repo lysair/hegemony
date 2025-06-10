@@ -24,10 +24,13 @@ fenghuotu:addEffect(fk.EventPhaseStart, {
     local room = player.room
     local skills = {"ld__lordsunquan_yingzi", "ld__lordsunquan_haoshi", "ld__lordsunquan_shelie", "ld__lordsunquan_duoshi"}
     local num = #player:getPile("lord_fenghuo") >= 5 and 2 or 1
-    local result = room:askForCustomDialog(target, fenghuotu.name,
-      "packages/utility/qml/ChooseSkillBox.qml", {
-      table.slice(skills, 1, #player:getPile("lord_fenghuo") + 1), 0, num, "#fenghuotu-choose:::" .. tostring(num)
-    })
+    local result = room:askToCustomDialog(target, {
+      skill_name = fenghuotu.name,
+      qml_path = "packages/utility/qml/ChooseSkillBox.qml",
+      extra_data = {
+        table.slice(skills, 1, #player:getPile("lord_fenghuo") + 1), 0, num, "#fenghuotu-choose:::" .. tostring(num)
+      }
+  })
     if result == "" then return false end
     local choice = json.decode(result)
     if #choice > 0 then
@@ -47,14 +50,23 @@ fenghuotu:addEffect(fk.Damaged, {
     return player == target and player:hasSkill(fenghuotu.name) and #player:getPile("lord_fenghuo") > 0 and type_remove
   end,
   on_cost = function (self, event, target, player, data)
-    local card = player.room:askForCard(player, 1, 1, false, fenghuotu.name, false, ".|.|.|lord_fenghuo", "#ld__jiahe_damaged", "lord_fenghuo")
+    local card = player.room:askToCards(player, {
+      min_num = 1,
+      max_num = 1,
+      include_equip = false,
+      skill_name = fenghuotu.name,
+      pattern = ".|.|.|lord_fenghuo",
+      prompt = "#ld__jiahe_damaged",
+      cancelable = true,
+      expand_pile = "lord_fenghuo",
+    })
     if #card > 0 then
       event:setCostData(self, {cards = card})
       return true
     end
   end,
   on_use = function (self, event, target, player, data)
-    player.room:moveCardTo(event:getCostData(self).cards, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, fenghuotu.name, "lord_fenghuo", true, player.id)
+    player.room:moveCardTo(event:getCostData(self).cards, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, fenghuotu.name, nil, true, player)
   end,
 })
 local fenghuotu_attach = function (player)

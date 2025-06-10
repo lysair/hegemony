@@ -5,14 +5,25 @@ local H = require "packages/hegemony/util"
 
 local yicheng_spec = {
   on_cost = function(self, event, target, player, data)
-    return player.room:askToSkillInvoke(player, {skill_name = yicheng.name, prompt = "#yicheng-ask::" .. target.id})
+    if player.room:askToSkillInvoke(player, {
+      skill_name = yicheng.name,
+      prompt = "#yicheng-ask::" .. target.id,
+    }) then
+      event:setCostData(self, {tos = {target}})
+      return true
+    end
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    room:doIndicate(player.id, {target.id})
     target:drawCards(1, yicheng.name)
     if not target.dead then
-      room:askForDiscard(target, 1, 1, true, yicheng.name, false)
+      room:askToDiscard(target, {
+        min_num = 1,
+        max_num = 1,
+        include_equip = true,
+        skill_name = yicheng.name,
+        cancelable = false,
+      })
     end
   end
 }

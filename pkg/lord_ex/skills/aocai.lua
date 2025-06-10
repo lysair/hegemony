@@ -27,7 +27,7 @@ aocai:addEffect("viewas",{
     local names = player:getViewAsCardNames(aocai.name, all_names)
     return UI.CardNameBox {choices = { table.concat(names, ",") }}
   end,
-  view_as = function(self, cards)
+  view_as = function(self, player, cards)
     if self.interaction.data == nil or self.interaction.data == "" then return end
     local names = string.split(self.interaction.data, ",")
     if #names > 0 then
