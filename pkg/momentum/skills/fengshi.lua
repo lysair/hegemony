@@ -1,5 +1,6 @@
 local fengshi = fk.CreateSkill{
   name = "fengshi",
+  tags = { Skill.Compulsory },
 }
 local H = require "packages/hegemony/util"
 fengshi:addEffect("arraysummon", {

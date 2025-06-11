@@ -1,5 +1,6 @@
 local madai_mashu = fk.CreateSkill{
   name = "heg_madai__mashu",
+  tags = { Skill.Compulsory },
 }
 madai_mashu:addEffect("distance", {
   correct_func = function(self, from, to)

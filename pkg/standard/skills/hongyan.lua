@@ -1,5 +1,6 @@
 local hongyan = fk.CreateSkill{
   name = "hs__hongyan",
+  tags = { Skill.Compulsory },
 }
 hongyan:addEffect("filter", {
   card_filter = function(self, to_select, player, is_judge)
@@ -37,7 +38,7 @@ end)
 
 Fk:loadTranslationTable{
   ["hs__hongyan"] = "红颜",
-  [":hs__hongyan"] = "锁定技，你的黑桃牌视为红桃牌；若你的装备区内有红桃牌，你的手牌上限+1",
+  [":hs__hongyan"] = "锁定技，你的♠牌视为<font color='red'>♥</font>牌；若你的装备区内有<font color='red'>♥</font>牌，你的手牌上限+1",
 }
 
 return hongyan

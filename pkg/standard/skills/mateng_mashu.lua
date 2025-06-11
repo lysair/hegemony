@@ -1,6 +1,7 @@
 
 local mashu = fk.CreateSkill{
   name = "hs_mateng__mashu",
+  tags = { Skill.Compulsory },
 }
 mashu:addEffect("distance", {
   correct_func = function(self, from, to)

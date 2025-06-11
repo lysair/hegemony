@@ -1,5 +1,6 @@
 local niaoxiang = fk.CreateSkill{
   name = "niaoxiang",
+  tags = { Skill.Compulsory },
 }
 niaoxiang:addEffect("arraysummon", {
   array_type = "siege",
