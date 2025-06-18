@@ -589,7 +589,7 @@ heg = fk.CreateGameMode{
         -- 因为建国，修改奖惩；如果还没建国
         if killer.kingdom == "wild" and killer:getMark("__heg_construct_wild") == 0 and killer:getMark("__heg_join_wild") == 0 then
           killer:drawCards(times * 3, "kill")
-        elseif H.compareKingdomWith(killer, victim) then
+        elseif H.compareKingdomWith(killer, victim) and not (room.logic:getCurrentEvent():findParent(GameEvent.Death, true).data.extra_data or {}).ignorePunishment then --朱灵
           killer:throwAllCards("he")
         else
           killer:drawCards(times * (H.getSameKingdomPlayersNum(room, victim) + 1), "kill")

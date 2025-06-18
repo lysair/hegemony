@@ -3,10 +3,11 @@ local dangxian = fk.CreateSkill{
   tags = {Skill.Compulsory},
 }
 local H = require "packages/hegemony/util"
-dangxian:addEffect(fk.EventPhaseEnd, {
+dangxian:addEffect(fk.TurnStart, {
+  anim_type = "offensive",
   can_trigger = function(self, event, target, player, data)
     if target ~= player or not player:hasSkill(dangxian.name) then return false end
-    return player.phase == Player.RoundStart
+    return true
   end,
   on_use = function(self, event, target, player, data)
     player:gainAnExtraPhase(Player.Play)

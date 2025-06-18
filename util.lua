@@ -810,15 +810,17 @@ function H.doHideGeneral(room, player, target, skill_name)
     table.insert(disable_choices, target.deputyGeneral)
   end
   if #disable_choices == 2 then return false end
-  local result = room:askForCustomDialog(player, skill_name,
-  "packages/utility/qml/ChooseGeneralsAndChoiceBox.qml", {
+  local result = room:askToCustomDialog(player,{
+    skill_name = skill_name,
+    qml_path = "packages/utility/qml/ChooseGeneralsAndChoiceBox.qml",
+    extra_data = {
     all_choices,
     {"OK"},
     "#hide_general-ask::" .. target.id .. ":" .. skill_name,
     {},
     1,
     1,
-    disable_choices
+    disable_choices}
   })
   local choice
   if result ~= "" then
@@ -1071,7 +1073,7 @@ end
 
 Fk:loadTranslationTable{
   ["@!!vanguard"] = "先驱",
-  [":@!!vanguard"] = "出牌阶段，你可弃一枚“先驱”，将手牌摸至4张，然后观看一名其他角色的一张暗置武将牌",
+  [":@!!vanguard"] = "出牌阶段，你可弃一枚“先驱”，将手牌摸至4张，然后观看一名其他角色的一张暗置武将牌。",
   ["@!!yinyangfish"] = "阴阳鱼",
   [":@!!yinyangfish"] = "①出牌阶段，你可弃一枚“阴阳鱼”，摸一张牌；②弃牌阶段开始时，你可弃一枚“阴阳鱼”，此回合手牌上限+2。",
   ["@!!companion"] = "珠联璧合",

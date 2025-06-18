@@ -36,10 +36,10 @@ guowu:addEffect(fk.CardUsing, {
   anim_type = "offensive",
   is_delay_effect = true,
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:getMark("ty_heg__guowu-phase") > 0
+    return target == player and player:getMark("ty_heg__guowu-phase") > 2
       and not player.dead and
       (data.card.trueName == "slash") and #data:getExtraTargets() > 0
-      and player:usedEffectTimes(guowu.name, Player.HistoryPhase) < 1
+      and player:usedEffectTimes(self.name, Player.HistoryPhase) < 1
   end,
   on_cost = function (self, event, target, player, data)
     local targets = data:getExtraTargets()
@@ -57,14 +57,16 @@ guowu:addEffect(fk.CardUsing, {
     end
   end,
   on_use = function(self, event, target, player, data)
-    local to = event:getCostData(self).tos[1]
-    data:addTarget(to)
+    local to = event:getCostData(self).tos
+    for _, p in pairs(to) do
+    data:addTarget(p)
+    end
   end,
 })
 
 guowu:addEffect("targetmod", {
   bypass_distances =  function(self, player, skill, card)
-    return card and player:getMark("ty_heg__guowu-phase") > 0
+    return card and player:getMark("ty_heg__guowu-phase") > 1
   end,
 })
 

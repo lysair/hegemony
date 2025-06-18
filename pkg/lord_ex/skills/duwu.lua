@@ -54,7 +54,7 @@ duwu:addEffect("active", {
         events = room.logic.event_recorder[GameEvent.Dying]
         if events then
           for i = x + 1, #events, 1 do
-            if not events[i].data[1].who.dead then
+            if not events[i].data.who.dead then
               room:loseHp(player, 1, duwu.name)
               break
             end
