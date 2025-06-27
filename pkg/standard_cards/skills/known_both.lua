@@ -2,8 +2,6 @@ local knownBothSkill = fk.CreateSkill{
   name = "known_both_skill",
 }
 
-local U = require "packages/utility/utility"
-
 knownBothSkill:addEffect("cardskill", {
   prompt = "#known_both_skill",
   can_use = Util.CanUse,
@@ -30,7 +28,7 @@ knownBothSkill:addEffect("cardskill", {
     if #choices == 0 then return end
     local choice = room:askToChoice(player, {choices = choices, skill_name = "known_both", prompt = "#known_both-choice::"..target.id, cancelable = false, all_choices = all_choices})
     if choice == "known_both_hand" then
-      U.viewCards(player, target:getCardIds("h"), "known_both", "#known_both-hand::"..target.id)
+      room:viewCards(player, { cards = target:getCardIds("h"), skill_name = "known_both", prompt = "#known_both-hand::"..target.id })
       for _, p in ipairs(room:getOtherPlayers(player, false)) do
         p:doNotify("GameLog", json.encode{
           type = "#know_hand",

@@ -2,7 +2,6 @@ local shangyi = fk.CreateSkill{
   name = "shangyi",
 }
 local H = require "packages/hegemony/util"
-local U = require "packages/utility/utility"
 shangyi:addEffect("active", {
   anim_type = "control",
   card_num = 0,
@@ -19,7 +18,7 @@ shangyi:addEffect("active", {
     local player = effect.from
     local target = effect.tos[1]
     if player.dead or target.dead or player:isKongcheng() then return end
-    U.viewCards(target, player:getCardIds("h"), shangyi.name)
+    room:viewCards(target, { cards = player:getCardIds("h"), skill_name = shangyi.name })
     local choices = {}
     if not H.allGeneralsRevealed(target) then
       table.insert(choices, "shangyi_hidden")
@@ -40,12 +39,19 @@ shangyi:addEffect("active", {
         extra_data = general,
       })
     elseif choice == "shangyi_card" then
-      if table.find(target:getCardIds("h"), function(id) return Fk:getCardById(id).color == Card.Black end) then
-        local card, _ = U.askforChooseCardsAndChoice(player, table.filter(target:getCardIds("h"), function(id) return Fk:getCardById(id).color == Card.Black end), 
-        {"OK"}, shangyi.name, "", nil, 1, 1, target:getCardIds("h"))
+      local black = table.filter(target:getCardIds("h"), function(id) return Fk:getCardById(id).color == Card.Black end)
+      if #black > 0 then
+        local card, _ = room:askToChooseCardsAndChoice(player, {
+          cards = black,
+          skill_name = shangyi.name,
+          prompt = "#shangyi_card:" .. target.id,
+          min_num = 1,
+          max_num = 1,
+          all_cards = target:getCardIds("h")
+        })
         room:throwCard(card, shangyi.name, target, player)
       else
-        U.viewCards(player, target:getCardIds("h"), shangyi.name)
+        room:viewCards(player, { cards = target:getCardIds("h"), skill_name = shangyi.name })
       end
     end
   end,
@@ -57,6 +63,8 @@ Fk:loadTranslationTable{
 
   ["shangyi_hidden"] = "观看暗置的武将牌",
   ["shangyi_card"] = "观看所有手牌",
+
+  ["#shangyi_card"] = "尚义：请观看 %src 的手牌并弃置其中一张黑色牌",
 
   ["$shangyi1"] = "大丈夫为人坦荡，看下手牌算什么。",
   ["$shangyi2"] = "敌情已了然于胸，即刻出发！",
