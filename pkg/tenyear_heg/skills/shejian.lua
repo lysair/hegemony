@@ -43,12 +43,7 @@ shejian:addEffect(fk.TargetConfirmed, {
       local choice = room:askToChoice(player, {
         choices = choices,
         skill_name = shejian.name,
-        prompt = "#ty_heg__shejian-choice::"..data.from..":"..n,
-      })
-      room:askToChoice(player, {
-        choices = choices,
-        skill_name = shejian.name,
-        prompt = "#ty_heg__shejian-choice::"..data.from..":"..n,
+        prompt = "#ty_heg__shejian-choice::"..data.from.id..":"..n,
       })
       if choice:startsWith("shejian_discard") then
         local cards = room:askToChooseCards(player, {

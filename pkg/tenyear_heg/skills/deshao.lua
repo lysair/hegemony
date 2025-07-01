@@ -12,7 +12,7 @@ deshao:addEffect(fk.TargetSpecified, {
   on_cost = function(self, event, target, player, data)
     return player.room:askToSkillInvoke(player, {
       skill_name = deshao.name,
-      prompt = "#ty_heg__deshao-invoke::"..data.from,
+      prompt = "#ty_heg__deshao-invoke::"..data.from.id,
     })
   end,
   on_use = function (self, event, target, player, data)

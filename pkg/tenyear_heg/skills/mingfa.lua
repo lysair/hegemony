@@ -15,7 +15,7 @@ mingfa:addEffect("active", {
     return #selected == 0 and to_select ~= player and not H.compareKingdomWith(to_select, player)
   end,
   on_use = function(self, room, effect)
-    room:addTableMark(effect.tos[1], "@@ty_heg__mingfa_delay", effect.from)
+    room:addTableMark(effect.tos[1], "@@ty_heg__mingfa_delay", effect.from.id)
   end,
 })
 

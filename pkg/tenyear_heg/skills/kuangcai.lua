@@ -13,7 +13,7 @@ kuangcai:addEffect(fk.EventPhaseStart, {
       if not used then
         event:setCostData(self, {choice = "noUsed"})
         return true
-      elseif #player.room.logic:getActualDamageEvents(1, function(e) return e.data[1].from == player end) == 0 then
+      elseif #player.room.logic:getActualDamageEvents(1, function(e) return e.data.from == player end) == 0 then
         event:setCostData(self, {choice = "used"})
         return true
       end

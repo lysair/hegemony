@@ -5,8 +5,8 @@ local H = require "packages/hegemony/util"
 buyi:addEffect(fk.AfterDying, {
   anim_type = "support",
   can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(buyi.name) and player:usedSkillTimes(buyi.name) == 0 and target and not target.dead and
-    H.compareKingdomWith(target, player) and not ((data.damage or {}).from or {}).dead
+    return player:hasSkill(buyi.name) and player:usedSkillTimes(buyi.name, Player.HistoryTurn) == 0 and target and not target.dead and
+    H.compareKingdomWith(target, player) and data.damage.from and not data.damage.from.dead
   end,
   on_cost = function(self, event, target, player, data)
     local room = player.room
