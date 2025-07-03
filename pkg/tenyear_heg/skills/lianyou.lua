@@ -31,7 +31,7 @@ lianyou:addEffect(fk.Death, {
   on_use = function(self, event, target, player, data)
     local room = player.room
     local to = event:getCostData(self).tos[1]
-    room:handleAddLoseSkills(room:getPlayerById(to), "xinghuo")
+    room:handleAddLoseSkills(to, "xinghuo")
   end,
 })
 

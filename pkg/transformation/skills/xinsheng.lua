@@ -118,7 +118,7 @@ xinsheng:addEffect(fk.Damaged, {
   end,
 })
 xinsheng:addLoseEffect(function (self, player, is_death)
-  local record = table.simpleClone(player:getMark("@&ld__xing"))
+  local record = table.simpleClone(player:getTableMark("@&ld__xing"))
   for _, s in ipairs(record) do
     removeFangke(player, s)
   end

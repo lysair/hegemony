@@ -52,7 +52,7 @@ quanjin:addAcquireEffect(function(self, player, is_start)
   if is_start then return end
   local room = player.room
   room.logic:getActualDamageEvents(998, function(e)
-    local damage = e.data[1]
+    local damage = e.data
     local to = damage.to
     if to and to:getMark("_quanjin-phase") == 0 then
       room:setPlayerMark(to, "_quanjin-phase", 1)
