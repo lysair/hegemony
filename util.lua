@@ -452,8 +452,9 @@ function H.doCommand(to, skill_name, index, from, forced)
       min_num = 1,
       max_num = 1,
       prompt = "#command1-damage::" .. to.id,
-      skill_name = skill_name}
-    )[1]
+      skill_name = skill_name,
+      cancelable = false,
+    })[1]
     room:sendLog{
       type = "#Command1Damage",
       from = from.id,
