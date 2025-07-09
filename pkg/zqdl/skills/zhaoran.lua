@@ -7,6 +7,9 @@ Fk:loadTranslationTable{
   [":zq_heg__zhaoran"] = "出牌阶段开始前，你可以摸X张牌（X为4-场上势力数），然后未确定势力的角色可以明置一张武将牌，令你结束此回合。",
 
   ["#zq_heg__zhaoran-ask"] = "昭然：是否明置一张武将牌，令 %src 结束此回合？",
+
+  ["$zq_heg__zhaoran1"] = "行昭然于世，赦众贼以威。",
+  ["$zq_heg__zhaoran2"] = "吾之心思，路人皆知。",
 }
 
 local H = require "packages/hegemony/util"

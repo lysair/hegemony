@@ -10,6 +10,9 @@ Fk:loadTranslationTable{
   ["#jy_heg__xijue_xiaoguo-invoke"] = "袭爵：你可以移去弃置一张牌对 %dest 发动〖骁果〗",
   ["#jy_heg__xijue_tuxi-choose"] = "突袭：你可以少摸至多%arg张牌，获得等量其他角色各一张手牌",
   ["#jy_heg__xijue_xiaoguo-invokes"] = "骁果：弃一张基本牌，%dest 需弃置一张装备牌并令你摸一张牌，否则你对其造成1点伤害",
+
+  ["$jy_heg__xijue1"] = "承爵于父，安能辱之！",
+  ["$jy_heg__xijue2"] = "虎父安有犬子乎？",
 }
 
 xijue:addEffect(fk.DrawNCards, {

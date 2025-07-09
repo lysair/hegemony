@@ -9,6 +9,9 @@ Fk:loadTranslationTable{
 
   ["@@jy_heg__sanchen_used-phase"] = "已三陈",
   ["#jy_heg__sanchen-discard"] = "三陈：弃置三张牌，若其中有类别相同的牌，%src暗置",
+
+  ["$jy_heg__sanchen1"] = "陈书弼国，当一而再、再而三。",
+  ["$jy_heg__sanchen2"] = "勘除弼事，三陈而就。",
 }
 
 local H = require "packages/hegemony/util"

@@ -4,7 +4,7 @@ local yingyang = fk.CreateSkill{
 }
 yingyang:addEffect(fk.PindianCardsDisplayed, {
   can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(yingyang.name) and (player == data.from or data.results[player.id])
+    return player:hasSkill(yingyang.name) and (player == data.from or data.results[player])
   end,
   on_cost = function(self, event, target, player, data)
     local choice = player.room:askToChoice(player, {

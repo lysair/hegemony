@@ -1,6 +1,6 @@
 local pozhu = fk.CreateSkill {
   name = "jy_heg__pozhu",
-  tags = {Skill.MainPlace},
+  tags = { Skill.MainPlace },
 }
 
 Fk:loadTranslationTable{
@@ -11,6 +11,9 @@ Fk:loadTranslationTable{
   ["#jy_heg__pozhu-invoke"] = "你可发动 破竹，将一张牌当【杀】使用，<br>" ..
     "结算后你展示唯一目标一张手牌，若两张牌花色不同，你可以重复此流程。",
   ["#jy_heg__pozhu-show"] = "破竹：展示 %dest 的一张手牌",
+
+  ["$jy_heg__pozhu1"] = "攻其不备，摧枯拉朽！",
+  ["$jy_heg__pozhu2"] = "势如破竹，铁锁横江亦难挡！",
 }
 
 pozhu:addEffect(fk.EventPhaseStart, {

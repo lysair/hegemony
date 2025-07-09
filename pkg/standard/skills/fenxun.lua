@@ -22,7 +22,6 @@ fenxun:addEffect("active", {
   end,
 })
 fenxun:addEffect("distance", {
-  name = "#fenxun_distance",
   fixed_func = function(self, from, to)
     if table.contains(from:getTableMark("fenxun-turn"), to.id) then
       return 1

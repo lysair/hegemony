@@ -60,6 +60,9 @@ Fk:loadTranslationTable{
   [":zq_heg__zhuosheng"] = "当你得到牌后，你可以令你本回合使用的下一张牌的伤害值基数+1（不能叠加）。",
 
   ["@@zq_heg__zhuosheng-turn"] = "擢升",
+
+  ["$zq_heg__zhuosheng1"] = "才经世务，干用之绩。",
+  ["$zq_heg__zhuosheng2"] = "器量之远，当至公辅。",
 }
 
 return zhuosheng

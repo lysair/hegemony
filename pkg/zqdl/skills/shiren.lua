@@ -7,6 +7,9 @@ Fk:loadTranslationTable{
   [":zq_heg__shiren"] = "每回合限一次，当一名未确定势力的其他角色受到伤害后，你可以交给其两张牌并摸两张牌。",
 
   ["#zq_heg__shiren-invoke"] = "识人：你可以交给 %dest 两张牌并摸两张牌",
+
+  ["$zq_heg__shiren1"] = "宠过必乱，不可大任。",
+  ["$zq_heg__shiren2"] = "开卷有益，识人有法",
 }
 
 shiren:addEffect(fk.Damaged, {

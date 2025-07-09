@@ -14,6 +14,8 @@ Fk:loadTranslationTable{
   ["zq_heg__simayi"] = "司马懿",
   ["#zq_heg__simayi"] = "应期佐命",
   ["illustrator:zq_heg__simayi"] = "小罗没想好",
+
+  ["~zq_heg__simayi"] = "虎入骷冢，司马难兴。",
 }
 
 local zhangchunhua = General:new(extension, "zq_heg__zhangchunhua", "jin", 3, 3, General.Female)
@@ -41,6 +43,8 @@ Fk:loadTranslationTable{
   ["zq_heg__simazhao"] = "司马昭",
   ["#zq_heg__simazhao"] = "天下畏威",
   ["illustrator:zq_heg__simazhao"] = "君桓文化",
+
+  ["~zq_heg__simazhao"] = "司马三代，一梦成空……",
 }
 
 General:new(extension, "zq_heg__simazhou", "jin", 4):addSkills { "zq_heg__pojing" }
@@ -48,6 +52,8 @@ Fk:loadTranslationTable{
   ["zq_heg__simazhou"] = "司马伷",
   ["#zq_heg__simazhou"] = "温恭的狻猊",
   ["illustrator:zq_heg__simazhou"] = "凝聚永恒",
+
+  ["~zq_heg__simazhou"] = "恩赐重物，病身难消受……",
 }
 
 General:new(extension, "zq_heg__simaliang", "jin", 4):addSkills { "zq_heg__gongzhi", "zq_heg__shejus" }
@@ -69,6 +75,8 @@ Fk:loadTranslationTable{
   ["zq_heg__shibao"] = "石苞",
   ["#zq_heg__shibao"] = "经国之才",
   ["illustrator:zq_heg__shibao"] = "凝聚永恒",
+
+  ["~zq_heg__shibao"] = "寒门出身，难以擢升。",
 }
 
 local yanghuiyu = General:new(extension, "zq_heg__yanghuiyu", "jin", 3, 3, General.Female)
@@ -78,6 +86,8 @@ Fk:loadTranslationTable{
   ["zq_heg__yanghuiyu"] = "羊徽瑜",
   ["#zq_heg__yanghuiyu"] = "克明礼教",
   ["illustrator:zq_heg__yanghuiyu"] = "Jzeo",
+
+  ["~zq_heg__yanghuiyu"] = "韶华易老，佳容不再……",
 }
 
 local wangyuanji = General:new(extension, "zq_heg__wangyuanji", "jin", 3, 3, General.Female)
@@ -87,6 +97,8 @@ Fk:loadTranslationTable{
   ["zq_heg__wangyuanji"] = "王元姬",
   ["#zq_heg__wangyuanji"] = "垂心万物",
   ["illustrator:zq_heg__wangyuanji"] = "六道目",
+
+  ["~zq_heg__wangyuanji"] = "祖父已逝，哀凄悲戚。",
 }
 
 General:new(extension, "zq_heg__weiguan", "jin", 3):addSkills { "zq_heg__chengxi", "zq_heg__jiantong" }
@@ -94,6 +106,8 @@ Fk:loadTranslationTable{
   ["zq_heg__weiguan"] = "卫瓘",
   ["#zq_heg__weiguan"] = "忠允清识",
   ["illustrator:zq_heg__weiguan"] = "Karneval",
+
+  ["~zq_heg__weiguan"] = "辞荣善终，不可求……",
 }
 
 General:new(extension, "zq_heg__jiachong", "jin", 3):addSkills { "zq_heg__chujue", "zq_heg__jianzhi" }
@@ -101,6 +115,8 @@ Fk:loadTranslationTable{
   ["zq_heg__jiachong"] = "贾充",
   ["#zq_heg__jiachong"] = "悖逆篡弑",
   ["illustrator:zq_heg__jiachong"] = "游漫美绘",
+
+  ["~zq_heg__jiachong"] = "任元褒，吾与汝势不两立！",
 }
 
 local guohuaij = General:new(extension, "zq_heg__guohuaij", "jin", 3, 3, General.Female)
@@ -110,6 +126,8 @@ Fk:loadTranslationTable{
   ["zq_heg__guohuaij"] = "郭槐",
   ["#zq_heg__guohuaij"] = "嫉贤妒能",
   ["illustrator:zq_heg__guohuaij"] = "凝聚永恒",
+
+  ["~zq_heg__guohuaij"] = "我死后，切勿从粲、午之言。",
 }
 
 General:new(extension, "zq_heg__wangjun", "jin", 4):addSkill("zq_heg__chengliu")
