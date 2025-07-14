@@ -1,5 +1,6 @@
 local quanji = fk.CreateSkill {
   name = "ld__quanji",
+  derived_piles = "ld__zhonghui_power",
 }
 
 Fk:loadTranslationTable {
@@ -15,7 +16,6 @@ Fk:loadTranslationTable {
 
 quanji:addEffect(fk.Damaged, {
   mute = true,
-  derived_piles = "ld__zhonghui_power",
   can_trigger = function(self, event, target, player, data)
     if target ~= player or not player:hasSkill(quanji.name) or player.dead then return false end
     return player:getMark("_ld__quanji_damaged-turn") == 0
@@ -42,7 +42,6 @@ quanji:addEffect(fk.Damaged, {
 
 quanji:addEffect(fk.Damage, {
   mute = true,
-  derived_piles = "ld__zhonghui_power",
   can_trigger = function(self, event, target, player, data)
     if target ~= player or not player:hasSkill(quanji.name) or player.dead then return false end
     return player:getMark("_ld__quanji_damage-turn") == 0

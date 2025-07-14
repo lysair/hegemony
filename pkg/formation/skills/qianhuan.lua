@@ -1,10 +1,10 @@
 local qianhuan = fk.CreateSkill{
   name = "qianhuan",
+  derived_piles = "yuji_sorcery",
 }
 local H = require "packages/hegemony/util"
 qianhuan:addEffect(fk.Damaged, {
   anim_type = "masochism",
-  derived_piles = "yuji_sorcery",
   can_trigger = function(self, event, target, player, data)
     return player:hasSkill(qianhuan.name) and not target.dead and H.compareKingdomWith(target, player)
       and not player:isNude() and #player:getPile("yuji_sorcery") < 4

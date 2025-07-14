@@ -1,5 +1,6 @@
 local qiuan = fk.CreateSkill {
   name = "ld__qiuan",
+  derived_piles = "ld__mengda_letter",
 }
 
 Fk:loadTranslationTable {
@@ -14,7 +15,6 @@ Fk:loadTranslationTable {
 
 qiuan:addEffect(fk.DamageInflicted, {
   anim_type = "masochism",
-  derived_piles = "ld__mengda_letter",
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(qiuan.name) and data.card
         and #player:getPile("ld__mengda_letter") == 0 and player.room:getCardArea(data.card) == Card.Processing

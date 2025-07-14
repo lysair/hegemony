@@ -1,11 +1,11 @@
 local hongfa = fk.CreateSkill{
   name = "hongfa",
+  derived_piles = "heavenly_army",
   tags = {Skill.Compulsory},
 }
 local H = require "packages/hegemony/util"
 hongfa:addEffect(fk.GeneralRevealed, {
   anim_type = "support",
-  derived_piles = "heavenly_army",
   mute = true,
   can_trigger = function(self, event, target, player, data)
     if target == player and player:hasSkill(hongfa.name, true) then

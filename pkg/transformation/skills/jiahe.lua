@@ -1,5 +1,6 @@
 local jiahe = fk.CreateSkill{
   name = "jiahe",
+  derived_piles = "lord_fenghuo",
   tags = {Skill.Compulsory}
 }
 
@@ -15,7 +16,6 @@ Fk:loadTranslationTable{
 }
 jiahe:addEffect(fk.GeneralRevealed, {
   anim_type = "support",
-  derived_piles = "lord_fenghuo",
   can_trigger = function (self, event, target, player, data)
     if target == player and player:hasSkill(jiahe.name, true) then
       for _, v in pairs(data) do

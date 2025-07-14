@@ -1,5 +1,6 @@
 local tunchu = fk.CreateSkill{
   name = "of_heg__tunchu",
+  derived_piles = "of_heg__lifeng_liang",
 }
 
 Fk:loadTranslationTable{
@@ -15,7 +16,6 @@ Fk:loadTranslationTable{
 
 tunchu:addEffect(fk.DrawNCards, {
   anim_type = "drawcard",
-  derived_piles = "of_heg__lifeng_liang",
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(tunchu.name)
   end,

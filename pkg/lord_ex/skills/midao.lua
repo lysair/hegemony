@@ -1,5 +1,6 @@
 local midao = fk.CreateSkill {
   name = "ld__midao",
+  derived_piles = "ld__midao_rice",
 }
 
 Fk:loadTranslationTable {
@@ -16,7 +17,6 @@ Fk:loadTranslationTable {
 
 midao:addEffect(fk.GeneralRevealed, {
   anim_type = "offensive",
-  derived_piles = "ld__midao_rice",
   can_trigger = function(self, event, target, player, data)
     if player:hasSkill(midao.name) then
       for _, v in pairs(data) do
@@ -47,7 +47,6 @@ midao:addEffect(fk.GeneralRevealed, {
 
 midao:addEffect(fk.AskForRetrial, {
   anim_type = "offensive",
-  derived_piles = "ld__midao_rice",
   can_trigger = function(self, event, target, player, data)
     return player:hasSkill(midao.name) and #player:getPile("ld__midao_rice") > 0
   end,

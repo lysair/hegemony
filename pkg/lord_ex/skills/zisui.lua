@@ -1,5 +1,6 @@
 local zisui = fk.CreateSkill {
   name = "ld__zisui",
+  derived_piles = "ld__gongsunyuan_infidelity",
   tags = { Skill.Compulsory },
 }
 
@@ -13,7 +14,6 @@ Fk:loadTranslationTable {
 
 zisui:addEffect(fk.DrawNCards, {
   anim_type = "drawcard",
-  derived_piles = "ld__gongsunyuan_infidelity",
   can_trigger = function(self, event, target, player, data)
     if not player:hasSkill(zisui.name) or player ~= target then return false end
     if #player:getPile("ld__gongsunyuan_infidelity") > 0 then
@@ -27,7 +27,6 @@ zisui:addEffect(fk.DrawNCards, {
 
 zisui:addEffect(fk.EventPhaseStart, {
   anim_type = "negative",
-  derived_piles = "ld__gongsunyuan_infidelity",
   can_trigger = function(self, event, target, player, data)
     if not player:hasSkill(zisui.name) or player ~= target then return false end
     return player.phase == Player.Finish and #player:getPile("ld__gongsunyuan_infidelity") > player.maxHp

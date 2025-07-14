@@ -1,10 +1,10 @@
 
 local tuntian = fk.CreateSkill{
   name = "ld__tuntian",
+  derived_piles = "ld__dengai_field",
 }
 tuntian:addEffect(fk.AfterCardsMove, {
   anim_type = "special",
-  derived_piles = "ld__dengai_field",
   can_trigger = function(self, event, target, player, data)
     if not (player:hasSkill(tuntian.name) and player.phase == Player.NotActive) then return end
     for _, move in ipairs(data) do
