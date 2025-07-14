@@ -1,7 +1,7 @@
 local tianxiang = fk.CreateSkill{
   name = "hs__tianxiang",
 }
-tianxiang:addEffect(fk.DamageInflicted, {
+tianxiang:addEffect(fk.DetermineDamageInflicted, {
   anim_type = "defensive",
   can_trigger = function(self, event, target, player, data)
     return player:hasSkill(tianxiang.name) and target == player and not player:isKongcheng() and
