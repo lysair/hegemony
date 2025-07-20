@@ -39,7 +39,7 @@ peaceSpellSkill:addEffect(fk.AfterCardsMove, {
   end,
   on_use = function(self, event, target, player, data)
     player:drawCards(2, peaceSpellSkill.name)
-    if player:isAlive() then
+    if player.hp > 1 and player:isAlive() then
       player.room:loseHp(player, 1, peaceSpellSkill.name)
     end
   end,
