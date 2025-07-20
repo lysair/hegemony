@@ -31,13 +31,7 @@ yinsha:addEffect(fk.PreCardEffect, {
     return player:hasSkill(yinsha.name) and data.use and data.use.from == player and data.card.skillName == yinsha.name
   end,
   on_refresh = function(self, event, target, player, data)
-    local card = data.card:clone()
-    local c = table.simpleClone(data.card)
-    for k, v in pairs(c) do
-      card[k] = v
-    end
-    card.skill = Fk.skills["jy_heg__yinsha_collateral_skill"] ---@type Skill
-    data.card = card
+    data:changeCardSkill("jy_heg__yinsha_collateral_skill")
   end,
 })
 
