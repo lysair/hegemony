@@ -25,7 +25,7 @@ lureTigerSkill:addEffect('prohibit', {
     return player:hasMark("@@lure_tiger", MarkEnum.TempMarkSuffix)
   end,
   is_prohibited = function(self, from, to, card)
-    return to:hasMark("@@lure_tiger", MarkEnum.TempMarkSuffix)
+    return to and card and to:hasMark("@@lure_tiger", MarkEnum.TempMarkSuffix)
   end,
 })
 lureTigerSkill:addEffect(fk.PreHpRecover, {
