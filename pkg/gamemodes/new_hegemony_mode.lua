@@ -405,7 +405,7 @@ function HegLogic:prepareDrawPile()
     for i = #allianceCards, 1, -1 do
       local cc = allianceCards[i]
       if c.name == cc[1] and c.suit == cc[2] and c.number == cc[3] then
-        room:setCardMark(c, "@@alliance", 1)
+        room:setCardMark(c, "@@alliance-public", 1)
         table.remove(allianceCards, i)
         break
       end
@@ -693,6 +693,7 @@ Fk:loadTranslationTable{
   ["#WildChooseKingdom"] = "%from 成为 %arg2 ，选择了势力 %arg",
   ["heg: besieged on all sides"] = "四面楚歌，被同一势力围观",
   ["@@alliance"] = "合",
+  ["@@alliance-public"] = "合",
   ["@@alliance-inhand"] = "合",
   ["@@alliance-inhand-turn"] = "合",
   ["@seat"] = "",

@@ -179,7 +179,7 @@ function HegLogic:prepareDrawPile()
     for i = #allianceCards, 1, -1 do
       local cc = allianceCards[i]
       if c.name == cc[1] and c.suit == cc[2] and c.number == cc[3] then
-        room:setCardMark(c, "@@alliance", 1)
+        room:setCardMark(c, "@@alliance-public", 1)
         table.remove(allianceCards, i)
         break
       end

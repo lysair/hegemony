@@ -34,7 +34,7 @@ alliance:addEffect("active", {
 })
 
 Fk:loadTranslationTable{
-  ["alliance&"] = "合纵",
+  ["alliance&"] = "合纵", -- 只要卡牌标记有@@alliance即可
   [":alliance&"] = "出牌阶段限一次，你可将有“合”标记的至多三张手牌交给与你势力不同或未确定势力的一名角色，若你以此法交给与你势力不同的角色牌，你摸等量的牌。",
   ["#alliance&"] = "合纵：你可将至多3张有“合”标记的手牌交给势力不同或无势力的角色，前者你摸等量的牌",
 }
