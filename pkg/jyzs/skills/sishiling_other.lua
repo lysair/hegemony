@@ -42,7 +42,7 @@ skill:addEffect("active",{
             "#sishiling-choose",
         }})
     if result == "" then return false end
-    local choice = json.decode(result)
+    local choice = result
     room:addTableMarkIfNeed(lord[1], "sishiling_used", choice[1])
     if #choice > 0 then
         H.removeGeneral(player, true)

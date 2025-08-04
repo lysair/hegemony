@@ -88,7 +88,7 @@ jianan:addEffect(fk.EventPhaseStart, {
       }
     })
     if result == "" then return false end
-    local choice = json.decode(result)[1]
+    local choice = result[1]
     room:handleAddLoseSkills(target, choice, nil)
     record = target:getTableMark("@jianan_skills")
     table.insert(record, choice)

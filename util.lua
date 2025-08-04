@@ -763,13 +763,13 @@ function H.askToRevealGenerals(player, params)
       end
       if (dmaxHp + gmaxHp) % 2 == 1 then -- 重新计算阴阳鱼
         player:setMark("HalfMaxHpLeft", 1)
-        player:doNotify("SetPlayerMark", json.encode{ player.id, "HalfMaxHpLeft", 1})
+        player:doNotify("SetPlayerMark", { player.id, "HalfMaxHpLeft", 1})
       else
         player:setMark("HalfMaxHpLeft", 0)
-        player:doNotify("SetPlayerMark", json.encode{ player.id, "HalfMaxHpLeft", 0})
+        player:doNotify("SetPlayerMark", { player.id, "HalfMaxHpLeft", 0})
       end
       player:setMark("CompanionEffect", 1)
-      player:doNotify("SetPlayerMark", json.encode{ player.id, "CompanionEffect", 1})
+      player:doNotify("SetPlayerMark", { player.id, "CompanionEffect", 1})
     end
   end
 
@@ -825,7 +825,7 @@ function H.doHideGeneral(room, player, target, skill_name)
   })
   local choice
   if result ~= "" then
-    local reply = json.decode(result)
+    local reply = result
     choice = reply.cards[1]
   else
     choice = table.find(all_choices, function(g)
@@ -900,8 +900,8 @@ Fk:addGameEvent(H.RemoveGeneral, nil, function(self)
   local player, isDeputy = rgdata.who, rgdata.isDeputy
   player:setMark("CompanionEffect", 0)
   player:setMark("HalfMaxHpLeft", 0)
-  player:doNotify("SetPlayerMark", json.encode{ player.id, "CompanionEffect", 0})
-  player:doNotify("SetPlayerMark", json.encode{ player.id, "HalfMaxHpLeft", 0})
+  player:doNotify("SetPlayerMark", { player.id, "CompanionEffect", 0})
+  player:doNotify("SetPlayerMark", { player.id, "HalfMaxHpLeft", 0})
 
   --if player.kingdom == "unknown" then player:revealGeneral(isDeputy, true) end 
   player:revealGeneral(isDeputy, true) -- 先摆

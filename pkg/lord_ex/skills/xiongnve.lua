@@ -47,7 +47,7 @@ xiongnve:addEffect(fk.EventPhaseStart, {
       }
     })
     if result ~= "" then
-      local reply = json.decode(result)
+      local reply = result
       if reply.choice ~= "Cancel" then
         event:setCostData(self, { cards = reply.cards, choice = reply.choice })
         return true
@@ -103,7 +103,7 @@ xiongnve:addEffect(fk.EventPhaseEnd, {
       }
     })
     if result ~= "" then
-      local reply = json.decode(result)
+      local reply = result
       if reply.choice == "OK" then
         event:setCostData(self, { cards = reply.cards })
         return true

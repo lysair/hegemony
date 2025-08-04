@@ -53,7 +53,7 @@ tieqi:addEffect(fk.TargetSpecified, {
           }
         })
         if result ~= "" then
-          choice = json.decode(result).cards
+          choice = result.cards
         else
           choice = table.random(choices, 1)
         end

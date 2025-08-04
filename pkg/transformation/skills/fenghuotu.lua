@@ -32,7 +32,7 @@ fenghuotu:addEffect(fk.EventPhaseStart, {
       }
   })
     if result == "" then return false end
-    local choice = json.decode(result)
+    local choice = result
     if #choice > 0 then
       room:handleAddLoseSkills(target, table.concat(choice, "|"), nil, true, false)
       room.logic:getCurrentEvent():findParent(GameEvent.Turn):addCleaner(function()

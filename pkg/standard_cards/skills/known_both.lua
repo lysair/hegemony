@@ -30,7 +30,7 @@ knownBothSkill:addEffect("cardskill", {
     if choice == "known_both_hand" then
       room:viewCards(player, { cards = target:getCardIds("h"), skill_name = "known_both", prompt = "#known_both-hand::"..target.id })
       for _, p in ipairs(room:getOtherPlayers(player, false)) do
-        p:doNotify("GameLog", json.encode{
+        p:doNotify("GameLog", {
           type = "#know_hand",
           from = player.id,
           to = {target.id},
@@ -45,7 +45,7 @@ knownBothSkill:addEffect("cardskill", {
         extra_data = general,
       })
       for _, p in ipairs(room:getOtherPlayers(player, false)) do
-        p:doNotify("GameLog", json.encode{
+        p:doNotify("GameLog", {
           type = "#know_general",
           from = player.id,
           to = {target.id},
@@ -59,7 +59,7 @@ knownBothSkill:addEffect("cardskill", {
         arg = choice == "known_both_main" and "mainGeneral" or "deputyGeneral",
         arg2 = choice == "known_both_main" and target:getMark("__heg_general") or target:getMark("__heg_deputy"),
       }
-      player:doNotify("GameLog", json.encode(log))
+      player:doNotify("GameLog", log)
     end
   end,
 })

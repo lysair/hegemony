@@ -161,11 +161,11 @@ function HegLogic:broadcastGeneral()
 
     if (dmaxHp + gmaxHp) % 2 == 1 then
       p:setMark("HalfMaxHpLeft", 1)
-      p:doNotify("SetPlayerMark", json.encode{ p.id, "HalfMaxHpLeft", 1})
+      p:doNotify("SetPlayerMark", { p.id, "HalfMaxHpLeft", 1})
     end
     if general:isCompanionWith(deputy) then
       p:setMark("CompanionEffect", 1)
-      p:doNotify("SetPlayerMark", json.encode{ p.id, "CompanionEffect", 1})
+      p:doNotify("SetPlayerMark", { p.id, "CompanionEffect", 1})
     end
   end
 end
@@ -209,7 +209,7 @@ function HegLogic:attachSkillToPlayers()
   for _, p in ipairs(room.alive_players) do
     -- UI
     p:setMark("@seat", "seat#" .. tostring(p.seat))
-    p:doNotify("SetPlayerMark", json.encode{ p.id, "@seat", "seat#" .. tostring(p.seat)})
+    p:doNotify("SetPlayerMark", { p.id, "@seat", "seat#" .. tostring(p.seat)})
 
     local general = Fk.generals[p:getMark("__heg_general")]
     local skills = table.connect(general.skills, table.map(general.other_skills, Util.Name2SkillMapper))

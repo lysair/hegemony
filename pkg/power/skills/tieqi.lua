@@ -50,7 +50,7 @@ tieqi:addEffect(fk.TargetSpecified, {
             disable_choices }
         })
         if result ~= "" then
-          local reply = json.decode(result)
+          local reply = result
           choice = reply.cards
         else
           choice = table.random(choices, 1)

@@ -67,9 +67,9 @@ xinsheng:addEffect(fk.EventPhaseStart, {
     if m == 0 or #m < 2 then
       local all_xing = room:getNGenerals(5)
       local result = room:askToCustomDialog(player, {
-       skill_name = xinsheng.name,
-       qml_path =  "packages/utility/qml/ChooseGeneralsAndChoiceBox.qml",
-       extra_data = {
+        skill_name = xinsheng.name,
+        qml_path =  "packages/utility/qml/ChooseGeneralsAndChoiceBox.qml",
+        extra_data = {
         all_xing,
         {"OK"},
         "#ld__xinshen_xing2",
@@ -78,7 +78,7 @@ xinsheng:addEffect(fk.EventPhaseStart, {
         2
       }})
       if result ~= "" then
-        local reply = json.decode(result)
+        local reply = result
         generals = reply.cards
       else
         generals = table.random(all_xing, 2)
@@ -96,7 +96,7 @@ xinsheng:addEffect(fk.EventPhaseStart, {
         }
       })
       if result ~= "" then
-        local reply = json.decode(result)
+        local reply = result
         choice = reply.cards[1]
       else
         choice = table.random(choices) ---@type string
