@@ -1254,4 +1254,17 @@ H.PlayerRemoved = H.RemovePlayerEvent:subclass("H.PlayerRemoved")
 ---@field public addEffect fun(self: SkillSkeleton, key: H.RemovePlayerEvent,
 ---  data: TrigSkelSpec<PlayerRemoveTrigFunc>, attr: TrigSkelAttribute?): SkillSkeleton
 
+
+-- 用于选武将牌的 interaction type ，和UI.ComboBox差不多，照着用就行
+-- 必输参数：可选牌名choices；可输参数：全部牌名all_choices
+-- For 役鬼
+function H.GeneralCardNameBox(spec)
+  spec.choices = type(spec.choices) == "table" and spec.choices or Util.DummyTable
+  spec.all_choices = type(spec.all_choices) == "table" and spec.all_choices or spec.choices
+  spec.default_choice = spec.default_choice and spec.default_choice or spec.choices[1]
+  spec.type = "custom"
+  spec.qml_path = "packages/hegemony/qml/SkillGeneralCardName"
+  return spec
+end
+
 return H

@@ -171,7 +171,7 @@ hegRule:addEffect(fk.GameOverJudge, {
       -- 然后判断场上所有人势力是否相同
       local _kingdom2 = {}
       for _, p in ipairs(room.alive_players) do
-        if not table.contains(_kingdom2, p.kingdom) then
+        if not table.contains(_kingdom2, p.kingdom) and p.kingdom ~= "unknown" then
           table.insert(_kingdom2, p.kingdom)
         end
       end
@@ -266,7 +266,11 @@ hegRule:addEffect(fk.GeneralShown, {
       -- end
     elseif player:getMark("__heg_join_wild") == 0 and player:getMark("__heg_construct_wild") == 0 then
       if player:getMark("__heg_wild") == 1 then
-        room:setPlayerProperty(player, "role", H.kingdomMapper[player.general])
+        if player.general == "anjiang" then
+          room:setPlayerProperty(player, "role",  player:getMark("__heg_kingdom")) --修复主将野人没身份
+        else
+          room:setPlayerProperty(player, "role",  player.role or H.kingdomMapper[player.general] or "wild") -- 修复没国野人
+        end
       else
         room:setPlayerProperty(player, "role", player.kingdom)
       end
