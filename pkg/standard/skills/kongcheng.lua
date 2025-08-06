@@ -32,7 +32,7 @@ kongcheng:addEffect(fk.BeforeCardsMove, {
         local mirror_info = move.moveInfo
         if #mirror_info > 0 then
           move.moveInfo = {}
-          local mirror_move = move:copy()
+          local mirror_move = table.simpleClone(move)
           mirror_move.toArea = Card.PlayerSpecial
           mirror_move.specialName = "zither"
           mirror_move.moveVisible = true

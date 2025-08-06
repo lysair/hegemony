@@ -128,7 +128,7 @@ qianhuan:addEffect(fk.BeforeCardsMove, {
         end
         if #mirror_info > 0 then
           move.moveInfo = move_info
-          local mirror_move = move:copy()
+          local mirror_move = table.simpleClone(move)
           mirror_move.to = nil
           mirror_move.toArea = Card.DiscardPile
           mirror_move.moveInfo = mirror_info

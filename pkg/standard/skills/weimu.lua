@@ -49,7 +49,6 @@ weimu:addEffect(fk.BeforeCardsMove, {
           local id = info.cardId
           if info.fromArea == Card.PlayerJudge then
             source = move.from or player
-            --print(source.general)
           else
             source = player
           end
@@ -64,8 +63,7 @@ weimu:addEffect(fk.BeforeCardsMove, {
         end
         if #mirror_info > 0 then
           move.moveInfo = move_info
-          local mirror_move = move:copy()
-          --print((move.from or {}).general, Fk:getCardById(mirror_info[1].cardId).name, (mirror_move.to or {}).general, mirror_info[1].fromArea)
+          local mirror_move = table.simpleClone(move)
           mirror_move.to = nil
           mirror_move.toArea = Card.DiscardPile
           mirror_move.moveInfo = mirror_info

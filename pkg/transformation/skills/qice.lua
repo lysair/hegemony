@@ -13,7 +13,7 @@ qice:addEffect("active", {
         table.insert(all_names, card.name)
         local to_use = Fk:cloneCard(card.name)
         to_use:addSubcards(handcards)
-        if player:canUse(to_use) and not player:prohibitUse(to_use) then
+        if player:canUse(to_use) then
           local x = 0
           if to_use.multiple_targets and to_use.skill:getMinTargetNum(player) == 0 then
             for _, p in ipairs(Fk:currentRoom().alive_players) do
@@ -29,7 +29,7 @@ qice:addEffect("active", {
       end
     end
     if #names == 0 then return end
-    return UI.ComboBox {choices = names, all_choices = all_names}
+    return UI.CardNameBox { choices = names, all_choices = all_names }
   end,
   card_num = 0,
   min_target_num = 0,
@@ -64,7 +64,7 @@ qice:addEffect("active", {
     local to_use = Fk:cloneCard(self.interaction.data)
     to_use.skillName = qice.name
     to_use:addSubcards(player:getCardIds("h"))
-    return to_use.skill:feasible(selected, selected_cards, player, to_use)
+    return to_use.skill:feasible(player, selected, selected_cards, to_use)
   end,
   on_use = function(self, room, effect)
     local player = effect.from
