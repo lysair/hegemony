@@ -5,20 +5,18 @@ local qianxun = fk.CreateSkill{
 }
 qianxun:addEffect(fk.TargetConfirming, {
   anim_type = "defensive",
-  mute = true,
+  audio_index = 2,
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(qianxun.name) and (data.card.trueName == "snatch") -- or data.card.trueName == "indulgence")
   end,
   on_use = function(self, event, target, player, data)
-    player.room:notifySkillInvoked(player, qianxun.name)
-    player:broadcastSkillInvoke(qianxun.name, 2)
     data:cancelTarget(player)
   end
 })
 
 qianxun:addEffect(fk.BeforeCardsMove, {
   anim_type = "defensive",
-  mute = true,
+  audio_index = 1,
   can_trigger = function (self, event, target, player, data)
     if not player:hasSkill(qianxun.name) then return false end
     local id = 0
@@ -44,9 +42,6 @@ qianxun:addEffect(fk.BeforeCardsMove, {
     end
   end,
   on_use = function (self, event, target, player, data)
-    local room = player.room
-    room:notifySkillInvoked(player, qianxun.name)
-    player:broadcastSkillInvoke(qianxun.name, 1)
     local source = player
     local mirror_moves = {}
     local ids = {}
@@ -72,7 +67,7 @@ qianxun:addEffect(fk.BeforeCardsMove, {
         end
         if #mirror_info > 0 then
           move.moveInfo = move_info
-          local mirror_move = table.simpleClone(move)
+          local mirror_move = move:copy()
           mirror_move.to = nil
           mirror_move.toArea = Card.DiscardPile
           mirror_move.moveInfo = mirror_info

@@ -36,7 +36,7 @@ zhangwu:addEffect(fk.BeforeCardsMove, {
         end
         if #mirror_info > 0 then
           move.moveInfo = move_info
-          local mirror_move = table.simpleClone(move)
+          local mirror_move = move:copy()
           mirror_move.to = nil
           mirror_move.toArea = Card.DrawPile
           mirror_move.drawPilePosition = -1

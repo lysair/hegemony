@@ -63,7 +63,7 @@ weimu:addEffect(fk.BeforeCardsMove, {
         end
         if #mirror_info > 0 then
           move.moveInfo = move_info
-          local mirror_move = table.simpleClone(move)
+          local mirror_move = move:copy()
           mirror_move.to = nil
           mirror_move.toArea = Card.DiscardPile
           mirror_move.moveInfo = mirror_info
@@ -76,10 +76,6 @@ weimu:addEffect(fk.BeforeCardsMove, {
     if #ids > 0 then
       local room = player.room
       table.insertTable(data, mirror_moves)
-      --[[ room:sendLog{
-        type = "#destructDerivedCards", -- 假的
-        card = ids,
-      } ]]
     end
   end
 })
