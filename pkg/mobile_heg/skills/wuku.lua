@@ -18,7 +18,7 @@ local H = require "packages/hegemony/util"
 wuku:addEffect(fk.CardUsing, {
   can_trigger = function(self, event, target, player, data)
     return player:hasSkill(wuku.name) and data.card.type == Card.TypeEquip and
-      H.compareKingdomWith(target, player, false) and player:getMark("@m_heg__wuku") < 2
+      H.compareKingdomWith(target, player, true) and player:getMark("@m_heg__wuku") < 2
   end,
   on_use = function(self, event, target, player, data)
     player.room:addPlayerMark(player, "@m_heg__wuku")
