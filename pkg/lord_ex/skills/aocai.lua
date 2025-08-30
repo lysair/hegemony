@@ -18,47 +18,56 @@ aocai:addEffect("viewas",{
   anim_type = "defensive",
   prompt = "#ld__aocai",
   card_filter = Util.FalseFunc,
-  interaction = function(self, player)
-    --FIXME: 不支持平辽（打出一张特定颜色的牌）、使用一张基本牌（因为不能正确地选择目标）的技能
-    --FIXME: 建议简化为只能使用【杀】、【闪】、【桃】、【酒】（管宁直呼内行）
-    --FIXME: 多牌名时会显示英文
-    --FIXME: 不支持鏖战（需要特判）
-    local all_names = {"slash", "jink", "peach", "analeptic"}
-    local names = player:getViewAsCardNames(aocai.name, all_names)
-    return UI.CardNameBox {choices = { table.concat(names, ",") }}
-  end,
-  view_as = function(self, player, cards)
-    if self.interaction.data == nil or self.interaction.data == "" then return end
-    local names = string.split(self.interaction.data, ",")
-    if #names > 0 then
-      local card = Fk:cloneCard(names[1])
-      card:setMark("aocai_names", names)
-      return card
-    end
-  end,
-  before_use = function(self, player, use)
-    local room = player.room
-    local names = use.card:getMark("aocai_names")
+  view_as = Util.DummyFunc,
+  feasible = Util.TrueFunc,
+  on_use = function(self, room, cardUseEvent, _, params)
+    local player = cardUseEvent.from
     local cards = room:getNCards(2)
-    --FIXME: 需要判断合法性，但是没法区分是使用还是打出
-    local ids = table.filter(cards, function (id)
-      return table.contains(names, Fk:getCardById(id).trueName)
-    end)
-    cards = room:askToCards(player,{
-      min_num = 1,
-      max_num = 1,
-      include_equip = false,
-      skill_name = aocai.name,
-      pattern = tostring(Exppattern{ id = ids }),
-      prompt = "#ld__aocai-choose",
-      expand_pile = cards,
-      cancelable = true,
-    })
-    if #cards > 0 then
-      use.card = Fk:getCardById(cards[1])
+    if ((params or {}).is_response) then
+      local ids = table.filter(cards, function(cid)
+        local card = Fk:getCardById(cid)
+        return not player:prohibitResponse(card) and card:matchPattern(params.pattern)
+      end)
+      cards = room:askToCards(player,{
+        min_num = 1,
+        max_num = 1,
+        include_equip = false,
+        skill_name = aocai.name,
+        pattern = tostring(Exppattern{ id = ids }),
+        prompt = "#ld__aocai-choose",
+        expand_pile = cards,
+        cancelable = true,
+      })
+      if #cards > 0 then
+        ---@type UseCardDataSpec
+        local use = {
+          from = player,
+          tos = {},
+          card = Fk:getCardById(cards[1]),
+        }
+        return use
+      end
     else
-      return aocai.name
+      --askToUseRealCard 的extra_data.not_passive默认值为true，缺省值需重新配置
+      local extra_data = (params or {}).extra_data or {}
+      extra_data.not_passive = extra_data.not_passive or false
+      local use = room:askToUseRealCard(player, {
+        pattern = table.filter(cards, function(cid)
+          local card = Fk:getCardById(cid)
+          return card:matchPattern(params.pattern)
+        end),
+        skill_name = aocai.name,
+        prompt = "#ld__aocai-choose",
+        extra_data = extra_data,
+        cancelable = true,
+        skip = true,
+        expand_pile = cards
+      })
+      if use then
+        return use
+      end
     end
+    return aocai.name
   end,
   enabled_at_play = Util.FalseFunc,
   enabled_at_response = function(self, player, response)
