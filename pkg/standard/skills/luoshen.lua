@@ -18,7 +18,7 @@ luoshen:addEffect(fk.EventPhaseStart, {
       }
       room:judge(judge)
       local card = judge.card
-      if card.color == Card.Black then
+      if judge:matchPattern() then
         table.insert(cardsJudged, card)
       elseif room:getCardArea(card) == Card.Processing then
         room:moveCardTo(card, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, luoshen.name, nil, true, player)

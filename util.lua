@@ -1035,7 +1035,7 @@ function H.inGeneralSkills(player, skill)
   if type(skill) ~= "string" then skill = skill.name end
   if table.contains(Fk.generals[player.general]:getSkillNameList(), skill) then
     return "m"
-  elseif player.deputyGeneral and table.contains(Fk.generals[player.deputyGeneral]:getSkillNameList(), skill) then
+  elseif player.deputyGeneral ~= "" and table.contains(Fk.generals[player.deputyGeneral]:getSkillNameList(), skill) then
     return "d"
   end
   return nil
