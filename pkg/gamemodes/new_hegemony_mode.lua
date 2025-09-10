@@ -503,7 +503,7 @@ heg = fk.CreateGameMode{
     "lord_ex",
     "offline_heg",
     "zqdl",
-
+    "sxfy",
     "lord_cards",
   },
   winner_getter = function(self, victim)

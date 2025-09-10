@@ -18,6 +18,19 @@ Fk:loadTranslationTable{
   ["~of_heg__lifeng"] = "吾，有负丞相重托。",
 }
 
+local caoying = General:new(extension,"offline_heg__caoying", "wei", 4, 4, General.Female)
+caoying:addSkills{ "tyta__lingren","tyta__fujian" }
+caoying:addCompanions{"st_heg__caocao","st_heg__caopi"}
+Fk:loadTranslationTable{
+  ["offline_heg__caoying"] = "曹婴",
+  ["#offline_heg__caoying"] = "龙城凤鸣",
+  ["cv:offline_heg__caoying"] = "水原",
+  ["illustrator:offline_heg__caoying"] = "花弟",
+
+  ["~offline_heg__caoying"] = "曹魏天下存，魂归故土安……",
+}
+
+
 local yangwan = General:new(extension, "ty_heg__yangwan", "shu", 3, 3,General.Female) -- 保留原本的前缀
 yangwan:addSkills{"ty_heg__youyan", "ty_heg__zhuihuan"}
 yangwan:addCompanions("hs__machao")
