@@ -503,7 +503,7 @@ heg = fk.CreateGameMode{
     "lord_ex",
     "offline_heg",
     "zqdl",
-    "sxfy",
+    "sixiangfengyin",
     
     "lord_cards",
   },
